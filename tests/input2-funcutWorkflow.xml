@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<b:dataThingMap xmlns:b="http://org.embl.ebi.escience/baclava/0.1alpha">
+  <b:dataThing key="length of sequence">
+    <b:myGridDataDocument lsid="" syntactictype="'text/plain'">
+      <s:metadata xmlns:s="http://org.embl.ebi.escience/xscufl/0.1alpha">
+        <s:mimeTypes>
+          <s:mimeType>text/plain</s:mimeType>
+        </s:mimeTypes>
+      </s:metadata>
+      <b:dataElement lsid="">
+        <b:dataElementData>MjEz</b:dataElementData>
+      </b:dataElement>
+    </b:myGridDataDocument>
+  </b:dataThing>
+  <b:dataThing key="aminoacid id">
+    <b:myGridDataDocument lsid="" syntactictype="'text/plain'">
+      <s:metadata xmlns:s="http://org.embl.ebi.escience/xscufl/0.1alpha">
+        <s:mimeTypes>
+          <s:mimeType>text/plain</s:mimeType>
+        </s:mimeTypes>
+      </s:metadata>
+      <b:dataElement lsid="">
+        <b:dataElementData>UDQ4MDQ3</b:dataElementData>
+      </b:dataElement>
+    </b:myGridDataDocument>
+  </b:dataThing>
+  <b:dataThing key="aminoacid sequence">
+    <b:myGridDataDocument lsid="" syntactictype="'text/plain'">
+      <s:metadata xmlns:s="http://org.embl.ebi.escience/xscufl/0.1alpha">
+        <s:mimeTypes>
+          <s:mimeType>text/plain</s:mimeType>
+        </s:mimeTypes>
+      </s:metadata>
+      <b:dataElement lsid="">
+        <b:dataElementData>TUFBUEFWU0dMU1JRVlJDRlNUU1ZWUlBGQUtMVlJQUFZRVllHSUVHUllBVEFMWVNBQVNLUU5LTEVR
+VkVLRUxMUlZBUUlMS0VQS1ZBQVNWTE5QWVZLUlNJS1ZLU0xORElUQUtFUkZTUExUVE5MSU5MTEFF
+TkdSTFNOVFFHVlZTQUZTVE1NU1ZIUkdFVlBDVFZUU0FTUExFRUFUTFNFTEtUVkxLU0ZMU1FHUVZM
+S0xFQUtURFBTSUxHR01JVlJJR0VLWVZETVNWS1RLSVFLTEdSQU1SRUlW</b:dataElementData>
+      </b:dataElement>
+    </b:myGridDataDocument>
+  </b:dataThing>
+</b:dataThingMap>
+

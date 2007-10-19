@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s:scufl xmlns:s="http://org.embl.ebi.escience/xscufl/0.1alpha" version="0.2" log="0">
+  <s:workflowdescription lsid="urn:lsid:www.mygrid.org.uk:operation:SOWUXPE5TJ0" author="" title=""/>
+  <s:processor name="xpath" boring="true">
+    <s:stringconstant>//*[local-name(.)='iHOPsymbol']/@id</s:stringconstant>
+  </s:processor>
+  <s:processor name="interactorsXPath" boring="true">
+    <s:stringconstant>//*[local-name(.)='evidence']/@symbol</s:stringconstant>
+  </s:processor>
+  <s:processor name="extractSymbols">
+    <s:local>net.sourceforge.taverna.scuflworkers.xml.XPathTextWorker</s:local>
+  </s:processor>
+  <s:processor name="extractInteractors">
+    <s:local>net.sourceforge.taverna.scuflworkers.xml.XPathTextWorker</s:local>
+  </s:processor>
+  <s:processor name="Remove_duplicate_strings">
+    <s:local>org.embl.ebi.escience.scuflworkers.java.StringStripDuplicates</s:local>
+  </s:processor>
+  <s:processor name="getRelatedSymbols">
+    <s:arbitrarywsdl>
+      <s:wsdl>http://ubio.bioinfo.cnio.es/biotools/iHOP/iHOP-SOAP.wsdl</s:wsdl>
+      <s:operation>getRelatedSymbols</s:operation>
+    </s:arbitrarywsdl>
+  </s:processor>
+  <s:processor name="getSymbolInteractionsFromIHOP">
+    <s:arbitrarywsdl>
+      <s:wsdl>http://ubio.bioinfo.cnio.es/biotools/iHOP/iHOP-SOAP.wsdl</s:wsdl>
+      <s:operation>getSymbolInteractionsFromIHOP</s:operation>
+    </s:arbitrarywsdl>
+  </s:processor>
+  <s:processor name="extractPMID">
+    <s:local>net.sourceforge.taverna.scuflworkers.xml.XPathTextWorker</s:local>
+  </s:processor>
+  <s:processor name="iHOPpmidXPath" boring="true">
+    <s:stringconstant>//*[local-name(.)='iHOPsentence']/@iHOPpmid</s:stringconstant>
+  </s:processor>
+  <s:processor name="getPubMedFromIHOP">
+    <s:arbitrarywsdl>
+      <s:wsdl>http://ubio.bioinfo.cnio.es/biotools/iHOP/iHOP-SOAP.wsdl</s:wsdl>
+      <s:operation>getPubMedFromIHOP</s:operation>
+    </s:arbitrarywsdl>
+  </s:processor>
+  <s:link source="gene input" sink="getRelatedSymbols:input"/>
+  <s:link source="extractPMID:nodelist" sink="getPubMedFromIHOP:ihoppmid"/>
+  <s:link source="Remove_duplicate_strings:strippedlist" sink="Genes"/>
+  <s:link source="extractInteractors:nodelist" sink="Remove_duplicate_strings:stringlist"/>
+  <s:link source="extractSymbols:nodelist" sink="Symbols"/>
+  <s:link source="extractSymbols:nodelist" sink="getSymbolInteractionsFromIHOP:ihopid"/>
+  <s:link source="getPubMedFromIHOP:result" sink="related PubMed"/>
+  <s:link source="getRelatedSymbols:result" sink="extractSymbols:xml-text"/>
+  <s:link source="getSymbolInteractionsFromIHOP:result" sink="extractInteractors:xml-text"/>
+  <s:link source="getSymbolInteractionsFromIHOP:result" sink="extractPMID:xml-text"/>
+  <s:link source="iHOPpmidXPath:value" sink="extractPMID:xpath"/>
+  <s:link source="interactorsXPath:value" sink="extractInteractors:xpath"/>
+  <s:link source="xpath:value" sink="extractSymbols:xpath"/>
+  <s:link source="getRelatedSymbols:result" sink="related symbols"/>
+  <s:source name="gene input"/>
+  <s:sink name="related symbols"/>
+  <s:sink name="Symbols"/>
+  <s:sink name="Genes"/>
+  <s:sink name="related PubMed"/>
+</s:scufl>

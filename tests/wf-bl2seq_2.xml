@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s:scufl xmlns:s="http://org.embl.ebi.escience/xscufl/0.1alpha" version="0.2" log="0">
+  <s:workflowdescription lsid="urn:lsid:www.mygrid.org.uk:operation:AHTHN6PNI32" author="" title="wf-bl2seq_2" />
+  <s:processor name="DNACreateObject">
+    <s:local>org.embl.ebi.escience.scuflworkers.biomoby.CreateMobyData</s:local>
+  </s:processor>
+  <s:processor name="AAcreateObject">
+    <s:local>org.embl.ebi.escience.scuflworkers.biomoby.CreateMobyData</s:local>
+  </s:processor>
+  <s:processor name="multipleInputn">
+    <s:beanshell>
+      <s:scriptvalue>import org.jdom.output.*;
+import org.jdom.Namespace;
+import org.jdom.input.*;
+import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.lang.String;
+import javax.xml.parsers.*;
+import org.xml.sax.*;
+//import org.apache.xml.serialize.XMLSerializer;
+import org.w3c.dom.*;
+
+Namespace mobyNS = Namespace.getNamespace("moby","http://www.biomoby.org/moby");
+String namespaceValue="namesP";
+
+moby1 = (String) input1;
+moby2 = (String) input2;
+
+DocumentBuilderFactory dbf=DocumentBuilderFactory.newInstance();
+DocumentBuilder db = dbf.newDocumentBuilder();
+
+InputSource source1 = new InputSource(new StringReader(moby1));
+Document doc1=db.parse(source1);
+InputSource source2 = new InputSource(new StringReader(moby2));
+Document doc2=db.parse(source2);
+
+org.jdom.input.DOMBuilder dbJdom = new org.jdom.input.DOMBuilder();
+//org.jdom.Element mobyDataj1 = dbJdom.build(doc1.getFirstChild().getFirstChild().getFirstChild());
+org.jdom.Element mobyDataj1 = dbJdom.build(doc1.getElementsByTagName("moby:Simple").item(0));
+org.jdom.Element mobyDataj2 = dbJdom.build(doc2.getElementsByTagName("moby:Simple").item(0));
+
+org.jdom.Element mobyElement = new org.jdom.Element("MOBY", mobyNS);
+org.jdom.Element mobyContent = new org.jdom.Element("mobyContent", mobyNS);
+mobyElement.addContent(mobyContent);
+org.jdom.Element mobyData = new org.jdom.Element("mobyData", mobyNS);
+mobyContent.addContent(mobyData);
+
+org.jdom.Element mobyData1 = mobyDataj1.clone();
+mobyData1.setAttribute("articleName","sequence",null);
+org.jdom.Element mobyData2 = mobyDataj2.clone();
+mobyData2.setAttribute("articleName","database",null);
+mobyData.addContent(mobyData1);
+mobyData.addContent(mobyData2);
+
+XMLOutputter xo = new XMLOutputter(Format.getPrettyFormat());
+output = xo.outputString(new org.jdom.Document(mobyElement));
+//output = mobyData1.toString();
+//output = doc1.getFirstChild().getFirstChild().getNodeType();</s:scriptvalue>
+      <s:beanshellinputlist>
+        <s:beanshellinput s:syntactictype="'text/plain'">input1</s:beanshellinput>
+        <s:beanshellinput s:syntactictype="'text/plain'">input2</s:beanshellinput>
+      </s:beanshellinputlist>
+      <s:beanshelloutputlist>
+        <s:beanshelloutput s:syntactictype="'text/plain'">output</s:beanshelloutput>
+      </s:beanshelloutputlist>
+      <s:dependencies s:classloader="iteration" />
+    </s:beanshell>
+  </s:processor>
+  <s:processor name="multipleInputp">
+    <s:beanshell>
+      <s:scriptvalue>import org.jdom.output.*;
+import org.jdom.Namespace;
+import org.jdom.input.*;
+import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.lang.String;
+import javax.xml.parsers.*;
+import org.xml.sax.*;
+//import org.apache.xml.serialize.XMLSerializer;
+import org.w3c.dom.*;
+
+Namespace mobyNS = Namespace.getNamespace("moby","http://www.biomoby.org/moby");
+String namespaceValue="namesP";
+
+moby1 = (String) input1;
+moby2 = (String) input2;
+
+DocumentBuilderFactory dbf=DocumentBuilderFactory.newInstance();
+DocumentBuilder db = dbf.newDocumentBuilder();
+
+InputSource source1 = new InputSource(new StringReader(moby1));
+Document doc1=db.parse(source1);
+InputSource source2 = new InputSource(new StringReader(moby2));
+Document doc2=db.parse(source2);
+
+org.jdom.input.DOMBuilder dbJdom = new org.jdom.input.DOMBuilder();
+//org.jdom.Element mobyDataj1 = dbJdom.build(doc1.getFirstChild().getFirstChild().getFirstChild());
+org.jdom.Element mobyDataj1 = dbJdom.build(doc1.getElementsByTagName("moby:Simple").item(0));
+org.jdom.Element mobyDataj2 = dbJdom.build(doc2.getElementsByTagName("moby:Simple").item(0));
+
+org.jdom.Element mobyElement = new org.jdom.Element("MOBY", mobyNS);
+org.jdom.Element mobyContent = new org.jdom.Element("mobyContent", mobyNS);
+mobyElement.addContent(mobyContent);
+org.jdom.Element mobyData = new org.jdom.Element("mobyData", mobyNS);
+mobyContent.addContent(mobyData);
+
+org.jdom.Element mobyData1 = mobyDataj1.clone();
+mobyData1.setAttribute("articleName","sequence",null);
+org.jdom.Element mobyData2 = mobyDataj2.clone();
+mobyData2.setAttribute("articleName","database",null);
+mobyData.addContent(mobyData1);
+mobyData.addContent(mobyData2);
+
+XMLOutputter xo = new XMLOutputter(Format.getPrettyFormat());
+output = xo.outputString(new org.jdom.Document(mobyElement));
+//output = mobyData1.toString();
+//output = doc1.getFirstChild().getFirstChild().getNodeType();</s:scriptvalue>
+      <s:beanshellinputlist>
+        <s:beanshellinput s:syntactictype="'text/plain'">input1</s:beanshellinput>
+        <s:beanshellinput s:syntactictype="'text/plain'">input2</s:beanshellinput>
+      </s:beanshellinputlist>
+      <s:beanshelloutputlist>
+        <s:beanshelloutput s:syntactictype="'text/plain'">output</s:beanshelloutput>
+      </s:beanshelloutputlist>
+      <s:dependencies s:classloader="iteration" />
+    </s:beanshell>
+  </s:processor>
+  <s:processor name="runNCBIBlastn_2Seqs">
+    <s:description>Compares a nucleotide sequence against another nucleotide sequence (used as a database) using the Basic Local Alignment Tool (BLAST).</s:description>
+    <s:biomobywsdl>
+      <s:mobyEndpoint>http://moby-dev.inab.org/cgi-bin/MOBY-Central.pl</s:mobyEndpoint>
+      <s:serviceName>runNCBIBlastn_2Seqs</s:serviceName>
+      <s:authorityName>inb.bsc.es</s:authorityName>
+      <s:Parameter s:name="gapalign">true</s:Parameter>
+      <s:Parameter s:name="expect_threshold">10.0</s:Parameter>
+      <s:Parameter s:name="mismatch">-3</s:Parameter>
+      <s:Parameter s:name="match">1</s:Parameter>
+      <s:Parameter s:name="word_size">11</s:Parameter>
+      <s:Parameter s:name="extendgap">1</s:Parameter>
+      <s:Parameter s:name="filter">true</s:Parameter>
+      <s:Parameter s:name="dropoff">30</s:Parameter>
+      <s:Parameter s:name="opengap">5</s:Parameter>
+    </s:biomobywsdl>
+  </s:processor>
+  <s:processor name="runNCBIBlastp_2Seqs">
+    <s:description>Compares a protein sequence against another protein sequence (used as a database) using the Basic Local Alignment Tool (BLAST).</s:description>
+    <s:biomobywsdl>
+      <s:mobyEndpoint>http://moby-dev.inab.org/cgi-bin/MOBY-Central.pl</s:mobyEndpoint>
+      <s:serviceName>runNCBIBlastp_2Seqs</s:serviceName>
+      <s:authorityName>inb.bsc.es</s:authorityName>
+      <s:Parameter s:name="opengap">11</s:Parameter>
+      <s:Parameter s:name="matrix">BLOSUM62</s:Parameter>
+      <s:Parameter s:name="gapalign">true</s:Parameter>
+      <s:Parameter s:name="word_size">3</s:Parameter>
+      <s:Parameter s:name="extendgap">1</s:Parameter>
+      <s:Parameter s:name="filter">true</s:Parameter>
+      <s:Parameter s:name="expect_threshold">10.0</s:Parameter>
+      <s:Parameter s:name="dropoff">15</s:Parameter>
+    </s:biomobywsdl>
+  </s:processor>
+  <s:processor name="getNucleotideSequence">
+    <s:description>Executes a retrieval query against the specific namespace.</s:description>
+    <s:biomobywsdl>
+      <s:mobyEndpoint>http://moby-dev.inab.org/cgi-bin/MOBY-Central.pl</s:mobyEndpoint>
+      <s:serviceName>getNucleotideSequence</s:serviceName>
+      <s:authorityName>inb.bsc.es</s:authorityName>
+    </s:biomobywsdl>
+  </s:processor>
+  <s:processor name="getAminoAcidSequence">
+    <s:description>Executes a retrieval query against the specific namespace getting an AA sequence.</s:description>
+    <s:biomobywsdl>
+      <s:mobyEndpoint>http://moby-dev.inab.org/cgi-bin/MOBY-Central.pl</s:mobyEndpoint>
+      <s:serviceName>getAminoAcidSequence</s:serviceName>
+      <s:authorityName>inb.bsc.es</s:authorityName>
+    </s:biomobywsdl>
+  </s:processor>
+  <s:link source="AAid" sink="AAcreateObject:id" />
+  <s:link source="AAnamespace" sink="AAcreateObject:namespace" />
+  <s:link source="AAcreateObject:mobydata" sink="getAminoAcidSequence:input" />
+  <s:link source="DNAid" sink="DNACreateObject:id" />
+  <s:link source="DNAnamespace" sink="DNACreateObject:namespace" />
+  <s:link source="DNACreateObject:mobydata" sink="getNucleotideSequence:input" />
+  <s:link source="getAminoAcidSequence:output" sink="multipleInputp:input1" />
+  <s:link source="getAminoAcidSequence:output" sink="multipleInputp:input2" />
+  <s:link source="getNucleotideSequence:output" sink="multipleInputn:input1" />
+  <s:link source="getNucleotideSequence:output" sink="multipleInputn:input2" />
+  <s:link source="multipleInputn:output" sink="runNCBIBlastn_2Seqs:input" />
+  <s:link source="multipleInputp:output" sink="runNCBIBlastp_2Seqs:input" />
+  <s:link source="runNCBIBlastn_2Seqs:output" sink="blastn" />
+  <s:link source="runNCBIBlastp_2Seqs:output" sink="blastp" />
+  <s:source name="AAid" />
+  <s:source name="AAnamespace" />
+  <s:source name="DNAid" />
+  <s:source name="DNAnamespace" />
+  <s:sink name="blastp" />
+  <s:sink name="blastn" />
+</s:scufl>
+

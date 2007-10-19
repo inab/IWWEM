@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s:scufl xmlns:s="http://org.embl.ebi.escience/xscufl/0.1alpha" version="0.2" log="0">
+  <s:workflowdescription lsid="urn:lsid:net.sf.taverna:wfDefinition:15467c2e-c99a-492b-8bf2-67d0c82854c2" author="" title="wf-runFunCUT-www" />
+  <s:processor name="runFunCUT">
+    <s:description>Annotates homologous sequences and includes new features related to the specific identification of protein subfamilies (orthologous groups)</s:description>
+    <s:biomobywsdl>
+      <s:mobyEndpoint>http://www.inab.org/cgi-bin/MOBY-Central.pl</s:mobyEndpoint>
+      <s:serviceName>runFunCUT</s:serviceName>
+      <s:authorityName>cnio.es</s:authorityName>
+      <s:Parameter s:name="database">SWALL</s:Parameter>
+      <s:Parameter s:name="maxsearches">750</s:Parameter>
+      <s:Parameter s:name="rounds">1</s:Parameter>
+      <s:Parameter s:name="cutlen">35</s:Parameter>
+      <s:Parameter s:name="filters">No</s:Parameter>
+      <s:Parameter s:name="evalue">0.0005</s:Parameter>
+    </s:biomobywsdl>
+  </s:processor>
+  <s:processor name="String">
+    <s:description>a string</s:description>
+    <s:biomobyobject>
+      <s:mobyEndpoint>http://www.inab.org/cgi-bin/MOBY-Central.pl</s:mobyEndpoint>
+      <s:serviceName>String</s:serviceName>
+      <s:authorityName />
+    </s:biomobyobject>
+  </s:processor>
+  <s:processor name="Integer">
+    <s:description>an int</s:description>
+    <s:biomobyobject>
+      <s:mobyEndpoint>http://www.inab.org/cgi-bin/MOBY-Central.pl</s:mobyEndpoint>
+      <s:serviceName>Integer</s:serviceName>
+      <s:authorityName />
+    </s:biomobyobject>
+  </s:processor>
+  <s:processor name="AminoAcidSequence">
+    <s:description>Lightweight representation an amino acid sequence</s:description>
+    <s:biomobyobject>
+      <s:mobyEndpoint>http://www.inab.org/cgi-bin/MOBY-Central.pl</s:mobyEndpoint>
+      <s:serviceName>AminoAcidSequence</s:serviceName>
+      <s:authorityName />
+    </s:biomobyobject>
+  </s:processor>
+  <s:link source="Integer:mobyData" sink="AminoAcidSequence:Integer(Length)" />
+  <s:link source="String:mobyData" sink="AminoAcidSequence:String(SequenceString)" />
+  <s:link source="aminoacid sequence" sink="String:value" />
+  <s:link source="length of sequence" sink="Integer:value" />
+  <s:link source="AminoAcidSequence:mobyData" sink="runFunCUT:AminoAcidSequence(sequence)" />
+  <s:link source="aminoacid id" sink="AminoAcidSequence:id" />
+  <s:link source="runFunCUT:FunCUT_Annotation_XML(funcutResult)" sink="funcut result" />
+  <s:source name="aminoacid sequence" />
+  <s:source name="length of sequence" />
+  <s:source name="aminoacid id" />
+  <s:sink name="funcut result" />
+</s:scufl>
+
