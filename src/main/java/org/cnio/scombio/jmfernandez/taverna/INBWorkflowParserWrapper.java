@@ -267,7 +267,7 @@ public class INBWorkflowParserWrapper {
 		
 		// Unix world!
 		if(envvars.containsKey("OLDPWD")) {
-			OriginalDir=envvars.get("OLDPWD");
+			OriginalDir=new File(envvars.get("OLDPWD"));
 		} else {
 			OriginalDir=null;
 		}
@@ -345,12 +345,8 @@ public class INBWorkflowParserWrapper {
 		TavernaSPIRegistry.setRepository(repository);
 		logger.debug("TavernaSPI has finished. Starting WorkflowLauncher");
 		
-		INBWorkflowEventListener iel=new INBWorkflowEventListener(logger.getLevel());
                 ScuflModel model = new ScuflModel();
                 XScuflParser.populate(workflowInputStream, model, null);
-		/*
-		model.addListener(iel);
-		*/
 		
 		// Now it is time to generate workflow SVG (if it is possible!)
 		generateWorkflowGraph(model);

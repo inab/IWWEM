@@ -64,6 +64,7 @@ public class INBWorkflowLauncherWrapper
 		{"-outputdoc","1","All the workflow outputs, saved in a Baclava document"},
 		{"-outputdir","1","All the workflow outputs, saved in a directory which will contain the structure of the outputs"},
 		{"-report","1","Taverna XML report file"},
+		{"-statusdir","1","Directory where all the intermediate results and events are saved"},
 	};
 	
 	private static Logger logger;
@@ -86,6 +87,8 @@ public class INBWorkflowLauncherWrapper
 	File outputDir;
 	
 	File reportFile;
+	
+	File statusDir;
 	
 	public static void main(String[] args) {
 		try {
@@ -116,12 +119,14 @@ public class INBWorkflowLauncherWrapper
 			inputs.putAll(baseInputs);
 		}
 		
-		INBWorkflowEventListener iel=new INBWorkflowEventListener(logger.getLevel());
-		
 		WorkflowLauncher launcher = new WorkflowLauncher(model);
 		
 		logger.debug("And now, executing workflow!!!!!");
-
+		
+		INBWorkflowEventListener iel=null;
+		if(statusDir!=null) {
+			iel=new INBWorkflowEventListener(statusDir);
+		}
 		Map<String, DataThing> outputs = launcher.execute(inputs,iel);
 		logger.debug("Workflow has finished");
 		if (outputDocumentFile==null && outputDir==null) {
@@ -207,6 +212,10 @@ public class INBWorkflowLauncherWrapper
 			outputDocumentFile = NewFile(values.get(0));
 		} else if (param.equals("-outputdir")) {
 			outputDir = NewFile(values.get(0));
+		} else if (param.equals("-statusdir")) {
+			statusDir = NewFile(values.get(0));
+			// Creating needed directories
+			statusDir.mkdirs();
 		} else if (param.equals("-report")) {
 			reportFile = NewFile(values.get(0));
 		} else if (param.equals("-input")) {

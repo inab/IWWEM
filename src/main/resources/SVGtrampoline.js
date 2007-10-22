@@ -98,36 +98,62 @@ function setDimension(w,h) {
 }
 
 function setCSSProp(styleNode,prop,newValue) {
-	var newProp = prop+": "+newValue;
+	if(styleNode && prop) {
+		if(newValue) {
+			var newProp = prop+": "+newValue;
 
-	//var previouscssText = styleNode.style.cssText;
-	suspendRedraw();
-	var previouscssText = styleNode.getAttribute("style");
-	if(!previouscssText)  previouscssText="";
-	
-	var propR = new RegExp(prop+" *:[^;]*");
-	
-	if(previouscssText.search(propR)==-1) {
-		newcssText = newProp + ";" + previouscssText;
-	} else {
-		var newcssText=previouscssText.replace(propR,newProp);
+			//var previouscssText = styleNode.style.cssText;
+			suspendRedraw();
+			var previouscssText = styleNode.getAttribute("style");
+			if(!previouscssText)  previouscssText="";
+
+			var propR = new RegExp(prop+" *:[^;]*");
+
+			if(previouscssText.search(propR)==-1) {
+				newcssText = newProp + ";" + previouscssText;
+			} else {
+				var newcssText=previouscssText.replace(propR,newProp);
+			}
+
+			//styleNode.style.cssText=newcssText;
+			styleNode.setAttribute("style",newcssText);
+			unsuspendRedraw();
+		} else {
+			removeCSSProp(styleNode,prop);
+		}
 	}
+}
 
-	//styleNode.style.cssText=newcssText;
-	styleNode.setAttribute("style",newcssText);
-	unsuspendRedraw();
+function removeCSSProp(styleNode,prop) {
+	if(styleNode && prop) {
+		//var previouscssText = styleNode.style.cssText;
+		var previouscssText = styleNode.getAttribute("style");
+		if(previouscssText) {
+			suspendRedraw();
+
+			var propR = new RegExp(prop+" *:[^;]*;? *");
+
+			var newcssText=previouscssText.replace(propR,'');
+
+			//styleNode.style.cssText=newcssText;
+			styleNode.setAttribute("style",newcssText);
+			unsuspendRedraw();
+		}
+	}
 }
 
 // Setting up the color of the element
 function changeColor(node,color) {
 	var retval=false;
-	var theNode=SVGDoc.getElementById(node);
-	if(theNode) {
-		var polygons=theNode.getElementsByTagName("polygon");
-		if(polygons.length>0) {
-			setCSSProp(polygons.item(0),"fill",color);
-			
-			retval=true;
+	if(node) {
+		var theNode=SVGDoc.getElementById(node);
+		if(theNode) {
+			var polygons=theNode.getElementsByTagName("polygon");
+			if(polygons.length>0) {
+				setCSSProp(polygons.item(0),"fill",color);
+
+				retval=true;
+			}
 		}
 	}
 		
@@ -138,14 +164,32 @@ function changeColor(node,color) {
 function setHandler(node,handler,event) {
 	var retval=false;
 	
-	if(!event)  event='onclick';
+	if(!event)  event='click';
 	try {
-		if(event.length > 2 && event.indexOf('on')!=0) {
+		// Only events, please!!!!!!
+		if(event.length > 0) {
+			// Giving the correct name
+			event = 'on' + event;
 			var theNode=SVGDoc.getElementById(node);
 			if(theNode) {
 				theNode[event]=handler;
-
-				setCSSProp(theNode,"cursor","pointer");
+				
+				if(handler!=null) {
+					setCSSProp(theNode,"cursor","pointer");
+				} else {
+					// Removing pointer cursor when no event is set
+					var removeProp=1;
+					for(var attrib in theNode) {
+						if(attrib.length > 2 && attrib.indexOf('on')==0 && theNode[attrib]) {
+							removeProp=null;
+							break;
+						}
+					}
+					
+					if(removeProp) {
+						removeCSSProp(theNode,"cursor");
+					}
+				}
 
 				retval=true;
 			}
@@ -157,7 +201,7 @@ function setHandler(node,handler,event) {
 
 function suspendRedraw()
 {
-	// asv doesn't implement suspendRedraw, so we wrap this in a try-block:
+	// ASV doesn't implement suspendRedraw, so we wrap this in a try-block:
 	try {
 		document.documentElement.suspendRedraw(0);
 	} catch(e) {}
@@ -165,7 +209,7 @@ function suspendRedraw()
 
 function unsuspendRedraw()
 {
-	// asv doesn't implement suspendRedraw, so we wrap this in a try-block:
+	// ASV doesn't implement suspendRedraw, so we wrap this in a try-block:
 	try {
 		document.documentElement.unsuspendRedraw(0);
 	} catch(e) {}

@@ -1,7 +1,17 @@
 package org.cnio.scombio.jmfernandez.taverna;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
+
+import org.embl.ebi.escience.baclava.DataThing;
 
 import org.embl.ebi.escience.scufl.enactor.WorkflowEventListener;
 import org.embl.ebi.escience.scufl.enactor.event.CollectionConstructionEvent;
@@ -18,6 +28,8 @@ import org.embl.ebi.escience.scufl.enactor.event.WorkflowDestroyedEvent;
 import org.embl.ebi.escience.scufl.enactor.event.WorkflowFailureEvent;
 import org.embl.ebi.escience.scufl.enactor.event.WorkflowToBeDestroyedEvent;
 
+import org.embl.ebi.escience.scufl.tools.WorkflowLauncher;
+
 /*
 import org.embl.ebi.escience.scufl.ScuflModelEventListener;
 import org.embl.ebi.escience.scufl.ScuflModelEvent;
@@ -29,8 +41,33 @@ public class INBWorkflowEventListener
 	private static Logger logger =
 		Logger.getLogger(INBWorkflowEventListener.class);
 	
-	public INBWorkflowEventListener(Level level) {
-		logger.setLevel(level);
+	private final static String EXT=".xml";
+	
+	private final static String RESULTS="Results";
+	private final static String INPUTS="Inputs";
+	private final static String OUTPUTS="Outputs";
+	
+	private final static String START="START";
+	private final static String FAILED="FAILED.txt";
+	private final static String FINISH="FINISH";
+	private final static String ENCODING="UTF-8";
+	
+	protected static void SaveDataThings(String name, Map<String,DataThing> thing, File baseDir)
+		throws IOException
+	{
+		File dataFile=new File(baseDir,name+EXT);
+		File dataDir=new File(baseDir,name);
+		WorkflowLauncher.saveOutputDoc(thing, dataFile);
+		WorkflowLauncher.saveOutputs(thing, dataDir);
+	}
+	
+	protected File statusDir;
+	protected File resultsDir;
+
+	public INBWorkflowEventListener(File statusDir)
+	{
+		this.statusDir=statusDir;
+		this.resultsDir=new File(statusDir,RESULTS);
 	}
 	
 	/**
@@ -44,7 +81,7 @@ public class INBWorkflowEventListener
 		logger.debug("Source: "+event.getSource().getClass().getName()+"\n");
 	}
 	*/
-
+	
 	/**
 		Called when a workflow instance has been submitted along with
 		associated input data to an enactor instance. Methods on the
@@ -53,6 +90,19 @@ public class INBWorkflowEventListener
 	*/
 	public void workflowCreated(WorkflowCreationEvent e) {
 		logger.debug("Workflow "+ e.getModel().getDescription().getTitle()+ " (LSID "+e.getDefinitionLSID()+") has been created");
+		
+		try {
+			SaveDataThings(INPUTS,e.getInputs(),statusDir);
+		} catch(IOException ioe) {
+			logger.error("Unable to save workflow inputs",ioe);
+		}
+		
+		File start=new File(statusDir,START);
+		try {
+			start.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal workflow creation",ioe);
+		}
 	}
 
 
@@ -61,6 +111,13 @@ public class INBWorkflowEventListener
 	*/
 	public void workflowFailed(WorkflowFailureEvent e) {
 		logger.debug("Workflow failed: "+ e.toString());
+		
+		File failed=new File(statusDir,FAILED);
+		try {
+			failed.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal workflow failure",ioe);
+		}
 	}
 	
 	/**
@@ -71,6 +128,13 @@ public class INBWorkflowEventListener
 	*/
 	public void workflowCompleted(WorkflowCompletionEvent e) {
 		logger.debug("Workflow completed: "+ e.toString());
+		
+		File failed=new File(statusDir,FINISH);
+		try {
+			failed.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal workflow completion",ioe);
+		}
 	}
 	
 	/**
@@ -78,6 +142,42 @@ public class INBWorkflowEventListener
 		reference to the failed workflow instance.
 	*/
 	public void nestedWorkflowFailed(NestedWorkflowFailureEvent e) {
+		Exception ex=e.getCause();
+		String message=ex.getMessage();
+		if(message==null)  message="(null)";
+		
+		String procName=e.getProcessor().getName();
+		
+		logger.debug("Nested workflow "+procName+" failed due "+message);
+		
+		File thisProcess=new File(resultsDir,procName);
+		thisProcess.mkdirs();
+		
+		File start=new File(thisProcess,START);
+		try {
+			start.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal nested workflow "+procName+" failure",ioe);
+		}
+		
+		try {
+			SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
+		} catch(IOException ioe) {
+			logger.error("Unable to save nested workflow "+procName+" inputs",ioe);
+		}
+		
+		// Now, saving the causes
+		File failed=new File(thisProcess,FAILED);
+		try {
+			PrintWriter pw = new PrintWriter(failed,ENCODING);
+			pw.println("Cause: "+message+"\n");
+			ex.printStackTrace(pw);
+			pw.close();
+		} catch(UnsupportedEncodingException uee) {
+			logger.fatal("FATAL ENCODING ERROR",uee);
+		} catch(FileNotFoundException fnfe) {
+			logger.error("Unable to save nested workflow "+procName+" failure messages",fnfe);
+		}
 	}
 
 	/**
@@ -87,6 +187,7 @@ public class INBWorkflowEventListener
 		event carries details of the workflow instance created.
 	*/
 	public void nestedWorkflowCreated(NestedWorkflowCreationEvent e) {
+		logger.debug("Workflow "+ e.getNestedWorkflowInstance().getID()+" has been created");
 	}
 
 	/**
@@ -95,6 +196,37 @@ public class INBWorkflowEventListener
 		the workflow instance invoked.
 	*/
 	public void nestedWorkflowCompleted(NestedWorkflowCompletionEvent e) {
+		String procName=e.getProcessor().getName();
+		logger.debug("Nested workflow "+procName+(e.isIterating()?"(I)":"(N)")+" has been completed");
+		
+		File thisProcess=new File(resultsDir,procName);
+		thisProcess.mkdirs();
+		
+		File start=new File(thisProcess,START);
+		try {
+			start.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal nested workflow "+procName+" initialization",ioe);
+		}
+		
+		try {
+			SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
+		} catch(IOException ioe) {
+			logger.error("Unable to save nested workflow "+procName+" inputs",ioe);
+		}
+		
+		try {
+			SaveDataThings(OUTPUTS,e.getOutputMap(),thisProcess);
+		} catch(IOException ioe) {
+			logger.error("Unable to save nested workflow "+procName+" outputs",ioe);
+		}
+		
+		File finish=new File(thisProcess,FINISH);
+		try {
+			finish.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal nested workflow "+procName+" completion",ioe);
+		}
 	}
 	
 	/**
@@ -104,7 +236,37 @@ public class INBWorkflowEventListener
 		within the iteration.
 	*/
 	public void processCompleted(ProcessCompletionEvent e) {
-		logger.debug("Process "+e.getProcessor().getName()+(e.isIterating()?"(I)":"(N)")+" has been completed");
+		String procName=e.getProcessor().getName();
+		logger.debug("Process "+procName+(e.isIterating()?"(I)":"(N)")+" has been completed");
+		
+		File thisProcess=new File(resultsDir,procName);
+		thisProcess.mkdirs();
+		
+		File start=new File(thisProcess,START);
+		try {
+			start.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal process "+procName+" initialization",ioe);
+		}
+		
+		try {
+			SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
+		} catch(IOException ioe) {
+			logger.error("Unable to save process "+procName+" inputs",ioe);
+		}
+		
+		try {
+			SaveDataThings(OUTPUTS,e.getOutputMap(),thisProcess);
+		} catch(IOException ioe) {
+			logger.error("Unable to save process "+procName+" outputs",ioe);
+		}
+		
+		File finish=new File(thisProcess,FINISH);
+		try {
+			finish.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal process "+procName+" completion",ioe);
+		}
 	}
 	
 	/**
@@ -113,7 +275,37 @@ public class INBWorkflowEventListener
 		are now integrated into the result of the process
 	*/
 	public void processCompletedWithIteration(IterationCompletionEvent e) {
-		logger.debug("Iterating Process "+e.getProcessor().getName()+" has been completed");
+		String procName=e.getProcessor().getName();
+		logger.debug("Iterating Process "+procName+" has been completed");
+		
+		File thisProcess=new File(resultsDir,e.getProcessor().getName());
+		thisProcess.mkdirs();
+		
+		File start=new File(thisProcess,START);
+		try {
+			start.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal iterated process "+procName+" initialization",ioe);
+		}
+		
+		try {
+			SaveDataThings(INPUTS,e.getOverallInputs(),thisProcess);
+		} catch(IOException ioe) {
+			logger.error("Unable to save iterated process "+procName+" inputs",ioe);
+		}
+		
+		try {
+			SaveDataThings(OUTPUTS,e.getOverallOutputs(),thisProcess);
+		} catch(IOException ioe) {
+			logger.error("Unable to save iterated process "+procName+" outputs",ioe);
+		}
+		
+		File finish=new File(thisProcess,FINISH);
+		try {
+			finish.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal iterated process "+procName+" completion",ioe);
+		}
 	}
 	
 	/**
@@ -121,7 +313,42 @@ public class INBWorkflowEventListener
 		a WorkflowFailed event.
 	*/
 	public void processFailed(ProcessFailureEvent e) {
-		logger.debug("Process "+e.getProcessor().getName()+" failed due "+e.getCause().getMessage());
+		Exception ex=e.getCause();
+		String message=ex.getMessage();
+		if(message==null)  message="(null)";
+		
+		String procName=e.getProcessor().getName();
+		
+		logger.debug("Process "+procName+" failed due "+message);
+		
+		File thisProcess=new File(resultsDir,procName);
+		thisProcess.mkdirs();
+		
+		File start=new File(thisProcess,START);
+		try {
+			start.createNewFile();
+		} catch(IOException ioe) {
+			logger.error("Unable signal process "+procName+" failure",ioe);
+		}
+		
+		try {
+			SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
+		} catch(IOException ioe) {
+			logger.error("Unable to save process "+procName+" inputs",ioe);
+		}
+		
+		// Now, saving the causes
+		File failed=new File(thisProcess,FAILED);
+		try {
+			PrintWriter pw = new PrintWriter(failed,ENCODING);
+			pw.println("Cause: "+message+"\n");
+			ex.printStackTrace(pw);
+			pw.close();
+		} catch(UnsupportedEncodingException uee) {
+			logger.fatal("FATAL ENCODING ERROR",uee);
+		} catch(FileNotFoundException fnfe) {
+			logger.error("Unable to save process "+procName+" failure messages",fnfe);
+		}
 	}
 	
 	/**
@@ -137,6 +364,7 @@ public class INBWorkflowEventListener
 		version of the same input type
 	*/
 	public void collectionConstructed(CollectionConstructionEvent e) {
+		logger.debug("Collection was constructed (wrapped LSID "+e.getOriginalLSID()+")");
 	}
 
 	/**
