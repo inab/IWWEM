@@ -1,5 +1,6 @@
 package org.cnio.scombio.jmfernandez.taverna;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
@@ -47,7 +49,10 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
+
+import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * <p>
@@ -189,6 +194,8 @@ public class INBWorkflowParserWrapper {
 	 */
 	public static final String TAVERNA_BASE_VERSION = "1.6.2.0";
 	private static final String SCRIPT_NAME="inbworkflowparser";
+	private static final String SVG_TRAMPOLINE="SVGtrampoline.js";
+	private static final String SVG_JSINIT="RunScript(evt)";
 	
 	private static final String[][] ParamDescs={
 		{"-h","0","Shows this help"},
@@ -516,7 +523,7 @@ public class INBWorkflowParserWrapper {
 		} else {
 			File temp = new File(System.getProperty("user.home"),".inb-maven");
 			temp.mkdirs();
-			logger.warn("No -basedir defined, so using default location of:"
+			logger.warn("No -basedir defined, so using default location of: "
 				+ temp.getAbsolutePath());
 			return temp;
 		}
@@ -665,6 +672,53 @@ public class INBWorkflowParserWrapper {
 			if(SVGFile!=null) {
 				// Translating to SVG!!!!!
 				Document svg=ScuflSVGDiagram.getSVG(dotContent);
+				
+				// Adding the ECMAscript trampoline needed to
+				// manipulate SVG from outside
+				
+				// First, we need a class loader
+				ClassLoader cl = getClass().getClassLoader();
+				if (cl == null) {
+					cl = ClassLoader.getSystemClassLoader();
+				}
+				
+				// Then, we can fetch it!
+				InputStream SVGtrampHandler=cl.getResourceAsStream(SVG_TRAMPOLINE);
+				if(SVGtrampHandler!=null) {
+					InputStreamReader SVGtrampReader = new InputStreamReader(new BufferedInputStream(SVGtrampHandler),"UTF-8");
+					
+					StringBuilder trampcode=new StringBuilder();
+					int bufferSize=16384;
+					char[] buffer=new char[bufferSize];
+					
+					int readBytes;
+					while((readBytes=SVGtrampReader.read(buffer,0,bufferSize))!=-1) {
+						trampcode.append(buffer,0,readBytes);
+					}
+					
+					// Now we have the content of the trampoline, let's create a CDATA with it!
+					CDATASection cdata=svg.createCDATASection(trampcode.toString());
+					// Freeing up some resources
+					trampcode=null;
+					buffer=null;
+					
+					Element SVGroot=svg.getDocumentElement();
+					
+					// The trampoline content lives inside a script tag
+					Element script=svg.createElementNS(SVGroot.getNamespaceURI(),"script");
+					script.setAttribute("type","text/ecmascript");
+					script.insertBefore(cdata,null);
+					
+					// Injecting the script inside the root
+					SVGroot.insertBefore(script,SVGroot.getFirstChild());
+					
+					// Last, setting up the initialization hook
+					SVGroot.setAttribute("onload",SVG_JSINIT);
+				} else {
+					throw new IOException("Unable to find/fetch SVG ECMAscript trampoline stored at "+SVG_TRAMPOLINE);
+				}
+				
+				// At last, writing it...
 				TransformerFactory tf=TransformerFactory.newInstance();
 				Transformer t=tf.newTransformer();
 				t.transform(new DOMSource(svg),new StreamResult(SVGFile));
