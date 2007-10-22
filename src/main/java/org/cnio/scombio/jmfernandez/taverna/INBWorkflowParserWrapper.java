@@ -252,15 +252,25 @@ public class INBWorkflowParserWrapper {
 	
 	private static Logger logger;
 	
-	private static File originalDir;
+	private static File OriginalDir;
 	
 	// Filling the parameters hash!
 	static {
 		// Living the headless way!
 		System.setProperty("java.awt.headless", "true");
 		
-		// Getting the property
-		originalDir=new File(System.getProperty("inb.originaldir"));
+		// Setting up Taverna HOME from appassembler script info
+		System.setProperty("taverna.home", System.getProperty("basedir"));
+		
+		// Now, setting up originaldir from envvars
+		Map<String,String> envvars = System.getenv();
+		
+		// Unix world!
+		if(envvars.containsKey("OLDPWD")) {
+			OriginalDir=envvars.get("OLDPWD");
+		} else {
+			OriginalDir=null;
+		}
 		
 		// Some checks should be put here for these system properties...
 		File log4j=new File(new File(System.getProperty("basedir"),"conf"),"log4j.properties");
@@ -298,8 +308,8 @@ public class INBWorkflowParserWrapper {
 	protected static File NewFile(String filename)
 	{
 		File f=new File(filename);
-		if(!f.isAbsolute()) {
-			f=new File(originalDir,filename);
+		if(!f.isAbsolute() && OriginalDir!=null) {
+			f=new File(OriginalDir,filename);
 		}
 		
 		return f;

@@ -134,17 +134,23 @@ function changeColor(node,color) {
 	return retval;
 }
 
-// Setting up an onclick handler
-function setHandler(node,handler) {
+// Setting up a handler
+function setHandler(node,handler,event) {
 	var retval=false;
-	var theNode=SVGDoc.getElementById(node);
-	if(theNode) {
-		theNode.onclick=handler;
-		
-		setCSSProp(theNode,"cursor","pointer");
-		
-		retval=true;
-	}
+	
+	if(!event)  event='onclick';
+	try {
+		if(event.length > 2 && event.indexOf('on')!=0) {
+			var theNode=SVGDoc.getElementById(node);
+			if(theNode) {
+				theNode[event]=handler;
+
+				setCSSProp(theNode,"cursor","pointer");
+
+				retval=true;
+			}
+		}
+	} catch(e) {}
 	
 	return retval;
 }

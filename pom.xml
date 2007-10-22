@@ -25,7 +25,9 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>appassembler-maven-plugin</artifactId>
 				<configuration>
-					<extraJvmArguments>-Dtaverna.home=$BASEDIR -Dinb.originaldir=$OLDPWD</extraJvmArguments>
+					<!--
+					<extraJvmArguments>-Dtaverna.home.unix=$BASEDIR -Dtaverna.home.windows=%BASEDIR% -Dinb.originaldir.unix=$OLDPWD</extraJvmArguments>
+					-->
 					<programs>
 						<program>
 							<mainClass>
