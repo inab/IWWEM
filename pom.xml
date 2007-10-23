@@ -93,8 +93,13 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>uk.org.mygrid.taverna.scufl</groupId>
-			<artifactId>scufl-tools</artifactId>
+			<groupId>uk.org.mygrid.taverna.raven</groupId>
+			<artifactId>raven</artifactId>
+			<version>1.6.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.org.mygrid.taverna</groupId>
+			<artifactId>taverna-core</artifactId>
 			<version>1.6.2.0</version>
 		</dependency>
 		<!-- For DotView -->
@@ -109,6 +114,19 @@
 			<artifactId>svg-diagram</artifactId>
 			<version>1.6.2.0</version>
 		</dependency>
+		<!-- For WorkflowLauncher -->
+		<dependency>
+			<groupId>uk.org.mygrid.taverna.scufl</groupId>
+			<artifactId>scufl-tools</artifactId>
+			<version>1.6.2.0</version>
+		</dependency>
+		<!-- For WorkflowEventListener -->
+		<dependency>
+			<groupId>uk.org.mygrid.taverna</groupId>
+			<artifactId>taverna-enactor</artifactId>
+			<version>1.6.2.0</version>
+		</dependency>
+		
 		<!-- Other dependencies -->
 		<dependency>
 			<groupId>jaxen</groupId>

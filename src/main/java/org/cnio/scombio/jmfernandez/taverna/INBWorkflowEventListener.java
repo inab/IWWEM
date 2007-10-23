@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -41,13 +42,15 @@ public class INBWorkflowEventListener
 	private static Logger logger =
 		Logger.getLogger(INBWorkflowEventListener.class);
 	
-	private final static String EXT=".xml";
+	public final static String EXT=".xml";
 	
-	private final static String RESULTS="Results";
-	private final static String INPUTS="Inputs";
-	private final static String OUTPUTS="Outputs";
+	public final static String RESULTS="Results";
+	public final static String INPUTS="Inputs";
+	public final static String OUTPUTS="Outputs";
+	public final static String ITERATIONS="Iterations";
 	
 	private final static String START="START";
+	private final static String ITERATE="ITERATE";
 	private final static String FAILED="FAILED.txt";
 	private final static String FINISH="FINISH";
 	private final static String ENCODING="UTF-8";
@@ -57,17 +60,28 @@ public class INBWorkflowEventListener
 	{
 		File dataFile=new File(baseDir,name+EXT);
 		File dataDir=new File(baseDir,name);
+		dataDir.mkdirs();
 		WorkflowLauncher.saveOutputDoc(thing, dataFile);
 		WorkflowLauncher.saveOutputs(thing, dataDir);
 	}
 	
 	protected File statusDir;
 	protected File resultsDir;
+	
+	protected HashMap<String,Integer> iterState;
 
 	public INBWorkflowEventListener(File statusDir)
+	{	this(statusDir,false);
+	}
+	
+	public INBWorkflowEventListener(File statusDir,boolean debugMode)
 	{
+		if(debugMode) {
+			logger.setLevel(Level.DEBUG);
+		}
 		this.statusDir=statusDir;
 		this.resultsDir=new File(statusDir,RESULTS);
+		this.iterState=new HashMap<String,Integer>();
 	}
 	
 	/**
@@ -89,7 +103,7 @@ public class INBWorkflowEventListener
 		instance, the user context and the enactor.
 	*/
 	public void workflowCreated(WorkflowCreationEvent e) {
-		logger.debug("Workflow "+ e.getModel().getDescription().getTitle()+ " (LSID "+e.getDefinitionLSID()+") has been created");
+		logger.info("Workflow "+ e.getModel().getDescription().getTitle()+ " (LSID "+e.getDefinitionLSID()+") has been created");
 		
 		try {
 			SaveDataThings(INPUTS,e.getInputs(),statusDir);
@@ -97,8 +111,8 @@ public class INBWorkflowEventListener
 			logger.error("Unable to save workflow inputs",ioe);
 		}
 		
-		File start=new File(statusDir,START);
 		try {
+			File start=new File(statusDir,START);
 			start.createNewFile();
 		} catch(IOException ioe) {
 			logger.error("Unable signal workflow creation",ioe);
@@ -110,10 +124,10 @@ public class INBWorkflowEventListener
 		Called when a workflow instance fails for some reason
 	*/
 	public void workflowFailed(WorkflowFailureEvent e) {
-		logger.debug("Workflow failed: "+ e.toString());
+		logger.info("Workflow failed: "+ e.toString());
 		
-		File failed=new File(statusDir,FAILED);
 		try {
+			File failed=new File(statusDir,FAILED);
 			failed.createNewFile();
 		} catch(IOException ioe) {
 			logger.error("Unable signal workflow failure",ioe);
@@ -127,10 +141,10 @@ public class INBWorkflowEventListener
 		references within the event being valid.
 	*/
 	public void workflowCompleted(WorkflowCompletionEvent e) {
-		logger.debug("Workflow completed: "+ e.toString());
+		logger.info("Workflow completed: "+ e.toString());
 		
-		File failed=new File(statusDir,FINISH);
 		try {
+			File failed=new File(statusDir,FINISH);
 			failed.createNewFile();
 		} catch(IOException ioe) {
 			logger.error("Unable signal workflow completion",ioe);
@@ -148,13 +162,13 @@ public class INBWorkflowEventListener
 		
 		String procName=e.getProcessor().getName();
 		
-		logger.debug("Nested workflow "+procName+" failed due "+message);
+		logger.info("Nested workflow "+procName+" failed due "+message);
 		
 		File thisProcess=new File(resultsDir,procName);
 		thisProcess.mkdirs();
 		
-		File start=new File(thisProcess,START);
 		try {
+			File start=new File(thisProcess,START);
 			start.createNewFile();
 		} catch(IOException ioe) {
 			logger.error("Unable signal nested workflow "+procName+" failure",ioe);
@@ -167,8 +181,8 @@ public class INBWorkflowEventListener
 		}
 		
 		// Now, saving the causes
-		File failed=new File(thisProcess,FAILED);
 		try {
+			File failed=new File(thisProcess,FAILED);
 			PrintWriter pw = new PrintWriter(failed,ENCODING);
 			pw.println("Cause: "+message+"\n");
 			ex.printStackTrace(pw);
@@ -197,13 +211,13 @@ public class INBWorkflowEventListener
 	*/
 	public void nestedWorkflowCompleted(NestedWorkflowCompletionEvent e) {
 		String procName=e.getProcessor().getName();
-		logger.debug("Nested workflow "+procName+(e.isIterating()?"(I)":"(N)")+" has been completed");
+		logger.info("Nested workflow "+procName+(e.isIterating()?"(I)":"(N)")+" has been completed");
 		
 		File thisProcess=new File(resultsDir,procName);
 		thisProcess.mkdirs();
 		
-		File start=new File(thisProcess,START);
 		try {
+			File start=new File(thisProcess,START);
 			start.createNewFile();
 		} catch(IOException ioe) {
 			logger.error("Unable signal nested workflow "+procName+" initialization",ioe);
@@ -221,8 +235,8 @@ public class INBWorkflowEventListener
 			logger.error("Unable to save nested workflow "+procName+" outputs",ioe);
 		}
 		
-		File finish=new File(thisProcess,FINISH);
 		try {
+			File finish=new File(thisProcess,FINISH);
 			finish.createNewFile();
 		} catch(IOException ioe) {
 			logger.error("Unable signal nested workflow "+procName+" completion",ioe);
@@ -237,35 +251,70 @@ public class INBWorkflowEventListener
 	*/
 	public void processCompleted(ProcessCompletionEvent e) {
 		String procName=e.getProcessor().getName();
-		logger.debug("Process "+procName+(e.isIterating()?"(I)":"(N)")+" has been completed");
+		logger.info("Process "+procName+(e.isIterating()?"(I)":"(N)")+" has been completed");
 		
 		File thisProcess=new File(resultsDir,procName);
 		thisProcess.mkdirs();
 		
-		File start=new File(thisProcess,START);
+		// Global start
 		try {
+			File start=new File(thisProcess,START);
 			start.createNewFile();
 		} catch(IOException ioe) {
 			logger.error("Unable signal process "+procName+" initialization",ioe);
 		}
 		
+		String iterStepString=null;
+		if(e.isIterating()) {
+			thisProcess=new File(thisProcess,ITERATIONS);
+			int iterStep;
+			if(iterState.containsKey(procName)) {
+				iterStep=iterState.get(procName);
+			} else {
+				iterStep=0;
+			}
+			
+			// Saving step and incrementing
+			iterStepString=Integer.toString(iterStep);
+			iterStep++;
+			iterState.put(procName,iterStep);
+			
+			// Trailing zeros
+			int ilength=iterStepString.length();
+			for(int i=4;i>ilength;i--) {
+				iterStepString="0"+iterStepString;
+			}
+			
+			thisProcess=new File(thisProcess,iterStepString);
+			thisProcess.mkdirs();
+			
+			
+			// Iteration start
+			try {
+				File start=new File(thisProcess,START);
+				start.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal process "+procName+" initialization (step "+iterStepString+")",ioe);
+			}
+		}
+		
 		try {
 			SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
 		} catch(IOException ioe) {
-			logger.error("Unable to save process "+procName+" inputs",ioe);
+			logger.error("Unable to save process "+procName+" inputs"+((iterStepString!=null)?" (step "+iterStepString+")":""),ioe);
 		}
 		
 		try {
 			SaveDataThings(OUTPUTS,e.getOutputMap(),thisProcess);
 		} catch(IOException ioe) {
-			logger.error("Unable to save process "+procName+" outputs",ioe);
+			logger.error("Unable to save process "+procName+" outputs"+((iterStepString!=null)?" (step "+iterStepString+")":""),ioe);
 		}
 		
-		File finish=new File(thisProcess,FINISH);
 		try {
+			File finish=new File(thisProcess,FINISH);
 			finish.createNewFile();
 		} catch(IOException ioe) {
-			logger.error("Unable signal process "+procName+" completion",ioe);
+			logger.error("Unable signal process "+procName+" completion"+((iterStepString!=null)?" (step "+iterStepString+")":""),ioe);
 		}
 	}
 	
@@ -276,13 +325,13 @@ public class INBWorkflowEventListener
 	*/
 	public void processCompletedWithIteration(IterationCompletionEvent e) {
 		String procName=e.getProcessor().getName();
-		logger.debug("Iterating Process "+procName+" has been completed");
+		logger.info("Iterating Process "+procName+" has been completed");
 		
 		File thisProcess=new File(resultsDir,e.getProcessor().getName());
 		thisProcess.mkdirs();
 		
-		File start=new File(thisProcess,START);
 		try {
+			File start=new File(thisProcess,START);
 			start.createNewFile();
 		} catch(IOException ioe) {
 			logger.error("Unable signal iterated process "+procName+" initialization",ioe);
@@ -300,8 +349,8 @@ public class INBWorkflowEventListener
 			logger.error("Unable to save iterated process "+procName+" outputs",ioe);
 		}
 		
-		File finish=new File(thisProcess,FINISH);
 		try {
+			File finish=new File(thisProcess,FINISH);
 			finish.createNewFile();
 		} catch(IOException ioe) {
 			logger.error("Unable signal iterated process "+procName+" completion",ioe);
@@ -319,13 +368,13 @@ public class INBWorkflowEventListener
 		
 		String procName=e.getProcessor().getName();
 		
-		logger.debug("Process "+procName+" failed due "+message);
+		logger.info("Process "+procName+" failed due "+message);
 		
 		File thisProcess=new File(resultsDir,procName);
 		thisProcess.mkdirs();
 		
-		File start=new File(thisProcess,START);
 		try {
+			File start=new File(thisProcess,START);
 			start.createNewFile();
 		} catch(IOException ioe) {
 			logger.error("Unable signal process "+procName+" failure",ioe);
@@ -338,8 +387,8 @@ public class INBWorkflowEventListener
 		}
 		
 		// Now, saving the causes
-		File failed=new File(thisProcess,FAILED);
 		try {
+			File failed=new File(thisProcess,FAILED);
 			PrintWriter pw = new PrintWriter(failed,ENCODING);
 			pw.println("Cause: "+message+"\n");
 			ex.printStackTrace(pw);
@@ -355,7 +404,7 @@ public class INBWorkflowEventListener
 		Called when a user changes intemediate data (output).
 	*/
 	public void dataChanged(UserChangedDataEvent e) {
-		logger.debug("Data changed: "+e.getOldDataThingID()+" => "+e.getDataThing().getSyntacticType());
+		logger.info("Data changed: "+e.getOldDataThingID()+" => "+e.getDataThing().getSyntacticType());
 	}
 
 	/**
@@ -364,7 +413,7 @@ public class INBWorkflowEventListener
 		version of the same input type
 	*/
 	public void collectionConstructed(CollectionConstructionEvent e) {
-		logger.debug("Collection was constructed (wrapped LSID "+e.getOriginalLSID()+")");
+		logger.info("Collection was constructed (wrapped LSID "+e.getOriginalLSID()+")");
 	}
 
 	/**
@@ -383,7 +432,7 @@ public class INBWorkflowEventListener
 		is the time to remove such references.
 	*/
 	public void workflowToBeDestroyed(WorkflowToBeDestroyedEvent e) {
-		logger.debug("Workflow "+ e.getWorkflowInstance().getID()+ " is going to be destroyed");
+		logger.info("Workflow "+ e.getWorkflowInstance().getID()+ " is going to be destroyed");
 	}
 
 	/**
@@ -400,7 +449,7 @@ public class INBWorkflowEventListener
 		do so from workflowToBeDestroyed(WorkflowToBeDestroyedEvent)
 	*/
 	public void workflowDestroyed(WorkflowDestroyedEvent e) {
-		logger.debug("Workflow "+ e.getWorkflowInstanceID()+ " has been destroyed");
+		logger.info("Workflow "+ e.getWorkflowInstanceID()+ " has been destroyed");
 	}
 
 }

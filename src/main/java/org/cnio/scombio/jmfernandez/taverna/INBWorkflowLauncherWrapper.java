@@ -10,14 +10,23 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import java.nio.channels.FileChannel;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 
 import net.sf.taverna.raven.repository.Artifact;
 import net.sf.taverna.raven.repository.BasicArtifact;
@@ -27,27 +36,28 @@ import net.sf.taverna.raven.repository.impl.LocalRepository;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
-import org.embl.ebi.escience.baclava.DataThing;
-import org.embl.ebi.escience.scufl.Processor;
-import org.embl.ebi.escience.scufl.tools.WorkflowLauncher;
-import org.embl.ebi.escience.utils.TavernaSPIRegistry;
-import org.jdom.JDOMException;
 
+import org.embl.ebi.escience.baclava.DataThing;
 import org.embl.ebi.escience.baclava.factory.DataThingFactory;
 
-import org.embl.ebi.escience.scufl.ScuflModel;
+import org.embl.ebi.escience.scufl.enactor.WorkflowSubmissionException;
 import org.embl.ebi.escience.scufl.parser.XScuflParser;
-
-import org.embl.ebi.escience.scuflui.ScuflSVGDiagram;
+import org.embl.ebi.escience.scufl.Processor;
+import org.embl.ebi.escience.scufl.ScuflModel;
+import org.embl.ebi.escience.scufl.tools.WorkflowLauncher;
 import org.embl.ebi.escience.scufl.view.DotView;
+import org.embl.ebi.escience.scuflui.ScuflSVGDiagram;
+
+import org.embl.ebi.escience.utils.TavernaSPIRegistry;
+
+import org.jdom.JDOMException;
+
 // SVGDocument is a Document!!!
 //import org.w3c.dom.svg.SVGDocument;
 
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 import org.w3c.dom.Document;
+
+import uk.ac.soton.itinnovation.freefluo.main.InvalidInputException;
 
 public class INBWorkflowLauncherWrapper
 	extends INBWorkflowParserWrapper
@@ -55,16 +65,16 @@ public class INBWorkflowLauncherWrapper
 	private static final String SCRIPT_NAME="inbworkflowlauncher";
 	
 	private static final String[][] ParamDescs={
-		{"-inputdoc","1","All the workflow inputs, encoded in a Baclava document"},
+		{"-inputDoc","1","All the workflow inputs, encoded in a Baclava document"},
 		{"-input","2","A single pair input name / value"},
 		{"-inputFile","2","A single pair input name / file where the value is stored"},
 		{"-inputURL","2","A single pair input name / URL where the value can be fetched"},
 		{"-inputArray","2","A single pair input name / file where a list of values are stored"},
 		{"-inputArrayFile","2","A single pair input name / file which contains a list of file names which contain the values"},
-		{"-outputdoc","1","All the workflow outputs, saved in a Baclava document"},
-		{"-outputdir","1","All the workflow outputs, saved in a directory which will contain the structure of the outputs"},
+		{"-outputDoc","1","All the workflow outputs, saved in a Baclava document"},
+		{"-outputDir","1","All the workflow outputs, saved in a directory which will contain the structure of the outputs"},
 		{"-report","1","Taverna XML report file"},
-		{"-statusdir","1","Directory where all the intermediate results and events are saved"},
+		{"-statusDir","1","Directory where all the intermediate results and events are saved"},
 	};
 	
 	private static Logger logger;
@@ -74,7 +84,7 @@ public class INBWorkflowLauncherWrapper
 		// Some checks should be put here for these system properties...
 		File log4j=new File(new File(System.getProperty("basedir"),"conf"),"log4j.properties");
 		PropertyConfigurator.configure(log4j.getAbsolutePath());
-		logger = Logger.getLogger(INBWorkflowParserWrapper.class);
+		logger = Logger.getLogger(INBWorkflowLauncherWrapper.class);
 		
 		// Now, hash filling
 		FillHashMap(ParamDescs);
@@ -123,14 +133,25 @@ public class INBWorkflowLauncherWrapper
 		
 		logger.debug("And now, executing workflow!!!!!");
 		
-		INBWorkflowEventListener iel=null;
-		if(statusDir!=null) {
-			iel=new INBWorkflowEventListener(statusDir);
-		}
-		Map<String, DataThing> outputs = launcher.execute(inputs,iel);
+		Map<String, DataThing> outputs=null;
+		try {
+			if(statusDir!=null) {
+				INBWorkflowEventListener iel=new INBWorkflowEventListener(statusDir,debugMode);
+				outputs = launcher.execute(inputs,iel);
+			} else {
+				outputs = launcher.execute(inputs);
+			}
+                } catch (InvalidInputException e) {
+                        logger.error("Invalid inputs for workflow " + workflowFile.getAbsolutePath(),e);
+                        System.exit(8);
+                } catch (WorkflowSubmissionException e) {
+                        logger.error("Could not execute workflow " + workflowFile.getAbsolutePath(),e);
+                        System.exit(9);
+                }
+		
 		logger.debug("Workflow has finished");
 		if (outputDocumentFile==null && outputDir==null) {
-			logger.warn("Neither -outputdoc nor -outputdir defined to save results. " +
+			logger.warn("Neither -outputDoc nor -outputDir defined to save results. " +
 				"Results returned contained "
 				+ outputs.size() + " outputs.");
 		} else {
@@ -141,7 +162,7 @@ public class INBWorkflowLauncherWrapper
 		}
 		
 		if(reportFile!=null) {
-			PrintStream ps=new PrintStream(new BufferedOutputStream(new FileOutputStream(reportFile)));
+			PrintStream ps=new PrintStream(reportFile,"UTF-8");
 			
 			ps.print(launcher.getProgressReportXML());
 			
@@ -153,10 +174,10 @@ public class INBWorkflowLauncherWrapper
 	
 	/**
 	 * Load an XML input document, if defined by the argument
-	 * <code>-inputdoc</code>.
+	 * <code>-inputDoc</code>.
 	 *
 	 * @return The {@link Map} of input {@link DataThing}s, or
-	 *         <code>null</code> if <code>-inputdoc</code> was not specified
+	 *         <code>null</code> if <code>-inputDoc</code> was not specified
 	 * @throws FileNotFoundException If the input document can't be found
 	 * @throws JDOMException If the input document is invalid XML
 	 * @throws IOException If the input document can't be read
@@ -172,7 +193,7 @@ public class INBWorkflowLauncherWrapper
 
 	/**
 	 * Save an XML output document for the results of running the workflow to
-	 * the location defined by <code>-outputdoc</code>, if specified.
+	 * the location defined by <code>-outputDoc</code>, if specified.
 	 *
 	 * @param outputs The {@link Map} of results to be saved
 	 * @throws IOException If the results could not be saved
@@ -188,7 +209,7 @@ public class INBWorkflowLauncherWrapper
 
 	/**
 	 * Save an XML output document for the results of running the workflow to
-	 * the location defined by <code>-outputdoc</code>, if specified.
+	 * the location defined by <code>-outputDir</code>, if specified.
 	 *
 	 * @param outputs The {@link Map} of results to be saved
 	 * @throws IOException If the results could not be saved
@@ -203,16 +224,21 @@ public class INBWorkflowLauncherWrapper
 		}
 	}
 	
+	protected void setDebugMode() {
+		super.setDebugMode();
+		logger.setLevel(Level.DEBUG);
+	}
+	
 	protected void processParam(String param, ArrayList<String> values)
 		throws Exception
 	{
-		if (param.equals("-inputdoc")) {
+		if (param.equals("-inputDoc")) {
 			inputDocumentFile = NewFile(values.get(0));
-		} else if (param.equals("-outputdoc")) {
+		} else if (param.equals("-outputDoc")) {
 			outputDocumentFile = NewFile(values.get(0));
-		} else if (param.equals("-outputdir")) {
+		} else if (param.equals("-outputDir")) {
 			outputDir = NewFile(values.get(0));
-		} else if (param.equals("-statusdir")) {
+		} else if (param.equals("-statusDir")) {
 			statusDir = NewFile(values.get(0));
 			// Creating needed directories
 			statusDir.mkdirs();
@@ -257,6 +283,40 @@ public class INBWorkflowLauncherWrapper
 		} else {
 			// Perhaps my superclass knows how to handle this!
 			super.processParam(param,values);
+		}
+	}
+	
+	protected void checkSetParams() {
+		super.checkSetParams();
+		
+		if(statusDir!=null) {
+			logger.debug("statusDir has been set, so setting up outputDir, outputDocument and report");
+			statusDir.mkdirs();
+			outputDocumentFile=new File(statusDir,INBWorkflowEventListener.OUTPUTS+INBWorkflowEventListener.EXT);
+			outputDir=new File(statusDir,INBWorkflowEventListener.OUTPUTS);
+			reportFile=new File(statusDir,"report.xml");
+			SVGFile=new File(statusDir,"workflow.svg");
+			
+			File newWorkflowFile=new File(statusDir,"workflow.xml");
+			// Copying input workflow
+			try {
+				// Create channel on the source
+				FileChannel srcChannel = new FileInputStream(workflowFile).getChannel();
+
+				// Create channel on the destination
+				FileChannel dstChannel = new FileOutputStream(newWorkflowFile).getChannel();
+
+				// Copy file contents from source to destination
+				dstChannel.transferFrom(srcChannel, 0, srcChannel.size());
+
+				// Close the channels
+				srcChannel.close();
+				dstChannel.close();
+				workflowFile=newWorkflowFile;
+			} catch (IOException ioe) {
+				logger.error("Unable to copy workflow to status directory",ioe);
+				System.exit(3);
+			}
 		}
 	}
 	

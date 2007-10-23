@@ -12,8 +12,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,10 +24,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import net.sf.taverna.raven.repository.Artifact;
 import net.sf.taverna.raven.repository.BasicArtifact;
 import net.sf.taverna.raven.repository.Repository;
 import net.sf.taverna.raven.repository.impl.LocalRepository;
+
+import net.sf.taverna.raven.repository.impl.LocalArtifactClassLoader;
+
+import net.sf.taverna.update.plugin.PluginManager;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
@@ -53,6 +63,9 @@ import javax.xml.transform.TransformerFactory;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import org.embl.ebi.escience.scufl.parser.XScuflFormatException;
+import org.embl.ebi.escience.scufl.ScuflException;
 
 /**
  * <p>
@@ -90,7 +103,7 @@ import org.w3c.dom.Element;
  * </p>
  * <p>
  * The external artifacts relate to artifacts that exist outside of the
- * application as SPI plugin points, ie. artifacts that are <strong>not</strong>
+ * application as SPI plugin points, ie. artifacts that are <strong>nFailureot</strong>
  * on the application's classpath. For the purpose of this example this is the
  * {@link Processor}s that are needed during workflow execution. These
  * artifacts are defined in
@@ -103,7 +116,7 @@ import org.w3c.dom.Element;
  * dependencies, need to be downloaded when the application is first run and are
  * downloaded to the local repository location defined by the method
  * {@link INBWorkflowLauncherWrapper#getRepositoryBaseFile()}, and ultimately the
- * runtime argument <em>-basedir</em> if provided.
+ * runtime argument <em>-baseDir</em> if provided.
  * </p>
  * <p>
  * The external artifacts are downloaded from the remote repository locations
@@ -166,7 +179,7 @@ import org.w3c.dom.Element;
  * <pre>
  * inbworkflowlauncher [-inputdoc &lt;path to input doc&gt;
  *        -outputdoc &lt;path to output doc&gt;
- *        -basedir &lt;path to local repository download dir&gt;]
+ *        -baseDir &lt;path to local repository download dir&gt;]
  *        -workflow &lt;path to workflow scufl file&gt;.
  * </pre>
  *
@@ -200,42 +213,59 @@ public class INBWorkflowParserWrapper {
 	private static final String[][] ParamDescs={
 		{"-h","0","Shows this help"},
 		{"-help","0","Shows this help"},
+		{"--help","0","Shows this help"},
 		{"-debug","0","Turns on debugging"},
 		{"-workflow","1","Workflow to be processed/run"},
 		{"-svggraph","1","File where to save workflow graph in SVG format"},
 		{"-dotgraph","1","File where to save workflow graph in DOT format"},
-		{"-basedir","1","Maven repository dirname"},
+		{"-expandSubWorkflows","0","Sub-Workflows are expanded when workflow graph is generated"},
+		{"-collapseSubWorkflows","0","Sub-Workflows are collapsed when workflow graph is generated"},
+		{"-topDownOrientation","0","Workflow graph layout must be top-down"},
+		{"-leftRightOrientation","0","Workflow graph layout must be left-right"},
+		{"-baseDir","1","Maven repository dirname"},
 	};
 	
 	private static final String TAVERNA_GROUP_ID="uk.org.mygrid.taverna";
 	private static final String TAVERNA_PROCESSORS_GROUP_ID = TAVERNA_GROUP_ID + ".processors";
 	private static final String TAVERNA_BACLAVA_GROUP_ID = TAVERNA_GROUP_ID + ".baclava";
 	private static final String TAVERNA_SCUFL_GROUP_ID = TAVERNA_GROUP_ID + ".scufl";
+	private static final String TAVERNA_SCUFL_UI_COMPONENTS_GROUP_ID = TAVERNA_SCUFL_GROUP_ID + ".scufl-ui-componets";
+	private static final String TAVERNA_RAVEN_GROUP_ID = TAVERNA_GROUP_ID + ".raven";
 	
 	private static final String[][] SystemArtifactList={
+		{TAVERNA_RAVEN_GROUP_ID,"raven",TAVERNA_BASE_VERSION},
 		{TAVERNA_GROUP_ID,"taverna-core",TAVERNA_BASE_VERSION},
-		{TAVERNA_GROUP_ID,"taverna-enactor",TAVERNA_BASE_VERSION},
-		{TAVERNA_GROUP_ID,"taverna-tools",TAVERNA_BASE_VERSION},
-		{TAVERNA_BACLAVA_GROUP_ID,"baclava-core",TAVERNA_BASE_VERSION},
-		{TAVERNA_BACLAVA_GROUP_ID,"baclava-tools",TAVERNA_BASE_VERSION},
-		{TAVERNA_SCUFL_GROUP_ID,"scufl-core",TAVERNA_BASE_VERSION},
+		{TAVERNA_RAVEN_GROUP_ID,"raven-log4j",TAVERNA_BASE_VERSION},
+		{TAVERNA_GROUP_ID,"taverna-bootstrap",TAVERNA_BASE_VERSION},
 		{TAVERNA_SCUFL_GROUP_ID,"scufl-model",TAVERNA_BASE_VERSION},
+		{TAVERNA_BACLAVA_GROUP_ID,"baclava-core",TAVERNA_BASE_VERSION},
+		{TAVERNA_SCUFL_UI_COMPONENTS_GROUP_ID,"svg-diagram",TAVERNA_BASE_VERSION},
+		{TAVERNA_SCUFL_GROUP_ID,"scufl-ui",TAVERNA_BASE_VERSION},
+		{TAVERNA_SCUFL_GROUP_ID,"scufl-ui-api",TAVERNA_BASE_VERSION},
 		{TAVERNA_SCUFL_GROUP_ID,"scufl-tools",TAVERNA_BASE_VERSION},
-		{TAVERNA_SCUFL_GROUP_ID,"scufl-workflow",TAVERNA_BASE_VERSION},
-//		{"jaxen","jaxen","1.0-FCS"},
+		{TAVERNA_GROUP_ID,"taverna-enactor",TAVERNA_BASE_VERSION},
+		{TAVERNA_GROUP_ID,"taverna-update-manager",TAVERNA_BASE_VERSION},
+//		{TAVERNA_GROUP_ID,"taverna-tools",TAVERNA_BASE_VERSION},
+//		{TAVERNA_BACLAVA_GROUP_ID,"baclava-tools",TAVERNA_BASE_VERSION},
+//		{TAVERNA_SCUFL_GROUP_ID,"scufl-core",TAVERNA_BASE_VERSION},
+//		{TAVERNA_SCUFL_GROUP_ID,"scufl-workflow",TAVERNA_BASE_VERSION},
+		{"jaxen","jaxen","1.0-FCS"},
+		{"saxpath","saxpath","1.0-FCS"},
+		{"dom4j","dom4j","1.6"},
 	};
 	
 	private static final String[][] ExternalArtifactList={
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-beanshell-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-biomart-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-localworkers",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-stringconstant-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-notification-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-beanshell-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-soaplab-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-wsdl-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-apiconsumer-processor",TAVERNA_BASE_VERSION},
 		{"biomoby.org","taverna-biomoby",TAVERNA_BASE_VERSION},
 		{TAVERNA_GROUP_ID,"taverna-contrib",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-localworkers",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-notification-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-soaplab-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-stringconstant-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-wsdl-processor",TAVERNA_BASE_VERSION},
 	};
 	
 	private static final String[] RepositoryLocationList={
@@ -281,13 +311,18 @@ public class INBWorkflowParserWrapper {
 		FillHashMap(ParamDescs);
 	};
 	
-	File workflowFile;
+	protected File workflowFile;
 	
 	File baseDir;
 	
 	File dotFile;
 	
-	File SVGFile;
+	protected File SVGFile;
+	
+	boolean alignmentParam=false;
+	boolean expandWorkflowParam=false;
+	
+	protected boolean debugMode=false;
 
 	protected HashMap<String, DataThing> baseInputs = new HashMap<String, DataThing>();
 	
@@ -306,10 +341,14 @@ public class INBWorkflowParserWrapper {
 	 *	rescue it, and then patch any file construction! Nuts!
 	 */
 	protected static File NewFile(String filename)
+		throws IOException
 	{
 		File f=new File(filename);
-		if(!f.isAbsolute() && OriginalDir!=null) {
-			f=new File(OriginalDir,filename);
+		if(!f.isAbsolute()) {
+			if(OriginalDir!=null) {
+				f=new File(OriginalDir,filename);
+			}
+			f=f.getCanonicalFile();
 		}
 		
 		return f;
@@ -340,13 +379,29 @@ public class INBWorkflowParserWrapper {
 		InputStream workflowInputStream = new FileInputStream(workflowFile);
 
 		logger.debug("Param processing has finished. Starting repository initialization");
+		//TavernaSPIRegistry.setRepository(((LocalArtifactClassLoader)getClass().getClassLoader()).getRepository());
+		
 		Repository repository = initialiseRepository();
 		logger.debug("Repository initialization has finished. Starting TavernaSPI");
 		TavernaSPIRegistry.setRepository(repository);
+		//PluginManager.setRepository(repository);
+		//PluginManager.getInstance();
+		
 		logger.debug("TavernaSPI has finished. Starting WorkflowLauncher");
 		
                 ScuflModel model = new ScuflModel();
-                XScuflParser.populate(workflowInputStream, model, null);
+		try {
+	                XScuflParser.populate(workflowInputStream, model, null);
+//		} catch (IOException e) {
+//			logger.error("Could not read workflow " + workflowFile.getAbsolutePath(),e);
+//			System.exit(6);
+		} catch (XScuflFormatException e) {
+			logger.error("Could not parse workflow " + workflowFile.getAbsolutePath(),e);
+			System.exit(15);
+		} catch (ScuflException e) {
+			logger.error("Could not load workflow " + workflowFile.getAbsolutePath(),e);
+			System.exit(7);
+		}
 		
 		// Now it is time to generate workflow SVG (if it is possible!)
 		generateWorkflowGraph(model);
@@ -366,7 +421,7 @@ public class INBWorkflowParserWrapper {
 	 * <p>
 	 * Based upon this information the repository is updated, causing any
 	 * external artifacts to be downloaded to the local repository location
-	 * defined by <code>-basedir</code> if required.
+	 * defined by <code>-baseDir</code> if required.
 	 *
 	 * @return The initialised {@link Repository} instance
 	 * @throws IOException
@@ -390,14 +445,12 @@ public class INBWorkflowParserWrapper {
 		if (myLoader == null) {
 			myLoader = ClassLoader.getSystemClassLoader();
 		}
-		Repository repository =
-			LocalRepository.getRepository(base,
-				myLoader, systemArtifacts);
+		Repository repository = LocalRepository.getRepository(base, myLoader, systemArtifacts);
 		for (Artifact artifact : externalArtifacts) {
 			logger.debug("Adding external artifact "+artifact.getArtifactId());
 			repository.addArtifact(artifact);
 		}
-
+		
 		for (URL location : repositoryLocations) {
 			logger.debug("Adding external location "+location.toString());
 			repository.addRemoteRepository(location);
@@ -514,7 +567,7 @@ public class INBWorkflowParserWrapper {
 	 * Provide a {@link File} representation of the local repository directory
 	 * that external artifacts and their dependencies will be downloaded to.</p>
 	 * <p>
-	 * This is defined by the argument <code>-basedir</code>. If this is not
+	 * This is defined by the argument <code>-baseDir</code>. If this is not
 	 * defined a temporary directory is created.</p>
 	 *
 	 * @return a {@link File} representation
@@ -529,7 +582,7 @@ public class INBWorkflowParserWrapper {
 		} else {
 			File temp = new File(System.getProperty("user.home"),".inb-maven");
 			temp.mkdirs();
-			logger.warn("No -basedir defined, so using default location of: "
+			logger.warn("No -baseDir defined, so using default location of: "
 				+ temp.getAbsolutePath());
 			return temp;
 		}
@@ -585,22 +638,35 @@ public class INBWorkflowParserWrapper {
 		checkSetParams();
 	}
 	
+	protected void setDebugMode() {
+		debugMode=true;
+		logger.setLevel(Level.DEBUG);
+	}
+	
 	protected void processParam(String param, ArrayList<String> values)
 		throws Exception
 	{
 		if(param.equals("-debug")) {
-			logger.setLevel(Level.DEBUG);
-		} else if(param.equals("-help") || param.equals("-h")) {
+			setDebugMode();
+		} else if(param.equals("--help") || param.equals("-help") || param.equals("-h")) {
 			showHelp(0);
 			//throw new Exception("");
 		} else if (param.equals("-workflow")) {
 			workflowFile = NewFile(values.get(0));
-		} else if (param.equals("-basedir")) {
+		} else if (param.equals("-baseDir")) {
 			baseDir = NewFile(values.get(0));
 		} else if (param.equals("-dotgraph")) {
 			dotFile = NewFile(values.get(0));
 		} else if (param.equals("-svggraph")) {
 			SVGFile = NewFile(values.get(0));
+		} else if (param.equals("-topDownOrientation")) {
+			alignmentParam=false;
+		} else if (param.equals("-leftRightOrientation")) {
+			alignmentParam=true;
+		} else if (param.equals("-expandSubWorkflows")) {
+			expandWorkflowParam=true;
+		} else if (param.equals("-collapseSubWorkflows")) {
+			expandWorkflowParam=false;
 		} else {
 			logger.warn("Argument "+param+" has not been processed because this parsing code is incomplete!");
 		}
@@ -652,13 +718,14 @@ public class INBWorkflowParserWrapper {
 	
 	
 	private void generateWorkflowGraph(ScuflModel model)
-		throws Exception
+		throws FileNotFoundException,IOException
 	{
 		if(dotFile!=null || SVGFile!=null) {
 			DotView dotView=new DotView(model);
-			// TODO
 			// Here the different graph drawing parameters
 			dotView.setPortDisplay(DotView.BOUND);
+			dotView.setAlignment(alignmentParam);
+			dotView.setExpandWorkflow(expandWorkflowParam);
 			
 			// And here, getting the dot
 			String dotContent=dotView.getDot();
@@ -691,7 +758,13 @@ public class INBWorkflowParserWrapper {
 				// Then, we can fetch it!
 				InputStream SVGtrampHandler=cl.getResourceAsStream(SVG_TRAMPOLINE);
 				if(SVGtrampHandler!=null) {
-					InputStreamReader SVGtrampReader = new InputStreamReader(new BufferedInputStream(SVGtrampHandler),"UTF-8");
+					InputStreamReader SVGtrampReader = null;
+					try {
+						SVGtrampReader = new InputStreamReader(new BufferedInputStream(SVGtrampHandler),"UTF-8");
+					} catch(UnsupportedEncodingException uee) {
+						logger.fatal("UNSUPPORTED ENCODING????",uee);
+						System.exit(1);
+					}
 					
 					StringBuilder trampcode=new StringBuilder();
 					int bufferSize=16384;
@@ -726,8 +799,20 @@ public class INBWorkflowParserWrapper {
 				
 				// At last, writing it...
 				TransformerFactory tf=TransformerFactory.newInstance();
-				Transformer t=tf.newTransformer();
-				t.transform(new DOMSource(svg),new StreamResult(SVGFile));
+				try {
+					Transformer t=tf.newTransformer();
+				
+					// There are some problems with next sentence and some new Xalan
+					// distributions, so the workaround is creating ourselves the
+					// FileOutputStream instead of using File straight!
+					t.transform(new DOMSource(svg),new StreamResult(new FileOutputStream(SVGFile)));
+				} catch(TransformerConfigurationException tce) {
+					logger.fatal("TRANSFORMER CONFIGURATION FAILED????",tce);
+					System.exit(1);
+				} catch(TransformerException te) {
+					logger.fatal("STRAIGHT TRANSFORMATION FAILED????",te);
+					System.exit(1);
+				}
 			}
 		}
 	}
