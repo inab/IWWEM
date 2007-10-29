@@ -8,8 +8,7 @@
 	-->
 	<property name="deploy.host" value="localhost" />
 	<property name="deploy.ssh.user" value="jmfernandez" />
-	<property name="deploy.ssh.pass" value="nR8Bg3zL" />
-	<property name="deploy.ssh.dir" value="/home/jmfernandez/cgi-bin/IWWE" />
+	<property name="deploy.ssh.dir" value="/home/jmfernandez/public_html/IWWE" />
 	
 	<dirname property="antfile.dir" file="${ant.file}"/>
 	<dirname property="antfile.dir.parent" file="${antfile.dir}"/>
@@ -45,10 +44,23 @@
 	</target>
 	
 	<target depends="check" description="It deploys the whole project to the destination repository" name="deploy">
-		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}" password="${deploy.ssh.password}">
-			<fileset dir="${weblauncher.src}" defaultexcludes="no">
-				<exclude name="**/.svn"/>
+		<sshexec
+			host="${deploy.host}"
+			username="${deploy.ssh.user}"
+			keyfile="${user.home}/.ssh/id_dsa"
+			passphrase=""
+			command="mkdir -p '${deploy.ssh.dir}'"
+		/>
+		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}" keyfile="${user.home}/.ssh/id_dsa" passphrase="" verbose="true">
+			<fileset dir="${weblauncher.src}" defaultexcludes="yes">
 			</fileset>
 		</scp>
+		<sshexec
+			host="${deploy.host}"
+			username="${deploy.ssh.user}"
+			keyfile="${user.home}/.ssh/id_dsa"
+			passphrase=""
+			command="chmod go+w ${deploy.ssh.dir}/workflows ${deploy.ssh.dir}/jobs ${deploy.ssh.dir}/cgi-bin/logs ${deploy.ssh.dir}/cgi-bin/inb-maven"
+		/>
 	</target>
 </project>
