@@ -36,14 +36,24 @@ import net.sf.taverna.raven.repository.impl.LocalArtifactClassLoader;
 
 import net.sf.taverna.update.plugin.PluginManager;
 
+/*
+import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+
+import org.apache.fop.svg.PDFTranscoder;
+*/
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
+
 import org.embl.ebi.escience.baclava.DataThing;
 import org.embl.ebi.escience.scufl.Processor;
 import org.embl.ebi.escience.scufl.tools.WorkflowLauncher;
 import org.embl.ebi.escience.utils.TavernaSPIRegistry;
-import org.jdom.JDOMException;
 
 import org.embl.ebi.escience.baclava.factory.DataThingFactory;
 
@@ -52,6 +62,10 @@ import org.embl.ebi.escience.scufl.parser.XScuflParser;
 
 import org.embl.ebi.escience.scuflui.ScuflSVGDiagram;
 import org.embl.ebi.escience.scufl.view.DotView;
+
+import org.jdom.JDOMException;
+
+
 // SVGDocument is a Document!!!
 //import org.w3c.dom.svg.SVGDocument;
 
@@ -218,6 +232,10 @@ public class INBWorkflowParserWrapper {
 		{"-workflow","1","Workflow to be processed/run"},
 		{"-svggraph","1","File where to save workflow graph in SVG format"},
 		{"-dotgraph","1","File where to save workflow graph in DOT format"},
+/*
+		{"-pnggraph","1","File where to save workflow graph in PNG format"},
+		{"-pdfgraph","1","File where to save workflow graph in PDF format"},
+*/
 		{"-expandSubWorkflows","0","Sub-Workflows are expanded when workflow graph is generated"},
 		{"-collapseSubWorkflows","0","Sub-Workflows are collapsed when workflow graph is generated"},
 		{"-topDownOrientation","0","Workflow graph layout must be top-down"},
@@ -252,6 +270,7 @@ public class INBWorkflowParserWrapper {
 		{"jaxen","jaxen","1.0-FCS"},
 		{"saxpath","saxpath","1.0-FCS"},
 		{"dom4j","dom4j","1.6"},
+//		{"batik","batik-transcoder","1.6-1"},
 	};
 	
 	private static final String[][] ExternalArtifactList={
@@ -318,14 +337,18 @@ public class INBWorkflowParserWrapper {
 	File dotFile;
 	
 	protected File SVGFile;
+
+/*
+	protected File PNGFile;
+	
+	protected File PDFFile;
+*/
 	
 	boolean alignmentParam=false;
 	boolean expandWorkflowParam=false;
 	
 	protected boolean debugMode=false;
 
-	protected HashMap<String, DataThing> baseInputs = new HashMap<String, DataThing>();
-	
 	public static void main(String[] args) {
 		try {
 			new INBWorkflowParserWrapper().run(args);
@@ -375,7 +398,7 @@ public class INBWorkflowParserWrapper {
 		throws Exception
 	{
 		logger.debug("Starting param processing");
-		processArgs(args,baseInputs);
+		processArgs(args);
 		InputStream workflowInputStream = new FileInputStream(workflowFile);
 
 		logger.debug("Param processing has finished. Starting repository initialization");
@@ -594,7 +617,7 @@ public class INBWorkflowParserWrapper {
 	 *
 	 * @param args The list of arguments from {@link #main(String[])}
 	 */
-	private void processArgs(String[] args,Map<String, DataThing> baseInputs)
+	private void processArgs(String[] args)
 		throws Exception
 	{
 		if(args.length==0) {
@@ -659,6 +682,12 @@ public class INBWorkflowParserWrapper {
 			dotFile = NewFile(values.get(0));
 		} else if (param.equals("-svggraph")) {
 			SVGFile = NewFile(values.get(0));
+/*
+		} else if (param.equals("-pnggraph")) {
+			PNGFile = NewFile(values.get(0));
+		} else if (param.equals("-pdfgraph")) {
+			PDFFile = NewFile(values.get(0));
+*/
 		} else if (param.equals("-topDownOrientation")) {
 			alignmentParam=false;
 		} else if (param.equals("-leftRightOrientation")) {
@@ -720,7 +749,7 @@ public class INBWorkflowParserWrapper {
 	private void generateWorkflowGraph(ScuflModel model)
 		throws FileNotFoundException,IOException
 	{
-		if(dotFile!=null || SVGFile!=null) {
+		if(dotFile!=null || SVGFile!=null /*|| PNGFile!=null || PDFFile!=null*/) {
 			DotView dotView=new DotView(model);
 			// Here the different graph drawing parameters
 			dotView.setPortDisplay(DotView.BOUND);
@@ -742,7 +771,7 @@ public class INBWorkflowParserWrapper {
 				
 			}
 			
-			if(SVGFile!=null) {
+			if(SVGFile!=null /*|| PNGFile!=null || PDFFile!=null*/) {
 				// Translating to SVG!!!!!
 				Document svg=ScuflSVGDiagram.getSVG(dotContent);
 				
@@ -798,21 +827,80 @@ public class INBWorkflowParserWrapper {
 				}
 				
 				// At last, writing it...
-				TransformerFactory tf=TransformerFactory.newInstance();
-				try {
-					Transformer t=tf.newTransformer();
-				
-					// There are some problems with next sentence and some new Xalan
-					// distributions, so the workaround is creating ourselves the
-					// FileOutputStream instead of using File straight!
-					t.transform(new DOMSource(svg),new StreamResult(new FileOutputStream(SVGFile)));
-				} catch(TransformerConfigurationException tce) {
-					logger.fatal("TRANSFORMER CONFIGURATION FAILED????",tce);
-					System.exit(1);
-				} catch(TransformerException te) {
-					logger.fatal("STRAIGHT TRANSFORMATION FAILED????",te);
-					System.exit(1);
+				if(SVGFile!=null) {
+					TransformerFactory tf=TransformerFactory.newInstance();
+					try {
+						Transformer t=tf.newTransformer();
+
+						// There are some problems with next sentence and some new Xalan
+						// distributions, so the workaround is creating ourselves the
+						// FileOutputStream instead of using File straight!
+						FileOutputStream foe=new FileOutputStream(SVGFile);
+						t.transform(new DOMSource(svg),new StreamResult(foe));
+						foe.flush();
+						foe.close();
+					} catch(TransformerConfigurationException tce) {
+						logger.fatal("TRANSFORMER CONFIGURATION FAILED????",tce);
+						System.exit(1);
+					} catch(TransformerException te) {
+						logger.fatal("STRAIGHT TRANSFORMATION FAILED????",te);
+						System.exit(1);
+					}
 				}
+				
+				/*
+				if(PNGFile!=null) {
+					// Create a PNG transcoder
+					PNGTranscoder pngt = new PNGTranscoder();
+
+					// Set the transcoding hints.
+					// Transparent background must be white pixels
+					// and we are using a reduced color palette
+					pngt.addTranscodingHint(ImageTranscoder.KEY_FORCE_TRANSPARENT_WHITE,new Boolean(true));
+					pngt.addTranscodingHint(PNGTranscoder.KEY_INDEXED,	new Integer(8));
+
+					TranscoderInput input = new TranscoderInput(svg);
+
+					// Create the transcoder output.
+					FileOutputStream foe = new FileOutputStream(PNGFile);
+					TranscoderOutput output = new TranscoderOutput(foe);
+
+					// Save the image.
+					try {
+						pngt.transcode(input, output);
+					} catch(TranscoderException te) {
+						logger.fatal("Transcoding to PNG failed",te);
+						System.exit(1);
+					} finally {
+						// Flush and close the stream.
+						foe.flush();
+						foe.close();
+					}
+				}
+				
+				if(PDFFile!=null) {
+					// Create a PDF transcoder
+					PDFTranscoder pdft = new PDFTranscoder();
+
+					TranscoderInput input = new TranscoderInput(svg);
+
+					// Create the transcoder output.
+					FileOutputStream foe = new FileOutputStream(PDFFile);
+					TranscoderOutput output = new TranscoderOutput(foe);
+
+					// Save the PDF
+					try {
+						pdft.transcode(input, output);
+					} catch(TranscoderException te) {
+						logger.fatal("Transcoding to PDF failed",te);
+						System.exit(1);
+					} finally {
+						// Flush and close the stream.
+						foe.flush();
+						foe.close();
+					}
+				}
+				*/
 			}
 		}
 	}

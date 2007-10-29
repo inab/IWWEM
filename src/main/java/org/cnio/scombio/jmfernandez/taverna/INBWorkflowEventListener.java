@@ -266,13 +266,23 @@ public class INBWorkflowEventListener
 		
 		String iterStepString=null;
 		if(e.isIterating()) {
-			thisProcess=new File(thisProcess,ITERATIONS);
+			File originalProcess=thisProcess;
+			thisProcess=new File(originalProcess,ITERATIONS);
 			int iterStep;
 			if(iterState.containsKey(procName)) {
 				iterStep=iterState.get(procName);
 			} else {
 				iterStep=0;
+				/*
+				try {
+					File iterate=new File(originalProcess,ITERATE);
+					iterate.createNewFile();
+				} catch(IOException ioe) {
+					logger.error("Unable signal process "+procName+" iteration flag",ioe);
+				}
+				*/
 			}
+			originalProcess=null;
 			
 			// Saving step and incrementing
 			iterStepString=Integer.toString(iterStep);

@@ -143,6 +143,23 @@
 			<artifactId>dom4j</artifactId>
 			<version>1.6</version>
 		</dependency>
+		
+		<!-- For Batik transcoder -->
+		<!--
+		<dependency>
+			<groupId>batik</groupId>
+			<artifactId>batik-transcoder</artifactId>
+			<version>1.6-1</version>
+		</dependency>
+		-->
+		<!-- For FOP PDF transcoder -->
+		<!--
+		<dependency>
+			<groupId>fop</groupId>
+			<artifactId>fop</artifactId>
+			<version>0.93</version>
+		</dependency>
+		-->
 	</dependencies>
 	<distributionManagement>
 		<!-- use the following if you're not using a snapshot version. -->

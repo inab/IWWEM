@@ -65,12 +65,13 @@ public class INBWorkflowLauncherWrapper
 	private static final String SCRIPT_NAME="inbworkflowlauncher";
 	
 	private static final String[][] ParamDescs={
-		{"-inputDoc","1","All the workflow inputs, encoded in a Baclava document"},
+		{"-inputDoc","1","A bunch of workflow inputs, encoded in a Baclava document"},
 		{"-input","2","A single pair input name / value"},
 		{"-inputFile","2","A single pair input name / file where the value is stored"},
 		{"-inputURL","2","A single pair input name / URL where the value can be fetched"},
 		{"-inputArray","2","A single pair input name / file where a list of values are stored"},
 		{"-inputArrayFile","2","A single pair input name / file which contains a list of file names which contain the values"},
+		{"-inputArrayDir","2","A single pair input name / directory where files with the values are stored"},
 		{"-outputDoc","1","All the workflow outputs, saved in a Baclava document"},
 		{"-outputDir","1","All the workflow outputs, saved in a directory which will contain the structure of the outputs"},
 		{"-report","1","Taverna XML report file"},
@@ -90,8 +91,6 @@ public class INBWorkflowLauncherWrapper
 		FillHashMap(ParamDescs);
 	};
 	
-	File inputDocumentFile;
-
 	File outputDocumentFile;
 	
 	File outputDir;
@@ -99,6 +98,8 @@ public class INBWorkflowLauncherWrapper
 	File reportFile;
 	
 	File statusDir;
+	
+	protected HashMap<String, DataThing> baseInputs = new HashMap<String, DataThing>();
 	
 	public static void main(String[] args) {
 		try {
@@ -122,13 +123,6 @@ public class INBWorkflowLauncherWrapper
 		// All the tasks from parent (including parameter parsing) have been done
 		ScuflModel model=super.run(args);
 		
-		Map<String, DataThing> inputs = loadInputDocument();
-		if (inputs == null) {
-			inputs = baseInputs;
-		} else {
-			inputs.putAll(baseInputs);
-		}
-		
 		WorkflowLauncher launcher = new WorkflowLauncher(model);
 		
 		logger.debug("And now, executing workflow!!!!!");
@@ -137,9 +131,9 @@ public class INBWorkflowLauncherWrapper
 		try {
 			if(statusDir!=null) {
 				INBWorkflowEventListener iel=new INBWorkflowEventListener(statusDir,debugMode);
-				outputs = launcher.execute(inputs,iel);
+				outputs = launcher.execute(baseInputs,iel);
 			} else {
-				outputs = launcher.execute(inputs);
+				outputs = launcher.execute(baseInputs);
 			}
                 } catch (InvalidInputException e) {
                         logger.error("Invalid inputs for workflow " + workflowFile.getAbsolutePath(),e);
@@ -182,7 +176,7 @@ public class INBWorkflowLauncherWrapper
 	 * @throws JDOMException If the input document is invalid XML
 	 * @throws IOException If the input document can't be read
 	 */
-	protected Map<String, DataThing> loadInputDocument()
+	protected Map<String, DataThing> loadInputDocument(File inputDocumentFile)
 		throws FileNotFoundException, JDOMException, IOException
 	{
 		if (inputDocumentFile == null) {
@@ -233,7 +227,15 @@ public class INBWorkflowLauncherWrapper
 		throws Exception
 	{
 		if (param.equals("-inputDoc")) {
-			inputDocumentFile = NewFile(values.get(0));
+			File inputDocumentFile = NewFile(values.get(0));
+			logger.debug("Loading baclava file "+values.get(0)+" (full path "+inputDocumentFile.getAbsolutePath()+")");
+			Map<String, DataThing> loadedValues = loadInputDocument(inputDocumentFile);
+			if(loadedValues==null) {
+				throw new IOException("Unable to obtain inputs from baclava file "+inputDocumentFile.getAbsolutePath());
+			}
+			baseInputs.putAll(loadedValues);
+			loadedValues=null;
+			logger.debug("Loaded baclava file "+values.get(0)+" (full path "+inputDocumentFile.getAbsolutePath()+")");
 		} else if (param.equals("-outputDoc")) {
 			outputDocumentFile = NewFile(values.get(0));
 		} else if (param.equals("-outputDir")) {
@@ -279,6 +281,29 @@ public class INBWorkflowLauncherWrapper
 				valueArr.add(content);
 			}
 			br.close();
+			baseInputs.put(values.get(0),DataThingFactory.bake(valueArr.toArray(new String[0])));
+		} else if (param.equals("-inputArrayDir")) {
+			File farr = NewFile(values.get(1));
+			File[] files = farr.listFiles();
+			if(files==null) {
+				throw new IOException(farr.getAbsolutePath()+" is not a directory or it is not readable");
+			}
+			ArrayList<String> valueArr=new ArrayList<String>();
+			for(File filei: files) {
+				if(filei.isDirectory() || ! filei.isFile() || filei.isHidden()) {
+					logger.debug("Entry "+filei.getAbsolutePath()+" was skipped");
+					continue;
+				}
+				logger.debug("Loading file "+filei.getAbsolutePath()+" for input "+values.get(0));
+				String linecontent;
+				String content="";
+				BufferedReader filebr=new BufferedReader(new FileReader(filei));
+				while((linecontent=filebr.readLine())!=null) {
+					content += "\n" + linecontent;
+				}
+				filebr.close();
+				valueArr.add(content);
+			}
 			baseInputs.put(values.get(0),DataThingFactory.bake(valueArr.toArray(new String[0])));
 		} else {
 			// Perhaps my superclass knows how to handle this!

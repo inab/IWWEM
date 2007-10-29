@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    targetNamespace="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend">
+    <xsd:annotation>
+        <xsd:documentation><![CDATA[This schema was designed to model
+the messages between frontend modules and AJAX layer of
+INB Web Workflow Launcher.
+
+INB Web Workflow Launcher has been created by
+José María Fernández González, 2007, for
+INB (http://www.inab.org/).
+
+Java backend modules have been made in Java and use Taverna core
+libraries. The initial seed of that code came from Taverna example
+called "workflowlauncher".
+
+Perl frontend modules have been made in Perl. They use various standard
+Perl libraries and LockNLog library, created in the context of iHOP
+web services by José María Fernández González, 2007.]]></xsd:documentation>
+    </xsd:annotation>
+    
+    <xsd:simpleType name="EnactionStatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="queued">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The enaction job has not started yet, and it is waiting its turn]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="running">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The enaction job is currently running]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="finished">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The enaction job has successfully finished]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="error">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The enaction job has finished with error]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="dead">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The enaction job unexpectedly died]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fatal">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[It happened a recoverable internal fatal error while processing job status]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unknown">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[There is no known enaction job with this ID]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="EnactionStepStatusType">
+        <xsd:restriction base="EnactionStatusType">
+            <xsd:enumeration value="queued">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The enaction step has not started yet, and it is waiting its turn]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="running">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The enaction step is currently running]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="finished">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The enaction step has successfully finished]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="error">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The enaction step has finished with error]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:complexType name="IODesc">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Generic complex type for input & output descriptions]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[Available documentation related to this input/output. It might be in HTML]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mime" type="xsd:string" minOccurs="1" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The associated mime/types to this input/output]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="IORepType">
+        <xsd:attribute name="name" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[The name of this input, output or step]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    
+    <xsd:element name="workflow">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[The description of a particular workflow]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element name="description" type="xsd:string" minOccurs="1" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[Available documentation related to the workflow. It might be in HTML]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="input" minOccurs="0" maxOccurs="unbounded" type="IODesc">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[The set of inputs of the workflow.
+The workflow can zero inputs when it is a self-contained,
+demonstration or test workflow.]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="output" minOccurs="0" maxOccurs="unbounded" type="IODesc">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[The set of outputs of the workflow.
+There should be at least one output, but a workflow developer can 'forget'
+creating it when it is more interested in side-effects than in the generated
+results.]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="lsid" type="xsd:string" use="required">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The LSID generated by Taverna when the workflow was created]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="author" type="xsd:string" use="required">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The name of the author of the workflow (if it is available)]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="title" type="xsd:string" use="required">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The title given to the workflow by the author (if it is available)]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="path" type="xsd:anyURI" use="required">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The relative path to the workflow, respect to the local workflow repository base URL]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="svg" type="xsd:anyURI" use="required">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The relative path to the SVG graph representation of the workflow, respect to the local workflow repository base URL]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:attribute name="time" type="xsd:dateTime">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[A time ticket which reports when this event has happened]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:attribute>
+    
+    <xsd:attribute name="jobId" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[The enaction job ID, which must be used by subsequent operations]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:attribute>
+    
+    <xsd:attributeGroup name="TimeJob">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[These two attributes are used together at least twice]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute ref="time" use="required"/>
+        <xsd:attribute ref="jobId" use="required"/>
+    </xsd:attributeGroup>
+    
+    <xsd:element name="workflowlist">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[A list of available workflows in the workflow repository.
+workflowlister frontend module returns the information following this sub-schema.]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element ref="workflow" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+            <xsd:attribute ref="time" use="required"/>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name="enactionlaunched">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[This message is sent by enactionlauncher when
+an enaction job has been successfully enqueued]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:attributeGroup ref="TimeJob"/>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name="input" type="IORepType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[The feeded inputs]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="output" type="IORepType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[The obtained outputs]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="enactionreport">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[A bunch of enaction reports]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element name="enactionstatus" minOccurs="1" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[The current status of a particular enaction]]></xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:sequence minOccurs="1" maxOccurs="1">
+                            <xsd:element ref="input" minOccurs="0" maxOccurs="unbounded"/>
+                            <xsd:element ref="output" minOccurs="0" maxOccurs="unbounded"/>
+                            <xsd:element name="step" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[The step]]></xsd:documentation>
+                                </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:complexContent>
+                                        <xsd:extension base="IORepType">
+                                            <xsd:sequence minOccurs="1" maxOccurs="1">
+                                                <xsd:element ref="input" minOccurs="0" maxOccurs="unbounded"/>
+                                                <xsd:element ref="output" minOccurs="0" maxOccurs="unbounded"/>
+                                                <xsd:element name="iterations" minOccurs="0" maxOccurs="1">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence minOccurs="1" maxOccurs="1">
+                                                            <xsd:element name="step" minOccurs="1" maxOccurs="unbounded">
+                                                                <xsd:complexType>
+                                                                    <xsd:complexContent>
+                                                                        <xsd:extension base="IORepType">
+                                                                            <xsd:sequence minOccurs="1" maxOccurs="1">
+                                                                                <xsd:element ref="input" minOccurs="0" maxOccurs="unbounded"/>
+                                                                                <xsd:element ref="output" minOccurs="0" maxOccurs="unbounded"/>
+                                                                            </xsd:sequence>
+                                                                        </xsd:extension>
+                                                                    </xsd:complexContent>
+                                                                </xsd:complexType>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                            <xsd:attribute name="state" type="EnactionStepStatusType">
+                                                <xsd:annotation>
+                                                    <xsd:documentation><![CDATA[The state of this enaction step]]></xsd:documentation>
+                                                </xsd:annotation>
+                                            </xsd:attribute>
+                                        </xsd:extension>
+                                    </xsd:complexContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attributeGroup ref="TimeJob"/>
+                        <xsd:attribute name="state" type="EnactionStatusType" use="required">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The state of the enaction]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>

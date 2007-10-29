@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<project basedir="." default="check" name="inb-workflow-launcher-system">
+	<description>INB Web Workflow Enactor by jmfernandez Ant script $Id$</description>
+	
+	<!--
+		Configuration properties
+	-->
+	<property name="deploy.host" value="localhost" />
+	<property name="deploy.ssh.user" value="jmfernandez" />
+	<property name="deploy.ssh.pass" value="nR8Bg3zL" />
+	<property name="deploy.ssh.dir" value="/home/jmfernandez/cgi-bin/IWWE" />
+	
+	<dirname property="antfile.dir" file="${ant.file}"/>
+	<dirname property="antfile.dir.parent" file="${antfile.dir}"/>
+	<property name="weblauncher.src" location="weblauncher" />
+	
+	<!--
+		Targets
+	-->
+	
+	<target name="init">
+		<!-- Creating the timestamp -->
+		<tstamp/>
+	</target>
+	
+	<target depends="init" description="Compilation of Java/Maven backend modules" name="maven-compile">
+		<exec executable="mvn" failonerror="true">
+			<arg value="package"/>
+			<arg value="appassembler:assemble"/>
+		</exec>
+	</target>
+	
+	<target depends="init" description="Checking of Perl frontend modules" name="perl-check">
+		<apply executable="perl" dir="${weblauncher.src}" failonerror="true">
+			<arg value="-c"/>
+			<fileset dir="${weblauncher.src}" followsymlinks="false">
+				<include name="**/*.pl" />
+				<include name="**/*.pm" />
+			</fileset>
+		</apply>
+	</target>
+	
+	<target depends="maven-compile,perl-check" description="It checks the whole project's modules" name="check">
+	</target>
+	
+	<target depends="check" description="It deploys the whole project to the destination repository" name="deploy">
+		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}" password="${deploy.ssh.password}">
+			<fileset dir="${weblauncher.src}" defaultexcludes="no">
+				<exclude name="**/.svn"/>
+			</fileset>
+		</scp>
+	</target>
+</project>
