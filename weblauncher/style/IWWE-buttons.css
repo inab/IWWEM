@@ -1,0 +1,127 @@
+/* INB Web Workflow Launcher Buttons CSS */
+
+.button {
+	width: 105px;
+	height: 26px;
+	padding: 0px;
+	
+	background-image: url(button2-inactive.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	
+	display: table-cell;
+	text-align: center;
+ 	vertical-align: middle;
+	font-size: 15px;
+	/*
+	background-color: gray;
+	border: 1px solid black;
+	*/
+}
+
+.button img {
+	vertical-align: middle;
+}
+
+/*
+.buttonLaunch:before {
+	content: 'Launch!';
+}
+*/
+
+div.button:hover {
+	background-image: url(button2-hover.png);
+}
+
+div.button:active {
+	background-image: url(button2-active.png);
+}
+
+
+.backbutton {
+	position: absolute;
+	width: 105px;
+	height: 26px;
+	padding: 6px 0px 0px 0px;
+	
+	margin-left: 10px;
+	left: 5%;
+	bottom: 6%;
+	
+	background-image: url(button2-inactive.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+	font-size: 15px;
+	/*
+	background-color: gray;
+	border: 1px solid black;
+	*/
+}
+
+/*
+.backbutton:before {
+	content: 'Back';
+}
+*/
+
+div.backbutton:hover {
+	background-image: url(button2-hover.png);
+}
+
+div.backbutton:active {
+	background-image: url(button2-active.png);
+}
+
+.backbutton img {
+	vertical-align: middle;
+}
+
+.forwardbutton {
+	position: absolute;
+	width: 105px;
+	height: 26px;
+	padding: 6px 0px 0px 0px;
+	
+	margin-right: 10px;
+	right: 5%;
+	bottom: 6%;
+	
+	background-image: url(button2-inactive.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+	font-size: 15px;
+	/*
+	background-color: gray;
+	border: 1px solid black;
+	*/
+}
+
+/*
+.forwardbutton:before {
+	content: 'Start!';
+}
+*/
+
+div.forwardbutton:hover {
+	background-image: url(button2-hover.png);
+}
+
+div.forwardbutton:active {
+	background-image: url(button2-active.png);
+}
+
+.forwardbutton img {
+	vertical-align: middle;
+}
+
