@@ -460,3 +460,29 @@ WidgetCommon.Viewport.prototype = {
 	}
 
 };
+
+
+/*******************************************************/
+/* Random numbers and string generators static methods */
+/*******************************************************/
+
+/*
+	getRandomInt was taken from Mozilla Developer Center.
+	It returns a random integer between min and max.
+	Using Math.round() will give you a non-uniform distribution!
+*/
+WidgetCommon.getRandomInt = function (min, max) {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**************************/
+/* Now, an UUID generator */
+/**************************/
+WidgetCommon.getRandomUUID: function () {
+	var rarr=new Array();
+	for(var i=0;i<8;i++) {
+		rarr.push(WidgetCommon.getRandomInt(0,65535).toString(16));
+	}
+	
+	return rarr[0]+rarr[1]+'-'+rarr[2]+'-'+rarr[3]+'-'+rarr[4]+'-'+rarr[5]+rarr[6]+rarr[7];
+}
