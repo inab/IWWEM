@@ -45,7 +45,7 @@ sub genUUID() {
 	unless(defined($randname) && length($randname)>0) {
 		my(@rarr)=();
 		foreach my $step (1..8) {
-			push(@rarr,sprintf('%04x',rand(65535)));
+			push(@rarr,sprintf('%04x',rand(65536)));
 		}
 		$randname="$rarr[0]$rarr[1]-$rarr[2]-$rarr[3]-$rarr[4]-$rarr[5]$rarr[6]$rarr[7]";
 	}

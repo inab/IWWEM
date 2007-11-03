@@ -1,0 +1,56 @@
+.hidden {
+	display: none;
+}
+
+.outerAbsDiv {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	left: 0px;
+	top: 0px;
+	background-color: black;
+	opacity: 0.5;
+	filter: alpha(opacity=50);
+	z-index: 100;
+}
+
+.transAbsDiv {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	left: 0px;
+	top: 0px;
+	z-index: 101;
+}
+
+.secondary {
+	background-color: white;
+	/*
+	width: 90%;
+	height: 90%;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 20px;
+	margin-bottom: auto;
+	*/
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-top: 3%;
+	height: 90%;
+	
+}
+
+.secondaryCentered {
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+}
+
+td.data {
+	vertical-align: top;
+	empty-cells: show;
+}
+
+td.buttons {
+	vertical-align: bottom;
+}

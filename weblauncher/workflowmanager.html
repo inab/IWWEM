@@ -1,129 +1,62 @@
 <html>
 <head>
-<title>INB Web Workflow Manager</title>
-<link rel="stylesheet" type="text/css" href="style/IWWE-buttons.css" title="Buttons Style"></link>
-<style>
-.hidden {
-	display: none;
-}
-
-.outerAbsDiv {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	left: 0px;
-	top: 0px;
-	background-color: black;
-	opacity: 0.5;
-	filter: alpha(opacity=50);
-	z-index: 100;
-}
-
-.transAbsDiv {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	left: 0px;
-	top: 0px;
-	z-index: 101;
-}
-
-.secondary {
-	background-color: white;
-	/*
-	width: 90%;
-	height: 90%;
-	margin-left: auto;
-	margin-right: auto;
-	margin-top: 20px;
-	margin-bottom: auto;
-	*/
-	margin-left: 5%;
-	margin-right: 5%;
-	margin-top: 3%;
-	height: 90%;
-	
-}
-
-td {
-	vertical-align: bottom;
-}
-
-</style>
-<script><!--
-
-var visibleId=null;
-
-function openFrame(divId) {
-	if(visibleId) {
-		closeFrame();
-	}
-	
-	visibleId=divId;
-	var outer=document.getElementById('outerAbsDiv');
-	outer.className='outerAbsDiv';
-	var elem=document.getElementById(divId);
-	elem.className='transAbsDiv';
-}
-
-function closeFrame() {
-	var elem=document.getElementById(visibleId);
-	visibleId=null;
-	var outer=document.getElementById('outerAbsDiv');
-	outer.className='hidden';
-	elem.className='hidden';
-}
-
-function deleteWorkflow() {
-}
-//--></script>
+	<title>INB Web Workflow Manager</title>
+	<link rel="stylesheet" type="text/css" href="style/IWWE-buttons.css"></link>
+	<link rel="stylesheet" type="text/css" href="style/workflowmanager.css"></link>
+	<script type="text/javascript" src="js/ORFandDB-widgetCommon/browserdetect/BrowserDetect.js"></script>
+	<script type="text/javascript" src="js/ORFandDB-widgetCommon/widgetCommon.js"></script>
+	<script type="text/javascript" src="js/dynamicSVGhandling.js"></script>
+	<script type="text/javascript" src="js/workflowmanager.js"></script>
 </head>
-<body>
+<body onload="InitWorkflowManager()">
 <form id="formManager" action="" method="post" enctype="multipart/form-data" onsubmit="">
-<table width="100%" border="1">
-<tr>
-<td width="200">
-<select name="workflow" style="width:200px;" size="20" onchange="">
-<option value="value1">First Workflow </option>
-<option value="value2">Second Workflow</option>
-</select>
-<div align="center">
-<div class="button" onclick="openFrame('newWorkflow')">Add new <img src="style/blueplus.png"></div>
-</div>
-</td>
-<td>
-Hola, soy un párrafo que se extiende muuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuucho
-<div align="center">
-<div class="button" onclick="openFrame('workflowInputs')">Launch!<img src="style/greenball.png"></img></div>
-</div>
-</td>
-<td width="100%">
-Hola
-<div align="right" style="vertical-align: bottom;">
-Confirm<input type="checkbox" name="confirm" id="confirm"></input>
-<div class="button" onclick="deleteWorkflow()">Delete <img src="style/redball.png"></img></div>
-</div>
-</td>
-</tr>
-</table>
+	<table width="100%" border="1">
+		<tr><td width="200" class="data">
+			<select name="workflow" id="workflow" style="width:230px;" size="20"></select>
+		</td><td class="data">
+			<div id="svgdiv"></div>
+		</td><td width="100%" class="data">
+			<p>Description</p>
+			<div id="description"></div>
+			<p>Inputs</p>
+			<div id="inputs"></div>
+			<p>Outputs</p>
+			<div id="outputs"></div>
+		</td></tr><tr><td class="buttons">
+			<div align="center">
+				<div class="button" onclick="genview.manview.reloadList()">Reload <img src="style/reload.png"></div>
+				<div class="button" onclick="genview.openFrame('newWorkflow')">Add new <img src="style/blueplus.png"></div>
+			</div>
+		</td><td class="buttons">
+			<div align="center">
+				<div class="button" onclick="genview.openFrame('workflowInputs')">Launch!<img src="style/greenball.png"></img></div>
+			</div>
+		</td><td class="buttons">
+			<div align="right" style="vertical-align: bottom;">
+				Confirm<input type="checkbox" name="confirm" id="confirm"></input>
+				<div class="button" onclick="genview.manview.deleteWorkflow()">Delete <img src="style/redball.png"></img></div>
+			</div>
+		</td></tr>
+	</table>
 </form>
 <div class="hidden" id="outerAbsDiv">
 </div>
 <div class="hidden" id="newWorkflow">
-<div class="secondary">
+	<div class="secondary">
 En un lugar de la mancha de cuyo nombre
-<div class="backbutton" onclick="closeFrame()"><img
-src="style/leftarrow.png"></img> Back</div>
-<div class="forwardbutton" onclick="closeFrame()">Upload <img src="style/upload.png"></img></div>
-</div>
-</div>
+		<div class="backbutton" onclick="genview.closeFrame()"><img src="style/leftarrow.png"></img> Back</div>
+		<div class="forwardbutton" onclick="genview.closeFrame()">Upload <img src="style/upload.png"></img></div>
+	</div>
 </div>
 <div class="hidden" id="workflowInputs">
-<div class="secondary">
+	<div class="secondary">
 A un rico panal de miel 100 moscas acudieron
-<div class="backbutton" onclick="closeFrame()"><img src="style/leftarrow.png"></img> Back</div>
-<div class="forwardbutton" onclick="closeFrame()">Start! <img src="style/run.png"></img></div>
+		<div class="backbutton" onclick="genview.closeFrame()"><img src="style/leftarrow.png"></img> Back</div>
+		<div class="forwardbutton" onclick="genview.closeFrame()">Start! <img src="style/run.png"></img></div>
+	</div>
 </div>
+<div class="hidden" id="reloadWorkflows">
+	<img style="position:relative; top: 45%;left: 45%" src="style/big-ajax-loader.gif"></img>
 </div>
 </body>
 </html>
