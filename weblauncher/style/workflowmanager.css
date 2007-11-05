@@ -49,6 +49,27 @@
 td.data {
 	vertical-align: top;
 	empty-cells: show;
+	display: table-cell;
+}
+
+td.fixed {
+	vertical-align: top;
+	empty-cells: show;
+	display: table-cell;
+	width: 400px;
+}
+
+td.data {
+	vertical-align: top;
+	empty-cells: show;
+	display: table-cell;
+}
+
+td.scrolldata {
+	vertical-align: top;
+	empty-cells: show;
+	display: table-cell;
+	overflow: auto;
 }
 
 td.buttons {
@@ -83,7 +104,7 @@ input.file.hidden {
 	-moz-opacity:0 ;
 	filter:alpha(opacity: 0);
 	opacity: 0;
-	z-index: 2;
+	z-index: 202;
 }
 
 div.fakefile {
@@ -93,7 +114,7 @@ div.fakefile {
 	width: 350px;
 	padding: 0;
 	margin: 0;
-	z-index: 1;
+	z-index: 201;
 	line-height: 90%;
 }
 

@@ -128,10 +128,10 @@ div.forwardbutton:active {
 span.add {
 	width: 9px;
 	height: 9px;
-	padding: 0px;
+	padding-left: 9px;
 	
 	background-image: url(twisty-clsd.png);
-	background-position: center center;
+	background-position: center left;
 	background-repeat: no-repeat;
 	cursor: pointer;
 }
@@ -139,10 +139,10 @@ span.add {
 span.remove {
 	width: 9px;
 	height: 9px;
-	padding: 0px;
+	padding-left: 9px;
 	
 	background-image: url(twisty-open.png);
-	background-position: center center;
+	background-position: center left;
 	background-repeat: no-repeat;
 	cursor: pointer;
 }
@@ -150,10 +150,10 @@ span.remove {
 span.magglass {
 	width: 20px;
 	height: 20px;
-	padding: 0px;
+	padding-left: 20px;
 	
 	background-image: url(magglass.png);
-	background-position: center center;
+	background-position: center left;
 	background-repeat: no-repeat;
 	cursor: pointer;
 }

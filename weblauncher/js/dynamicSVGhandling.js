@@ -5,7 +5,7 @@
 
 function TavernaSVG(/* optional */ nodeid,url,bestScale,thedoc) {
 	this._svgloadtimer = undefined;
-	this.svgid = undefined;
+	this.svgobj = undefined;
 	
 	if(nodeid && url) {
 		this.loadSVG(nodeid,url,bestScale,thedoc);
@@ -17,7 +17,7 @@ TavernaSVG.W3CDOM = (document.createElement && document.getElementsByTagName);
 TavernaSVG.prototype = {
 	removeSVG: function (/* optional */ thedoc) {
 		// Before any creation, clear SVG trampoline and SVG object traces!
-		if(this.svgid) {
+		if(this.svgobj) {
 			if(!thedoc)  thedoc=document;
 			// First, kill timer (if any!)
 			if(this._svgloadtimer) {
@@ -28,17 +28,15 @@ TavernaSVG.prototype = {
 			// Second, remove trampoline
 			delete this['SVGtramp'];
 			// Third, remove previous SVG
-			var svgobj = thedoc.getElementById(this.svgid);
-			if(svgobj) {
-				try {
-					svgobj.parentNode.removeChild(svgobj);
-				} catch(e) {
-					// Be silent about failures!
-				}
+			try {
+				this.svgobj.parentNode.removeChild(this.svgobj);
+			} catch(e) {
+				// Be silent about failures!
+				//alert('What!?!');
+				//alert(e);
 			}
 			// And any trace!
-			svgobj=undefined;
-			this.svgid=undefined;
+			this.svgobj=undefined;
 		}
 	},
 
@@ -47,12 +45,9 @@ TavernaSVG.prototype = {
 			if(!thedoc)  thedoc=document;
 			this.SVGtramp.setBestScaleFromConstraintDimensions(len,len);
         		if (!TavernaSVG.W3CDOM) return;
-
-			var box = thedoc.getElementById(this.svgid);
-			if(box) {
-				box.style.width  = this.SVGtramp.width;
-				box.style.height = this.SVGtramp.height;
-			}
+			
+			this.svgobj.style.width  = this.SVGtramp.width;
+			this.svgobj.style.height = this.SVGtramp.height;
 		}
 	},
 
@@ -60,7 +55,7 @@ TavernaSVG.prototype = {
 		if(!thedoc)  thedoc=document;
 		this.removeSVG(thedoc);
 		
-		if(!bestScale)  bestScale='400px';
+		if(!bestScale)  bestScale='400pt';
 		// Now it is time to generate a new SVG object
 		var node=thedoc.getElementById(nodeid);
 		var gensvgid;
@@ -95,16 +90,18 @@ TavernaSVG.prototype = {
 			objres.appendChild(embedres);
 			
 			node.appendChild(objres);
+			this.svgobj = objres;
 		}
 		
+		var thissvg=this;
 		this._svgloadtimer=setInterval(function() {
 			// Transferring the trampoline!
 			if ('SVGtramp' in window) {
-				clearInterval(this._svgloadtimer);
-				this.SVGtramp=window['SVGtramp'];
+				clearInterval(thissvg._svgloadtimer);
+				thissvg.SVGtramp=window['SVGtramp'];
 				delete window['SVGtramp'];
-				this.SVGrescale(bestScale);
-				this._svgloadtimer=undefined;
+				thissvg.SVGrescale(bestScale);
+				thissvg._svgloadtimer=undefined;
 			}
 		},100);
 		

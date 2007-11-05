@@ -11,9 +11,9 @@ function IODesc(ioD) {
 					// This is needed because there are some
 					// differences among the standars
 					// and Internet Explorer behavior
-					try {
+					if('textContent' in child) {
 						this.description = child.textContent;
-					} catch(e) {
+					} else {
 						this.description = child.text;
 					}
 					break;
@@ -26,14 +26,19 @@ function IODesc(ioD) {
 	
 }
 
+IODesc.prototype = {
+};
+
 function WorkflowDesc(wfD) {
 	this.path = wfD.getAttribute('path');
 	this.svgpath = wfD.getAttribute('svg');
 	this.title = wfD.getAttribute('title');
 	this.lsid = wfD.getAttribute('lsid');
 	this.author = wfD.getAttribute('author');
-	this.input=new Array();
-	this.output=new Array();
+	var inputs=new Array();
+	var outputs=new Array();
+	this.inputs=inputs;
+	this.outputs=outputs;
 	
 	for(var child=wfD.firstChild;child;child=child.nextSibling) {
 		// Only element children, please!
@@ -51,11 +56,11 @@ function WorkflowDesc(wfD) {
 					break;
 				case 'input':
 					var newInput = new IODesc(child);
-					this.input[newInput.name]=newInput;
+					inputs[newInput.name]=newInput;
 					break;
 				case 'output':
 					var newOutput = new IODesc(child);
-					this.output[newOutput.name]=newOutput;
+					outputs[newOutput.name]=newOutput;
 					break;
 			}
 		}
@@ -106,8 +111,9 @@ GeneralView.prototype = {
 		elem.className='hidden';
 	},
 	
+	/*
 	createCustomizedFileControl: function (thename) {
-		var filecontrol = this.newWFControl = this.thedoc.createElement('input');
+		var filecontrol = this.thedoc.createElement('input');
 		filecontrol.type="file";
 		filecontrol.name=thename;
 		filecontrol.className='file hidden';
@@ -123,11 +129,20 @@ GeneralView.prototype = {
 		image.src='style/button_select.gif';
 		fakeFileUpload.appendChild(image);
 		
-		divfilecontrol.appendchild(fakeFileUpload);
+		divfilecontrol.appendChild(fakeFileUpload);
 		
 		filecontrol.onchange = filecontrol.onmouseout = function () {
 			fakeFileUpload.value = filecontrol.value;
 		};
+		
+		return filecontrol;
+	},
+	*/
+	
+	createCustomizedFileControl: function (thename) {
+		var filecontrol = this.thedoc.createElement('input');
+		filecontrol.type="file";
+		filecontrol.name=thename;
 		
 		return filecontrol;
 	},
@@ -142,6 +157,9 @@ GeneralView.freeContainer = function (container) {
 		eraseme = eraseme.nextSibling;
 		container.removeChild(toerase);
 	}
+	
+	// Last resort!
+	container.innerHTML = '';
 }
 	
 /*
@@ -164,7 +182,9 @@ function ManagerView(genview) {
 	this.wfA=new Array();
 	
 	this.listRequest=undefined;
-	this.wfselect.onchange=function () { this.updateView(); };
+	
+	var manview = this;
+	this.wfselect.onchange=function () { manview.updateView(); };
 }
 
 ManagerView.prototype = {
@@ -205,56 +225,81 @@ ManagerView.prototype = {
 			this.svg.loadSVG(this.svgdiv.id,WorkflowDesc.WFBase+'/'+workflow.svgpath);
 			
 			// Basic information
-			this.titleContainer.innerHTML = workflow.title;
+			this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
 			this.lsidContainer.innerHTML = workflow.lsid;
-			this.authorContainer.innerHTML = workflow.author;
+			this.authorContainer.innerHTML = (workflow.author && workflow.author.length>0)?workflow.author:'<i>(anonymous)</i>';
 			
 			// Naive detection of rich description
-			if(workflow.description && workflow.description.indexOf('<')!=-1) {
-				this.descContainer.innerHTML = workflow.description;
+			if('description' in workflow) {
+				if(workflow.description.indexOf('<')!=-1) {
+					this.descContainer.innerHTML = workflow.description;
+				} else {
+					this.descContainer.innerHTML = '<pre>'+workflow.description+'</pre>'
+				}
 			} else {
-				this.descContainer.innerHTML = '<pre>'+workflow.description+'</pre>'
+				this.descContainer.innerHTML = '<i>(None)</i>';
 			}
 			
 			var br;
 			var alink;
 			
 			// This is needed to append links to the description itself
-			br = this.genview.thedoc.createElement('br');
+			thep = this.genview.thedoc.createElement('p');
 			alink = this.genview.thedoc.createElement('a');
 			alink.href = WorkflowDesc.WFBase+'/'+workflow.path;
 			alink.target = '_blank';
-			alink.innerHTML = '<b>Download Workflow</b>';
-			br.appendChild(alink);
-			this.descContainer.appendChild(br);
+			alink.innerHTML = '<i>Download Workflow</i>';
+			thep.appendChild(alink);
+			this.descContainer.appendChild(thep);
 			
-			br = this.genview.thedoc.createElement('br');
+			thep = this.genview.thedoc.createElement('p');
 			alink = this.genview.thedoc.createElement('a');
 			alink.href = WorkflowDesc.WFBase+'/'+workflow.svgpath;
 			alink.target = '_blank';
-			alink.innerHTML = '<b>Download Workflow Graph (SVG)</b>';
-			br.appendChild(alink);
-			this.descContainer.appendChild(br);
+			alink.innerHTML = '<i>Download Workflow Graph (SVG)</i>';
+			thep.appendChild(alink);
+			this.descContainer.appendChild(thep);
 			
 			// And now, inputs and outputs
-			if(workflow.input.length > 0 ) {
-				var ul=this.genview.thedoc.createElement('ul');
-				for(var io in workflow.input) {
-					var li=this.genview.thedoc.createElement('li');
-					li.innerHTML=io.name+' ('+io.mime.join(', ')+')';
-					ul.appendChild(li);
+			var ul;
+			for(var iofacet in workflow.inputs) {
+				var io=workflow.inputs[iofacet];
+				if(!ul)  ul=this.genview.thedoc.createElement('ul');
+				var li=this.genview.thedoc.createElement('li');
+				var line='<i>'+io.name+' ('+io.mime.join(', ')+')</i>';
+				if('description' in io) {
+					if(io.description.indexOf('<')!=-1) {
+						line += '<br>'+io.description;
+					} else {
+						line += '<pre>'+io.description+'</pre>';
+					}
 				}
+				li.innerHTML=line;
+				ul.appendChild(li);
+			}
+			if(ul) {
 				this.inContainer.appendChild(ul);
 			} else {
 				this.inContainer.innerHTML='<i>(None)</i>';
 			}
-			if(workflow.output.length > 0 ) {
-				var ul=this.genview.thedoc.createElement('ul');
-				for(var io in workflow.output) {
-					var li=this.genview.thedoc.createElement('li');
-					li.innerHTML=io.name+' ('+io.mime.join(', ')+')';
-					ul.appendChild(li);
+			
+			ul=undefined;
+			for(var iofacet in workflow.outputs) {
+				var io=workflow.outputs[iofacet];
+				if(!ul)  ul=this.genview.thedoc.createElement('ul');
+				var li=this.genview.thedoc.createElement('li');
+				var line='<i>'+io.name+' ('+io.mime.join(', ')+')</i>';
+				if('description' in io) {
+					if(io.description.indexOf('<')!=-1) {
+						line += '<br>'+io.description;
+					} else {
+						line += '<pre>'+io.description+'</pre>';
+					}
 				}
+				li.innerHTML=line;
+				ul.appendChild(li);
+			}
+			if(ul) {
 				this.outContainer.appendChild(ul);
 			} else {
 				this.outContainer.innerHTML='<i>(None)</i>';
@@ -354,15 +399,16 @@ ManagerView.prototype = {
 function NewWorkflowView(genview) {
 	this.genview = genview;
 	
-	this.newWFForm=genview.thedoc.getElementById('formManager');
+	this.newWFForm=genview.thedoc.getElementById('formNewWF');
 	this.newWFContainer=genview.thedoc.getElementById('newWFContainer');
 	this.newWFUploading=genview.thedoc.getElementById('newWFUploading');
 	
 	this.newWFStyleText=genview.thedoc.getElementById('newWFStyleText');
 	this.newWFStyleFile=genview.thedoc.getElementById('newWFStyleFile');
 	
-	this.newWFStyleText.onchange = function() { this.setTextControl(); };
-	this.newWFStyleFile.onchange = function() { this.setFileControl(); };
+	var newwfview = this;
+	this.newWFStyleText.onchange = function() { newwfview.setTextControl(); };
+	this.newWFStyleFile.onchange = function() { newwfview.setFileControl(); };
 	
 	this.newWFControl = undefined;
 	//this.iframe = undefined;
@@ -387,10 +433,11 @@ NewWorkflowView.prototype = {
 	setTextControl: function() {
 		if(this.newWFStyleText.checked) {
 			this.clearView();
-			var textbox = this.newWFControl = this.genview.thedoc.createElement('textarea');
+			var textbox = this.genview.thedoc.createElement('textarea');
+			this.newWFControl = textbox;
 			textbox.name="workflow";
-			textbox.rows=80;
-			textbox.columns=25;
+			textbox.columns=80;
+			textbox.rows=25;
 			
 			this.newWFContainer.appendChild(textbox);
 		}
@@ -399,10 +446,12 @@ NewWorkflowView.prototype = {
 	setFileControl: function() {
 		if(this.newWFStyleFile.checked) {
 			this.clearView();
-			var filecontrol = this.genview.generateCustomizedFileControl("workflow");
+			var filecontrol = this.genview.createCustomizedFileControl("workflow");
+			this.newWFControl = filecontrol;
 			
 			// We are appending the fake control!
-			this.newWFContainer.appendChild(filecontrol.parentNode);
+			//this.newWFContainer.appendChild(filecontrol.parentNode);
+			this.newWFContainer.appendChild(filecontrol);
 		}
 	},
 	
@@ -422,6 +471,7 @@ NewWorkflowView.prototype = {
 			iframe.style.display = 'none';
 			
 			// Setting up hooks to be fired!
+			var newwfview=this;
 			iframe.onload = function() {
 				// First, parsing content
 				var xdoc;
@@ -430,14 +480,14 @@ NewWorkflowView.prototype = {
 				} else {
 					xdoc=iframe.document;
 				}
-				this.genview.manview.fillWorkflowList(xdoc);
+				newwfview.genview.manview.fillWorkflowList(xdoc);
 				
 				// Now, cleaning up iframe traces!
-				this.closeNewWorkflowFrame();
-				this.newWFUploading.removeChild(iframe);
+				newwfview.closeNewWorkflowFrame();
+				newwfview.newWFUploading.removeChild(iframe);
 				delete iframe['onload'];
 				iframe = undefined;
-				this.newWFForm.target = undefined;
+				newwfview.newWFForm.target = undefined;
 			};
 			
 			// Iframe must live somewhere
@@ -446,7 +496,26 @@ NewWorkflowView.prototype = {
 			this.newWFForm.target=iframeName;
 			// Let's go!
 			this.newWFForm.submit();
-			
+			/*
+			setTimeout(function() {
+				// First, parsing content
+				var xdoc;
+				if('contentDocument' in iframe) {
+					xdoc=iframe.contentDocument;
+				} else {
+					xdoc=iframe.document;
+				}
+				alert(xdoc.URL);
+				newwfview.genview.manview.fillWorkflowList(xdoc);
+				
+				// Now, cleaning up iframe traces!
+				newwfview.closeNewWorkflowFrame();
+				newwfview.newWFUploading.removeChild(iframe);
+				delete iframe['onload'];
+				iframe = undefined;
+				newwfview.newWFForm.target = undefined;
+			},30000);
+			*/
 		} else {
 			alert('Please introduce the new workflow before submitting it!');
 		}
@@ -467,6 +536,34 @@ function NewEnactionView(genview) {
 	this.baclava=new Array();
 	
 	this.workflow=undefined;
+	
+	// baclava onclick
+	this.newBaclavaSpan=genview.thedoc.getElementById('newBaclavaSpan');
+	var newenactview=this;
+	var containerDiv=this.baclavaContainer;
+	this.newBaclavaSpan.onclick=function() {
+		var controlname='BACLAVA_FILE';
+		var newinput=newenactview.genview.createCustomizedFileControl(controlname);
+
+		// As we are interested in the container (the parent)
+		// let's get it...
+		//newinput=newinput.parentNode;
+		
+		var remover=newenactview.genview.thedoc.createElement('span');
+		remover.className='remove';
+		remover.innerHTML='&nbsp;';
+
+		var mydiv=newenactview.genview.thedoc.createElement('div');
+		remover.onclick=function() {
+			containerDiv.removeChild(mydiv);
+		};
+		
+		mydiv.appendChild(remover);
+		mydiv.appendChild(newinput);
+		
+		// Adding it to the container
+		containerDiv.appendChild(mydiv);
+	};
 }
 
 NewEnactionView.prototype = {
@@ -480,7 +577,8 @@ NewEnactionView.prototype = {
 			this.enactSVG.loadSVG(this.enactSVGContainer.id,WorkflowDesc.WFBase+'/'+workflow.svgpath);
 			
 			// Inputs
-			for(var input in workflow.input) {
+			for(var inputfacet in workflow.inputs) {
+				var input=workflow.inputs[inputfacet];
 				var thediv = this.generateGraphicalInput(input);
 				
 				// And the container for the input!
@@ -490,6 +588,10 @@ NewEnactionView.prototype = {
 			// And at last, open frame
 			this.genview.openFrame('workflowInputs');
 		}
+	},
+	
+	/**/
+	addBaclavaInput: function () {
 	},
 	
 	/* Generates a new graphical input */
@@ -506,7 +608,9 @@ NewEnactionView.prototype = {
 
 		// 'Static' elements
 		var theinput = this.genview.thedoc.createElement('span');
-		thespan.innerHTML='Input '+input.name;
+		// The addition button
+		theinput.className = 'add';
+		theinput.innerHTML='Input '+input.name;
 		
 		
 		var theinputtext=this.genview.thedoc.createElement('input');
@@ -527,35 +631,34 @@ NewEnactionView.prototype = {
 		thechoicefile.innerHTML='as file';
 		thechoicefile.appendChild(theinputfile);
 		
-		// The addition button
-		var theadd = this.genview.thedoc.createElement('span');
-		theadd.className='add';
-		theadd.onclick=function() {
+		var newenactview=this;
+		theinput.onclick=function() {
 			if(theinputfile.checked  || theinputtext.checked) {
 				var newinput;
 				var glass;
 				var controlname='PARAM_'+input.name
 				if(theinputfile.checked) {
-					newinput=this.genview.generateCustomizedFileControl(controlname);
+					newinput=newenactview.genview.createCustomizedFileControl(controlname);
 					
 					// As we are interested in the container (the parent)
 					// let's get it...
-					newinput=newinput.parentNode;
+					//newinput=newinput.parentNode;
 				} else {
-					newinput=this.genview.thedoc.createElement('input');
+					newinput=newenactview.genview.thedoc.createElement('input');
 					newinput.type='text';
 					newinput.name=controlname;
 					
-					glass=this.genview.thedoc.createElement('span');
+					glass=newenactview.genview.thedoc.createElement('span');
 					glass.className='magglass';
+					glass.innerHTML='&nbsp;';
 					glass.onclick=function() {
 						var renewinput;
 						if(newinput.type=='text') {
-							renewinput=this.genview.thedoc.createElement('textarea');
-							renewinput.rows=40;
-							renewinput.columns=10;
+							renewinput=newenactview.genview.thedoc.createElement('textarea');
+							renewinput.columns=40;
+							renewinput.rows=10;
 						} else {
-							renewinput=this.genview.thedoc.createElement('input');
+							renewinput=newenactview.genview.thedoc.createElement('input');
 							renewinput.type='text';
 						}
 						// Replacing old text are with new one!
@@ -567,19 +670,21 @@ NewEnactionView.prototype = {
 
 				}
 				
-				var remover=this.genview.thedoc.createElement('span');
+				var remover=newenactview.genview.thedoc.createElement('span');
 				remover.className='remove';
+				remover.innerHTML='&nbsp;';
+				
+				var mydiv=newenactview.genview.thedoc.createElement('div');
 				remover.onclick=function() {
-					containerChild.removeChild(myDiv);
+					containerDiv.removeChild(mydiv);
 				};
 				
-				var mydiv=this.genview.thedoc.createElement('div');
 				mydiv.appendChild(remover);
 				if(glass)  mydiv.appendChild(glass);
 				mydiv.appendChild(newinput);
 				
 				// Adding it to the container
-				containerChild.appendChild(myDiv);
+				containerDiv.appendChild(mydiv);
 			}
 		};
 
@@ -590,7 +695,6 @@ NewEnactionView.prototype = {
 		thechoice.appendChild(thechoicefile);
 
 		// Last children!
-		thediv.appendChild(theadd);
 		thediv.appendChild(theinput);
 		thediv.appendChild(thechoice);
 
@@ -622,4 +726,5 @@ NewEnactionView.prototype = {
 var genview;
 function InitWorkflowManager(thedoc) {
 	genview=new GeneralView(thedoc);
+	genview.manview.reloadList();
 }

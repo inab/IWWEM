@@ -176,7 +176,7 @@ foreach my $wf (@workflowlist) {
 			
 			# Getting the workflow description
 			my($wdesc)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
-			$wdesc->appendChild($outputDoc->create($desc->textContent()));
+			$wdesc->appendChild($outputDoc->createCDATASection($desc->textContent()));
 			$wfe->appendChild($wdesc);
 			
 			# Getting Inputs
@@ -189,7 +189,7 @@ foreach my $wf (@workflowlist) {
 				my(@sourcedesc)=$source->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'description');
 				if(scalar(@sourcedesc)>0) {
 					my($descnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
-					$descnode->appendChild($outputDoc->create($sourcedesc[0]->textContent()));
+					$descnode->appendChild($outputDoc->createCDATASection($sourcedesc[0]->textContent()));
 					$input->appendChild($descnode);
 				}
 				
@@ -214,10 +214,10 @@ foreach my $wf (@workflowlist) {
 				$output->setAttribute('name',$sink->getAttribute('name'));
 				
 				# Description
-				my(@sinkdesc)=$sink->getElemenstByTagNameNS($WorkflowCommon::SCUFL_NS,'description');
+				my(@sinkdesc)=$sink->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'description');
 				if(scalar(@sinkdesc)>0) {
 					my($descnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
-					$descnode->appendChild($outputDoc->create($sinkdesc[0]->textContent()));
+					$descnode->appendChild($outputDoc->createCDATASection($sinkdesc[0]->textContent()));
 					$output->appendChild($descnode);
 				}
 				
@@ -241,7 +241,7 @@ foreach my $wf (@workflowlist) {
 	};
 	
 	if($@) {
-		$root->appendChild($outputDoc->createComment("Unable to process $wf"));
+		$root->appendChild($outputDoc->createComment("Unable to process $wf due ".$@));
 	}
 }
 

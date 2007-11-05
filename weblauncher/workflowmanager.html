@@ -10,21 +10,18 @@
 </head>
 <body onload="InitWorkflowManager()">
 INB Web Workflow Enactor &amp; Manager
-<form id="formManager" action="" method="post" enctype="multipart/form-data" onsubmit="">
+<form id="formManager" method="post" enctype="multipart/form-data">
 	<table width="100%" border="1">
-		<tr><td class="data">
+		<tr><td width="230" class="data">
 			<select name="workflow" id="workflow" style="width:230px;" size="20"></select>
-		</td><td class="data">
-			<div id="svgdiv"></div>
-		</td><td width="100%" class="data">
-			<p><u>Title</u></p>
-			<div id="title"></div>
-			<p><u>LSID</u></p>
-			<div id="lsid"></div>
-			<p><u>Author</u></p>
-			<div id="author"></div>
+		</td><td width="400" class="fixed">
+			<div align="center" id="svgdiv"></div>
+		</td><td width="*" class="scrolldata">
+			<p><u>Title:</u> <span id="title"></span></p>
+			<p><u>LSID:</u> <span id="lsid"></span></p>
+			<p><u>Author</u> <span id="author"></span></p>
 			<p><u>Description</u></p>
-			<div id="description"></div>
+			<blockquote id="description"></blockquote>
 			<p><u>Inputs</u></p>
 			<div id="inputs"></div>
 			<p><u>Outputs</u></p>
@@ -51,7 +48,7 @@ INB Web Workflow Enactor &amp; Manager
 <div class="hidden" id="newWorkflow">
 	<div class="secondary">
 		<p>Please introduce your workflow</p>
-		<form id="formManager" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data">
+		<form id="formNewWF" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data">
 			<p class="borderedOption"><fieldset><label>As&nbsp;text&nbsp;<input id="newWFStyleText" type="radio" name="newWFStyle" value="text"></input></label> <label>As&nbsp;file&nbsp;<input id="newWFStyleFile" type="radio" name="newWFStyle" value="file"></input></label></fieldset></p>
 			<div id="newWFContainer"></div>
 			<div align="center" id="newWFUploading"><i><blink>Uploading new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img></div>
@@ -66,11 +63,11 @@ INB Web Workflow Enactor &amp; Manager
 		<form id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data">
 			<table width="100%" border="1">
 				<tr><td>
-					<div id="enactsvg"></div>
-				</td><td>
+					<div align="center" id="enactsvg"></div>
+				</td><td width="100%">
 					<div class="borderedInput">
-						<div><span class="add" onclick="genview.newenactview."></span>Add Baclava file</div>
-						<div id="newBacklava"></div>
+						<div><span id="newBaclavaSpan" class="add">Add Baclava file</span></div>
+						<div id="newBaclava"></div>
 					</div>
 					<div id="newInputs"></div>
 				</td></tr>
