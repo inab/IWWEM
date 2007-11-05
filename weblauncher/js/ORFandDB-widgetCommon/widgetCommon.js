@@ -478,7 +478,7 @@ WidgetCommon.getRandomInt = function (min, max) {
 /**************************/
 /* Now, an UUID generator */
 /**************************/
-WidgetCommon.getRandomUUID: function () {
+WidgetCommon.getRandomUUID = function () {
 	var rarr=new Array();
 	for(var i=0;i<8;i++) {
 		rarr.push(WidgetCommon.getRandomInt(0,65535).toString(16));
