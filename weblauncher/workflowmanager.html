@@ -9,31 +9,38 @@
 	<script type="text/javascript" src="js/workflowmanager.js"></script>
 </head>
 <body onload="InitWorkflowManager()">
+INB Web Workflow Enactor &amp; Manager
 <form id="formManager" action="" method="post" enctype="multipart/form-data" onsubmit="">
 	<table width="100%" border="1">
-		<tr><td width="200" class="data">
+		<tr><td class="data">
 			<select name="workflow" id="workflow" style="width:230px;" size="20"></select>
 		</td><td class="data">
 			<div id="svgdiv"></div>
 		</td><td width="100%" class="data">
-			<p>Description</p>
+			<p><u>Title</u></p>
+			<div id="title"></div>
+			<p><u>LSID</u></p>
+			<div id="lsid"></div>
+			<p><u>Author</u></p>
+			<div id="author"></div>
+			<p><u>Description</u></p>
 			<div id="description"></div>
-			<p>Inputs</p>
+			<p><u>Inputs</u></p>
 			<div id="inputs"></div>
-			<p>Outputs</p>
+			<p><u>Outputs</u></p>
 			<div id="outputs"></div>
 		</td></tr><tr><td class="buttons">
 			<div align="center">
 				<div class="button" onclick="genview.manview.reloadList()">Reload <img src="style/reload.png"></div>
-				<div class="button" onclick="genview.openFrame('newWorkflow')">Add new <img src="style/blueplus.png"></div>
+				<div class="button" onclick="genview.newwfview.openNewWorkflowFrame()">Add new <img src="style/blueplus.png"></div>
 			</div>
 		</td><td class="buttons">
 			<div align="center">
-				<div class="button" onclick="genview.openFrame('workflowInputs')">Launch!<img src="style/greenball.png"></img></div>
+				<div class="button" onclick="genview.newenactview.openNewEnactionFrame()">Launch!<img src="style/greenball.png"></img></div>
 			</div>
 		</td><td class="buttons">
 			<div align="right" style="vertical-align: bottom;">
-				Confirm<input type="checkbox" name="confirm" id="confirm"></input>
+				<label>Confirm<input type="checkbox" name="confirm" id="confirm"></input></label>
 				<div class="button" onclick="genview.manview.deleteWorkflow()">Delete <img src="style/redball.png"></img></div>
 			</div>
 		</td></tr>
@@ -43,16 +50,34 @@
 </div>
 <div class="hidden" id="newWorkflow">
 	<div class="secondary">
-En un lugar de la mancha de cuyo nombre
-		<div class="backbutton" onclick="genview.closeFrame()"><img src="style/leftarrow.png"></img> Back</div>
-		<div class="forwardbutton" onclick="genview.closeFrame()">Upload <img src="style/upload.png"></img></div>
+		<p>Please introduce your workflow</p>
+		<form id="formManager" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data">
+			<p class="borderedOption"><fieldset><label>As&nbsp;text&nbsp;<input id="newWFStyleText" type="radio" name="newWFStyle" value="text"></input></label> <label>As&nbsp;file&nbsp;<input id="newWFStyleFile" type="radio" name="newWFStyle" value="file"></input></label></fieldset></p>
+			<div id="newWFContainer"></div>
+			<div align="center" id="newWFUploading"><i><blink>Uploading new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img></div>
+		</form>
+		<div class="backbutton" onclick="genview.newwfview.closeNewWorkflowFrame()"><img src="style/leftarrow.png"></img> Back</div>
+		<div class="forwardbutton" onclick="genview.newwfview.upload()">Upload <img src="style/upload.png"></img></div>
 	</div>
 </div>
 <div class="hidden" id="workflowInputs">
 	<div class="secondary">
-A un rico panal de miel 100 moscas acudieron
-		<div class="backbutton" onclick="genview.closeFrame()"><img src="style/leftarrow.png"></img> Back</div>
-		<div class="forwardbutton" onclick="genview.closeFrame()">Start! <img src="style/run.png"></img></div>
+		<div align="center">Please introduce your inputs for workflow</div>
+		<form id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data">
+			<table width="100%" border="1">
+				<tr><td>
+					<div id="enactsvg"></div>
+				</td><td>
+					<div class="borderedInput">
+						<div><span class="add" onclick="genview.newenactview."></span>Add Baclava file</div>
+						<div id="newBacklava"></div>
+					</div>
+					<div id="newInputs"></div>
+				</td></tr>
+			</table>
+		</form>
+		<div class="backbutton" onclick="genview.newenactview.closeNewEnactionFrame()"><img src="style/leftarrow.png"></img> Back</div>
+		<div class="forwardbutton" onclick="genview.newenactview.enact()">Start! <img src="style/run.png"></img></div>
 	</div>
 </div>
 <div class="hidden" id="reloadWorkflows">

@@ -125,3 +125,35 @@ div.forwardbutton:active {
 	vertical-align: middle;
 }
 
+span.add {
+	width: 9px;
+	height: 9px;
+	padding: 0px;
+	
+	background-image: url(twisty-clsd.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
+span.remove {
+	width: 9px;
+	height: 9px;
+	padding: 0px;
+	
+	background-image: url(twisty-open.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
+span.magglass {
+	width: 20px;
+	height: 20px;
+	padding: 0px;
+	
+	background-image: url(magglass.png);
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
