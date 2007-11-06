@@ -316,6 +316,7 @@ WidgetCommon.xpathEvaluate = function (thexpath,thecontext,theObjResolver) {
 				var res=xp.evaluate(expcon);
 				return (res!=null)?res.value:null;
 			}
+			return null;
 		}:
 		function (thexpath,thecontext,theObjResolver) {
 			var namespaceString="";
