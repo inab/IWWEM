@@ -134,6 +134,10 @@ span.add {
 	background-position: center left;
 	background-repeat: no-repeat;
 	cursor: pointer;
+	
+	text-align: center;
+ 	vertical-align: middle;
+	font-size: 9px;
 }
 
 span.remove {
@@ -145,6 +149,10 @@ span.remove {
 	background-position: center left;
 	background-repeat: no-repeat;
 	cursor: pointer;
+	
+	text-align: center;
+ 	vertical-align: middle;
+	font-size: 9px;
 }
 
 span.magglass {
@@ -156,4 +164,8 @@ span.magglass {
 	background-position: center left;
 	background-repeat: no-repeat;
 	cursor: pointer;
+	
+	text-align: center;
+ 	vertical-align: middle;
+	font-size: 20px;
 }

@@ -6,16 +6,25 @@
 function TavernaSVG(/* optional */ nodeid,url,bestScale,thedoc) {
 	this._svgloadtimer = undefined;
 	this.svgobj = undefined;
+	this.defaultsvg = undefined;
+	this.defaultid = undefined;
+	this.defaultbestScale = undefined;
+	this.defaultthedoc = undefined;
 	
 	if(nodeid && url) {
-		this.loadSVG(nodeid,url,bestScale,thedoc);
+		this.defaultid = nodeid;
+		this.defaultsvg = url;
+		this.defaultbestScale = bestScale;
+		this.defaultthedoc = thedoc;
+		
+		this.removeSVG();
 	}
 }
 
 TavernaSVG.W3CDOM = (document.createElement && document.getElementsByTagName);
 
 TavernaSVG.prototype = {
-	removeSVG: function (/* optional */ thedoc) {
+	clearSVG: function (/* optional */ thedoc) {
 		// Before any creation, clear SVG trampoline and SVG object traces!
 		if(this.svgobj) {
 			if(!thedoc)  thedoc=document;
@@ -40,6 +49,14 @@ TavernaSVG.prototype = {
 		}
 	},
 
+	removeSVG: function (/* optional */ thedoc) {
+		// Before any creation, clear SVG trampoline and SVG object traces!
+		this.clearSVG();
+		if(this.defaultsvg) {
+			this.loadSVG(this.defaultid,this.defaultsvg,this.defaultbestScale,this.defaultthedoc);
+		}
+	},
+
 	SVGrescale: function (len,/* optional */ thedoc) {
 		if('SVGtramp' in this) {
 			if(!thedoc)  thedoc=document;
@@ -53,7 +70,7 @@ TavernaSVG.prototype = {
 
 	loadSVG: function (nodeid,url,/* optional */ bestScale,thedoc) {
 		if(!thedoc)  thedoc=document;
-		this.removeSVG(thedoc);
+		this.clearSVG(thedoc);
 		
 		if(!bestScale)  bestScale='400pt';
 		// Now it is time to generate a new SVG object
@@ -66,7 +83,8 @@ TavernaSVG.prototype = {
 
 			objres.setAttribute("type","image/svg+xml");
 			objres.setAttribute("wmode","transparent");
-			objres.setAttribute("style","overflow: hidden; border: 1px dotted #000;");
+			//objres.setAttribute("style","overflow: hidden; border: 1px dotted #000;width:0;height:0");
+			objres.setAttribute("style","overflow: hidden; width:0;height:0");
 			objres.setAttribute("data",url);
 			objres.id=gensvgid;
 
@@ -106,5 +124,5 @@ TavernaSVG.prototype = {
 		},100);
 		
 		return gensvgid;
-	},
+	}
 }

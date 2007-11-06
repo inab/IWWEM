@@ -1,31 +1,36 @@
 function SVGtramp(LoadEvent) {
 	this.SVGDoc    = LoadEvent.target.ownerDocument;
 	this.SVGroot   = this.SVGDoc.documentElement;
-	this.g_element = this.SVGDoc.getElementById("graph0");
 	
-	this.width=this.SVGroot.getAttribute("width");
-	this.height=this.SVGroot.getAttribute("height");
-	this.realWidth  = this.createTypedLength(this.width);
-	this.realHeight = this.createTypedLength(this.height);
+	// First, let's detect the accuracy of convertToSpecifiedUnits!
+	this.fakeConvert=true;
+	try {
+		var testLength=this.SVGroot.createSVGLength();
+		testLength.newValueSpecifiedUnits(testLength.SVG_LENGTHTYPE_CM,1.0);
+		testLength.convertToSpecifiedUnits(testLength.SVG_LENGTHTYPE_PX);
+		if(testLength.valueInSpecifiedUnits > 1.0) {
+			this.fakeConvert=undefined;
+		}
+	} catch(e) {
+		// Shut up!
+	}
 	
-	var baseTransform=this.g_element.getAttribute("transform");
-	var scales = /scale\( *([0-9.]+) *,? *([0-9.]+) *\)/.exec(baseTransform);
-	if(scales.length>0) {
-		this.realScaleW=parseFloat(scales[1]);
-		this.realScaleH=parseFloat(scales[2]);
-	} else {
-		var scale = /scale\( *([0-9.]+) *\)/.exec(baseTransform);
-		if(scale.length>0) {
-			this.realScaleH=this.realScaleW=parseFloat(scale[1]);
-		} else {
-			this.realScaleH=this.realScaleW=1.0;
+	if(this.fakeConvert) {
+		// Bad implementation :-(
+		try {
+			this.mmPerPixel = (this.SVGroot.pixelUnitToMillimeterX > this.SVGroot.pixelUnitToMillimeterY)?this.SVGroot.pixelUnitToMillimeterX:this.SVGroot.pixelUnitToMillimeterY;
+		} catch(e) {
+			this.mmPerPixel = 1e-4;
+		}
+		if(this.mmPerPixel<=0.0) {
+			this.mmPerPixel = 1e-4;
 		}
 	}
 	
 	// SVG must enumerate itself...
+	var nodes = this.SVGDoc.getElementsByTagName("g");
 	var titleToNode=new Object();
 	var nodeToTitle=new Object();
-	var nodes = this.SVGDoc.getElementsByTagName("g");
 	for(var i=0; i<nodes.length ; i++) {
 		var node=nodes.item(i);
 		if(node.getAttribute("class") == 'node') {
@@ -42,69 +47,221 @@ function SVGtramp(LoadEvent) {
 	this.titleToNode=titleToNode;
 	this.nodeToTitle=nodeToTitle;
 	
+	// Now it is time to find the g point ;-)
+	if(nodes.length > 0) {
+		this.g_element = nodes.item(0);
+	}
+	
+	this.width=this.SVGroot.getAttribute("width");
+	this.height=this.SVGroot.getAttribute("height");
+	this.realWidth  = this.createTypedLength(this.width);
+	this.realHeight = this.createTypedLength(this.height);
+	
+	// Default scale value
+	this.realScaleH=this.realScaleW=1.0;
+	
+	if(this.g_element) {
+		var baseTransform=this.g_element.getAttribute("transform");
+		if(baseTransform) {
+			var scales = /scale\( *([0-9.]+) *,? *([0-9.]+) *\)/.exec(baseTransform);
+			if(scales.length>0) {
+				this.realScaleW=parseFloat(scales[1]);
+				this.realScaleH=parseFloat(scales[2]);
+			} else {
+				var scale = /scale\( *([0-9.]+) *\)/.exec(baseTransform);
+				if(scale.length>0) {
+					this.realScaleH=this.realScaleW=parseFloat(scale[1]);
+				}
+			}
+		}
+	}
+	
 	// And at last, the hooks
 	top.SVGtramp = this;
 }
 
 SVGtramp.prototype = {
-	createTypedLength: function (lenstr) {
+	/*
+		Second parameter dictates the behavior of the function
+		If it is not set, the first parameter is treated as a string
+		If it is set, the first parameter must be a length type,
+		and the second one the value as a float
+	*/
+	createTypedLength: function (lenstr, /* optional */ thevalue) {
 		var idx;
 		var realLength;
 		var realLengthUnitsStr;
 		var realLengthUnits;
 		
-		var matches = /^ *[0-9.]+ *([^ ]*) */.exec(lenstr);
-		realLengthUnitsStr=matches[1];
-		realLength=parseFloat(lenstr);
-		
-		var typedLength=this.SVGroot.createSVGLength();
-		switch(realLengthUnitsStr) {
-			case '':
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_NUMBER;
-				//realLengthUnits=typedLength.SVG_LENGTHTYPE_PT;
-				break;
-			case '%':
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_PERCENTAGE;
-				break;
-			case 'em':
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_EMS;
-				break;
-			case 'ex':
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_EXS;
-				break;
-			case 'px':
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_PX;
-				break;
-			case 'cm':
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_CM;
-				break;
-			case 'mm':
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_MM;
-				break;
-			case 'in':
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_IN;
-				break;
-			case 'pt':
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_PT;
-				break;
-			case 'pc':
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_PC;
-				break;
-			default:
-				realLengthUnits=typedLength.SVG_LENGTHTYPE_UNKNOWN;
-				break;
+		if(thevalue) {
+			realLengthUnits=lenstr;
+			realLength=thevalue;
+		} else {
+			var matches = /^ *[0-9.]+ *([^ ]*) */.exec(lenstr);
+			realLengthUnitsStr=matches[1];
+			realLength=parseFloat(lenstr);
+
+			var typedLength=this.SVGroot.createSVGLength();
+			switch(realLengthUnitsStr) {
+				case '':
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_NUMBER;
+					//realLengthUnits=typedLength.SVG_LENGTHTYPE_PT;
+					break;
+				case '%':
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_PERCENTAGE;
+					break;
+				case 'em':
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_EMS;
+					break;
+				case 'ex':
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_EXS;
+					break;
+				case 'px':
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_PX;
+					break;
+				case 'cm':
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_CM;
+					break;
+				case 'mm':
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_MM;
+					break;
+				case 'in':
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_IN;
+					break;
+				case 'pt':
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_PT;
+					break;
+				case 'pc':
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_PC;
+					break;
+				default:
+					realLengthUnits=typedLength.SVG_LENGTHTYPE_UNKNOWN;
+					break;
+			}
 		}
 		
 		typedLength.newValueSpecifiedUnits(realLengthUnits,realLength);
+		
+		// Now it is time to detect whether convertToSpecifiedUnits
+		// must be a fake function or not
+		if(this.fakeConvert) {
+			typedLength.convertToSpecifiedUnits = function (lengthType) {
+				var oldUnits = this.unitType;
+				if(oldUnits!=lengthType) {
+					// Let's check the input lengthType
+					switch(lengthType) {
+						case this.SVG_LENGTHTYPE_NUMBER:
+							lengthType=this.SVG_LENGTHTYPE_PX;
+							break;
+						case this.SVG_LENGTHTYPE_PX:
+						case this.SVG_LENGTHTYPE_CM:
+						case this.SVG_LENGTHTYPE_MM:
+						case this.SVG_LENGTHTYPE_IN:
+						case this.SVG_LENGTHTYPE_PT:
+						case this.SVG_LENGTHTYPE_PC:
+							break;
+						//case this.SVG_LENGTHTYPE_PERCENTAGE:
+						//case this.SVG_LENGTHTYPE_EMS:
+						//case this.SVG_LENGTHTYPE_EXS:
+						//case this.SVG_LENGTHTYPE_UNKNOWN:
+						default:
+							return;
+							break;
+					}
+					
+					// Next lines are based on Mozilla Firefox internal implementation
+					// of units translation
+					
+					// As it seems valid, let's translate the number to something neutral
+					// and then comeback!
+					var transVal = this.valueInSpecifiedUnits;
+					switch(oldUnits) {
+						/*	Lack of context!!!!
+						case this.SVG_LENGTHTYPE_PERCENTAGE:
+							var axisLength =;
+							transVal *= axisLength;
+							transVal /= 100.0;
+							break;
+						*/
+						case this.SVG_LENGTHTYPE_CM:
+							transVal *= 10.0;
+							transVal /= this.mmPerPixel;
+							break;
+						case this.SVG_LENGTHTYPE_MM:
+							transVal /= this.mmPerPixel;
+							break;
+						case this.SVG_LENGTHTYPE_IN:
+							transVal *= 25.4;
+							transVal /= this.mmPerPixel;
+							break;
+						case this.SVG_LENGTHTYPE_PC:
+							transVal *= 25.4 * 12.0;
+							transVal /= 72.0;
+							transVal /= this.mmPerPixel;
+							break;
+						case this.SVG_LENGTHTYPE_PT:
+							transVal *= 25.4;
+							transVal /= 72.0;
+							transVal /= this.mmPerPixel;
+							break;
+						//case this.SVG_LENGTHTYPE_UNKNOWN:
+						//case this.SVG_LENGTHTYPE_EXS:
+						//case this.SVG_LENGTHTYPE_EMS:
+						//case this.SVG_LENGTHTYPE_NUMBER:
+						//case this.SVG_LENGTHTYPE_PX:
+						default:
+							// It is left as such, it is already neutral!!!!
+							break;
+					}
+					
+					switch(lengthType) {
+						/*	Again, lack of context!!!
+						case this.SVG_LENGTHTYPE_PERCENTAGE:
+							var axisLength =;
+							transVal *= 100.0;
+							transVal /= axisLength;
+							break;
+						*/
+						case this.SVG_LENGTHTYPE_CM:
+							transVal *= this.mmPerPixel;
+							transVal /= 10.0;
+							break;
+						case this.SVG_LENGTHTYPE_MM:
+							transVal *= this.mmPerPixel;
+							break;
+						case this.SVG_LENGTHTYPE_IN:
+							transVal *= this.mmPerPixel;
+							transVal /= 25.4;
+							break;
+						case this.SVG_LENGTHTYPE_PC:
+							transVal *= this.mmPerPixel * 72.0;
+							transVal /= 12.0;
+							transVal /= 25.4;
+							break;
+						case this.SVG_LENGTHTYPE_PT:
+							transVal *= this.mmPerPixel * 72.0;
+							transVal /= 25.4;
+							break;
+						//case this.SVG_LENGTHTYPE_UNKNOWN:
+						//case this.SVG_LENGTHTYPE_EXS:
+						//case this.SVG_LENGTHTYPE_EMS:
+						//case this.SVG_LENGTHTYPE_NUMBER:
+						//case this.SVG_LENGTHTYPE_PX:
+						default:
+							// It is left as such, it is already neutral!!!!
+							break;
+					}
+					this.newValueInSpecifiedUnits(lengthType,transVal);
+				}
+			};
+		}
 		
 		return typedLength;
 	},
 	
 	setDimensionFromScale: function (sw,sh) {
-		var newWidth = this.SVGroot.createSVGLength();
-		var newHeight = this.SVGroot.createSVGLength();
-		newWidth.newValueSpecifiedUnits(this.realWidth.unitType,this.realWidth.valueInSpecifiedUnits*sw);
-		newHeight.newValueSpecifiedUnits(this.realHeight.unitType,this.realHeight.valueInSpecifiedUnits*sh);
+		var newWidth = this.createTypedLength(this.realWidth.unitType,this.realWidth.valueInSpecifiedUnits*sw);
+		var newHeight = this.createTypedLength(this.realHeight.unitType,this.realHeight.valueInSpecifiedUnits*sh);
 		
 		//var newWidth = this.realWidth*sw + this.realWidthUnits;
 		//var newHeight = this.realHeight*sh + this.realHeightUnits;

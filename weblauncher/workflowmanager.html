@@ -14,7 +14,7 @@ INB Web Workflow Enactor &amp; Manager
 	<table width="100%" border="1">
 		<tr><td width="230" class="data">
 			<select name="workflow" id="workflow" style="width:230px;" size="20"></select>
-		</td><td width="400" class="fixed">
+		</td><td width="350" class="fixed">
 			<div align="center" id="svgdiv"></div>
 		</td><td width="*" class="scrolldata">
 			<p><u>Title:</u> <span id="title"></span></p>
@@ -42,6 +42,8 @@ INB Web Workflow Enactor &amp; Manager
 			</div>
 		</td></tr>
 	</table>
+	<p>Submitted enaction jobs in this session</p>
+	<ol id="submittedList"></ol>
 </form>
 <div class="hidden" id="outerAbsDiv">
 </div>
@@ -49,8 +51,10 @@ INB Web Workflow Enactor &amp; Manager
 	<div class="secondary">
 		<p>Please introduce your workflow</p>
 		<form id="formNewWF" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data">
-			<p class="borderedOption"><fieldset><label>As&nbsp;text&nbsp;<input id="newWFStyleText" type="radio" name="newWFStyle" value="text"></input></label> <label>As&nbsp;file&nbsp;<input id="newWFStyleFile" type="radio" name="newWFStyle" value="file"></input></label></fieldset></p>
-			<div id="newWFContainer"></div>
+			<div align="center">
+				<fieldset class="borderedOption"><label>As&nbsp;text&nbsp;<input id="newWFStyleText" type="radio" name="newWFStyle" value="text"></input></label> <label>As&nbsp;file&nbsp;<input id="newWFStyleFile" type="radio" name="newWFStyle" value="file" checked="checked"></input></label></fieldset>
+				<div id="newWFContainer"></div>
+			</div>
 			<div align="center" id="newWFUploading"><i><blink>Uploading new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img></div>
 		</form>
 		<div class="backbutton" onclick="genview.newwfview.closeNewWorkflowFrame()"><img src="style/leftarrow.png"></img> Back</div>
@@ -73,12 +77,16 @@ INB Web Workflow Enactor &amp; Manager
 				</td></tr>
 			</table>
 		</form>
+		<div class="hidden" id="newEnactUploading"></div>
 		<div class="backbutton" onclick="genview.newenactview.closeNewEnactionFrame()"><img src="style/leftarrow.png"></img> Back</div>
 		<div class="forwardbutton" onclick="genview.newenactview.enact()">Start! <img src="style/run.png"></img></div>
 	</div>
 </div>
 <div class="hidden" id="reloadWorkflows">
 	<img style="position:relative; top: 45%;left: 45%" src="style/big-ajax-loader.gif"></img>
+</div>
+<div class="hidden" id="submitEnaction">
+	<img style="position:relative; top: 45%;left: 45%" src="style/big-ajax-submit.gif"></img>
 </div>
 </body>
 </html>

@@ -241,6 +241,7 @@ public class INBWorkflowParserWrapper {
 		{"-topDownOrientation","0","Workflow graph layout must be top-down"},
 		{"-leftRightOrientation","0","Workflow graph layout must be left-right"},
 		{"-baseDir","1","Maven repository dirname"},
+		{"-onlyUpdateBaseDir","0","Only update Maven repository"},
 	};
 	
 	private static final String TAVERNA_GROUP_ID="uk.org.mygrid.taverna";
@@ -346,6 +347,7 @@ public class INBWorkflowParserWrapper {
 	
 	boolean alignmentParam=false;
 	boolean expandWorkflowParam=false;
+	boolean onlyMavenUpdate=false;
 	
 	protected boolean debugMode=false;
 
@@ -399,7 +401,6 @@ public class INBWorkflowParserWrapper {
 	{
 		logger.debug("Starting param processing");
 		processArgs(args);
-		InputStream workflowInputStream = new FileInputStream(workflowFile);
 
 		logger.debug("Param processing has finished. Starting repository initialization");
 		//TavernaSPIRegistry.setRepository(((LocalArtifactClassLoader)getClass().getClassLoader()).getRepository());
@@ -410,24 +411,30 @@ public class INBWorkflowParserWrapper {
 		//PluginManager.setRepository(repository);
 		//PluginManager.getInstance();
 		
-		logger.debug("TavernaSPI has finished. Starting WorkflowLauncher");
+		logger.debug("TavernaSPI has finished.");
 		
-                ScuflModel model = new ScuflModel();
-		try {
-	                XScuflParser.populate(workflowInputStream, model, null);
-//		} catch (IOException e) {
-//			logger.error("Could not read workflow " + workflowFile.getAbsolutePath(),e);
-//			System.exit(6);
-		} catch (XScuflFormatException e) {
-			logger.error("Could not parse workflow " + workflowFile.getAbsolutePath(),e);
-			System.exit(15);
-		} catch (ScuflException e) {
-			logger.error("Could not load workflow " + workflowFile.getAbsolutePath(),e);
-			System.exit(7);
+		ScuflModel model = null;
+		if(onlyMavenUpdate) {
+			logger.debug("Starting Workflow Handling.");
+
+                	model = new ScuflModel();
+			try {
+				InputStream workflowInputStream = new FileInputStream(workflowFile);
+	                	XScuflParser.populate(workflowInputStream, model, null);
+//			} catch (IOException e) {
+//				logger.error("Could not read workflow " + workflowFile.getAbsolutePath(),e);
+//				System.exit(6);
+			} catch (XScuflFormatException e) {
+				logger.error("Could not parse workflow " + workflowFile.getAbsolutePath(),e);
+				System.exit(15);
+			} catch (ScuflException e) {
+				logger.error("Could not load workflow " + workflowFile.getAbsolutePath(),e);
+				System.exit(7);
+			}
+
+			// Now it is time to generate workflow SVG (if it is possible!)
+			generateWorkflowGraph(model);
 		}
-		
-		// Now it is time to generate workflow SVG (if it is possible!)
-		generateWorkflowGraph(model);
 		
 		return model;
 	}
@@ -696,13 +703,15 @@ public class INBWorkflowParserWrapper {
 			expandWorkflowParam=true;
 		} else if (param.equals("-collapseSubWorkflows")) {
 			expandWorkflowParam=false;
+		} else if (param.equals("-onlyUpdateBaseDir")) {
+			onlyMavenUpdate=true;
 		} else {
 			logger.warn("Argument "+param+" has not been processed because this parsing code is incomplete!");
 		}
 	}
 	
 	protected void checkSetParams() {
-		if (workflowFile == null) {
+		if (workflowFile == null && !onlyMavenUpdate) {
 			logger.error("You must specify a workflow with the argument -workflow");
 			logger.error("e.g. "+getScriptName()+" -workflow myworkflow.xml");
 			logger.error("or "+getScriptName()+".bat -workflow C:/myworkflow.xml");

@@ -1,0 +1,69 @@
+<html>
+<head>
+	<title>INB Web Workflow Enaction Viewer</title>
+	
+	<link rel="stylesheet" type="text/css" href="js/prettify/prettify.css"></link>
+	<link rel="stylesheet" type="text/css" href="style/IWWE-buttons.css"></link>
+	<link rel="stylesheet" type="text/css" href="style/enactionviewer.css"></link>
+	
+	<script type="text/javascript" src="js/ORFandDB-widgetCommon/browserdetect/BrowserDetect.js"></script>
+	<script type="text/javascript" src="js/ORFandDB-widgetCommon/widgetCommon.js"></script>
+	<script type="text/javascript" src="js/prettify/prettify.js"></script>
+	<script type="text/javascript" src="js/jmol/Jmol.js"></script>
+	<script type="text/javascript" src="js/dynamicSVGhandling.js"></script>
+	<script type="text/javascript" src="js/enactionviewer.js"></script>
+</head>
+<body onload="InitEnactionViewer()">
+INB Web Workflow Enactor &amp; Manager
+<form id="formManager">
+	<table width="100%" border="1">
+		<tr><td width="230" class="data">
+			<select name="workflow" id="workflow" style="width:230px;" size="20"></select>
+		</td><td width="400" class="fixed">
+			<div align="center" id="svgdiv"></div>
+		</td><td width="*" class="scrolldata">
+			<p><u>Title:</u> <span id="title"></span></p>
+			<p><u>LSID:</u> <span id="lsid"></span></p>
+			<p><u>Author</u> <span id="author"></span></p>
+			<p><u>Description</u></p>
+			<blockquote id="description"></blockquote>
+			<p><u>Inputs</u></p>
+			<div id="inputs"></div>
+			<p><u>Outputs</u></p>
+			<div id="outputs"></div>
+		</td></tr><tr><td class="buttons">
+			<div align="center">
+				<div class="button" onclick="genview.manview.reloadList()">Reload <img src="style/reload.png"></div>
+				<div class="button" onclick="genview.newwfview.openNewWorkflowFrame()">Add new <img src="style/blueplus.png"></div>
+			</div>
+		</td><td class="buttons">
+			<div align="center">
+				<div class="button" onclick="genview.newenactview.openNewEnactionFrame()">Launch!<img src="style/greenball.png"></img></div>
+			</div>
+		</td><td class="buttons">
+			<div align="right" style="vertical-align: bottom;">
+				<label>Confirm<input type="checkbox" name="confirm" id="confirm"></input></label>
+				<div class="button" onclick="genview.manview.deleteWorkflow()">Delete <img src="style/redball.png"></img></div>
+			</div>
+		</td></tr>
+	</table>
+	<p>Submitted enaction jobs in this session</p>
+	<ol id="submittedList"></ol>
+</form>
+<div class="hidden" id="outerAbsDiv">
+</div>
+<div class="hidden" id="newEnaction">
+	<div class="secondary">
+		<p>Please introduce your enaction ID</p>
+		<form id="formNewEnaction">
+			<div align="center"><input type="text" name="enactionField"></input></div>
+		</form>
+		<div class="backbutton" onclick=""><img src="style/leftarrow.png"></img> Back</div>
+		<div class="forwardbutton" onclick="genview.newwfview.upload()">Upload <img src="style/run.png"></img></div>
+	</div>
+</div>
+<div class="hidden" id="reloadEnaction">
+	<img style="position:relative; top: 45%;left: 45%" src="style/big-ajax-loader.gif"></img>
+</div>
+</body>
+</html>

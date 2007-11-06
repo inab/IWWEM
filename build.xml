@@ -71,5 +71,12 @@
 			passphrase=""
 			command="chmod -v ugo+x ${deploy.ssh.dir}/cgi-bin/workflowmanager ${deploy.ssh.dir}/cgi-bin/enactionlauncher ${deploy.ssh.dir}/cgi-bin/enactionstatus ${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowparser ${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowlauncher"
 		/>
+		<sshexec
+			host="${deploy.host}"
+			username="${deploy.ssh.user}"
+			keyfile="${user.home}/.ssh/id_dsa"
+			passphrase=""
+			command="${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowparser -baseDir ${deploy.ssh.dir}/cgi-bin/inb-maven -onlyUpdateBaseDir ; chmod -v -R go+w ${deploy.ssh.dir}/cgi-bin/inb-maven"
+		/>
 	</target>
 </project>

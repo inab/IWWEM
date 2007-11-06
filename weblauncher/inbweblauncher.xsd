@@ -58,6 +58,11 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
                     <xsd:documentation><![CDATA[There is no known enaction job with this ID]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="disposed">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The former enaction job with this ID has been disposed]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
     

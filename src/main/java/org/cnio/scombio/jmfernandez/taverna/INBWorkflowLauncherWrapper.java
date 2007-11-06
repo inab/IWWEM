@@ -123,44 +123,46 @@ public class INBWorkflowLauncherWrapper
 		// All the tasks from parent (including parameter parsing) have been done
 		ScuflModel model=super.run(args);
 		
-		WorkflowLauncher launcher = new WorkflowLauncher(model);
-		
-		logger.debug("And now, executing workflow!!!!!");
-		
-		Map<String, DataThing> outputs=null;
-		try {
-			if(statusDir!=null) {
-				INBWorkflowEventListener iel=new INBWorkflowEventListener(statusDir,debugMode);
-				outputs = launcher.execute(baseInputs,iel);
+		if(model!=null) {
+			WorkflowLauncher launcher = new WorkflowLauncher(model);
+
+			logger.debug("And now, executing workflow!!!!!");
+
+			Map<String, DataThing> outputs=null;
+			try {
+				if(statusDir!=null) {
+					INBWorkflowEventListener iel=new INBWorkflowEventListener(statusDir,debugMode);
+					outputs = launcher.execute(baseInputs,iel);
+				} else {
+					outputs = launcher.execute(baseInputs);
+				}
+                	} catch (InvalidInputException e) {
+                        	logger.error("Invalid inputs for workflow " + workflowFile.getAbsolutePath(),e);
+                        	System.exit(8);
+                	} catch (WorkflowSubmissionException e) {
+                        	logger.error("Could not execute workflow " + workflowFile.getAbsolutePath(),e);
+                        	System.exit(9);
+                	}
+
+			logger.debug("Workflow has finished");
+			if (outputDocumentFile==null && outputDir==null) {
+				logger.warn("Neither -outputDoc nor -outputDir defined to save results. " +
+					"Results returned contained "
+					+ outputs.size() + " outputs.");
 			} else {
-				outputs = launcher.execute(baseInputs);
+				// These method calls only work when the file names are not null.
+				saveOutputDocument(outputs);
+
+				saveOutputDir(outputs);
 			}
-                } catch (InvalidInputException e) {
-                        logger.error("Invalid inputs for workflow " + workflowFile.getAbsolutePath(),e);
-                        System.exit(8);
-                } catch (WorkflowSubmissionException e) {
-                        logger.error("Could not execute workflow " + workflowFile.getAbsolutePath(),e);
-                        System.exit(9);
-                }
-		
-		logger.debug("Workflow has finished");
-		if (outputDocumentFile==null && outputDir==null) {
-			logger.warn("Neither -outputDoc nor -outputDir defined to save results. " +
-				"Results returned contained "
-				+ outputs.size() + " outputs.");
-		} else {
-			// These method calls only work when the file names are not null.
-			saveOutputDocument(outputs);
-			
-			saveOutputDir(outputs);
-		}
-		
-		if(reportFile!=null) {
-			PrintStream ps=new PrintStream(reportFile,"UTF-8");
-			
-			ps.print(launcher.getProgressReportXML());
-			
-			ps.close();
+
+			if(reportFile!=null) {
+				PrintStream ps=new PrintStream(reportFile,"UTF-8");
+
+				ps.print(launcher.getProgressReportXML());
+
+				ps.close();
+			}
 		}
 		
 		return model;

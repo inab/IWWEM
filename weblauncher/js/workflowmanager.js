@@ -77,7 +77,7 @@ WorkflowDesc.prototype = {
 		wfO.text = this.title+' ['+this.lsid+']';
 		
 		return wfO;
-	},
+	}
 };
 
 /* Window handling code */
@@ -145,7 +145,7 @@ GeneralView.prototype = {
 		filecontrol.name=thename;
 		
 		return filecontrol;
-	},
+	}
 };
 
 GeneralView.freeContainer = function (container) {
@@ -160,7 +160,7 @@ GeneralView.freeContainer = function (container) {
 	
 	// Last resort!
 	container.innerHTML = '';
-}
+};
 	
 /*
 	This class manages the available workflows view
@@ -178,7 +178,7 @@ function ManagerView(genview) {
 	this.inContainer=genview.thedoc.getElementById('inputs');
 	this.outContainer=genview.thedoc.getElementById('outputs');
 	
-	this.svg=new TavernaSVG();
+	this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown.svg','275pt');
 	this.wfA=new Array();
 	
 	this.listRequest=undefined;
@@ -224,13 +224,17 @@ ManagerView.prototype = {
 			// SVG graph
 			this.svg.loadSVG(this.svgdiv.id,WorkflowDesc.WFBase+'/'+workflow.svgpath);
 			
+			// Clearing input & output info
+			GeneralView.freeContainer(this.inContainer);
+			GeneralView.freeContainer(this.outContainer);
+			
 			// Basic information
 			this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
 			this.lsidContainer.innerHTML = workflow.lsid;
 			this.authorContainer.innerHTML = (workflow.author && workflow.author.length>0)?workflow.author:'<i>(anonymous)</i>';
 			
 			// Naive detection of rich description
-			if('description' in workflow) {
+			if(('description' in workflow) && workflow['description'].length>0) {
 				if(workflow.description.indexOf('<')!=-1) {
 					this.descContainer.innerHTML = workflow.description;
 				} else {
@@ -244,7 +248,7 @@ ManagerView.prototype = {
 			var alink;
 			
 			// This is needed to append links to the description itself
-			thep = this.genview.thedoc.createElement('p');
+			var thep = this.genview.thedoc.createElement('p');
 			alink = this.genview.thedoc.createElement('a');
 			alink.href = WorkflowDesc.WFBase+'/'+workflow.path;
 			alink.target = '_blank';
@@ -393,7 +397,7 @@ ManagerView.prototype = {
 			this.check.checked=false;
 			this.reloadList(this.wfselect.options[this.wfselect.selectedIndex].value);
 		}
-	},
+	}
 };
 
 function NewWorkflowView(genview) {
@@ -436,7 +440,7 @@ NewWorkflowView.prototype = {
 			var textbox = this.genview.thedoc.createElement('textarea');
 			this.newWFControl = textbox;
 			textbox.name="workflow";
-			textbox.columns=80;
+			textbox.cols=80;
 			textbox.rows=25;
 			
 			this.newWFContainer.appendChild(textbox);
@@ -519,7 +523,7 @@ NewWorkflowView.prototype = {
 		} else {
 			alert('Please introduce the new workflow before submitting it!');
 		}
-	},
+	}
 };
 
 function NewEnactionView(genview) {
@@ -530,6 +534,8 @@ function NewEnactionView(genview) {
 	this.inputsContainer=genview.thedoc.getElementById('newInputs');
 	this.baclavaContainer=genview.thedoc.getElementById('newBaclava');
 	this.enactSVGContainer = genview.thedoc.getElementById('enactsvg');
+	this.newEnactUploading = genview.thedoc.getElementById('newEnactUploading');
+	this.submittedList = genview.thedoc.getElementById('submittedList');
 	
 	this.enactSVG = new TavernaSVG();
 	this.inputs=new Array();
@@ -590,10 +596,6 @@ NewEnactionView.prototype = {
 		}
 	},
 	
-	/**/
-	addBaclavaInput: function () {
-	},
-	
 	/* Generates a new graphical input */
 	generateGraphicalInput: function (input) {
 		var randominputid=WidgetCommon.getRandomUUID();
@@ -610,12 +612,13 @@ NewEnactionView.prototype = {
 		var theinput = this.genview.thedoc.createElement('span');
 		// The addition button
 		theinput.className = 'add';
-		theinput.innerHTML='Input '+input.name;
+		theinput.innerHTML='Input '+input.name+' ';
 		
 		
 		var theinputtext=this.genview.thedoc.createElement('input');
 		theinputtext.type='radio';
 		theinputtext.name=randominputid;
+		theinputtext.checked=true;
 		theinputtext.onchange=function() { GeneralView.freeContainer(containerDiv); };
 
 		var thechoicetext=this.genview.thedoc.createElement('label');
@@ -655,7 +658,7 @@ NewEnactionView.prototype = {
 						var renewinput;
 						if(newinput.type=='text') {
 							renewinput=newenactview.genview.thedoc.createElement('textarea');
-							renewinput.columns=40;
+							renewinput.cols=60;
 							renewinput.rows=10;
 						} else {
 							renewinput=newenactview.genview.thedoc.createElement('input');
@@ -700,6 +703,7 @@ NewEnactionView.prototype = {
 
 		thediv.appendChild(containerDiv);
 		
+		
 		return thediv;
 	},
 	
@@ -717,10 +721,77 @@ NewEnactionView.prototype = {
 		this.workflow=undefined;
 	},
 	
-	enact: function () {
-		this.newEnactForm.submit();
-		this.closeNewEnactionFrame();
+	openSubmitFrame: function() {
+		var elem=this.genview.thedoc.getElementById('submitEnaction');
+		elem.className='submitEnaction';
 	},
+	
+	closeSubmitFrame: function() {
+		var elem=this.genview.thedoc.getElementById('submitEnaction');
+		elem.className='hidden';
+	},
+	
+	enact: function () {
+		// First, locking the window
+		this.openSubmitFrame();
+		
+		// The iframe which will contain what we need
+		var iframe = this.genview.thedoc.createElement('iframe');
+		var iframeName = iframe.name = WidgetCommon.getRandomUUID();
+		iframe.frameBorder = '0';
+		iframe.style.display = 'none';
+		
+		var newenactview = this;
+		iframe.onload = function() {
+			// First, parsing content
+			var xdoc;
+			if('contentDocument' in iframe) {
+				xdoc=iframe.contentDocument;
+			} else {
+				xdoc=iframe.document;
+			}
+			
+			// Second, job id and others
+			newenactview.parseEnactionIdAndLaunch(xdoc);
+			
+			// Now, cleaning up iframe traces!
+			newenactview.closeSubmitFrame();
+			newenactview.closeNewEnactionFrame();
+			
+			newenactview.newEnactUploading.removeChild(iframe);
+			delete iframe['onload'];
+			iframe = undefined;
+			newenactview.newEnactForm.target = undefined;
+		};
+		
+		// Iframe must live somewhere
+		this.newEnactUploading.appendChild(iframe);
+		// And results must go there
+		this.newEnactForm.target=iframeName;
+		// Let's go!
+		this.newEnactForm.submit();
+	},
+	
+	parseEnactionIdAndLaunch: function(enactIdDOM) {
+		var enactId;
+		
+		if(enactIdDOM) {
+			enactId = enactIdDOM.documentElement.getAttribute('jobId');
+			if(enactId) {
+				var time=enactIdDOM.documentElement.getAttribute('time');
+				// Time to open a new window
+				var theURL="enactionviewer.html?jobId="+enactId;
+				window.open(theURL);
+				
+				// And leave a trace!
+				var theli=this.genview.thedoc.createElement('li');
+				theli.innerHTML=time+': <a href="'+theURL+'">'+enactId+'</a>';
+				this.submittedList.appendChild(theli);
+			}
+		}
+		
+		return enactId;
+	}
 };
 
 var genview;
