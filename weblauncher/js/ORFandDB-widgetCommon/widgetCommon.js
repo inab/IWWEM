@@ -372,24 +372,114 @@ WidgetCommon.generateQS = function (qsParm,baseurl)
 
 
 WidgetCommon.DebugError = function (e) {
-	var dbgmsg='';
-	for(var facet in e) {
-		dbgmsg+=facet+"\n";
-	}
-	if(BrowserDetect.browser=='Konqueror' || BrowserDetect.browser=='Safari') {
-		return 	"JavaScript error name: "+e.name+
-			"\nMessage: "+e.message+
-			"\nLine "+e.line;
-	} else if(BrowserDetect.browser=='Explorer') {
-		return 	"JavaScript error name: "+e.name+
-			"\nMessage: "+e.message+
-			"\nNumber: "+e.number+
-			"\nDescription: "+e.description;
+	if(!e)  return 'Null or undefined error';
+	if(typeof e == 'string' || typeof e == 'number') {
+		return 'Exception message: '+e;
 	} else {
-		return 	"JavaScript error name: "+e.name+
-			"\nMessage: "+e.message+
-			"\nFileName: "+e.fileName+", line "+e.lineNumber+
-			"\nStackTrace: "+e.stack;
+		var dbgmsg='';
+		for(var facet in e) {
+			dbgmsg+=facet+"\n";
+		}
+		
+		if(BrowserDetect.browser=='Konqueror' || BrowserDetect.browser=='Safari') {
+			var name;
+			var message;
+			var line;
+			try {
+				name=e.name;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			try {
+				message=e.message;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			try {
+				line=e.line;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			if(!name)  name='';
+			if(!message)  message='';
+			if(!line)  line='';
+			return 	"JavaScript error name: "+name+
+				"\nMessage: "+message+
+				"\nLine "+line;
+		} else if(BrowserDetect.browser=='Explorer') {
+			var name;
+			var message;
+			var number;
+			var description;
+			try {
+				name=e.name;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			try {
+				message=e.message;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			try {
+				number=e.number;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			try {
+				description=e.description;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			if(!name)  name='';
+			if(!message)  message='';
+			if(!number)  number='';
+			if(!description)  description='';
+			return 	"JavaScript error name: "+name+
+				"\nMessage: "+message+
+				"\nNumber: "+number+
+				"\nDescription: "+description;
+		} else {
+			var name;
+			var message;
+			var fileName;
+			var lineNumber;
+			var stack;
+			try {
+				name=e.name
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			try {
+				message=e.message;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			try {
+				fileName=e.fileName;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			try {
+				lineNumber=e.lineNumber;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			try {
+				stack=e.stack;
+			} catch(ee) {
+				// IgnoreIt!
+			}
+			if(!name)  name='';
+			if(!message)  message='';
+			if(!fileName)  fileName='';
+			if(!lineNumber)  lineNumber='';
+			if(!stack)  stack='';
+			return 	"JavaScript error name: "+name+
+				"\nMessage: "+message+
+				"\nFileName: "+fileName+", line "+lineNumber+
+				"\nStackTrace: "+stack;
+		}
 	}
 };
 
