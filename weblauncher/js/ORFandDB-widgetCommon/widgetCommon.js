@@ -114,9 +114,10 @@ WidgetCommon.dhtmlDelayedLoadScript = function (urls,/* optional */ basehref,the
 				}
 			}
 		}, 100);
-		return;
+	} else {
+		WidgetCommon.dhtmlBulkLoadScript(urls,basehref,thedoc);
+		WidgetCommon._loaded=1;
 	}
-	WidgetCommon.dhtmlBulkLoadScript(urls,basehref,thedoc);
 };
 
 WidgetCommon.dhtmlBulkLoadScript = function (urls,/* optional */ basehref,thedoc)
