@@ -586,11 +586,7 @@ WidgetCommon.getTextContent = function (oNode) {
 		try {
 			return oNode.textContent;
 		} catch(e) {
-			try {
-				return oNode.text;
-			} catch(ee) {
-				return WidgetCommon.nodeGetText(oNode,true);
-			}
+			return WidgetCommon.nodeGetText(oNode,true);
 		}
 	} else {
 		return WidgetCommon.nodeGetText(oNode,true);
@@ -599,7 +595,6 @@ WidgetCommon.getTextContent = function (oNode) {
 
 WidgetCommon.nodeGetText = function (oNode,deep) {
 	var s = "";
-	var nodes = oNode.childNodes;
 	for(var node=oNode.firstChild; node; node=node.nextSibling){
 		var nodeType = node.nodeType;
 		if(nodeType == 3 || nodeType == 4){
