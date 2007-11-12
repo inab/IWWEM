@@ -583,12 +583,12 @@ WidgetCommon.getRandomUUID = function () {
 
 WidgetCommon.getTextContent = function (oNode) {
 	if(BrowserDetect.browser!='Safari') {
-		if('textContent' in oNode) {
+		try {
 			return oNode.textContent;
-		} else {
+		} catch(e) {
 			try {
 				return oNode.text;
-			} catch(e) {
+			} catch(ee) {
 				return WidgetCommon.nodeGetText(oNode,true);
 			}
 		}
