@@ -597,7 +597,7 @@ WidgetCommon.getTextContent = function (oNode) {
 	}
 };
 
-WidgetCommon.nodeGetText: function (oNode,deep) {
+WidgetCommon.nodeGetText = function (oNode,deep) {
 	var s = "";
 	var nodes = oNode.childNodes;
 	for(var node=oNode.firstChild; node; node=node.nextSibling){
