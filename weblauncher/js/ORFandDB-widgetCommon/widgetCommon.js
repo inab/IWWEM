@@ -359,16 +359,18 @@ WidgetCommon.parseQS = function (qsParm,/* optional */ url,thedoc)
 WidgetCommon.generateQS = function (qsParm,baseurl)
 {
 	var query='';
+	var querySymbol='?';
 	for (var term in qsParm) {
 		if(qsParm[term]) {
 			var iterarray=(qsParm[term] instanceof Array)?qsParm[term]:new Array(qsParm[term]);
 			
 			for(var key in iterarray) {
-				query+='&'+escape(term)+'='+escape(iterarray[key]);
+				query+=querySymbol+escape(term)+'='+escape(iterarray[key]);
+				querySymbol='&';
 			}
 		}
 	}
-	return baseurl+'?'+query.substring(1);
+	return baseurl+query;
 };
 
 
@@ -565,7 +567,7 @@ WidgetCommon.Viewport.prototype = {
 */
 WidgetCommon.getRandomInt = function (min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+};
 
 /**************************/
 /* Now, an UUID generator */
@@ -577,4 +579,38 @@ WidgetCommon.getRandomUUID = function () {
 	}
 	
 	return rarr[0]+rarr[1]+'-'+rarr[2]+'-'+rarr[3]+'-'+rarr[4]+'-'+rarr[5]+rarr[6]+rarr[7];
-}
+};
+
+WidgetCommon.getTextContent = function (oNode) {
+	if(BrowserDetect.browser!='Safari') {
+		if('textContent' in oNode) {
+			return oNode.textContent;
+		} else {
+			try {
+				return oNode.text;
+			} catch(e) {
+				return WidgetCommon.nodeGetText(oNode,true);
+			}
+		}
+	} else {
+		return WidgetCommon.nodeGetText(oNode,true);
+	}
+};
+
+WidgetCommon.nodeGetText: function (oNode,deep) {
+	var s = "";
+	var nodes = oNode.childNodes;
+	for(var node=oNode.firstChild; node; node=node.nextSibling){
+		var nodeType = node.nodeType;
+		if(nodeType == 3 || nodeType == 4){
+			s += node.data;
+		} else if(deep == true
+			&& (nodeType == 1
+			|| nodeType == 9
+			|| nodeType == 11)){
+			s += WidgetCommon.nodeGetText(node, true);
+		}
+	}
+	return s;
+};
+
