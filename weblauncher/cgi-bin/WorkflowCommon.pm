@@ -8,12 +8,25 @@ use FindBin;
 
 use POSIX qw(strftime);
 
-use vars qw($WORKFLOWDIR $JOBDIR $MAXJOBS $JOBCHECKDELAY $LAUNCHERDIR $MAVENDIR $BACLAVAPARAM $PARAMPARAM $PARAMPREFIX $WFD_NS $SCUFL_NS);
+use vars qw($WORKFLOWFILE $SVGFILE $DEPDIR $EXAMPLESDIR $SNAPSHOTSDIR);
+
+use vars qw($WORKFLOWRELDIR $WORKFLOWDIR $JOBRELDIR $JOBDIR $MAXJOBS $JOBCHECKDELAY $LAUNCHERDIR $MAVENDIR);
+
+use vars qw($BACLAVAPARAM $PARAMPARAM $PARAMPREFIX $WFD_NS $SCUFL_NS);
+
+# Workflow files constants
+$WORKFLOWFILE='workflow.xml';
+$SVGFILE='workflow.svg';
+$DEPDIR='dependencies';
+$EXAMPLESDIR='examples';
+$SNAPSHOTSDIR='snapshots';
 
 # Base directory for stored workflows
-$WORKFLOWDIR = "$FindBin::Bin/../workflows";
+$WORKFLOWRELDIR = 'workflows';
+$WORKFLOWDIR = $FindBin::Bin. '/../' . $WORKFLOWRELDIR;
 # Base directory for jobs
-$JOBDIR = "$FindBin::Bin/../jobs";
+$JOBRELDIR = 'jobs';
+$JOBDIR = $FindBin::Bin . '/../' .$JOBRELDIR;
 # Number of concurrent jobs
 $MAXJOBS = 2;
 # When a pending job is waiting for a slot,

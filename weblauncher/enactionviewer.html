@@ -11,30 +11,35 @@
 	<script type="text/javascript" src="js/prettify/prettify.js"></script>
 	<script type="text/javascript" src="js/jmol/Jmol.js"></script>
 	<script type="text/javascript" src="js/dynamicSVGhandling.js"></script>
+	<script type="text/javascript" src="js/IWWEM-common.js"></script>
 	<script type="text/javascript" src="js/enactionviewer.js"></script>
 </head>
-<body onload="InitEnactionViewer()">
-INB Web Workflow Enactor &amp; Manager
-<form id="formManager">
-	<table width="100%" border="1">
-		<tr><td width="230" class="data">
-			<select name="workflow" id="workflow" style="width:230px;" size="20"></select>
-		</td><td width="400" class="fixed">
-			<div align="center" id="svgdiv"></div>
-		</td><td width="*" class="scrolldata">
-			<p><u>Title:</u> <span id="title"></span></p>
-			<p><u>LSID:</u> <span id="lsid"></span></p>
-			<p><u>Author</u> <span id="author"></span></p>
-			<p><u>Description</u></p>
-			<blockquote id="description"></blockquote>
-			<p><u>Inputs</u></p>
-			<div id="inputs"></div>
-			<p><u>Outputs</u></p>
-			<div id="outputs"></div>
+<body onload="InitIWWEM(EnactionViewerCustomInit)">
+<div align="center"><b>INB Web Workflow Enaction Viewer</b></div>
+	<table style="width:100%">
+		<tr><td class="middle">
+			<div id="svgdiv"></div>
+			<!--<select name="workflow" id="workflow" style="width:230px;" size="20"></select>-->
+		</td><td class="middle">
+			<div id="svgdiv"></div>
+		</td><td align="right" valign="top">
+			<div class="scrolldata">
+				<b>Title:</b>&nbsp;<span id="title"></span>
+				<p><b>LSID:</b>&nbsp;<span id="lsid"></span></p>
+				<p><b>Author:</b>&nbsp;<span id="author"></span></p>
+				<p><b>Inputs</b>
+				<div id="inputs"></div>
+				</p>
+				<p><b>Outputs</b>
+				<div id="outputs"></div>
+				</p>
+				<b>Description</b>
+				<p id="description" align="justify"></p>
+			</div>
 		</td></tr><tr><td class="buttons">
 			<div align="center">
-				<div class="button" onclick="genview.manview.reloadList()">Reload <img src="style/reload.png"></div>
-				<div class="button" onclick="genview.newwfview.openNewWorkflowFrame()">Add new <img src="style/blueplus.png"></div>
+				<div class="button" onclick="genview.enactview.reloadStatus()">Reload <img src="style/reload.png"></div>
+				<div class="button" onclick="genview.enactview.otherEnactionFrame()">Open enaction...<img src="style/blueplus.png"></div>
 			</div>
 		</td><td class="buttons">
 			<div align="center">
@@ -43,27 +48,34 @@ INB Web Workflow Enactor &amp; Manager
 		</td><td class="buttons">
 			<div align="right" style="vertical-align: bottom;">
 				<label>Confirm<input type="checkbox" name="confirm" id="confirm"></input></label>
-				<div class="button" onclick="genview.manview.deleteWorkflow()">Delete <img src="style/redball.png"></img></div>
+				<div class="button" onclick="genview.enactview.disposeEnaction()">Dispose <img src="style/redball.png"></img></div>
 			</div>
+		</td></tr><tr><td colspan="3">
+			<p><u>Last operation message</u></p>
+			<div id="messageDiv"></div>
 		</td></tr>
 	</table>
-	<p>Submitted enaction jobs in this session</p>
-	<ol id="submittedList"></ol>
-</form>
 <div class="hidden" id="outerAbsDiv">
 </div>
 <div class="hidden" id="newEnaction">
 	<div class="secondary">
-		<p>Please introduce your enaction ID</p>
-		<form id="formNewEnaction">
-			<div align="center"><input type="text" name="enactionField"></input></div>
+		<p>Please introduce your enaction Id</p>
+		<form id="formNewWF" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data">
+			<div align="center">
+				<fieldset class="borderedOption"><label>As&nbsp;text&nbsp;<input id="newWFStyleText" type="radio" name="newWFStyle" value="text"></input></label> <label>As&nbsp;file&nbsp;<input id="newWFStyleFile" type="radio" name="newWFStyle" value="file" checked="checked"></input></label></fieldset>
+				<div id="newWFContainer"></div>
+			</div>
+			<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img></div>
 		</form>
-		<div class="backbutton" onclick=""><img src="style/leftarrow.png"></img> Back</div>
-		<div class="forwardbutton" onclick="genview.newwfview.upload()">Upload <img src="style/run.png"></img></div>
+		<div class="backbutton" onclick="genview.newwfview.closeNewWorkflowFrame()"><img src="style/leftarrow.png"></img> Back</div>
+		<div class="forwardbutton" onclick="genview.newwfview.upload()">Upload <img src="style/upload.png"></img></div>
 	</div>
 </div>
-<div class="hidden" id="reloadEnaction">
+<div class="hidden" id="reloadWorkflows">
 	<img style="position:relative; top: 45%;left: 45%" src="style/big-ajax-loader.gif"></img>
+</div>
+<div class="hidden" id="submitEnaction">
+	<img style="position:relative; top: 45%;left: 45%" src="style/big-ajax-submit.gif"></img>
 </div>
 </body>
 </html>

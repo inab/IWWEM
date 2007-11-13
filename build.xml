@@ -8,7 +8,7 @@
 	-->
 	<property name="deploy.host" value="localhost" />
 	<property name="deploy.ssh.user" value="jmfernandez" />
-	<property name="deploy.ssh.dir" value="/home/jmfernandez/public_html/IWWE" />
+	<property name="deploy.ssh.dir" value="/home/jmfernandez/public_html/IWWEM" />
 	
 	<dirname property="antfile.dir" file="${ant.file}"/>
 	<dirname property="antfile.dir.parent" file="${antfile.dir}"/>
@@ -21,6 +21,9 @@
 	<target name="init">
 		<!-- Creating the timestamp -->
 		<tstamp/>
+		<!--
+		<splash/>
+		-->
 	</target>
 	
 	<target depends="init" description="Compilation of Java/Maven backend modules" name="maven-compile">
@@ -71,12 +74,21 @@
 			passphrase=""
 			command="chmod -v ugo+x ${deploy.ssh.dir}/cgi-bin/workflowmanager ${deploy.ssh.dir}/cgi-bin/enactionlauncher ${deploy.ssh.dir}/cgi-bin/enactionstatus ${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowparser ${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowlauncher"
 		/>
+	</target>
+	<target depends="deploy" description="Fresh regeneration of Maven repository" name="freshdeploy">
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
 			keyfile="${user.home}/.ssh/id_dsa"
 			passphrase=""
-			command="${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowparser -baseDir ${deploy.ssh.dir}/cgi-bin/inb-maven -onlyUpdateBaseDir ; chmod -v -R go+w ${deploy.ssh.dir}/cgi-bin/inb-maven"
+			command="${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowparser -baseDir ${deploy.ssh.dir}/cgi-bin/inb-maven -onlyUpdateBaseDir"
+		/>
+		<sshexec
+			host="${deploy.host}"
+			username="${deploy.ssh.user}"
+			keyfile="${user.home}/.ssh/id_dsa"
+			passphrase=""
+			command="chmod -v -R go+w ${deploy.ssh.dir}/cgi-bin/inb-maven"
 		/>
 	</target>
 </project>

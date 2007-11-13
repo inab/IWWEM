@@ -414,7 +414,7 @@ public class INBWorkflowParserWrapper {
 		logger.debug("TavernaSPI has finished.");
 		
 		ScuflModel model = null;
-		if(onlyMavenUpdate) {
+		if(!onlyMavenUpdate) {
 			logger.debug("Starting Workflow Handling.");
 
                 	model = new ScuflModel();
@@ -710,7 +710,13 @@ public class INBWorkflowParserWrapper {
 		}
 	}
 	
-	protected void checkSetParams() {
+	/**
+		Post-processing, like additional checks or
+		post-loading modifications.
+	*/
+	protected void checkSetParams()
+		throws Exception
+	{
 		if (workflowFile == null && !onlyMavenUpdate) {
 			logger.error("You must specify a workflow with the argument -workflow");
 			logger.error("e.g. "+getScriptName()+" -workflow myworkflow.xml");

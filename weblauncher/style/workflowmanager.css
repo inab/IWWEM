@@ -61,24 +61,38 @@ td.data {
 	display: table-cell;
 }
 
-td.fixed {
+td.middle {
 	vertical-align: top;
 	empty-cells: show;
 	display: table-cell;
-	width: 400px;
+	width: 100%;
 }
 
-td.data {
+.scrolldata {
 	vertical-align: top;
 	empty-cells: show;
-	display: table-cell;
-}
-
-td.scrolldata {
-	vertical-align: top;
-	empty-cells: show;
-	display: table-cell;
+	display: block;
+	width:80mm;
+	height:120mm;
 	overflow: auto;
+	text-align: left;
+	border: 1px solid #dfd8c8;
+	background-color: #f5ede9;
+}
+
+.scrolldatalarge {
+	vertical-align: top;
+	empty-cells: show;
+	display: block;
+	/*
+	max-width:145mm;
+	*/
+	width:145mm;
+	height:120mm;
+	overflow: auto;
+	text-align: left;
+	border: 1px solid #dfd8c8;
+	background-color: #f5ede9;
 }
 
 td.buttons {
@@ -91,7 +105,7 @@ td.buttons {
 	padding: 3px;
 	border: 1px solid #cbb945;
 	background-color: #fffadb;
-	margin: 0 5px 10px 5px;
+	margin: 5px 5px 5px 5px;
 }
 
 .borderedOption {
@@ -104,6 +118,8 @@ td.buttons {
 	border-top:1px solid #36c;
 	border-bottom:1px solid #36c;
 	vertical-align: top;
+	font-family: Arial, Helvetica, Georgia, sans-serif;
+	font-size: 10px;
 }
 
 textarea, input {

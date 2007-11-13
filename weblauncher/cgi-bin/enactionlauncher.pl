@@ -2,15 +2,13 @@
 
 use strict;
 
-use FindBin;
-
 use CGI;
-
-use XML::LibXML;
-
-use POSIX qw(setsid);
-
+use Encode;
+use File::Copy;
 use File::Path;
+use FindBin;
+use POSIX qw(setsid);
+use XML::LibXML;
 
 # And now, my own libraries!
 use lib "$FindBin::Bin";
@@ -32,11 +30,13 @@ do {
 	$jobid = WorkflowCommon::genUUID();
 	$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
 } while (-d $jobdir);
-mkdir($jobdir);
+mkpath($jobdir);
 
-my($wfile)=$jobdir . '/jobworkflow.xml';
+my($wfile)=$jobdir . '/'. $WorkflowCommon::WORKFLOWFILE;
 my($efile)=$jobdir . '/joberrlog.txt';
+my($wrelpath)=undef;
 my($wfilefetched)=undef;
+my($baclavafound)=undef;
 my($inputdir)=$jobdir . '/jobinput';
 mkdir($inputdir);
 my(@inputdesc)=();
@@ -56,17 +56,16 @@ foreach my $param ($query->param()) {
 		
 		my($WFH);
 		if(open($WFH,'>',$wfile)) {
-			my($wrelpath)=undef;
 			unless(defined($WORKFLOW)) {
 				$wrelpath=$query->param($param);
 				
+				my($wabspath)=$WorkflowCommon::WORKFLOWDIR . '/' . $wrelpath . '/' . $WorkflowCommon::WORKFLOWFILE;
+				
 				# Is it a 'sure' path?
-				if(index($wrelpath,'/')==0 || index($wrelpath,'../')!=-1 || ! ($wrelpath =~ /\.xml$/)) {
+				if(index($wrelpath,'/')==0 || index($wrelpath,'../')!=-1 || ! -f $wabspath) {
 					$retval = 2;
 					last;
 				}
-				
-				my($wabspath)=$WorkflowCommon::WORKFLOWDIR . '/' . $wrelpath;
 				
 				unless(open($WORKFLOW,'<',$wabspath)) {
 					$retval=1;
@@ -80,7 +79,24 @@ foreach my $param ($query->param()) {
 				print $WFH $line;
 			}
 			
-			close($WORKFLOW)  if(defined($wrelpath));
+			# Time to copy dependencies needed by workflow
+			if(defined($wrelpath)) {
+				close($WORKFLOW);
+				my($depsdir)=$WorkflowCommon::WORKFLOWDIR . '/' . $wrelpath . '/' . $WorkflowCommon::DEPDIR;
+				my($jobdepsdir)=$jobdir.'/'.$WorkflowCommon::DEPDIR;
+				mkpath($jobdepsdir);
+				my($DIR);
+				if(opendir($DIR,$depsdir)) {
+					my($entry);
+					while($entry=readdir($DIR)) {
+						my($fentry)=$depsdir.'/'.$entry;
+						next  if(index($entry,'.')==0 || !($entry =~ /\.xml$/) || !-f $fentry);
+						
+						copy($fentry,$jobdepsdir.'/'.$entry);
+					}
+					closedir($DIR);
+				}
+			}
 			
 			close($WFH);
 		} else {
@@ -88,46 +104,7 @@ foreach my $param ($query->param()) {
 			last;
 		}
 	} elsif($param eq $WorkflowCommon::BACLAVAPARAM) {
-		# Whole baclava files handling
-		my $paramPath = $inputdir . '/' . $inputcount . '-baclava';
-		mkdir($paramPath);
-		
-		my(@BFH)=$query->upload($param);
-		
-		last  if($query->cgi_error());
-		
-		my($isfh)=1;
-		
-		if(scalar(@BFH)==0) {
-			@BFH=$query->param($param);
-			$isfh=undef;
-		}
-		
-		my($fcount)=0;
-
-		foreach my $BH (@BFH) {
-			my($baclavaname)=$paramPath.'/'.$fcount.'.xml';
-			my($BACH);
-			if(open($BACH,'>',$baclavaname)) {
-				if(defined($isfh)) {
-					my($line);
-					while($line=<$BH>) {
-						print $BACH $line;
-					}
-				} else {
-					print $BACH $BH;
-				}
-				close($BACH);
-				push(@baclavadesc,'-inputDoc',$baclavaname);
-			} else {
-				$retval = 4;
-				last PARAMPROC;
-			}
-			$fcount++;
-		}
-		
-		$inputcount++;
-		
+		$baclavafound=1;
 	} elsif(length($param)>length($WorkflowCommon::PARAMPREFIX) && index($param,$WorkflowCommon::PARAMPREFIX)==0) {
 		# Single param handling
 		my $paramName = substr($param,length($WorkflowCommon::PARAMPREFIX));
@@ -182,6 +159,59 @@ foreach my $param ($query->param()) {
 	}
 }
 
+if(defined($baclavafound)) {
+	my($param)=$WorkflowCommon::BACLAVAPARAM;
+	# Whole baclava files handling
+	my $paramPath = $inputdir . '/' . $inputcount . '-baclava';
+	mkdir($paramPath);
+
+	my(@BFH)=$query->upload($param);
+
+	last  if($query->cgi_error());
+
+	my($isfh)=1;
+
+	my($fcount)=0;
+	if(scalar(@BFH)==0) {
+		# We are going to use examples!
+		if(defined($wrelpath)) {
+			@BFH=$query->param($param);
+
+			foreach my $exfile (@BFH) {
+				my($baclavaname)=$paramPath.'/'.$fcount.'.xml';
+				my($example)=$WorkflowCommon::WORKFLOWDIR.'/'.$wrelpath.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$exfile.'.xml';
+				next  if(index($exfile,'/')==0 || index($exfile,'../')!=-1 || ! -f $example );
+				if(copy($example,$baclavaname)) {
+					push(@baclavadesc,'-inputDoc',$baclavaname);
+				} else {
+					$retval = 4;
+					last;
+				}
+				$fcount++;
+			}
+		}
+	} else {
+		foreach my $BH (@BFH) {
+			my($baclavaname)=$paramPath.'/'.$fcount.'.xml';
+			my($BACH);
+			if(open($BACH,'>',$baclavaname)) {
+				my($line);
+				while($line=<$BH>) {
+					print $BACH $line;
+				}
+				close($BACH);
+				push(@baclavadesc,'-inputDoc',$baclavaname);
+			} else {
+				$retval = 4;
+				last;
+			}
+			$fcount++;
+		}
+	}
+	
+	$inputcount++;
+}
+
 # We must signal here errors and exit
 if($retval!=0 || $query->cgi_error() || !defined($wfilefetched)) {
 	my $error = $query->cgi_error;
@@ -217,12 +247,12 @@ unless(defined($cpid)) {
 	}
 	
 	# Now, reporting...
-	print $query->header('text/xml');
-	my $outputDoc = XML::LibXML::Document->createDocument();
+	print $query->header(-type=>'text/xml',-charset=>'UTF-8');
+	my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
 	my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionlaunched');
 	$root->setAttribute('time',LockNLog::getPrintableNow());
 	$root->setAttribute('jobId',$jobid);
-	$root->appendChild($outputDoc->createComment( <<COMMENTEOF ));
+	my($comment)=<<COMMENTEOF;
 	This content was generated by enactionlauncher, an
 	application of the network workflow enactor from INB.
 	The workflow enactor itself is based on Taverna core,
@@ -233,6 +263,7 @@ unless(defined($cpid)) {
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
 COMMENTEOF
+	$root->appendChild($outputDoc->createComment( encode('UTF-8',$comment) ));
 	$outputDoc->setDocumentElement($root);
 
 	$outputDoc->toFH(\*STDOUT);
@@ -253,7 +284,7 @@ COMMENTEOF
 		exec($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
 			'-baseDir',$WorkflowCommon::MAVENDIR,
 			'-workflow',$wfile,
-			'-expandSubWorkflows',
+#			'-expandSubWorkflows',
 			'-statusDir',$jobdir,
 			@baclavadesc,
 			@inputdesc
@@ -265,4 +296,3 @@ COMMENTEOF
 	print STDERR "FATAL ERROR: Failed to become a workflow launcher!";
 	exit 1;
 }
-

@@ -2,8 +2,11 @@
 
 use strict;
 
-use FindBin;
 use CGI;
+use Encode;
+use File::Path;
+use File::Temp;
+use FindBin;
 use XML::LibXML;
 
 use lib "$FindBin::Bin";
@@ -18,6 +21,7 @@ my($query)=CGI->new();
 $|=1;
 	
 my($retval)=0;
+my($retvalmsg)=undef;
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
@@ -28,17 +32,12 @@ foreach my $param ($query->param()) {
 		
 		foreach my $wrelpath (@workflowId) {
 			# We are only erasing what it is valid...
-			next  if(index($wrelpath,'/')==0 || index($wrelpath,'../')!=-1 || ! ($wrelpath =~ /\.xml$/));
-			
-			my($wrelpathxml)=$WorkflowCommon::WORKFLOWDIR.'/'.$wrelpath;
-			my($wrelpathsvg)=$wrelpathxml;
-			$wrelpathsvg =~ s/\.xml$/.svg/;
+			next  if(index($wrelpath,'/')==0 || index($wrelpath,'../')!=-1);
 			
 			# Checking rules should be inserted here...
 			
 			# And last, unlink!
-			unlink($wrelpathxml);
-			unlink($wrelpathsvg);
+			rmtree($WorkflowCommon::WORKFLOWDIR.'/'.$wrelpath);
 		}
 	} elsif($param eq 'workflow') {
 		# Now, time to recognize the content
@@ -56,19 +55,21 @@ foreach my $param ($query->param()) {
 		foreach my $UPH (@UPHL) {
 			# Generating a unique identifier
 			my($randname);
+			my($randdir);
 			my($randfilexml);
 			my($randfilesvg);
 #			my($randfilepng);
 #			my($randfilepdf);
 			do {
 				$randname=WorkflowCommon::genUUID();
-				$randfilexml=$WorkflowCommon::WORKFLOWDIR.'/'.$randname.'.xml';
-				$randfilesvg=$WorkflowCommon::WORKFLOWDIR.'/'.$randname.'.svg';
-#				$randfilepng=$WorkflowCommon::WORKFLOWDIR.'/'.$randname.'.png';
-#				$randfilepdf=$WorkflowCommon::WORKFLOWDIR.'/'.$randname.'.pdf';
-			} while(-f $randfilexml);
+				$randdir=$WorkflowCommon::WORKFLOWDIR.'/'.$randname;
+			} while(-d $randdir);
 			
+			# Creating workflow directory
+			mkpath($randdir);
 			# Saving the workflow data
+			$randfilexml = $randdir . '/' . $WorkflowCommon::WORKFLOWFILE;
+			$randfilesvg = $randdir . '/' . $WorkflowCommon::SVGFILE;
 			my($WFH);
 			if(open($WFH,'>',$randfilexml)) {
 				if(defined($isfh)) {
@@ -84,7 +85,7 @@ foreach my $param ($query->param()) {
 				close($WFH);
 				
 				# Now it is time to validate it!
-				$retval=system($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser',
+				my(@command)=($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser',
 					'-baseDir',$WorkflowCommon::MAVENDIR,
 					'-workflow',$randfilexml,
 					'-svggraph',$randfilesvg,
@@ -92,11 +93,55 @@ foreach my $param ($query->param()) {
 #					'-pdfgraph',$randfilepdf,
 					'-expandSubWorkflows');
 				
+				# Backing up STDOUT and STDERR
+				my($BSTDERR,$BSTDOUT);
+				open($BSTDOUT,'>&',\*STDOUT);
+				open($BSTDERR,'>&',\*STDERR);
+				
+				# Now, setting up the temporal file
+				# and the redirections
+				my($LOG)=File::Temp->new();
+				my($TMPLOG);
+				open($TMPLOG,'>',$LOG->filename());
+				open(STDOUT,'>&',$TMPLOG);
+				open(STDERR,'>&',$TMPLOG);
+				
+				# The command
+#				my($comm)=$WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser -baseDir '.$WorkflowCommon::MAVENDIR.' -workflow '.$randfilexml.' -svggraph '.$randfilesvg.' -expandSubWorkflows';
+#				$retval=system($comm.' > /tmp/naruto 2>&1');
+				
+				$retval=system(@command);
+				
+				# And returning to original handlers
+				open(STDOUT,'>&',$BSTDOUT);
+				open(STDERR,'>&',$BSTDERR);
+				close($TMPLOG);
+				close($BSTDOUT);
+				close($BSTDERR);
+				$TMPLOG=undef;
+				$BSTDOUT=undef;
+				$BSTDERR=undef;
+				
 				# If it failed, it is better erasing the workflow
 				# because it is not a valid one!
 				if($retval!=0) {
-					unlink($randfilexml);
+					# But before erasing, it is time to retrieve
+					# the error messages from the program
+					my($ERRLOG);
+					if(open($ERRLOG,'<',$LOG->filename())) {
+						my($line);
+						$retvalmsg='';
+						while($line=<$ERRLOG>) {
+							$retvalmsg .= $line;
+						}
+						close($ERRLOG);
+					}
+					rmtree($randdir);
 					last;
+				} else {
+					mkpath($randdir.'/'.$WorkflowCommon::DEPDIR);
+					mkpath($randdir.'/'.$WorkflowCommon::EXAMPLESDIR);
+					mkpath($randdir.'/'.$WorkflowCommon::SNAPSHOTSDIR);
 				}
 			}
 		}
@@ -104,12 +149,12 @@ foreach my $param ($query->param()) {
 }
 
 # We must signal here errors and exit
-if($retval!=0 || $query->cgi_error()) {
+if($query->cgi_error()) {
 	my $error = $query->cgi_error;
 	$error = '500 Internal Server Error'  unless(defined($error));
 	print $query->header(-status=>$error),
 		$query->start_html('Problems'),
-		$query->h2('Request not processed because '.(($retval!=0)?'uploaded workflow was malformed':'upload was interrupted')),
+		$query->h2('Request not processed because upload was interrupted'),
 		$query->strong($error);
 	exit 0;
 }
@@ -125,26 +170,36 @@ foreach my $dir (@dirstack) {
 	my($fdir)=$WorkflowCommon::WORKFLOWDIR.'/'.$dir;
 	if(opendir($WFDIR,$fdir)) {
 		my($entry);
+		my(@posdirstack)=();
+		my($foundworkflowdir)=undef;
 		while($entry=readdir($WFDIR)) {
 			next if(index($entry,'.')==0);
 			
 			my($fentry)=$fdir.'/'.$entry;
 			my($rentry)=($dir ne '.')?($dir.'/'.$entry):$entry;
-			if($entry =~ /\.xml$/ && -f $fentry && -r $fentry) {
-				push(@workflowlist,$rentry);
+			if($entry eq $WorkflowCommon::WORKFLOWFILE) {
+				$foundworkflowdir=1;
 			} elsif(-d $fentry) {
-				push(@dirstack,$rentry);
+				push(@posdirstack,$rentry);
 			}
 		}
 		closedir($WFDIR);
+		# We are only saving found subdirectories when
+		# this is not a workflow directory
+		if(defined($foundworkflowdir)) {
+			push(@workflowlist,$dir);
+		} else {
+			push(@dirstack,@posdirstack);
+		}
 	}
 }
 
-my $outputDoc = XML::LibXML::Document->createDocument();
+my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
 my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflowlist');
 $root->setAttribute('time',LockNLog::getPrintableNow());
+$root->setAttribute('relURI',$WorkflowCommon::WORKFLOWRELDIR);
 $outputDoc->setDocumentElement($root);
-$root->appendChild($outputDoc->createComment( <<COMMENTEOF ));
+my($comment)=<<COMMENTEOF;
 	This content was generated by workflowmanager, an
 	application of the network workflow enactor from INB.
 	The workflow enactor itself is based on Taverna core,
@@ -156,22 +211,36 @@ $root->appendChild($outputDoc->createComment( <<COMMENTEOF ));
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
 COMMENTEOF
 
+$root->appendChild($outputDoc->createComment( encode('UTF-8',$comment) ));
+
+# Attached Error Message (if any)
+if($retval!=0) {
+	my($message)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'message');
+	$message->setAttribute('retval',$retval);
+	if(defined($retvalmsg)) {
+		$message->appendChild($outputDoc->createCDATASection($retvalmsg));
+	}
+	$root->appendChild($message);
+}
+
 my $parser = XML::LibXML->new();
 
 foreach my $wf (@workflowlist) {
 	eval {
-		my $doc = $parser->parse_file($WorkflowCommon::WORKFLOWDIR.'/'.$wf);
+		my($relwffile)=$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
+		my $doc = $parser->parse_file($WorkflowCommon::WORKFLOWDIR.'/'.$relwffile);
 		# Getting description from workflow definition
 		my @nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'workflowdescription');
 		if(scalar(@nodelist)>0) {
 			my $wfe = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflow');
 			my($desc)=$nodelist[0];
+			$wfe->setAttribute('uuid',$wf);
 			$wfe->setAttribute('lsid',$desc->getAttribute('lsid'));
 			$wfe->setAttribute('author',$desc->getAttribute('author'));
 			$wfe->setAttribute('title',$desc->getAttribute('title'));
-			$wfe->setAttribute('path',$wf);
-			my $svg = $wf;
-			$svg =~ s/\.xml$/\.svg/;
+			my($wffile)=$WorkflowCommon::WORKFLOWDIR.'/'.$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
+			$wfe->setAttribute('path',$relwffile);
+			my $svg = $wf.'/'.$WorkflowCommon::SVGFILE;
 			$wfe->setAttribute('svg',$svg);
 			
 			# Getting the workflow description
@@ -245,7 +314,7 @@ foreach my $wf (@workflowlist) {
 	}
 }
 
-print $query->header('text/xml');
+print $query->header(-type=>'text/xml',-charset=>'UTF-8');
 
 $outputDoc->toFH(\*STDOUT);
 

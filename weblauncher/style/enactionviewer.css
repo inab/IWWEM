@@ -61,24 +61,38 @@ td.data {
 	display: table-cell;
 }
 
-td.fixed {
+td.middle {
 	vertical-align: top;
 	empty-cells: show;
 	display: table-cell;
-	width: 400px;
+	width: 100%;
 }
 
-td.data {
+.scrolldata {
 	vertical-align: top;
 	empty-cells: show;
-	display: table-cell;
-}
-
-td.scrolldata {
-	vertical-align: top;
-	empty-cells: show;
-	display: table-cell;
+	display: block;
+	width:80mm;
+	height:120mm;
 	overflow: auto;
+	text-align: left;
+	border: 1px solid #dfd8c8;
+	background-color: #f5ede9;
+}
+
+.scrolldatalarge {
+	vertical-align: top;
+	empty-cells: show;
+	display: block;
+	/*
+	max-width:145mm;
+	*/
+	width:145mm;
+	height:120mm;
+	overflow: auto;
+	text-align: left;
+	border: 1px solid #dfd8c8;
+	background-color: #f5ede9;
 }
 
 td.buttons {
@@ -86,15 +100,36 @@ td.buttons {
 }
 
 .borderedInput {
-	border: 1px solid blue;
-	background-color: #2040ff;
+	font-family: Arial, Helvetica, Georgia, sans-serif;
+	font-size: 12px;
+	padding: 3px;
+	border: 1px solid #cbb945;
+	background-color: #fffadb;
+	margin: 5px 5px 5px 5px;
 }
 
 .borderedOption {
-	border: 1px dotted black;
+	background-color: #d5dff3;
+	color: #000;
+	/*
+	padding: 5px 1px 4px 1px;
+	margin: 2px 2px 2px 2px;
+	*/
+	border-top:1px solid #36c;
+	border-bottom:1px solid #36c;
+	vertical-align: top;
+	font-family: Arial, Helvetica, Georgia, sans-serif;
+	font-size: 10px;
 }
 
-/* Styled file inputs */
+textarea, input {
+    border: 1px solid #c0c0c0;
+    background: #eeeeee;
+    margin: 2px 2px 2px 2px;
+    font-family: Arial, Helvetica, Georgia, sans-serif;
+}
+
+/* Styled file inputs (to be approved) */
 
 div.fileinputs {
 	position: relative;

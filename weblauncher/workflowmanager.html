@@ -6,26 +6,32 @@
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/browserdetect/BrowserDetect.js"></script>
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/widgetCommon.js"></script>
 	<script type="text/javascript" src="js/dynamicSVGhandling.js"></script>
+	<script type="text/javascript" src="js/IWWEM-common.js"></script>
 	<script type="text/javascript" src="js/workflowmanager.js"></script>
 </head>
-<body onload="InitWorkflowManager()">
-INB Web Workflow Enactor &amp; Manager
+<body onload="InitIWWEM(WorkflowManagerCustomInit)">
+<div align="center"><b>INB Web Workflow Enactor &amp; Manager</b></div>
 <form id="formManager" method="post" enctype="multipart/form-data">
-	<table width="100%" border="1">
-		<tr><td width="230" class="data">
-			<select name="workflow" id="workflow" style="width:230px;" size="20"></select>
-		</td><td width="350" class="fixed">
+	<table style="width:100%">
+		<tr><td class="data">
+			<select name="workflow" id="workflow" class="scrolldata" size="20"></select>
+			<!--<select name="workflow" id="workflow" style="width:230px;" size="20"></select>-->
+		</td><td class="middle">
 			<div align="center" id="svgdiv"></div>
-		</td><td width="*" class="scrolldata">
-			<p><u>Title:</u> <span id="title"></span></p>
-			<p><u>LSID:</u> <span id="lsid"></span></p>
-			<p><u>Author</u> <span id="author"></span></p>
-			<p><u>Description</u></p>
-			<blockquote id="description"></blockquote>
-			<p><u>Inputs</u></p>
-			<div id="inputs"></div>
-			<p><u>Outputs</u></p>
-			<div id="outputs"></div>
+		</td><td align="right" valign="top">
+			<div class="scrolldata">
+				<b>Title:</b>&nbsp;<span id="title"></span>
+				<p><b>LSID:</b>&nbsp;<span id="lsid"></span></p>
+				<p><b>Author:</b>&nbsp;<span id="author"></span></p>
+				<p><b>Inputs</b>
+				<div id="inputs">&nbsp;</div>
+				</p>
+				<p><b>Outputs</b>
+				<div id="outputs">&nbsp;</div>
+				</p>
+				<b>Description</b>
+				<div id="description" style="text-align:justify">&nbsp;</div>
+			</div>
 		</td></tr><tr><td class="buttons">
 			<div align="center">
 				<div class="button" onclick="genview.manview.reloadList()">Reload <img src="style/reload.png"></div>
@@ -40,10 +46,14 @@ INB Web Workflow Enactor &amp; Manager
 				<label>Confirm<input type="checkbox" name="confirm" id="confirm"></input></label>
 				<div class="button" onclick="genview.manview.deleteWorkflow()">Delete <img src="style/redball.png"></img></div>
 			</div>
+		</td></tr><tr><td>
+			<p><u>Submitted enaction jobs</u></p>
+			<ol id="submittedList"></ol>
+		</td><td colspan="2">
+			<p><u>Last operation message</u></p>
+			<div id="messageDiv"></div>
 		</td></tr>
 	</table>
-	<p>Submitted enaction jobs in this session</p>
-	<ol id="submittedList"></ol>
 </form>
 <div class="hidden" id="outerAbsDiv">
 </div>
@@ -55,7 +65,9 @@ INB Web Workflow Enactor &amp; Manager
 				<fieldset class="borderedOption"><label>As&nbsp;text&nbsp;<input id="newWFStyleText" type="radio" name="newWFStyle" value="text"></input></label> <label>As&nbsp;file&nbsp;<input id="newWFStyleFile" type="radio" name="newWFStyle" value="file" checked="checked"></input></label></fieldset>
 				<div id="newWFContainer"></div>
 			</div>
-			<div align="center" id="newWFUploading"><i><blink>Uploading new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img></div>
+			<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img>
+				<iframe src="about:blank" frameborder="0" id="uploadIFRAME" name="uploadIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
+			</div>
 		</form>
 		<div class="backbutton" onclick="genview.newwfview.closeNewWorkflowFrame()"><img src="style/leftarrow.png"></img> Back</div>
 		<div class="forwardbutton" onclick="genview.newwfview.upload()">Upload <img src="style/upload.png"></img></div>
@@ -65,19 +77,22 @@ INB Web Workflow Enactor &amp; Manager
 	<div class="secondary">
 		<div align="center">Please introduce your inputs for workflow</div>
 		<form id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data">
-			<table width="100%" border="1">
+			<table width="100%">
 				<tr><td>
 					<div align="center" id="enactsvg"></div>
 				</td><td width="100%">
-					<div class="borderedInput">
-						<div><span id="newBaclavaSpan" class="add">Add Baclava file</span></div>
-						<div id="newBaclava"></div>
+					<div class="scrolldatalarge">
+						<div class="borderedInput">
+							<div><span id="newBaclavaSpan" class="add">Add Baclava file</span></div>
+							<div id="newBaclava"></div>
+						</div>
+						<div id="newInputs"></div>
 					</div>
-					<div id="newInputs"></div>
 				</td></tr>
 			</table>
 		</form>
-		<div class="hidden" id="newEnactUploading"></div>
+		<div id="newEnactUploading"><iframe src="about:blank" frameborder="0" id="enactIFRAME" name="enactIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
+</div>
 		<div class="backbutton" onclick="genview.newenactview.closeNewEnactionFrame()"><img src="style/leftarrow.png"></img> Back</div>
 		<div class="forwardbutton" onclick="genview.newenactview.enact()">Start! <img src="style/run.png"></img></div>
 	</div>

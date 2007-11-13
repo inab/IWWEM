@@ -72,6 +72,7 @@ public class INBWorkflowLauncherWrapper
 		{"-inputArray","2","A single pair input name / file where a list of values are stored"},
 		{"-inputArrayFile","2","A single pair input name / file which contains a list of file names which contain the values"},
 		{"-inputArrayDir","2","A single pair input name / directory where files with the values are stored"},
+		{"-saveInputs","1","All the inputs, saved in a Baclava document"},
 		{"-outputDoc","1","All the workflow outputs, saved in a Baclava document"},
 		{"-outputDir","1","All the workflow outputs, saved in a directory which will contain the structure of the outputs"},
 		{"-report","1","Taverna XML report file"},
@@ -98,6 +99,8 @@ public class INBWorkflowLauncherWrapper
 	File reportFile;
 	
 	File statusDir;
+	
+	File saveInputFile;
 	
 	protected HashMap<String, DataThing> baseInputs = new HashMap<String, DataThing>();
 	
@@ -248,6 +251,8 @@ public class INBWorkflowLauncherWrapper
 			statusDir.mkdirs();
 		} else if (param.equals("-report")) {
 			reportFile = NewFile(values.get(0));
+		} else if(param.equals("-saveInputs")) {
+			saveInputFile=NewFile(values.get(0));
 		} else if (param.equals("-input")) {
 			baseInputs.put(values.get(0),DataThingFactory.bake(values.get(1)));
 			logger.debug("Param "+values.get(0)+" has been set to "+values.get(1));
@@ -313,7 +318,9 @@ public class INBWorkflowLauncherWrapper
 		}
 	}
 	
-	protected void checkSetParams() {
+	protected void checkSetParams()
+		throws Exception
+	{
 		super.checkSetParams();
 		
 		if(statusDir!=null) {
@@ -324,6 +331,7 @@ public class INBWorkflowLauncherWrapper
 			reportFile=new File(statusDir,"report.xml");
 			SVGFile=new File(statusDir,"workflow.svg");
 			
+			/*
 			File newWorkflowFile=new File(statusDir,"workflow.xml");
 			// Copying input workflow
 			try {
@@ -344,6 +352,12 @@ public class INBWorkflowLauncherWrapper
 				logger.error("Unable to copy workflow to status directory",ioe);
 				System.exit(3);
 			}
+			*/
+		}
+		
+		if(saveInputFile!=null) {
+			WorkflowLauncher.saveOutputDoc(baseInputs, saveInputFile);
+			System.out.println("Inputs saved as a baclava file at "+saveInputFile.getAbsolutePath());
 		}
 	}
 	
