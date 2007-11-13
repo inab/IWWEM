@@ -582,15 +582,20 @@ WidgetCommon.getRandomUUID = function () {
 };
 
 WidgetCommon.getTextContent = function (oNode) {
-	if(BrowserDetect.browser!='Safari') {
-		try {
-			return oNode.textContent;
-		} catch(e) {
-			return WidgetCommon.nodeGetText(oNode,true);
+	var retval;
+	try {
+		if(BrowserDetect.browser=='Explorer') {
+			retval=oNode.text;
+		} else if(BrowserDetect.browser=='Safari'){
+			retval=WidgetCommon.nodeGetText(oNode,true);
+		} else {
+			retval=oNode.textContent;
 		}
-	} else {
-		return WidgetCommon.nodeGetText(oNode,true);
+	} catch(e) {
+		retval=WidgetCommon.nodeGetText(oNode,true);
 	}
+	
+	return retval;
 };
 
 WidgetCommon.nodeGetText = function (oNode,deep) {
