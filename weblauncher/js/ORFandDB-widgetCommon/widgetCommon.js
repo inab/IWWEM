@@ -583,16 +583,18 @@ WidgetCommon.getRandomUUID = function () {
 
 WidgetCommon.getTextContent = function (oNode) {
 	var retval;
-	try {
-		if(BrowserDetect.browser=='Explorer') {
-			retval=oNode.text;
-		} else if(BrowserDetect.browser=='Safari'){
+	if(oNode) {
+		try {
+			if(BrowserDetect.browser=='Explorer') {
+				retval=oNode.text;
+			} else if(BrowserDetect.browser=='Safari'){
+				retval=WidgetCommon.nodeGetText(oNode,true);
+			} else {
+				retval=oNode.textContent;
+			}
+		} catch(e) {
 			retval=WidgetCommon.nodeGetText(oNode,true);
-		} else {
-			retval=oNode.textContent;
 		}
-	} catch(e) {
-		retval=WidgetCommon.nodeGetText(oNode,true);
 	}
 	
 	return retval;
