@@ -61,6 +61,7 @@ WidgetPager = function (theuri,theparamid,theparamns,theparamhtml,/* optional */
 
 WidgetPager._timer=null;
 WidgetPager._init=null;
+WidgetPager.FrameID='_ifra_';
 
 WidgetPager.prototype = {
 	setPanes: function (thePager,thePageContent) {
@@ -635,14 +636,14 @@ WidgetPager.prototype = {
 		}
 		
 		//WidgetCommon.getElementById(this.pageContentPane).innerHTML = "";
-		var ifra=WidgetCommon.getIFrameDocument('_ifra_');
+		var ifra=WidgetCommon.getIFrameDocumentFromId(WidgetPager.FrameID);
 		if(!ifra) {
 			var conpane=WidgetCommon.getElementById(this.pageContentPane);
 			conpane.innerHTML="";
 			conpane=null;
 			
 			conpane=WidgetCommon.getElementById(this.pageContentPane);
-			conpane.innerHTML="<iframe id='_ifra_' name='_ifra_' frameborder='0' style='border-bottom:1px dashed gray; border-top:1px dashed gray; margin: 0px 0px 0px 0px; padding: 0px 0px 0px 0px; overflow: auto; width: 100%;'></iframe>";
+			conpane.innerHTML="<iframe id='"+WidgetPager.FrameID+"' name='"+WidgetPager.FrameID+"' frameborder='0' style='border-bottom:1px dashed gray; border-top:1px dashed gray; margin: 0px 0px 0px 0px; padding: 0px 0px 0px 0px; overflow: auto; width: 100%;'></iframe>";
 			/*
 			conpane.style.marginTop='0px';
 			conpane.style.marginBottom='0px';
@@ -662,8 +663,8 @@ WidgetPager.prototype = {
 			conpane.style.paddingRight='0px';
 			conpane.style.paddingBottom='0px';
 			
-			WidgetCommon.setIFrameAutoResize('_ifra_');
-			ifra=WidgetCommon.getIFrameDocument('_ifra_');
+			WidgetCommon.setIFrameAutoResizeFromId(WidgetPager.FrameID);
+			ifra=WidgetCommon.getIFrameDocumentFromId(WidgetPager.FrameID);
 		}
 		
 		/*
@@ -813,7 +814,7 @@ WidgetPager.ContinueShow = function (activePlace,fromVal,toVal) {
 	}
 	if(fromVal<=toVal) {
 		//WidgetCommon.getElementById(pageContentPane).innerHTML = "Importing content's stylesheet...";
-		var ifra=WidgetCommon.getIFrameDocument('_ifra_');
+		var ifra=WidgetCommon.getIFrameDocumentFromId(WidgetPager.FrameID);
 		for(var nodei=fromVal;nodei<=toVal;nodei++) {
 			// Avoiding race conditions
 			var thestate=widget.state[nodei];

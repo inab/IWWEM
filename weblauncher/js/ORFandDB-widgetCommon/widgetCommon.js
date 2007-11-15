@@ -223,6 +223,9 @@ WidgetCommon.dhtmlLoadScriptContent = function (javascriptcontent,/* optional */
 	thedoc.getElementsByTagName("head")[0].appendChild(e);
 };
 
+/**************************/
+/* Generic getElementById */
+/**************************/
 // Sort of optimization
 if(document.getElementById){    // test the most common method first.  Most browsers won't get past this test
 	WidgetCommon.getElementById = function (id,/* optional */ thedoc) { if(!thedoc)  thedoc=document; return thedoc.getElementById(id); };
@@ -244,31 +247,110 @@ WidgetCommon.getForm = ('forms' in document)?
 		return thedoc[formName];
 	};
 
+/***********************/
+/* Event handling code */
+/***********************/
+WidgetCommon.addEventListener = function (object, eventType, listener, useCapture) {
+	if(window.addEventListener) {
+		// W3C DOM compatible browsers
+		WidgetCommon.addEventListener = function (object, eventType, listener, useCapture) {
+			if(!useCapture)  useCapture=false;
+			try {
+				object.addEventListener(eventType,listener,useCapture);
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	} else if(window.attachEvent) {
+		// Internet Explorer
+		WidgetCommon.addEventListener = function (object, eventType, listener, useCapture) {
+			try {
+				object.attachEvent("on"+eventType,listener);
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	} else {
+		// Other????
+		WidgetCommon.addEventListener = function (object, eventType, listener, useCapture) {
+			try {
+				object["on"+eventType]=listener;
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	}
+};
 
-WidgetCommon.getIFrameDocument = function (aID,/* optional */ thedoc) {
-	var rv = null;
+WidgetCommon.addEventListenerToId = function (objectId, eventType, listener, useCapture, /* optional */ thedoc) {
+	WidgetCommon.addEventListener(WidgetCommon.getElementById(objectId,thedoc), eventType, listener, useCapture);
+};
+
+WidgetCommon.removeEventListener = function (object, eventType, listener, useCapture) {
+	if(window.removeEventListener) {
+		// W3C DOM compatible browsers
+		WidgetCommon.removeEventListener = function (object, eventType, listener, useCapture) {
+			if(!useCapture)  useCapture=false;
+			try {
+				object.removeEventListener(eventType,listener,useCapture);
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	} else if(window.detachEvent) {
+		// Internet Explorer
+		WidgetCommon.removeEventListener = function (object, eventType, listener, useCapture) {
+			try {
+				object.detachEvent("on"+eventType,listener);
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	} else {
+		// Other????
+		WidgetCommon.removeEventListener = function (object, eventType, listener, useCapture) {
+			try {
+				if(object["on"+eventType] && object["on"+eventType]==listener) {
+					object["on"+eventType]=undefined;
+				}
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	}
+};
+
+WidgetCommon.removeEventListenerFromId = function (objectId, eventType, listener, useCapture, /* optional */ thedoc) {
+	WidgetCommon.removeEventListener(WidgetCommon.getElementById(objectId,thedoc), eventType, listener, useCapture);
+};
+
+/*******************/
+/* IFrame handling */
+/*******************/
+WidgetCommon.getIFrameDocument = function (iframe) {
+	var rv = undefined;
 	
-	if(!thedoc)  thedoc=document;
-	// if contentDocument exists, W3C compliant (Mozilla)
-	var ael=thedoc.getElementById(aID);
-	if(ael) {
-		if ('contentDocument' in ael) {
-			rv = ael.contentDocument; 
+	if(iframe) {
+		if ('contentDocument' in iframe) {
+			rv = iframe.contentDocument; 
 			// rv = thedoc.frames[aID].contentDocument;
 		} else {
 			// IE 
-			rv = thedoc.frames[aID].document;
+			rv = iframe.document;
 		}
 	}
 	
 	return rv; 
 };
 
+WidgetCommon.getIFrameDocumentFromId = function (aID,/* optional */ thedoc) {
+	return WidgetCommon.getIFrameDocument(WidgetCommon.getElementById(aID,thedoc));
+};
+
 // for sizing and positioning the iframe in the window
 // .5 for height="50%"
-WidgetCommon.setIFrameHeight = function (ifraname,h,headerHeight,viewport) {
+WidgetCommon.setIFrameHeight = function (theIframe, h, headerHeight, /* optional */ viewport) {
 	if(!viewport)  viewport=new WidgetCommon.Viewport();
-	var theIframe = WidgetCommon.getElementById(ifraname);
 	if (theIframe) {
 		viewport.getWinHeight();
 		//  both theIframe.height and theIframe.style.height seem to work
@@ -278,18 +360,28 @@ WidgetCommon.setIFrameHeight = function (ifraname,h,headerHeight,viewport) {
 	}
 };
 
-WidgetCommon.setIFrameAutoResize = function (ifraname,/* optional */ percent,headerHeight,canreplace) {
+WidgetCommon.setIFrameHeightFromId = function (ifraname, h, headerHeight, /* optional */ viewport, thedoc) {
+	WidgetCommon.setIFrameHeight(WidgetCommon.getElementById(ifraname,thedoc), h, headerHeight, viewport);
+};
+
+WidgetCommon.setIFrameAutoResize = function (iframe,/* optional */ percent,headerHeight,canreplace) {
 	if(!percent)  percent=1;
 	if(!headerHeight)  headerHeight=0;
 	
-	//WidgetCommon.setIFrameHeight(ifraname,percent,headerHeight);
+	//WidgetCommon.setIFrameHeight(iframe,percent,headerHeight);
 	var viewport=new WidgetCommon.Viewport();
-	var daemonfunc = function() { WidgetCommon.setIFrameHeight(ifraname,percent,headerHeight,viewport); };
+	var daemonfunc = function() { WidgetCommon.setIFrameHeight(iframe,percent,headerHeight,viewport); };
 	daemonfunc();
-	var olddaemonfunc = window.onresize;
-	window.onresize = (!canreplace && olddaemonfunc)?(function() { olddaemonfunc();daemonfunc(); }):daemonfunc;
+	WidgetCommon.addEventListener(window,'resize',daemonfunc,false);
 };
 
+WidgetCommon.setIFrameAutoResizeFromId = function (ifraname,/* optional */ percent, headerHeight, canreplace, thedoc) {
+	WidgetCommon,setIFrameAutoResizeFromId(WidgetCommon.getElementFromId(ifraname,thedoc),percent, headerHeight, canreplace);
+};
+
+/*****************/
+/* Generic XPath */
+/*****************/
 /* This is a sort of lazy evaluation */
 WidgetCommon.xpathEvaluate = function (thexpath,thecontext,theObjResolver) {
 	WidgetCommon.xpathEvaluate = (BrowserDetect.browser=='Konqueror' || BrowserDetect.browser=='Safari') ?
@@ -331,7 +423,9 @@ WidgetCommon.xpathEvaluate = function (thexpath,thecontext,theObjResolver) {
 	return WidgetCommon.xpathEvaluate(thexpath,thecontext,theObjResolver);
 };
 
-/* Second parameter is optional */
+/******************************************/
+/* Client-side URI parsing and generation */
+/******************************************/
 WidgetCommon.parseQS = function (qsParm,/* optional */ url,thedoc)
 {
 	if(!thedoc)  thedoc=document;
@@ -373,7 +467,9 @@ WidgetCommon.generateQS = function (qsParm,baseurl)
 	return baseurl+query;
 };
 
-
+/**********************************/
+/* Javascript exception debugging */
+/**********************************/
 WidgetCommon.DebugError = function (e) {
 	if(!e)  return 'Null or undefined error';
 	if(typeof e == 'string' || typeof e == 'number') {
@@ -486,8 +582,8 @@ WidgetCommon.DebugError = function (e) {
 	}
 };
 
-
-/* WidgetCommon.viewport is a revised version of dw_viewport.js */
+/****************************************************************/
+/* WidgetCommon.Viewport is a revised version of dw_viewport.js */
 /*************************************************************************
 
   dw_viewport.js
@@ -581,6 +677,9 @@ WidgetCommon.getRandomUUID = function () {
 	return rarr[0]+rarr[1]+'-'+rarr[2]+'-'+rarr[3]+'-'+rarr[4]+'-'+rarr[5]+rarr[6]+rarr[7];
 };
 
+/****************************/
+/* XML textContent handling */
+/****************************/
 WidgetCommon.getTextContent = function (oNode) {
 	var retval;
 	if(oNode) {
@@ -615,4 +714,3 @@ WidgetCommon.nodeGetText = function (oNode,deep) {
 	}
 	return s;
 };
-
