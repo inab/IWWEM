@@ -255,7 +255,7 @@ WidgetCommon.addEventListener = function (object, eventType, listener, useCaptur
 		// W3C DOM compatible browsers
 		WidgetCommon.addEventListener = function (object, eventType, listener, useCapture) {
 			try {
-				if(object.addEventListener) {
+				if(eventType!='change' && object.addEventListener) {
 					if(!useCapture)  useCapture=false;
 					object.addEventListener(eventType,listener,useCapture);
 				} else {
@@ -269,7 +269,7 @@ WidgetCommon.addEventListener = function (object, eventType, listener, useCaptur
 		// Internet Explorer
 		WidgetCommon.addEventListener = function (object, eventType, listener, useCapture) {
 			try {
-				if(object.attachEvent) {
+				if(eventType!='change' && object.attachEvent) {
 					object.attachEvent("on"+eventType,listener);
 				} else {
 					object["on"+eventType]=listener;
@@ -300,7 +300,7 @@ WidgetCommon.removeEventListener = function (object, eventType, listener, useCap
 		WidgetCommon.removeEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
 			try {
-				if(object.removeEventListener) {
+				if(eventType!='change' && object.removeEventListener) {
 					object.removeEventListener(eventType,listener,useCapture);
 				} else if(object["on"+eventType] && object["on"+eventType]==listener) {
 					object["on"+eventType]=undefined;
@@ -313,7 +313,7 @@ WidgetCommon.removeEventListener = function (object, eventType, listener, useCap
 		// Internet Explorer
 		WidgetCommon.removeEventListener = function (object, eventType, listener, useCapture) {
 			try {
-				if(object.detachEvent) {
+				if(eventType!='change' && object.detachEvent) {
 					object.detachEvent("on"+eventType,listener);
 				} else if(object["on"+eventType] && object["on"+eventType]==listener) {
 					object["on"+eventType]=undefined;
