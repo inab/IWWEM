@@ -254,9 +254,13 @@ WidgetCommon.addEventListener = function (object, eventType, listener, useCaptur
 	if(window.addEventListener) {
 		// W3C DOM compatible browsers
 		WidgetCommon.addEventListener = function (object, eventType, listener, useCapture) {
-			if(!useCapture)  useCapture=false;
 			try {
-				object.addEventListener(eventType,listener,useCapture);
+				if(object.addEventListener) {
+					if(!useCapture)  useCapture=false;
+					object.addEventListener(eventType,listener,useCapture);
+				} else {
+					object["on"+eventType]=listener;
+				}
 			} catch(e) {
 				// IgnoreIt!(R)
 			}
@@ -265,9 +269,13 @@ WidgetCommon.addEventListener = function (object, eventType, listener, useCaptur
 		// Internet Explorer
 		WidgetCommon.addEventListener = function (object, eventType, listener, useCapture) {
 			try {
-				object.attachEvent("on"+eventType,listener);
+				if(object.attachEvent) {
+					object.attachEvent("on"+eventType,listener);
+				} else {
+					object["on"+eventType]=listener;
+				}
 			} catch(e) {
-				// IgnoreIt!(R)
+					// IgnoreIt!(R)
 			}
 		};
 	} else {
@@ -292,7 +300,11 @@ WidgetCommon.removeEventListener = function (object, eventType, listener, useCap
 		WidgetCommon.removeEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
 			try {
-				object.removeEventListener(eventType,listener,useCapture);
+				if(object.removeEventListener) {
+					object.removeEventListener(eventType,listener,useCapture);
+				} else if(object["on"+eventType] && object["on"+eventType]==listener) {
+					object["on"+eventType]=undefined;
+				}
 			} catch(e) {
 				// IgnoreIt!(R)
 			}
@@ -301,7 +313,11 @@ WidgetCommon.removeEventListener = function (object, eventType, listener, useCap
 		// Internet Explorer
 		WidgetCommon.removeEventListener = function (object, eventType, listener, useCapture) {
 			try {
-				object.detachEvent("on"+eventType,listener);
+				if(object.detachEvent) {
+					object.detachEvent("on"+eventType,listener);
+				} else if(object["on"+eventType] && object["on"+eventType]==listener) {
+					object["on"+eventType]=undefined;
+				}
 			} catch(e) {
 				// IgnoreIt!(R)
 			}
