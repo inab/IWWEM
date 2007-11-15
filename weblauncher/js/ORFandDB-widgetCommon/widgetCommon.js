@@ -255,7 +255,7 @@ WidgetCommon.addEventListener = function (object, eventType, listener, useCaptur
 		// W3C DOM compatible browsers
 		WidgetCommon.addEventListener = function (object, eventType, listener, useCapture) {
 			try {
-				if(eventType!='change' && object.addEventListener) {
+				if(object.addEventListener) {
 					if(!useCapture)  useCapture=false;
 					object.addEventListener(eventType,listener,useCapture);
 				} else {
@@ -269,7 +269,7 @@ WidgetCommon.addEventListener = function (object, eventType, listener, useCaptur
 		// Internet Explorer
 		WidgetCommon.addEventListener = function (object, eventType, listener, useCapture) {
 			try {
-				if(eventType!='change' && object.attachEvent) {
+				if(object.attachEvent) {
 					object.attachEvent("on"+eventType,listener);
 				} else {
 					object["on"+eventType]=listener;
@@ -288,6 +288,7 @@ WidgetCommon.addEventListener = function (object, eventType, listener, useCaptur
 			}
 		};
 	}
+	WidgetCommon.addEventListener(object, eventType, listener, useCapture);
 };
 
 WidgetCommon.addEventListenerToId = function (objectId, eventType, listener, useCapture, /* optional */ thedoc) {
@@ -300,7 +301,7 @@ WidgetCommon.removeEventListener = function (object, eventType, listener, useCap
 		WidgetCommon.removeEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
 			try {
-				if(eventType!='change' && object.removeEventListener) {
+				if(object.removeEventListener) {
 					object.removeEventListener(eventType,listener,useCapture);
 				} else if(object["on"+eventType] && object["on"+eventType]==listener) {
 					object["on"+eventType]=undefined;
@@ -313,7 +314,7 @@ WidgetCommon.removeEventListener = function (object, eventType, listener, useCap
 		// Internet Explorer
 		WidgetCommon.removeEventListener = function (object, eventType, listener, useCapture) {
 			try {
-				if(eventType!='change' && object.detachEvent) {
+				if(object.detachEvent) {
 					object.detachEvent("on"+eventType,listener);
 				} else if(object["on"+eventType] && object["on"+eventType]==listener) {
 					object["on"+eventType]=undefined;
@@ -334,6 +335,7 @@ WidgetCommon.removeEventListener = function (object, eventType, listener, useCap
 			}
 		};
 	}
+	WidgetCommon.removeEventListener(object, eventType, listener, useCapture);
 };
 
 WidgetCommon.removeEventListenerFromId = function (objectId, eventType, listener, useCapture, /* optional */ thedoc) {
