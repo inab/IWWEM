@@ -6,8 +6,8 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	left: 0px;
-	top: 0px;
+	right: 0px;
+	bottom: 0px;
 	background-color: black;
 	opacity: 0.5;
 	filter: alpha(opacity=50);
@@ -18,8 +18,8 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	left: 0px;
-	top: 0px;
+	right: 0px;
+	bottom: 0px;
 	z-index: 101;
 }
 
@@ -27,13 +27,32 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	left: 0px;
-	top: 0px;
+	right: 0px;
+	bottom: 0px;
 	z-index: 102;
 }
 
 .secondary {
 	background-color: white;
+	/*
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	width: 90%;
+	height: 90%;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 20px;
+	margin-bottom: auto;
+	*/
+	height: 90%;
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-top: 3%;
+}
+
+.shimmer {
 	/*
 	width: 90%;
 	height: 90%;
@@ -42,11 +61,12 @@
 	margin-top: 20px;
 	margin-bottom: auto;
 	*/
-	margin-left: 5%;
-	margin-right: 5%;
-	margin-top: 3%;
-	height: 90%;
-	
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	right: 0px;
+	bottom: 0px;
+	z-index: 99;
 }
 
 .secondaryCentered {

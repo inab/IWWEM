@@ -11,6 +11,7 @@
 function GeneralView(customInit, /* optional */thedoc) {
 	this.thedoc = (thedoc)?thedoc:document;
 	this.outer=this.thedoc.getElementById('outerAbsDiv');
+	this.shimmer=this.thedoc.getElementById('shimmer');
 	
 	this.visibleId=undefined;
 	if(customInit && typeof customInit == 'function') {
@@ -65,17 +66,24 @@ GeneralView.prototype = {
 		}
 
 		this.visibleId=divId;
+		if(BrowserDetect.browser!='Konqueror') {
+			this.shimmer.className='shimmer';
+		}
 		this.outer.className='outerAbsDiv';
 		var elem=this.thedoc.getElementById(divId);
 		elem.className='transAbsDiv';
+		
 	},
 	
 	closeFrame: function () {
 		var elem=this.thedoc.getElementById(this.visibleId);
 		this.visibleId=undefined;
 
-		this.outer.className='hidden';
 		elem.className='hidden';
+		this.outer.className='hidden';
+		if(BrowserDetect.browser!='Konqueror') {
+			this.shimmer.className='hidden';
+		}
 	},
 	
 	/*
@@ -98,9 +106,11 @@ GeneralView.prototype = {
 		
 		divfilecontrol.appendChild(fakeFileUpload);
 		
-		filecontrol.onchange = filecontrol.onmouseout = function () {
+		var transferFileValue = function () {
 			fakeFileUpload.value = filecontrol.value;
 		};
+		WidgetCommon.addEventListener(filecontrol,'change',transferFileValue,false);
+		WidgetCommon.addEventListener(filecontrol,'mouseout',transferFileValue,false);
 		
 		return filecontrol;
 	},

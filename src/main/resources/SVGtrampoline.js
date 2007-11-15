@@ -408,7 +408,7 @@ SVGtramp.prototype = {
 		return false;
 	},
 	
-	// Setting up a handler
+	// Setting up an event handler
 	setHandler: function (node,handler,event) {
 		var retval=false;
 		
@@ -416,27 +416,13 @@ SVGtramp.prototype = {
 		try {
 			// Only events, please!!!!!!
 			if(event.length > 0) {
-				// Giving the correct name
-				event = 'on' + event;
 				var theNode=this.SVGDoc.getElementById(node);
 				if(theNode) {
 					theNode[event]=handler;
 
 					if(handler!=null) {
+						SVGtramp.addEventListener(theNode,event,handler,false);
 						this.setCSSProp(theNode,"cursor","pointer");
-					} else {
-						// Removing pointer cursor when no event is set
-						var removeProp=1;
-						for(var attrib in theNode) {
-							if(attrib.length > 2 && attrib.indexOf('on')==0 && theNode[attrib]) {
-								removeProp=null;
-								break;
-							}
-						}
-
-						if(removeProp) {
-							this.removeCSSProp(theNode,"cursor");
-						}
 					}
 
 					retval=true;
@@ -451,6 +437,48 @@ SVGtramp.prototype = {
 	setNodeHandler: function (nodeName,handler,event) {
 		if(nodeName in this.titleToNode) {
 			return this.setHandler(this.titleToNode[nodeName],handler,event);
+		}
+		
+		return false;
+	},
+	
+	// Setting up an event handler
+	removeHandler: function (node,handler,event) {
+		var retval=false;
+		
+		if(!event)  event='click';
+		try {
+			// Only events, please!!!!!!
+			if(event.length > 0) {
+				var theNode=this.SVGDoc.getElementById(node);
+				if(theNode) {
+					SVGtramp.removeEventListener(theNode,event,handler,false);
+					// Removing pointer cursor when no event is set
+					var removeProp=1;
+					/*
+					for(var attrib in theNode) {
+						if(attrib.length > 2 && attrib.indexOf('on')==0 && theNode[attrib]) {
+							removeProp=null;
+							break;
+						}
+					}
+					*/
+
+					if(removeProp) {
+						this.removeCSSProp(theNode,"cursor");
+					}
+
+					retval=true;
+				}
+			}
+		} catch(e) {}
+
+		return retval;
+	},
+	
+	removeNodeHandler: function (nodeName,handler,event) {
+		if(nodeName in this.titleToNode) {
+			return this.removeHandler(this.titleToNode[nodeName],handler,event);
 		}
 		
 		return false;
@@ -477,7 +505,7 @@ SVGtramp.prototype = {
 };
 
 /*
-	This class implements SVGLength for platforms (Konqueror, cough, cough)
+	This class implements SVGLength for platforms (Konqueror, cough, Adobe, cough)
 	where it is not implemented.
 */
 SVGtramp.SVGLength = function (mmPerPixel) {
@@ -683,6 +711,104 @@ SVGtramp.SVGLength.prototype = {
 			this.newValueSpecifiedUnits(lengthType,transVal);
 		}
 	}
+};
+
+/***********************/
+/* Event handling code */
+/***********************/
+/* Based on a previous work on widgetCommon */
+SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
+	if(top.addEventListener) {
+		// W3C DOM compatible browsers
+		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
+			if(!useCapture)  useCapture=false;
+			try {
+				if(object.addEventListener) {
+					object.addEventListener(eventType,listener,useCapture);
+				} else {
+					object["on"+eventType]=listener;
+				}
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	} else if(top.attachEvent) {
+		// Internet Explorer
+		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
+			try {
+				if(object.attachEvent) {
+					object.attachEvent("on"+eventType,listener);
+				} else {
+					object["on"+eventType]=listener;
+				}
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	} else {
+		// Other????
+		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
+			try {
+				object["on"+eventType]=listener;
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	}
+	SVGtramp.addEventListener(object, eventType, listener, useCapture);
+};
+
+SVGtramp.addEventListenerToId = function (objectId, eventType, listener, useCapture, /* optional */ thedoc) {
+	if(!thedoc)  thedoc=document;
+	SVGtramp.addEventListener(thedoc.getElementById(objectId), eventType, listener, useCapture);
+};
+
+SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
+	if(top.removeEventListener) {
+		// W3C DOM compatible browsers
+		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
+			if(!useCapture)  useCapture=false;
+			try {
+				if(object.removeEventListener) {
+					object.removeEventListener(eventType,listener,useCapture);
+				} else if(object["on"+eventType] && object["on"+eventType]==listener) {
+					object["on"+eventType]=undefined;
+				}
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	} else if(top.detachEvent) {
+		// Internet Explorer
+		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
+			try {
+				if(object.detachEvent) {
+					object.detachEvent("on"+eventType,listener);
+				} else if(object["on"+eventType] && object["on"+eventType]==listener) {
+					object["on"+eventType]=undefined;
+				}
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	} else {
+		// Other????
+		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
+			try {
+				if(object["on"+eventType] && object["on"+eventType]==listener) {
+					object["on"+eventType]=undefined;
+				}
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	}
+	SVGtramp.removeEventListener(object, eventType, listener, useCapture);
+};
+
+SVGtramp.removeEventListenerFromId = function (objectId, eventType, listener, useCapture, /* optional */ thedoc) {
+	if(!thedoc)  thedoc=document;
+	SVGtramp.removeEventListener(thedoc.getElementById(objectId), eventType, listener, useCapture);
 };
 
 /*

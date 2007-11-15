@@ -1,0 +1,33 @@
+<PUBLIC:COMPONENT>
+<PUBLIC:ATTACH event="onmouseout" handler="doEffect" />
+<PUBLIC:ATTACH event="onmouseup" handler="doEffect" />
+<PUBLIC:ATTACH event="onmousedown" handler="doEffect" />
+<PUBLIC:ATTACH event="onmouseover" handler="doEffect" />
+<PUBLIC:ATTACH event="onmouseup" handler="doEffect" />
+
+<SCRIPT LANGUAGE="JScript">
+var classDefault = element.className;
+var classDefaultBase;
+if(classDefault.indexOf(" ")!=-1) {
+	classDefaultBase = classDefault.substr(0,classDefault.indexOf(" "));
+} else {
+	classDefaultBase = classDefault;
+}
+
+function doEffect() {
+	switch (event.type) {
+		case "mousedown":
+			element.className = classDefault + " "+ classDefaultBase+'active';
+			break;
+		case "mouseup":
+		case "mouseover":
+			element.className = classDefault + " " + classDefaultBase+'hover';
+			break;
+		default:
+			element.className = classDefault;
+			break;
+	}
+}
+
+</SCRIPT>
+</PUBLIC:COMPONENT>

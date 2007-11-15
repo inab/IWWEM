@@ -34,8 +34,11 @@
 			</div>
 		</td></tr><tr><td class="buttons">
 			<div align="center">
+				<table><tr><td>
 				<div class="button" onclick="genview.manview.reloadList()">Reload <img src="style/reload.png"></div>
+				</td><td>
 				<div class="button" onclick="genview.newwfview.openNewWorkflowFrame()">Add new <img src="style/blueplus.png"></div>
+				</td></tr></table>
 			</div>
 		</td><td class="buttons">
 			<div align="center">
@@ -62,15 +65,15 @@
 		<p>Please introduce your workflow</p>
 		<form id="formNewWF" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data">
 			<div align="center">
-				<fieldset class="borderedOption"><label>As&nbsp;text&nbsp;<input id="newWFStyleText" type="radio" name="newWFStyle" value="text"></input></label> <label>As&nbsp;file&nbsp;<input id="newWFStyleFile" type="radio" name="newWFStyle" value="file" checked="checked"></input></label></fieldset>
+				<div class="borderedOption"><span id="newWFStyleText" class="radio">As text</span>&nbsp;<span id="newWFStyleFile" class="radio">As file</span></div>
 				<div id="newWFContainer"></div>
 			</div>
 			<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img>
 				<iframe src="about:blank" frameborder="0" id="uploadIFRAME" name="uploadIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
 			</div>
 		</form>
-		<div class="backbutton" onclick="genview.newwfview.closeNewWorkflowFrame()"><img src="style/leftarrow.png"></img> Back</div>
-		<div class="forwardbutton" onclick="genview.newwfview.upload()">Upload <img src="style/upload.png"></img></div>
+		<div class="button back" onclick="genview.newwfview.closeNewWorkflowFrame()"><img src="style/leftarrow.png"></img> Back</div>
+		<div class="button forward" onclick="genview.newwfview.upload()">Upload <img src="style/upload.png"></img></div>
 	</div>
 </div>
 <div class="hidden" id="workflowInputs">
@@ -83,7 +86,7 @@
 				</td><td width="100%">
 					<div class="scrolldatalarge">
 						<div class="borderedInput">
-							<div><span id="newBaclavaSpan" class="add">Add Baclava file</span></div>
+							<div><span id="newBaclavaSpan" class="plus">Add Baclava file</span></div>
 							<div id="newBaclava"></div>
 						</div>
 						<div id="newInputs"></div>
@@ -93,8 +96,8 @@
 		</form>
 		<div id="newEnactUploading"><iframe src="about:blank" frameborder="0" id="enactIFRAME" name="enactIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
 </div>
-		<div class="backbutton" onclick="genview.newenactview.closeNewEnactionFrame()"><img src="style/leftarrow.png"></img> Back</div>
-		<div class="forwardbutton" onclick="genview.newenactview.enact()">Start! <img src="style/run.png"></img></div>
+		<div class="button back" onclick="genview.newenactview.closeNewEnactionFrame()"><img src="style/leftarrow.png"></img> Back</div>
+		<div class="button forward" onclick="genview.newenactview.enact()">Start! <img src="style/run.png"></img></div>
 	</div>
 </div>
 <div class="hidden" id="reloadWorkflows">
@@ -103,5 +106,7 @@
 <div class="hidden" id="submitEnaction">
 	<img style="position:relative; top: 45%;left: 45%" src="style/big-ajax-submit.gif"></img>
 </div>
+<iframe class="hidden" frameborder="0" src="about:blank" id="shimmer">
+</iframe>
 </body>
 </html>

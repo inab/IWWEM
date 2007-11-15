@@ -113,7 +113,8 @@ function ManagerView(genview) {
 	
 	// To update on automatic changes of the selection box
 	var manview = this;
-	this.wfselect.onchange=function () { manview.updateView(); };
+	WidgetCommon.addEventListener(this.wfselect,'change',function () { manview.updateView();},false);
+	//this.wfselect.onchange = function () { manview.updateView();};
 }
 
 ManagerView.prototype = {
@@ -376,8 +377,8 @@ function NewWorkflowView(genview) {
 	this.newWFStyleFile=genview.thedoc.getElementById('newWFStyleFile');
 	
 	var newwfview = this;
-	this.newWFStyleText.onchange = function() { newwfview.setTextControl(); };
-	this.newWFStyleFile.onchange = function() { newwfview.setFileControl(); };
+	this.newWFStyleText.onclick=function() { newwfview.setTextControl(); };
+	this.newWFStyleFile.onclick=function() { newwfview.setFileControl(); };
 	
 	this.newWFControl = undefined;
 	//this.iframe = undefined;
@@ -386,7 +387,6 @@ function NewWorkflowView(genview) {
 NewWorkflowView.prototype = {
 	openNewWorkflowFrame: function () {
 		// These methods only work when they must!
-		this.setTextControl();
 		this.setFileControl();
 		this.newWFUploading.style.visibility='hidden';
 		
@@ -400,28 +400,28 @@ NewWorkflowView.prototype = {
 	},
 	
 	setTextControl: function() {
-		if(this.newWFStyleText.checked) {
-			this.clearView();
-			var textbox = this.genview.thedoc.createElement('textarea');
-			this.newWFControl = textbox;
-			textbox.name="workflow";
-			textbox.cols=80;
-			textbox.rows=25;
-			
-			this.newWFContainer.appendChild(textbox);
-		}
+		this.newWFStyleText.className='radio checked';
+		this.newWFStyleFile.className='radio';
+		this.clearView();
+		var textbox = this.genview.thedoc.createElement('textarea');
+		this.newWFControl = textbox;
+		textbox.name="workflow";
+		textbox.cols=80;
+		textbox.rows=25;
+
+		this.newWFContainer.appendChild(textbox);
 	},
 	
 	setFileControl: function() {
-		if(this.newWFStyleFile.checked) {
-			this.clearView();
-			var filecontrol = this.genview.createCustomizedFileControl("workflow");
-			this.newWFControl = filecontrol;
-			
-			// We are appending the fake control!
-			//this.newWFContainer.appendChild(filecontrol.parentNode);
-			this.newWFContainer.appendChild(filecontrol);
-		}
+		this.newWFStyleText.className='radio';
+		this.newWFStyleFile.className='radio checked';
+		this.clearView();
+		var filecontrol = this.genview.createCustomizedFileControl("workflow");
+		this.newWFControl = filecontrol;
+
+		// We are appending the fake control!
+		//this.newWFContainer.appendChild(filecontrol.parentNode);
+		this.newWFContainer.appendChild(filecontrol);
 	},
 	
 	closeNewWorkflowFrame: function() {
@@ -462,15 +462,12 @@ NewWorkflowView.prototype = {
 				
 				var onUpload = function() {
 					// First, parsing content
-					var xdoc;
-					if('contentDocument' in iframe) {
-						xdoc=iframe.contentDocument;
-					} else {
-						xdoc=iframe.document;
-					}
 					GeneralView.freeContainer(newwfview.genview.manview.messageDiv);
-					newwfview.genview.manview.fillWorkflowList(xdoc);
+					if(BrowserDetect.browser!='Explorer') {
+						var xdoc=WidgetCommon.getIFrameDocument(iframe);
 
+						newwfview.genview.manview.fillWorkflowList(xdoc);
+					}
 					// Now, cleaning up iframe traces!
 					newwfview.uploading=false;
 					newwfview.closeNewWorkflowFrame();
@@ -480,12 +477,17 @@ NewWorkflowView.prototype = {
 					
 					newwfview.newWFUploading.removeChild(iframe);
 					*/
-					delete iframe['onload'];
+					WidgetCommon.removeEventListener(iframe,'load',onUpload,false);
 					iframe = undefined;
 					newwfview.newWFForm.target = undefined;
+					
+					// Unable to parse result :-(
+					if(BrowserDetect.browser=='Explorer') {
+						newwfview.genview.manview.reloadList();
+					}
 				};
 				
-				iframe.onload = onUpload;
+				WidgetCommon.addEventListener(iframe,'load',onUpload,false);
 				
 				// And results must go there
 				this.newWFForm.target=iframeName;
@@ -530,13 +532,13 @@ function NewEnactionView(genview) {
 		//newinput=newinput.parentNode;
 		
 		var remover=newenactview.genview.thedoc.createElement('span');
-		remover.className='remove';
+		remover.className='plus remove';
 		remover.innerHTML='&nbsp;';
 
 		var mydiv=newenactview.genview.thedoc.createElement('div');
-		remover.onclick=function() {
+		WidgetCommon.addEventListener(remover,'click',function() {
 			containerDiv.removeChild(mydiv);
-		};
+		},false);
 		
 		mydiv.appendChild(remover);
 		mydiv.appendChild(newinput);
@@ -586,84 +588,81 @@ NewEnactionView.prototype = {
 		// 'Static' elements
 		var theinput = this.genview.thedoc.createElement('span');
 		// The addition button
-		theinput.className = 'add';
+		theinput.className = 'plus';
 		theinput.innerHTML='Input <span style="color:red;">'+input.name+'</span> ';
 		
-		
-		var theinputtext=this.genview.thedoc.createElement('input');
-		theinputtext.type='radio';
-		theinputtext.name=randominputid;
-		theinputtext.checked=true;
-		theinputtext.onchange=function() { GeneralView.freeContainer(containerDiv); };
-
-		var thechoicetext=this.genview.thedoc.createElement('label');
+		var thechoicetext=this.genview.thedoc.createElement('span');
+		thechoicetext.className='radio checked';
 		thechoicetext.innerHTML='as text';
-		thechoicetext.appendChild(theinputtext);
-
-		var theinputfile=this.genview.thedoc.createElement('input');
-		theinputfile.type='radio';
-		theinputfile.name=randominputid;
-		theinputfile.onchange=function() { GeneralView.freeContainer(containerDiv); };
-
-		var thechoicefile=this.genview.thedoc.createElement('label');
+		
+		var thechoicefile=this.genview.thedoc.createElement('span');
+		thechoicefile.className='radio';
 		thechoicefile.innerHTML='as file';
-		thechoicefile.appendChild(theinputfile);
+		
+		var statecontrol=thechoicetext;
+		thechoicefile.onclick=thechoicetext.onclick=function() {
+			if(statecontrol!=this) {
+				statecontrol.className='radio';
+				this.className='radio checked';
+				statecontrol=this;
+				
+				GeneralView.freeContainer(containerDiv);
+			}
+		};
 		
 		var newenactview=this;
-		theinput.onclick=function() {
-			if(theinputfile.checked  || theinputtext.checked) {
-				var newinput;
-				var glass;
-				var controlname='PARAM_'+input.name
-				if(theinputfile.checked) {
-					newinput=newenactview.genview.createCustomizedFileControl(controlname);
-					
-					// As we are interested in the container (the parent)
-					// let's get it...
-					//newinput=newinput.parentNode;
-				} else {
-					newinput=newenactview.genview.thedoc.createElement('input');
-					newinput.type='text';
-					newinput.name=controlname;
-					
-					glass=newenactview.genview.thedoc.createElement('span');
-					glass.className='magglass';
-					glass.innerHTML='&nbsp;';
-					glass.onclick=function() {
-						var renewinput;
-						if(newinput.type=='text') {
-							renewinput=newenactview.genview.thedoc.createElement('textarea');
-							renewinput.cols=60;
-							renewinput.rows=10;
-						} else {
-							renewinput=newenactview.genview.thedoc.createElement('input');
-							renewinput.type='text';
-						}
-						// Replacing old text are with new one!
-						renewinput.name=controlname;
-						renewinput.value=newinput.value;
-						mydiv.replaceChild(renewinput,newinput);
-						newinput=renewinput;
-					};
+		theinput.onclick = function() {
+			var newinput;
+			var glass;
+			var controlname='PARAM_'+input.name
+			if(statecontrol == thechoicefile) {
+				newinput=newenactview.genview.createCustomizedFileControl(controlname);
 
-				}
-				
-				var remover=newenactview.genview.thedoc.createElement('span');
-				remover.className='remove';
-				remover.innerHTML='&nbsp;';
-				
-				var mydiv=newenactview.genview.thedoc.createElement('div');
-				remover.onclick=function() {
-					containerDiv.removeChild(mydiv);
-				};
-				
-				mydiv.appendChild(remover);
-				if(glass)  mydiv.appendChild(glass);
-				mydiv.appendChild(newinput);
-				
-				// Adding it to the container
-				containerDiv.appendChild(mydiv);
+				// As we are interested in the container (the parent)
+				// let's get it...
+				//newinput=newinput.parentNode;
+			} else {
+				newinput=newenactview.genview.thedoc.createElement('input');
+				newinput.type='text';
+				newinput.name=controlname;
+
+				glass=newenactview.genview.thedoc.createElement('span');
+				glass.className='magglass';
+				glass.innerHTML='&nbsp;';
+				WidgetCommon.addEventListener(glass,'click',function() {
+					var renewinput;
+					if(newinput.type=='text') {
+						renewinput=newenactview.genview.thedoc.createElement('textarea');
+						renewinput.cols=60;
+						renewinput.rows=10;
+					} else {
+						renewinput=newenactview.genview.thedoc.createElement('input');
+						renewinput.type='text';
+					}
+					// Replacing old text are with new one!
+					renewinput.name=controlname;
+					renewinput.value=newinput.value;
+					mydiv.replaceChild(renewinput,newinput);
+					newinput=renewinput;
+				},false);
+
 			}
+
+			var remover=newenactview.genview.thedoc.createElement('span');
+			remover.className='plus remove';
+			remover.innerHTML='&nbsp;';
+
+			var mydiv=newenactview.genview.thedoc.createElement('div');
+			WidgetCommon.addEventListener(remover,'click',function() {
+				containerDiv.removeChild(mydiv);
+			},false);
+
+			mydiv.appendChild(remover);
+			if(glass)  mydiv.appendChild(glass);
+			mydiv.appendChild(newinput);
+
+			// Adding it to the container
+			containerDiv.appendChild(mydiv);
 		};
 
 		// Now, it is time to create the selection
@@ -732,14 +731,9 @@ NewEnactionView.prototype = {
 		
 		// The hooks
 		var newenactview = this;
-		iframe.onload = function() {
+		var iframeLoaded = function() {
 			// First, parsing content
-			var xdoc;
-			if('contentDocument' in iframe) {
-				xdoc=iframe.contentDocument;
-			} else {
-				xdoc=iframe.document;
-			}
+			var xdoc=WidgetCommon.getIFrameDocument(iframe);
 			
 			// Second, job id and others
 			GeneralView.freeContainer(newwfview.genview.manview.messageDiv);
@@ -757,10 +751,11 @@ NewEnactionView.prototype = {
 
 			newenactview.newEnactUploading.removeChild(iframe);
 			*/
-			delete iframe['onload'];
+			WidgetCommon.removeEventListener(iframe,'load',iframeLoaded,false);
 			iframe = undefined;
 			newenactview.newEnactForm.target = undefined;
 		};
+		WidgetCommon.addEventListener(iframe,'load',iframeLoaded,false);
 		
 		// And results must go there
 		this.newEnactForm.target=iframeName;

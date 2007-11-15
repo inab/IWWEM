@@ -1,6 +1,10 @@
 /* INB Web Workflow Launcher Buttons CSS */
 
 .button {
+	/* Black IE magic */
+	behavior:url(hover.htc);
+	
+	/* Standard classes */
 	width: 105px;
 	height: 26px;
 	padding: 0px;
@@ -30,102 +34,30 @@
 }
 */
 
-div.button:hover {
+.buttonhover , div.button:hover , span.button:hover {
 	background-image: url(button2-hover.png);
 }
 
-div.button:active {
+.buttonactive , div.button:active , span.button:active {
 	background-image: url(button2-active.png);
 }
 
-
-.backbutton {
+.button.back {
 	position: absolute;
-	width: 105px;
-	height: 26px;
-	padding: 6px 0px 0px 0px;
-	
 	margin-left: 10px;
 	left: 5%;
 	bottom: 6%;
-	
-	background-image: url(button2-inactive.png);
-	background-position: center center;
-	background-repeat: no-repeat;
-	cursor: pointer;
-	
-	display: table-cell;
-	text-align: center;
-	vertical-align: middle;
-	font-size: 15px;
-	/*
-	background-color: gray;
-	border: 1px solid black;
-	*/
 }
 
-/*
-.backbutton:before {
-	content: 'Back';
-}
-*/
-
-div.backbutton:hover {
-	background-image: url(button2-hover.png);
-}
-
-div.backbutton:active {
-	background-image: url(button2-active.png);
-}
-
-.backbutton img {
-	vertical-align: middle;
-}
-
-.forwardbutton {
+.button.forward {
 	position: absolute;
-	width: 105px;
-	height: 26px;
-	padding: 6px 0px 0px 0px;
 	
 	margin-right: 10px;
 	right: 5%;
 	bottom: 6%;
-	
-	background-image: url(button2-inactive.png);
-	background-position: center center;
-	background-repeat: no-repeat;
-	cursor: pointer;
-	
-	display: table-cell;
-	text-align: center;
-	vertical-align: middle;
-	font-size: 15px;
-	/*
-	background-color: gray;
-	border: 1px solid black;
-	*/
 }
 
-/*
-.forwardbutton:before {
-	content: 'Start!';
-}
-*/
-
-div.forwardbutton:hover {
-	background-image: url(button2-hover.png);
-}
-
-div.forwardbutton:active {
-	background-image: url(button2-active.png);
-}
-
-.forwardbutton img {
-	vertical-align: middle;
-}
-
-span.add {
+span.plus {
 	width: 9px;
 	height: 9px;
 	padding-left: 9px;
@@ -136,23 +68,13 @@ span.add {
 	cursor: pointer;
 	
 	text-align: center;
+	white-space: nowrap;
  	vertical-align: middle;
-	font-size: 10px;
+	font-size: 14px;
 }
 
-span.remove {
-	width: 9px;
-	height: 9px;
-	padding-left: 9px;
-	
+span.plus.remove {
 	background-image: url(twisty-open.png);
-	background-position: center left;
-	background-repeat: no-repeat;
-	cursor: pointer;
-	
-	text-align: center;
- 	vertical-align: middle;
-	font-size: 10px;
 }
 
 span.magglass {
@@ -166,6 +88,30 @@ span.magglass {
 	cursor: pointer;
 	
 	text-align: center;
+	white-space: nowrap;
  	vertical-align: middle;
 	font-size: 20px;
 }
+
+span.radio {
+	/*
+	width: 14px;
+	*/
+	height: 14px;
+	padding-left: 15px;
+	
+	background-image: url(radio-unchecked.png);
+	background-position: center left;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	
+	text-align: left;
+	white-space: nowrap;
+ 	vertical-align: middle;
+	font-size: 14px;
+}
+
+span.radio.checked {
+	background-image: url(radio-checked.png);
+}
+
