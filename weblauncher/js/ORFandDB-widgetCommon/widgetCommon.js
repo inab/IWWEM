@@ -354,7 +354,7 @@ WidgetCommon.getIFrameDocument = function (iframe) {
 			// rv = thedoc.frames[aID].contentDocument;
 		} else {
 			// IE 
-			rv = iframe.document;
+			rv = iframe.contentWindow.document;
 		}
 	}
 	
