@@ -99,7 +99,9 @@ function SVGtramp(LoadEvent) {
 	}
 	
 	// And at last, the hooks
-	top.SVGtrampoline = this;
+	if(top) {
+		top.SVGtrampoline = this;
+	}
 }
 
 SVGtramp.getTextContent = function (oNode) {

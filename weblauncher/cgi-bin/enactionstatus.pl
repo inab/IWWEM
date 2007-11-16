@@ -259,7 +259,7 @@ if(defined($dispose)) {
 	}
 }
 
-print $query->header(-type=>'text/xml',-charset=>'UTF-8');
+print $query->header(-type=>'text/xml',-charset=>'UTF-8',-cache=>'no-cache, no-store');
 
 $outputDoc->toFH(\*STDOUT);
 

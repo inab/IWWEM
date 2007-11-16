@@ -44,13 +44,20 @@ my(@baclavadesc)=();
 my($inputcount)=0;
 my($retval)=0;
 my($dataisland)=undef;
+my($dataislandTag)=undef;
 
 # First step, parameter and workflow storage (if any!)
 PARAMPROC:
 foreach my $param ($query->param()) {
 	# We are skipping all unknown params
 	if($param eq $WorkflowCommon::PARAMISLAND) {
-		$dataisland=1;
+		$dataisland=$query->param($param);
+		if($dataisland ne '2') {
+			$dataisland=1;
+			$dataislandTag='xml';
+		} else {
+			$dataislandTag='div';
+		}
 	} elsif($param eq 'workflow') {
 		$wfilefetched=1;
 		my($WORKFLOW)=$query->upload($param);
@@ -250,7 +257,7 @@ unless(defined($cpid)) {
 	}
 	
 	# Now, reporting...
-	print $query->header(-type=>(defined($dataisland)?'text/html':'text/xml'),-charset=>'UTF-8');
+	print $query->header(-type=>(defined($dataisland)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store');
 	my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
 	my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionlaunched');
 	$root->setAttribute('time',LockNLog::getPrintableNow());
@@ -270,11 +277,17 @@ COMMENTEOF
 	$outputDoc->setDocumentElement($root);
 	
 	if(defined($dataisland)) {
-		print "<html><body><xml id='".$WidgetCommon::PARAMISLAND."'>\n";
+		print "<html><body><$dataislandTag id='".$WorkflowCommon::PARAMISLAND."'>\n";
 	}
-	$outputDoc->toFH(\*STDOUT);
+	
+	unless(defined($dataisland) && $dataisland eq '2') {
+		$outputDoc->toFH(\*STDOUT);
+	} else {
+		print encode('UTF-8', $outputDoc->createTextNode($root->toString())->toString());
+	}
+	
 	if(defined($dataisland)) {
-		print "\n</xml></body></html>";
+		print "\n</$dataislandTag></body></html>";
 	}
 
 	exit 0;

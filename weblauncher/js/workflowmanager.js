@@ -114,7 +114,6 @@ function ManagerView(genview) {
 	// To update on automatic changes of the selection box
 	var manview = this;
 	WidgetCommon.addEventListener(this.wfselect,'change',function () { manview.updateView();},false);
-	//this.wfselect.onchange = function () { manview.updateView();};
 }
 
 ManagerView.prototype = {
@@ -377,18 +376,19 @@ function NewWorkflowView(genview) {
 	this.newWFStyleFile=genview.thedoc.getElementById('newWFStyleFile');
 	
 	var newwfview = this;
-	this.newWFStyleText.onclick=function() { newwfview.setTextControl(); };
-	this.newWFStyleFile.onclick=function() { newwfview.setFileControl(); };
+	WidgetCommon.addEventListener(this.newWFStyleText, 'click', function() { newwfview.setTextControl(); }, false);
+	WidgetCommon.addEventListener(this.newWFStyleFile, 'click', function() { newwfview.setFileControl(); }, false);
 	
 	this.newWFControl = undefined;
 	//this.iframe = undefined;
 	
 	// Setting up data island request
-	if(BrowserDetect.browser=='Explorer') {
+	if(BrowserDetect.browser=='Konqueror') {
 		var dataIsland = genview.thedoc.createElement('input');
 		dataIsland.type="hidden";
 		dataIsland.name=GeneralView.dataIslandMarker;
-		dataIsland.value="1";
+		// This value must be 1 for IE data islands
+		dataIsland.value="2";
 		this.newWFForm.appendChild(dataIsland);
 	}
 }
@@ -473,9 +473,22 @@ NewWorkflowView.prototype = {
 					// First, parsing content
 					GeneralView.freeContainer(newwfview.genview.manview.messageDiv);
 					var xdoc=WidgetCommon.getIFrameDocument(iframe);
-					if(BrowserDetect.browser=='Explorer' && xdoc) {
-						xdoc = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
-						if(xdoc)  xdoc = xdoc.XMLDocument;
+					if(xdoc) {
+						if(BrowserDetect.browser=='Explorer') {
+							/* If we use a data island...
+							
+							xdoc = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
+							if(xdoc)  xdoc = xdoc.XMLDocument;
+							*/
+							xdoc = xdoc.XMLDocument;
+						} else if(BrowserDetect.browser=='Konqueror') {
+							var CDATAIsland = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
+							if(CDATAIsland) {
+								var islandContent=WidgetCommon.getTextContent(CDATAIsland);
+								var parser = new DOMParser();
+								xdoc = parser.parseFromString(islandContent,'application/xml');
+							}
+						}
 					}
 					
 					newwfview.genview.manview.fillWorkflowList(xdoc);
@@ -526,11 +539,12 @@ function NewEnactionView(genview) {
 	this.workflow=undefined;
 	
 	// Setting up data island request
-	if(BrowserDetect.browser=='Explorer') {
+	if(BrowserDetect.browser=='Konqueror') {
 		var dataIsland = genview.thedoc.createElement('input');
 		dataIsland.type="hidden";
 		dataIsland.name=GeneralView.dataIslandMarker;
-		dataIsland.value="1";
+		// This value must be 1 for IE data islands
+		dataIsland.value="2";
 		this.newEnactForm.appendChild(dataIsland);
 	}
 	
@@ -538,7 +552,7 @@ function NewEnactionView(genview) {
 	this.newBaclavaSpan=genview.thedoc.getElementById('newBaclavaSpan');
 	var newenactview=this;
 	var containerDiv=this.baclavaContainer;
-	this.newBaclavaSpan.onclick=function() {
+	WidgetCommon.addEventListener(this.newBaclavaSpan, 'click', function() {
 		var controlname='BACLAVA_FILE';
 		var newinput=newenactview.genview.createCustomizedFileControl(controlname);
 
@@ -560,7 +574,7 @@ function NewEnactionView(genview) {
 		
 		// Adding it to the container
 		containerDiv.appendChild(mydiv);
-	};
+	}, false);
 }
 
 NewEnactionView.prototype = {
@@ -615,7 +629,8 @@ NewEnactionView.prototype = {
 		thechoicefile.innerHTML='as file';
 		
 		var statecontrol=thechoicetext;
-		thechoicefile.onclick=thechoicetext.onclick=function() {
+		
+		var onclickHandler=function() {
 			if(statecontrol!=this) {
 				statecontrol.className='radio';
 				this.className='radio checked';
@@ -625,8 +640,11 @@ NewEnactionView.prototype = {
 			}
 		};
 		
+		WidgetCommon.addEventListener(thechoicetext, 'click', onclickHandler, false);
+		WidgetCommon.addEventListener(thechoicefile, 'click', onclickHandler, false);
+		
 		var newenactview=this;
-		theinput.onclick = function() {
+		WidgetCommon.addEventListener(theinput, 'click', function() {
 			var newinput;
 			var glass;
 			var controlname='PARAM_'+input.name
@@ -678,7 +696,7 @@ NewEnactionView.prototype = {
 
 			// Adding it to the container
 			containerDiv.appendChild(mydiv);
-		};
+		}, false);
 
 		// Now, it is time to create the selection
 		var thechoice = this.genview.thedoc.createElement('span');
@@ -750,9 +768,22 @@ NewEnactionView.prototype = {
 			// First, parsing content
 			GeneralView.freeContainer(newwfview.genview.manview.messageDiv);
 			var xdoc=WidgetCommon.getIFrameDocument(iframe);
-			if(BrowserDetect.browser=='Explorer' && xdoc) {
-				xdoc = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
-				if(xdoc)  xdoc = xdoc.XMLDocument;
+			if(xdoc) {
+				if(BrowserDetect.browser=='Explorer') {
+					/* If we use a data island...
+
+					xdoc = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
+					if(xdoc)  xdoc = xdoc.XMLDocument;
+					*/
+					xdoc = xdoc.XMLDocument;
+				} else if(BrowserDetect.browser=='Konqueror') {
+					var CDATAIsland = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
+					if(CDATAIsland) {
+						var islandContent=WidgetCommon.getTextContent(CDATAIsland);
+						var parser = new DOMParser();
+						xdoc = parser.parseFromString(islandContent,'application/xml');
+					}
+				}
 			}
 			
 			// Second, job id and others
