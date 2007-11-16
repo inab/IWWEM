@@ -59,6 +59,8 @@ GeneralView.preProcess = function (thedesc) {
 	return thedesc;
 };
 
+GeneralView.dataIslandMarker='dataIsland';
+
 GeneralView.prototype = {
 	openFrame: function (divId) {
 		if(this.visibleId) {

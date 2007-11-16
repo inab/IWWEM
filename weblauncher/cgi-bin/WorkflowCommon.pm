@@ -12,7 +12,7 @@ use vars qw($WORKFLOWFILE $SVGFILE $DEPDIR $EXAMPLESDIR $SNAPSHOTSDIR);
 
 use vars qw($WORKFLOWRELDIR $WORKFLOWDIR $JOBRELDIR $JOBDIR $MAXJOBS $JOBCHECKDELAY $LAUNCHERDIR $MAVENDIR);
 
-use vars qw($BACLAVAPARAM $PARAMPARAM $PARAMPREFIX $WFD_NS $SCUFL_NS);
+use vars qw($BACLAVAPARAM $PARAMISLAND $PARAMPARAM $PARAMPREFIX $WFD_NS $SCUFL_NS);
 
 # Workflow files constants
 $WORKFLOWFILE='workflow.xml';
@@ -38,6 +38,7 @@ $LAUNCHERDIR = $FindBin::Bin.'/INBWorkflowLauncher';
 # workflowparser and workflowlauncher
 $MAVENDIR = $FindBin::Bin.'/inb-maven';
 
+$PARAMISLAND='dataIsland';
 $PARAMPARAM='BACLAVA_FILE';
 $PARAMPREFIX='PARAM_';
 $WFD_NS = 'http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend';

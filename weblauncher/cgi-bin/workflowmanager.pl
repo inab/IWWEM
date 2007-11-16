@@ -22,11 +22,14 @@ $|=1;
 	
 my($retval)=0;
 my($retvalmsg)=undef;
+my($dataisland)=undef;
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
 	# We are skipping all unknown params
-	if($param eq 'eraseWFId') {
+	if($param eq $WorkflowCommon::PARAMISLAND) {
+		$dataisland=1;
+	} elsif($param eq 'eraseWFId') {
 		my(@workflowId)=$query->param($param);
 		last if($query->cgi_error());
 		
@@ -314,8 +317,14 @@ foreach my $wf (@workflowlist) {
 	}
 }
 
-print $query->header(-type=>'text/xml',-charset=>'UTF-8');
+print $query->header(-type=>(defined($dataisland)?'text/html':'text/xml'),-charset=>'UTF-8');
 
+if(defined($dataisland)) {
+	print "<html><body><xml id='".$WidgetCommon::PARAMISLAND."'>\n";
+}
 $outputDoc->toFH(\*STDOUT);
+if(defined($dataisland)) {
+	print "\n</xml></body></html>";
+}
 
 exit 0;

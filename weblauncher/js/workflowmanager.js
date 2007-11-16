@@ -382,6 +382,15 @@ function NewWorkflowView(genview) {
 	
 	this.newWFControl = undefined;
 	//this.iframe = undefined;
+	
+	// Setting up data island request
+	if(BrowserDetect.browser=='Explorer') {
+		var dataIsland = genview.thedoc.createElement('input');
+		dataIsland.type="hidden";
+		dataIsland.name=GeneralView.dataIslandMarker;
+		dataIsland.value="1";
+		this.newWFForm.appendChild(dataIsland);
+	}
 }
 
 NewWorkflowView.prototype = {
@@ -463,11 +472,13 @@ NewWorkflowView.prototype = {
 				var onUpload = function() {
 					// First, parsing content
 					GeneralView.freeContainer(newwfview.genview.manview.messageDiv);
-					if(BrowserDetect.browser!='Explorer') {
-						var xdoc=WidgetCommon.getIFrameDocument(iframe);
-
-						newwfview.genview.manview.fillWorkflowList(xdoc);
+					var xdoc=WidgetCommon.getIFrameDocument(iframe);
+					if(BrowserDetect.browser=='Explorer' && xdoc) {
+						xdoc = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
+						if(xdoc)  xdoc = xdoc.XMLDocument;
 					}
+					
+					newwfview.genview.manview.fillWorkflowList(xdoc);
 					// Now, cleaning up iframe traces!
 					newwfview.uploading=false;
 					newwfview.closeNewWorkflowFrame();
@@ -480,11 +491,6 @@ NewWorkflowView.prototype = {
 					WidgetCommon.removeEventListener(iframe,'load',onUpload,false);
 					iframe = undefined;
 					newwfview.newWFForm.target = undefined;
-					
-					// Unable to parse result :-(
-					if(BrowserDetect.browser=='Explorer') {
-						newwfview.genview.manview.reloadList();
-					}
 				};
 				
 				WidgetCommon.addEventListener(iframe,'load',onUpload,false);
@@ -518,6 +524,15 @@ function NewEnactionView(genview) {
 	this.baclava=new Array();
 	
 	this.workflow=undefined;
+	
+	// Setting up data island request
+	if(BrowserDetect.browser=='Explorer') {
+		var dataIsland = genview.thedoc.createElement('input');
+		dataIsland.type="hidden";
+		dataIsland.name=GeneralView.dataIslandMarker;
+		dataIsland.value="1";
+		this.newEnactForm.appendChild(dataIsland);
+	}
 	
 	// baclava onclick
 	this.newBaclavaSpan=genview.thedoc.getElementById('newBaclavaSpan');
@@ -733,10 +748,14 @@ NewEnactionView.prototype = {
 		var newenactview = this;
 		var iframeLoaded = function() {
 			// First, parsing content
+			GeneralView.freeContainer(newwfview.genview.manview.messageDiv);
 			var xdoc=WidgetCommon.getIFrameDocument(iframe);
+			if(BrowserDetect.browser=='Explorer' && xdoc) {
+				xdoc = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
+				if(xdoc)  xdoc = xdoc.XMLDocument;
+			}
 			
 			// Second, job id and others
-			GeneralView.freeContainer(newwfview.genview.manview.messageDiv);
 			var launched=newenactview.parseEnactionIdAndLaunch(xdoc);
 			
 			// Now, cleaning up iframe traces!
