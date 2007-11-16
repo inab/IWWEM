@@ -1,8 +1,10 @@
 <html>
 <head>
 	<title>INB Web Workflow Manager</title>
+
 	<link rel="stylesheet" type="text/css" href="style/IWWE-buttons.css"></link>
 	<link rel="stylesheet" type="text/css" href="style/workflowmanager.css"></link>
+
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/browserdetect/BrowserDetect.js"></script>
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/widgetCommon.js"></script>
 	<script type="text/javascript" src="js/dynamicSVGhandling.js"></script>
@@ -62,7 +64,7 @@
 </div>
 <div class="hidden" id="newWorkflow">
 	<div class="secondary">
-		<p>Please introduce your workflow</p>
+		<div align="center">Please introduce your workflow</div>
 		<form id="formNewWF" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data">
 			<div align="center">
 				<div class="borderedOption"><span id="newWFStyleText" class="radio">As text</span>&nbsp;<span id="newWFStyleFile" class="radio">As file</span></div>
@@ -85,10 +87,7 @@
 					<div align="center" id="enactsvg"></div>
 				</td><td width="100%">
 					<div class="scrolldatalarge">
-						<div class="borderedInput">
-							<div><span id="newBaclavaSpan" class="plus">Add Baclava file</span></div>
-							<div id="newBaclava"></div>
-						</div>
+						<div><span id="noneExampleSpan" class="radio">Use inputs</span> <span id="saveAsExampleSpan" class="checkbox">Save as example</span> <span id="useExampleSpan" class="radio">Use example</span></div>
 						<div id="newInputs"></div>
 					</div>
 				</td></tr>

@@ -38,8 +38,19 @@ function IODesc(ioD) {
 	
 }
 
-IODesc.prototype = {
-};
+function InputExample(inEx) {
+	this.name=inEx.getAttribute('name');
+	this.uuid=inEx.getAttribute('uuid');
+	this.date=inEx.getAttribute('date');
+	this.description = WidgetCommon.getTextContent(inEx);
+}
+
+function OutputSnapshot(inEx) {
+	this.name=inEx.getAttribute('name');
+	this.uuid=inEx.getAttribute('uuid');
+	this.date=inEx.getAttribute('date');
+	this.description = WidgetCommon.getTextContent(inEx);
+}
 
 function WorkflowDesc(wfD) {
 	this.uuid = wfD.getAttribute('uuid');
@@ -48,10 +59,16 @@ function WorkflowDesc(wfD) {
 	this.title = wfD.getAttribute('title');
 	this.lsid = wfD.getAttribute('lsid');
 	this.author = wfD.getAttribute('author');
+	
 	var inputs=new Array();
 	var outputs=new Array();
+	var examples=new Array();
+	var snapshots=new Array();
 	this.inputs=inputs;
 	this.outputs=outputs;
+	this.examples=examples;
+	this.snapshots=snapshots;
+	
 	this.description=undefined;
 	
 	for(var child=wfD.firstChild;child;child=child.nextSibling) {
@@ -63,6 +80,14 @@ function WorkflowDesc(wfD) {
 					// differences among the standars
 					// and Internet Explorer behavior
 					this.description = WidgetCommon.getTextContent(child);
+					break;
+				case 'example':
+					var newExample = new InputExample(child);
+					examples[newExample.uuid]=newExample;
+					break;
+				case 'snapshot':
+					var newSnapshot = new OutputSnapshot(child);
+					snapshots[newSnapshot.uuid]=newSnapshot;
 					break;
 				case 'input':
 					var newInput = new IODesc(child);
@@ -527,7 +552,6 @@ function NewEnactionView(genview) {
 	this.iframe=genview.thedoc.getElementById('enactIFRAME');
 	this.newEnactForm=genview.thedoc.getElementById('formEnactor');
 	this.inputsContainer=genview.thedoc.getElementById('newInputs');
-	this.baclavaContainer=genview.thedoc.getElementById('newBaclava');
 	this.enactSVGContainer = genview.thedoc.getElementById('enactsvg');
 	this.newEnactUploading = genview.thedoc.getElementById('newEnactUploading');
 	this.submittedList = genview.thedoc.getElementById('submittedList');
@@ -537,6 +561,8 @@ function NewEnactionView(genview) {
 	this.baclava=new Array();
 	
 	this.workflow=undefined;
+	this.inputmode=false;
+	this.saveExample=false;
 	
 	// Setting up data island request
 	if(BrowserDetect.browser=='Konqueror') {
@@ -548,36 +574,60 @@ function NewEnactionView(genview) {
 		this.newEnactForm.appendChild(dataIsland);
 	}
 	
-	// baclava onclick
-	this.newBaclavaSpan=genview.thedoc.getElementById('newBaclavaSpan');
-	var newenactview=this;
-	var containerDiv=this.baclavaContainer;
-	WidgetCommon.addEventListener(this.newBaclavaSpan, 'click', function() {
-		var controlname='BACLAVA_FILE';
-		var newinput=newenactview.genview.createCustomizedFileControl(controlname);
-
-		// As we are interested in the container (the parent)
-		// let's get it...
-		//newinput=newinput.parentNode;
-		
-		var remover=newenactview.genview.thedoc.createElement('span');
-		remover.className='plus remove';
-		remover.innerHTML='&nbsp;';
-
-		var mydiv=newenactview.genview.thedoc.createElement('div');
-		WidgetCommon.addEventListener(remover,'click',function() {
-			containerDiv.removeChild(mydiv);
-		},false);
-		
-		mydiv.appendChild(remover);
-		mydiv.appendChild(newinput);
-		
-		// Adding it to the container
-		containerDiv.appendChild(mydiv);
-	}, false);
+	this.setupInputType();
+	this.setInputMode(0);
 }
 
 NewEnactionView.prototype = {
+	setupInputType: function() {
+		// Input type selectors
+		var noneExampleSpan=genview.thedoc.getElementById('noneExampleSpan');
+		var saveAsExampleSpan=genview.thedoc.getElementById('saveAsExampleSpan');
+		var useExampleSpan=genview.thedoc.getElementById('useExampleSpan');
+
+		var inputstatecontrol=undefined;
+		var newenact = this;
+		var oninputClickHandler = function() {
+			if(inputstatecontrol!=this) {
+				if(inputstatecontrol) {
+					inputstatecontrol.className='radio';
+				}
+				this.className='radio checked';
+				inputstatecontrol=this;
+
+				GeneralView.freeContainer(containerDiv);
+			}
+			
+			if(inputstatecontrol==noneExampleSpan) {
+				newenact.inputmode=false;
+				newenact.disposeContainers();
+				newenact.generateInputsHandlers();
+			} else {
+				newenact.saveExample=false;
+				saveAsExampleSpan.className='checkbox';
+				newenact.disposeContainers();
+				newenact.generateExamplesSelect();
+			}
+		};
+		
+		WidgetCommon.addEventListener(noneExampleSpan, 'click', oninputclickHandler, false);
+		WidgetCommon.addEventListener(useExampleSpan, 'click', oninputclickHandler, false);
+		
+		var saveExampleClickHandler = function() {
+			if(inputstatecontrol==noneExampleSpan) {
+				if(newenact.inputmode) {
+					newenact.inputmode=false;
+					saveAsExampleSpan.className='checkbox';
+				} else {
+					newenact.inputmode=true;
+					saveAsExampleSpan.className='checkbox checked';
+				}
+			}
+		};
+		
+		WidgetCommon.addEventListener(saveAsExampleSpan, 'click', saveExampleClickHandler, false);
+	},
+	
 	openNewEnactionFrame: function () {
 		var workflow = this.manview.getCurrentWorkflow();
 		if(workflow) {
@@ -589,16 +639,26 @@ NewEnactionView.prototype = {
 			this.enactSVG.loadSVG(this.enactSVGContainer.id,WFBase+'/'+workflow.svgpath,'100mm','120mm');
 			
 			// Inputs
-			for(var inputfacet in workflow.inputs) {
-				var input=workflow.inputs[inputfacet];
-				var thediv = this.generateGraphicalInput(input);
-				
-				// And the container for the input!
-				this.inputsContainer.appendChild(thediv);
-			}
+			this.generateInputHandlers();
 			
 			// And at last, open frame
 			this.genview.openFrame('workflowInputs');
+		}
+	},
+	
+	generateInputsHandlers: function() {
+		// baclava onclick
+		var thebaclava = this.generateBaclavaSpan();
+		this.inputsContainer.appendChild(thebaclava);
+		
+		// Inputs
+		var workflow=this.workflow;
+		for(var inputfacet in workflow.inputs) {
+			var input=workflow.inputs[inputfacet];
+			var thediv = this.generateGraphicalInput(input);
+
+			// And the container for the input!
+			this.inputsContainer.appendChild(thediv);
 		}
 	},
 	
@@ -632,7 +692,9 @@ NewEnactionView.prototype = {
 		
 		var onclickHandler=function() {
 			if(statecontrol!=this) {
-				statecontrol.className='radio';
+				if(statecontrol) {
+					statecontrol.className='radio';
+				}
 				this.className='radio checked';
 				statecontrol=this;
 				
@@ -714,11 +776,65 @@ NewEnactionView.prototype = {
 		return thediv;
 	},
 	
+	/* Generates a new graphical input */
+	generateBaclavaSpan: function () {
+		var randominputid=WidgetCommon.getRandomUUID();
+
+		// The container of all these 'static' elements
+		var thediv = this.genview.thedoc.createElement('div');
+		thediv.className='borderedInput';
+
+		// Dynamic input container
+		var containerDiv=this.genview.thedoc.createElement('div');
+		containerDiv.id=randominputid;
+
+		// 'Static' elements
+		var theinput = this.genview.thedoc.createElement('span');
+		// The addition button
+		theinput.className = 'plus';
+		theinput.innerHTML='Add Baclava file';
+		
+		var newenactview=this;
+		WidgetCommon.addEventListener(theinput, 'click', function() {
+			var controlname='BACLAVA_FILE';
+			var newinput=newenactview.genview.createCustomizedFileControl(controlname);
+
+			// As we are interested in the container (the parent)
+			// let's get it...
+			//newinput=newinput.parentNode;
+
+			var remover=newenactview.genview.thedoc.createElement('span');
+			remover.className='plus remove';
+			remover.innerHTML='&nbsp;';
+
+			var mydiv=newenactview.genview.thedoc.createElement('div');
+			WidgetCommon.addEventListener(remover,'click',function() {
+				containerDiv.removeChild(mydiv);
+			},false);
+
+			mydiv.appendChild(remover);
+			mydiv.appendChild(newinput);
+
+			// Adding it to the container
+			containerDiv.appendChild(mydiv);
+		}, false);
+		
+		// Last children!
+		thediv.appendChild(theinput);
+
+		thediv.appendChild(containerDiv);
+		
+		return thediv;
+	},
+	
+	disposeContainers: function() {
+		GeneralView.freeContainer(this.inputsContainer);
+	},
+	
 	clearView: function() {
 		// Removing all the content from the containers
 		this.enactSVG.removeSVG();
-		GeneralView.freeContainer(this.baclavaContainer);
-		GeneralView.freeContainer(this.inputsContainer);
+		this.disposeContainers();
 	},
 	
 	closeNewEnactionFrame: function() {

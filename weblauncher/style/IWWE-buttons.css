@@ -94,13 +94,15 @@ span.magglass {
 }
 
 span.radio {
+	/* Black IE magic */
+	behavior:url(hover.htc);
 	/*
-	width: 14px;
+	width: 16px;
 	*/
-	height: 14px;
-	padding-left: 15px;
+	height: 16px;
+	padding-left: 17px;
 	
-	background-image: url(radio-unchecked.png);
+	background-image: url(radio.png);
 	background-position: center left;
 	background-repeat: no-repeat;
 	cursor: pointer;
@@ -111,7 +113,38 @@ span.radio {
 	font-size: 14px;
 }
 
+span.radiohover , span.radio:hover {
+	background-image: url(radio-focus.png);
+}
+
 span.radio.checked {
 	background-image: url(radio-checked.png);
 }
 
+span.checkbox {
+	/* Black IE magic */
+	behavior:url(hover.htc);
+	/*
+	width: 16px;
+	*/
+	height: 16px;
+	padding-left: 17px;
+	
+	background-image: url(checkbox.png);
+	background-position: center left;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	
+	text-align: left;
+	white-space: nowrap;
+ 	vertical-align: middle;
+	font-size: 14px;
+}
+
+span.checkboxhover , span.checkbox:hover {
+	background-image: url(checkbox-focus.png);
+}
+
+span.checkbox.checked {
+	background-image: url(checkbox-checked.png);
+}
