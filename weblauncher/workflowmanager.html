@@ -2,16 +2,20 @@
 <head>
 	<title>INB Web Workflow Manager</title>
 
-	<link rel="stylesheet" type="text/css" href="style/IWWE-buttons.css"></link>
-	<link rel="stylesheet" type="text/css" href="style/workflowmanager.css"></link>
+	<link rel="shortcut icon" href="favicon.ico" type="image/vnd.microsoft.icon">
+	<link rel="icon" href="favicon.ico" type="image/vnd.microsoft.icon">
+
+	<link rel="stylesheet" type="text/css" href="style/IWWEM-buttons.css"></link>
+	<link rel="stylesheet" type="text/css" href="style/IWWEM-styles.css"></link>
 
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/browserdetect/BrowserDetect.js"></script>
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/widgetCommon.js"></script>
+	<script type="text/javascript" src="js/FCKeditor/fckeditor.js"></script>
 	<script type="text/javascript" src="js/dynamicSVGhandling.js"></script>
 	<script type="text/javascript" src="js/IWWEM-common.js"></script>
 	<script type="text/javascript" src="js/workflowmanager.js"></script>
 </head>
-<body onload="InitIWWEM(WorkflowManagerCustomInit)">
+<body onload="InitIWWEM(WorkflowManagerCustomInit)" onunload="DisposeIWWEM(WorkflowManagerCustomDispose)">
 <div align="center"><b>INB Web Workflow Enactor &amp; Manager</b></div>
 <form id="formManager" method="post" enctype="multipart/form-data">
 	<table style="width:100%">
@@ -25,24 +29,21 @@
 				<b>Title:</b>&nbsp;<span id="title"></span>
 				<p><b>LSID:</b>&nbsp;<span id="lsid"></span></p>
 				<p><b>Author:</b>&nbsp;<span id="author"></span></p>
-				<p><b>Inputs</b>
+				<b>Inputs</b>
 				<div id="inputs">&nbsp;</div>
-				</p>
-				<p><b>Outputs</b>
+				<b>Outputs</b>
 				<div id="outputs">&nbsp;</div>
-				</p>
-				<p><b>Description</b>
+				<b>Description</b>
 				<div id="description" style="text-align:justify">&nbsp;</div>
-				</p>
 				<b>Available enaction snapshots</b>
 				<div id="snapshots" style="text-align:justify">&nbsp;</div>
 			</div>
 		</td></tr><tr><td class="buttons">
 			<div align="center">
 				<table><tr><td>
-				<div class="button" onclick="genview.manview.reloadList()">Reload <img src="style/reload.png"></div>
+					<div class="button" onclick="genview.manview.reloadList()">Reload <img src="style/reload.png"></div>
 				</td><td>
-				<div class="button" onclick="genview.newwfview.openNewWorkflowFrame()">Add new <img src="style/blueplus.png"></div>
+					<div class="button" onclick="genview.newwfview.openNewWorkflowFrame()">Add new <img src="style/blueplus.png"></div>
 				</td></tr></table>
 			</div>
 		</td><td class="buttons">
@@ -57,23 +58,23 @@
 				-->
 				<div class="button" onclick="genview.manview.deleteWorkflow()">Delete <img src="style/redball.png"></img></div>
 			</div>
-		</td></tr><tr><td>
+		</td></tr>
+	</table>
+	<!-- Messages table -->
+	<table>
+		<tr><td>
 			<p><u>Submitted enaction jobs</u></p>
 			<ol id="submittedList"></ol>
-		</td><td colspan="2">
+		</td><td>
 			<p><u>Last operation message</u></p>
 			<div id="messageDiv"></div>
 		</td></tr>
 	</table>
 </form>
-<div class="hidden" id="outerAbsDiv">
-</div>
+<div class="hidden" id="outerAbsDiv"></div>
 <div class="hidden" id="newWorkflow">
 	<div class="secondary">
 		<div align="center">Please introduce your workflow and the local workflows it depends on</div>
-		<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img>
-			<iframe src="about:blank" frameborder="0" id="uploadIFRAME" name="uploadIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
-		</div>
 		<form id="formNewWF" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data">
 			<div align="center">
 				<table><tr><td>
@@ -81,6 +82,9 @@
 				</td></tr><tr><td>
 					<div id="newWFContainer"></div>
 				</td></tr><tr><td>
+					<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img>
+						<iframe src="about:blank" frameborder="0" id="uploadIFRAME" name="uploadIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
+					</div>
 					<div id="newSubWFContainer"></div>
 				</td></tr></table>
 			</div>
@@ -101,7 +105,7 @@
 						<div style="margin: 5px 5px 5px 5px">
 							<span class="borderedOption">
 							<span id="noneExampleSpan" class="radio right">Use inputs</span>
-							<span id="saveAsExampleSpan" class="checkbox right blue">Save as example</span>
+							<span id="saveAsExampleSpan" class="checkbox right green">Save as example</span>
 							</span>
 							<span class="borderedOption">
 							<span id="useExampleSpan" class="radio right">Use example</span>
@@ -120,10 +124,17 @@
 	</div>
 </div>
 <div class="hidden" id="reloadWorkflows">
+	<table style="width:100%; height:100%"><tr valign="middle"><td align="center">
+		<img src="style/big-ajax-loader.gif"></img>
+	</td></tr></table>
+	<!--
 	<img style="position:relative; top: 45%;left: 45%" src="style/big-ajax-loader.gif"></img>
+	-->
 </div>
 <div class="hidden" id="submitEnaction">
-	<img style="position:relative; top: 45%;left: 45%" src="style/big-ajax-submit.gif"></img>
+	<table style="width:100%; height:100%"><tr valign="middle"><td align="center">
+		<img src="style/big-ajax-submit.gif"></img>
+	</td></tr></table>
 </div>
 <iframe class="hidden" frameborder="0" src="about:blank" id="shimmer">
 </iframe>

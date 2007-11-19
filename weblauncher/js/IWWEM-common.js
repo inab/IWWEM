@@ -21,6 +21,8 @@ function GeneralView(customInit, /* optional */thedoc) {
 }
 
 GeneralView._loadtimer=undefined;
+GeneralView.SVGDivId='svgdiv';
+GeneralView.dataIslandMarker='dataIsland';
 
 GeneralView.freeContainer = function (container) {
 	// Removing all the content from the container
@@ -42,19 +44,33 @@ GeneralView.checkCN = function (elem) {
 	if(elem && elem.className) {
 		elem.className += ' checked';
 	}
-}
+};
 
 GeneralView.initBaseCN = function (elem) {
 	if(elem && elem.className) {
 		elem.baseClassName=elem.className;
 	}
-}
+};
 
 GeneralView.revertCN = function (elem) {
 	if(elem && elem.baseClassName) {
 		elem.className=elem.baseClassName;
 	}
-}
+};
+
+GeneralView.initCheck = function(check) {
+	check.checked=false;
+	GeneralView.initBaseCN(check);
+	check.setCheck = function (state) {
+		if(state && !this.checked) {
+			GeneralView.checkCN(this);
+			this.checked=true;
+		} else if(!state && this.checked) {
+			GeneralView.revertCN(this);
+			this.checked=false;
+		}
+	};
+};
 
 GeneralView.preProcess = function (thedesc) {
 	if(!thedesc)  thedesc='';
@@ -78,8 +94,7 @@ GeneralView.preProcess = function (thedesc) {
 };
 
 
-GeneralView.dataIslandMarker='dataIsland';
-
+/* Now, the instance methods */
 GeneralView.prototype = {
 	openFrame: function (divId) {
 		if(this.visibleId) {
@@ -87,7 +102,7 @@ GeneralView.prototype = {
 		}
 
 		this.visibleId=divId;
-		if(BrowserDetect.browser!='Konqueror') {
+		if(BrowserDetect.browser=='Explorer' || BrowserDetect.browser=='Safari') {
 			this.shimmer.className='shimmer';
 		}
 		this.outer.className='outerAbsDiv';
@@ -102,26 +117,26 @@ GeneralView.prototype = {
 
 		elem.className='hidden';
 		this.outer.className='hidden';
-		if(BrowserDetect.browser!='Konqueror') {
+		if(BrowserDetect.browser=='Explorer' || BrowserDetect.browser=='Safari') {
 			this.shimmer.className='hidden';
 		}
 	},
 	
 	/*
 	createCustomizedFileControl: function (thename) {
-		var filecontrol = this.thedoc.createElement('input');
+		var filecontrol = this.createElement('input');
 		filecontrol.type="file";
 		filecontrol.name=thename;
 		filecontrol.className='file hidden';
 		
-		var divfilecontrol = this.thedoc.createElement('div');
+		var divfilecontrol = this.createElement('div');
 		divfilecontrol.className = 'fileinputs';
 		divfilecontrol.appendChild(filecontrol);
 		
-		var fakeFileUpload = this.thedoc.createElement('div');
+		var fakeFileUpload = this.createElement('div');
 		fakeFileUpload.className = 'fakefile';
-		fakeFileUpload.appendChild(this.thedoc.createElement('input'));
-		var image = this.thedoc.createElement('img');
+		fakeFileUpload.appendChild(this.createElement('input'));
+		var image = this.createElement('img');
 		image.src='style/button_select.gif';
 		fakeFileUpload.appendChild(image);
 		
@@ -138,7 +153,7 @@ GeneralView.prototype = {
 	*/
 	
 	createCustomizedFileControl: function (thename) {
-		var filecontrol = this.thedoc.createElement('input');
+		var filecontrol = this.createElement('input');
 		filecontrol.type="file";
 		filecontrol.name=thename;
 		
@@ -150,15 +165,15 @@ GeneralView.prototype = {
 		var randominputid=WidgetCommon.getRandomUUID();
 
 		// The container of all these 'static' elements
-		var thediv = this.thedoc.createElement('div');
+		var thediv = this.createElement('div');
 		thediv.className='borderedInput';
 
 		// Dynamic input container
-		var containerDiv=this.thedoc.createElement('div');
+		var containerDiv=this.createElement('div');
 		containerDiv.id=randominputid;
 
 		// 'Static' elements
-		var theinput = this.thedoc.createElement('span');
+		var theinput = this.createElement('span');
 		// The addition button
 		theinput.className = 'plus';
 		theinput.innerHTML=thetext;
@@ -171,11 +186,11 @@ GeneralView.prototype = {
 			// let's get it...
 			//newinput=newinput.parentNode;
 
-			var remover=genview.thedoc.createElement('span');
+			var remover=genview.createElement('span');
 			remover.className='plus remove';
 			remover.innerHTML='&nbsp;';
 
-			var mydiv=genview.thedoc.createElement('div');
+			var mydiv=genview.createElement('div');
 			WidgetCommon.addEventListener(remover,'click',function() {
 				containerDiv.removeChild(mydiv);
 			},false);
@@ -193,6 +208,22 @@ GeneralView.prototype = {
 		thediv.appendChild(containerDiv);
 
 		return thediv;
+	},
+	
+	dispose: function(customDispose) {
+		// Nothing to do
+		
+		// Now, custom dispose
+		this.customDispose=customDispose;
+		this.customDispose();
+	},
+	
+	getElementById: function(theid) {
+		return this.thedoc.getElementById(theid);
+	},
+	
+	createElement: function(tagName) {
+		return this.createElement(tagName);
 	}
 };
 	
@@ -209,4 +240,13 @@ function InitIWWEM(customInit, /* optional */ thedoc) {
 			}
 		}, 10);
 	}
+}
+
+function DisposeIWWEM(customDispose) {
+	// Killing a remaining timer
+	if(GeneralView._loadtimer)  clearInterval(GeneralView._loadtimer);
+	// Disposing from inside
+	genview.dispose(customDispose);
+	// Freeing resources
+	genview=undefined;
 }

@@ -65,6 +65,7 @@ TavernaSVG.prototype = {
 			// And any trace!
 			this.svgobj=undefined;
 			this.asEmbed=undefined;
+			this.current=undefined;
 		}
 	},
 

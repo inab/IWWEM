@@ -14,6 +14,15 @@ function WorkflowManagerCustomInit() {
 	this.manview.reloadList();
 }
 
+function WorkflowManagerCustomDispose() {
+	if(this.manview && this.manview.svg) {
+		this.manview.svg.clearSVG();
+	}
+	if(this.newenactview && this.newenactview.enactSVG) {
+		this.newenactview.enactSVG.clearSVG();
+	}
+}
+
 /*
 	These classes model the retrieved information about available workflows.
 */
@@ -88,6 +97,7 @@ function WorkflowDesc(wfD) {
 	var outputs=new Array();
 	var examples=new Array();
 	var snapshots=new Array();
+	this.depends=depends;
 	this.inputs=inputs;
 	this.outputs=outputs;
 	this.examples=examples;
@@ -106,7 +116,7 @@ function WorkflowDesc(wfD) {
 					this.description = WidgetCommon.getTextContent(child);
 					break;
 				case 'dependsOn':
-					this.depends.push(child.getAttribute('sub'));
+					depends.push(child.getAttribute('sub'));
 					break;
 				case 'example':
 					var newExample = new InputExample(child);
@@ -145,43 +155,48 @@ WorkflowDesc.prototype = {
 */
 function ManagerView(genview) {
 	this.genview=genview;
-	this.check=genview.thedoc.getElementById('confirm');
-	this.wfselect=genview.thedoc.getElementById('workflow');
-	this.svgdiv=genview.thedoc.getElementById('svgdiv');
-	this.messageDiv=genview.thedoc.getElementById('messageDiv');
+	this.wfselect=genview.getElementById('workflow');
+	this.messageDiv=genview.getElementById('messageDiv');
 	
-	this.titleContainer=genview.thedoc.getElementById('title');
-	this.lsidContainer=genview.thedoc.getElementById('lsid');
-	this.authorContainer=genview.thedoc.getElementById('author');
-	this.descContainer=genview.thedoc.getElementById('description');
-	this.inContainer=genview.thedoc.getElementById('inputs');
-	this.outContainer=genview.thedoc.getElementById('outputs');
-	this.snapContainer=genview.thedoc.getElementById('snapshots');
+	this.titleContainer=genview.getElementById('title');
+	this.lsidContainer=genview.getElementById('lsid');
+	this.authorContainer=genview.getElementById('author');
+	this.descContainer=genview.getElementById('description');
+	this.inContainer=genview.getElementById('inputs');
+	this.outContainer=genview.getElementById('outputs');
+	this.snapContainer=genview.getElementById('snapshots');
 
 	// this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown.svg','75mm','90mm');
-	this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown-inb.svg');
+	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg');
 	
 	this.wfA=new Array();
 	this.listRequest=undefined;
 	this.WFBase=undefined;
 	
-	// To update on automatic changes of the selection box
 	var manview = this;
-	WidgetCommon.addEventListener(this.wfselect,'change',function () { manview.updateView();},false);
-	
 	// As confirm check is no more a real check, let's fake it!
-	this.check.checked=false;
-	GeneralView.initBaseCN(this.check);
+	this.check=genview.getElementById('confirm');
+	GeneralView.initCheck(this.check);
 	WidgetCommon.addEventListener(this.check,'click', function() {
 		if(this.checked) {
-			GeneralView.revertCN(this);
-			this.checked=false;
+			this.setCheck(false);
+		} else if(manview.wfselect.selectedIndex!=-1) {
+			this.setCheck(true);
 		} else {
-			GeneralView.checkCN(this);
-			this.checked=true;
+			alert('This confirmation can only be checked when a workflow is selected');
 		}
 	},false);
+	
+	// To update on automatic changes of the selection box
+	WidgetCommon.addEventListener(this.wfselect,'change',function () {
+		manview.updateView();
+		if(this.selectedIndex==-1 && manview.check.checked) {
+			manview.check.setCheck(false);
+		}
+	},false);
+	
 }
+
 
 ManagerView.prototype = {
 	openReloadFrame: function () {
@@ -219,12 +234,7 @@ ManagerView.prototype = {
 		var workflow = this.getCurrentWorkflow();
 		if(workflow) {
 			// SVG graph
-			this.svg.loadSVG(this.svgdiv.id,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
-			
-			// Clearing input & output info
-			GeneralView.freeContainer(this.inContainer);
-			GeneralView.freeContainer(this.outContainer);
-			GeneralView.freeContainer(this.snapContainer);
+			this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
 			
 			// Basic information
 			this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
@@ -242,16 +252,16 @@ ManagerView.prototype = {
 			var alink;
 			
 			// This is needed to append links to the description itself
-			var thep = this.genview.thedoc.createElement('p');
-			alink = this.genview.thedoc.createElement('a');
+			var thep = this.genview.createElement('p');
+			alink = this.genview.createElement('a');
 			alink.href = this.WFBase+'/'+workflow.svgpath;
 			alink.target = '_blank';
 			alink.innerHTML = '<i>Download Workflow Graph (SVG)</i>';
 			thep.appendChild(alink);
 			this.descContainer.appendChild(thep);
 			
-			thep = this.genview.thedoc.createElement('p');
-			alink = this.genview.thedoc.createElement('a');
+			thep = this.genview.createElement('p');
+			alink = this.genview.createElement('a');
 			alink.href = this.WFBase+'/'+workflow.path;
 			alink.target = '_blank';
 			alink.innerHTML = '<i>Download Workflow</i>';
@@ -260,67 +270,19 @@ ManagerView.prototype = {
 			
 			// Possible dependencies
 			if(workflow.depends.length>0) {
-				thep = this.genview.thedoc.createElement('p');
+				thep = this.genview.createElement('p');
 				thep.innerHTML = '<i>(This workflow depends on '+workflow.depends.length+' subworkflow'+((workflow.depends.length>1)?'s':'')+')</i>';
 				this.descContainer.appendChild(thep);
 			}
 			
 			// Now, inputs and outputs
-			var ul;
-			for(var iofacet in workflow.inputs) {
-				var io=workflow.inputs[iofacet];
-				if(!ul)  ul=this.genview.thedoc.createElement('ul');
-				var li=this.genview.thedoc.createElement('li');
-				var line='<i>'+io.name+' ('+io.mime.join(', ')+')</i>';
-				if('description' in io) {
-					line += '<br>'+GeneralView.preProcess(io.description);
-				}
-				li.innerHTML=line;
-				ul.appendChild(li);
-			}
-			if(ul) {
-				this.inContainer.appendChild(ul);
-			} else {
-				this.inContainer.innerHTML='<i>(None)</i>';
-			}
-			
-			ul=undefined;
-			for(var iofacet in workflow.outputs) {
-				var io=workflow.outputs[iofacet];
-				if(!ul)  ul=this.genview.thedoc.createElement('ul');
-				var li=this.genview.thedoc.createElement('li');
-				var line='<i>'+io.name+' ('+io.mime.join(', ')+')</i>';
-				if('description' in io) {
-					line += '<br>'+GeneralView.preProcess(io.description);
-				}
-				li.innerHTML=line;
-				ul.appendChild(li);
-			}
-			if(ul) {
-				this.outContainer.appendChild(ul);
-			} else {
-				this.outContainer.innerHTML='<i>(None)</i>';
-			}
+			this.attachIOReport(workflow.inputs,this.inContainer);
+			this.attachIOReport(workflow.outputs,this.outContainer);
 			
 			// And at last, snapshots
-			ul=undefined
-			for(var si=0;si<workflow.snapshots.length;si++) {
-				var snap=workflow.snapshots[si];
-				if(!ul)  ul=this.genview.thedoc.createElement('ul');
-				var li=this.genview.thedoc.createElement('li');
-				var line='<i><a href="enactionviewer.html?jobId='+snap.uuid+'">'+snap.name+'</a> ('+snap.date+')</i>';
-				if('description' in snap) {
-					line += '<br>'+GeneralView.preProcess(snap.description);
-				}
-				li.innerHTML=line;
-				ul.appendChild(li);
-			}
-			if(ul) {
-				this.inContainer.appendChild(ul);
-			} else {
-				this.inContainer.innerHTML='<i>(None)</i>';
-			}
-			
+			this.attachIOReport(workflow.snapshots,this.snapContainer,function(snap) {
+				return '<i><a href="enactionviewer.html?jobId='+snap.uuid+'">'+snap.name+'</a> ('+snap.date+')</i>';
+			});
 		} else {
 			this.clearView();
 		}
@@ -383,6 +345,9 @@ ManagerView.prototype = {
 	},
 	
 	reloadList: function (/* optional */ wfToErase) {
+		// First, uncheck the beast!
+		this.check.setCheck(false);
+		
 		var qsParm = new Array();
 		if(wfToErase) {
 			qsParm['eraseWFId']=wfToErase;
@@ -451,11 +416,36 @@ ManagerView.prototype = {
 	deleteWorkflow: function () {
 		if(this.check.checked && this.wfselect.selectedIndex!=-1) {
 			var sureErase=confirm('Are you REALLY sure you want to erase this workflow?');
-			this.check.checked=false;
-			GeneralView.revertCN(this.check);
 			if(sureErase) {
 				this.reloadList(this.wfselect.options[this.wfselect.selectedIndex].value);
 			}
+		}
+	},
+	
+	attachIOReport: function(ioarray,ioContainer, /* optional */lineProc) {
+		GeneralView.freeContainer(ioContainer);
+		
+		var ul;
+		for(var iofacet in ioarray) {
+			var io=ioarray[iofacet];
+			if(!ul)  ul=this.genview.createElement('ul');
+			var li=this.genview.createElement('li');
+			var line;
+			if(lineProc) {
+				line=lineProc(io);
+			} else {
+				line='<i>'+io.name+' ('+io.mime.join(', ')+')</i>';
+			}
+			if('description' in io) {
+				line += '<br>'+GeneralView.preProcess(io.description);
+			}
+			li.innerHTML=line;
+			ul.appendChild(li);
+		}
+		if(ul) {
+			ioContainer.appendChild(ul);
+		} else {
+			ioContainer.innerHTML='<i>(None)</i>';
 		}
 	}
 };
@@ -464,15 +454,15 @@ function NewWorkflowView(genview) {
 	this.genview = genview;
 	this.uploading = undefined;
 	
-	this.iframe=genview.thedoc.getElementById('uploadIFRAME');
-	this.newWFForm=genview.thedoc.getElementById('formNewWF');
-	this.newWFContainer=genview.thedoc.getElementById('newWFContainer');
-	this.newWFUploading=genview.thedoc.getElementById('newWFUploading');
+	this.iframe=genview.getElementById('uploadIFRAME');
+	this.newWFForm=genview.getElementById('formNewWF');
+	this.newWFContainer=genview.getElementById('newWFContainer');
+	this.newWFUploading=genview.getElementById('newWFUploading');
 	
-	this.newWFStyleText=genview.thedoc.getElementById('newWFStyleText');
+	this.newWFStyleText=genview.getElementById('newWFStyleText');
 	GeneralView.initBaseCN(this.newWFStyleText);
 	
-	this.newWFStyleFile=genview.thedoc.getElementById('newWFStyleFile');
+	this.newWFStyleFile=genview.getElementById('newWFStyleFile');
 	GeneralView.initBaseCN(this.newWFStyleFile);
 	
 	var newwfview = this;
@@ -484,11 +474,11 @@ function NewWorkflowView(genview) {
 	//this.iframe = undefined;
 	
 	// More on subworkflows
-	this.newSubWFContainer=genview.thedoc.getElementById('newSubWFContainer');
+	this.newSubWFContainer=genview.getElementById('newSubWFContainer');
 	
 	// Setting up data island request
 	if(BrowserDetect.browser=='Konqueror') {
-		var dataIsland = genview.thedoc.createElement('input');
+		var dataIsland = genview.createElement('input');
 		dataIsland.type="hidden";
 		dataIsland.name=GeneralView.dataIslandMarker;
 		// This value must be 1 for IE data islands
@@ -517,7 +507,7 @@ NewWorkflowView.prototype = {
 		GeneralView.checkCN(this.newWFStyleText);
 		GeneralView.revertCN(this.newWFStyleFile);
 		this.clearView();
-		var textbox = this.genview.thedoc.createElement('textarea');
+		var textbox = this.genview.createElement('textarea');
 		this.newWFControl = textbox;
 		textbox.name="workflow";
 		textbox.cols=80;
@@ -562,7 +552,7 @@ NewWorkflowView.prototype = {
 					which not works in IE :-(
 				
 				// The iframe which will contain what we need
-				var iframe = this.genview.thedoc.createElement('iframe');
+				var iframe = this.genview.createElement('iframe');
 				var iframeName = iframe.name = WidgetCommon.getRandomUUID();
 				iframe.frameBorder = '0';
 				// This one is not working with Konqueror
@@ -614,8 +604,10 @@ NewWorkflowView.prototype = {
 					newwfview.newWFUploading.removeChild(iframe);
 					*/
 					WidgetCommon.removeEventListener(iframe,'load',onUpload,false);
-					iframe = undefined;
 					newwfview.newWFForm.target = undefined;
+					// Avoiding post messages on page reload
+					iframe.src="about:blank";
+					iframe = undefined;
 				};
 				
 				WidgetCommon.addEventListener(iframe,'load',onUpload,false);
@@ -636,12 +628,12 @@ function NewEnactionView(genview) {
 	this.genview = genview;
 	this.manview=genview.manview;
 	
-	this.iframe=genview.thedoc.getElementById('enactIFRAME');
-	this.newEnactForm=genview.thedoc.getElementById('formEnactor');
-	this.inputsContainer=genview.thedoc.getElementById('newInputs');
-	this.enactSVGContainer = genview.thedoc.getElementById('enactsvg');
-	this.newEnactUploading = genview.thedoc.getElementById('newEnactUploading');
-	this.submittedList = genview.thedoc.getElementById('submittedList');
+	this.iframe=genview.getElementById('enactIFRAME');
+	this.newEnactForm=genview.getElementById('formEnactor');
+	this.inputsContainer=genview.getElementById('newInputs');
+	this.enactSVGContainer = genview.getElementById('enactsvg');
+	this.newEnactUploading = genview.getElementById('newEnactUploading');
+	this.submittedList = genview.getElementById('submittedList');
 	
 	this.enactSVG = new TavernaSVG();
 	this.inputs=new Array();
@@ -652,7 +644,7 @@ function NewEnactionView(genview) {
 	
 	// Setting up data island request
 	if(BrowserDetect.browser=='Konqueror') {
-		var dataIsland = genview.thedoc.createElement('input');
+		var dataIsland = genview.createElement('input');
 		dataIsland.type="hidden";
 		dataIsland.name=GeneralView.dataIslandMarker;
 		// This value must be 1 for IE data islands
@@ -660,19 +652,20 @@ function NewEnactionView(genview) {
 		this.newEnactForm.appendChild(dataIsland);
 	}
 	
-	this.noneExampleSpan=genview.thedoc.getElementById('noneExampleSpan');
+	this.noneExampleSpan=genview.getElementById('noneExampleSpan');
 	GeneralView.initBaseCN(this.noneExampleSpan);
-	this.saveAsExampleSpan=genview.thedoc.getElementById('saveAsExampleSpan');
-	GeneralView.initBaseCN(this.saveAsExampleSpan);
-	this.useExampleSpan=genview.thedoc.getElementById('useExampleSpan');
+	
+	this.saveAsExample=genview.getElementById('saveAsExampleSpan');
+	GeneralView.initCheck(this.saveAsExample);
+	
+	this.useExampleSpan=genview.getElementById('useExampleSpan');
 	GeneralView.initBaseCN(this.useExampleSpan);
 	
 	this.inputstatecontrol=undefined;
 	
-	this.saveExampleDiv=genview.thedoc.getElementById('saveExampleDiv');
+	this.saveExampleDiv=genview.getElementById('saveExampleDiv');
 	
 	this.inputmode=undefined;
-	this.saveExample=false;
 
 	this.setupInputType();
 }
@@ -680,6 +673,17 @@ function NewEnactionView(genview) {
 NewEnactionView.prototype = {
 	setInputMode: function(control) {
 		if(this.inputstatecontrol!=control) {
+			if(control==this.useExampleSpan && this.workflow && this.workflow.examples) {
+				var found=undefined;
+				for(var facet in this.workflow.examples) {
+					found=1;
+					break;
+				}
+				if(!found) {
+					alert('Sorry, there is no registered input example for this workflow');
+					return;
+				}
+			}
 			// Graphical handling
 			if(this.inputstatecontrol) {
 				GeneralView.revertCN(this.inputstatecontrol);
@@ -706,30 +710,24 @@ NewEnactionView.prototype = {
 	
 	setSaveExampleMode: function(state) {
 		if(!this.inputmode) {
-			if(state!=this.saveExample) {
-				if(this.saveExample) {
-					this.saveExample=false;
-					GeneralView.revertCN(this.saveAsExampleSpan);
+			if(state!=this.saveAsExample.checked) {
+				if(this.saveAsExample.checked) {
+					this.saveAsExample.setCheck(false);
 					GeneralView.freeContainer(this.saveExampleDiv);
 				} else {
-					this.saveExample=true;
-					GeneralView.checkCN(this.saveAsExampleSpan);
+					this.saveAsExample.setCheck(true);
 					
 					// MORE - creating dialog fields
-					var spanName=this.genview.thedoc.createElement('span');
+					var spanName=this.genview.createElement('span');
 					spanName.innerHTML='Example Name';
-					var brName=this.genview.thedoc.createElement('br');
-					var exampleName=this.genview.thedoc.createElement('input');
+					var brName=this.genview.createElement('br');
+					var exampleName=this.genview.createElement('input');
 					exampleName.type='text';
 					exampleName.name='exampleName';
-					var br=this.genview.thedoc.createElement('br');
-					var spanDesc=this.genview.thedoc.createElement('span');
+					var br=this.genview.createElement('br');
+					var spanDesc=this.genview.createElement('span');
 					spanDesc.innerHTML='Description';
-					var brDesc=this.genview.thedoc.createElement('br');
-					var exampleDesc=this.genview.thedoc.createElement('textarea');
-					exampleDesc.cols=60;
-					exampleDesc.rows=10;
-					exampleDesc.name='exampleDesc';
+					var brDesc=this.genview.createElement('br');
 					
 					this.saveExampleDiv.appendChild(spanName);
 					this.saveExampleDiv.appendChild(brName);
@@ -737,14 +735,29 @@ NewEnactionView.prototype = {
 					this.saveExampleDiv.appendChild(br);
 					this.saveExampleDiv.appendChild(spanDesc);
 					this.saveExampleDiv.appendChild(brDesc);
-					this.saveExampleDiv.appendChild(exampleDesc);
+					
+					if(FCKeditor_IsCompatibleBrowser()) {
+						// Rich-Text Editor
+						var exampleDesc=new FCKeditor('exampleDesc',undefined,'250','IWWEM');
+						var basehref = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
+						exampleDesc.BasePath='js/FCKeditor/';
+						exampleDesc.Config['CustomConfigurationsPath']=basehref+'/js/fckconfig_IWWEM.js';
+						this.saveExampleDiv.innerHTML += exampleDesc.CreateHtml();
+					} else {
+						// I prefer my own defaults
+						var exampleDesc=this.genview.createElement('textarea');
+						exampleDesc.cols=60;
+						exampleDesc.rows=10;
+						exampleDesc.name='exampleDesc';
+						this.saveExampleDiv.appendChild(exampleDesc);
+					}
 				}
 			}
 		}
 	},
 	
 	switchSaveExampleMode: function() {
-		this.setSaveExampleMode(this.saveExample?false:true);
+		this.setSaveExampleMode(this.saveAsExample.checked?false:true);
 	},
 	
 	setupInputType: function() {
@@ -754,14 +767,14 @@ NewEnactionView.prototype = {
 			newenact.setInputMode(this);
 		};
 		
-		WidgetCommon.addEventListener(noneExampleSpan, 'click', oninputClickHandler, false);
-		WidgetCommon.addEventListener(useExampleSpan, 'click', oninputClickHandler, false);
+		WidgetCommon.addEventListener(this.noneExampleSpan, 'click', oninputClickHandler, false);
+		WidgetCommon.addEventListener(this.useExampleSpan, 'click', oninputClickHandler, false);
 		
 		var saveExampleClickHandler = function() {
 			newenact.switchSaveExampleMode();
 		};
 		
-		WidgetCommon.addEventListener(saveAsExampleSpan, 'click', saveExampleClickHandler, false);
+		WidgetCommon.addEventListener(this.saveAsExample, 'click', saveExampleClickHandler, false);
 	},
 	
 	openNewEnactionFrame: function () {
@@ -777,9 +790,12 @@ NewEnactionView.prototype = {
 			
 			// Inputs
 			this.setInputMode(this.noneExampleSpan);
+			this.setSaveExampleMode(false);
 			
 			// And at last, open frame
 			this.genview.openFrame('newEnaction');
+		} else {
+			alert('Please, first select a workflow before trying to enact one');
 		}
 	},
 	
@@ -788,12 +804,12 @@ NewEnactionView.prototype = {
 		var workflow=this.workflow;
 		
 		// First cell will have the selection form
-		var exSelect = this.genview.thedoc.createElement('select');
+		var exSelect = this.genview.createElement('select');
 		exSelect.name = 'BACLAVA_FILE';
 		
 		// Second one will have the div
 		// for the description
-		var divdesc = this.genview.thedoc.createElement('div');
+		var divdesc = this.genview.createElement('div');
 		divdesc.className = 'scrolldatamin';
 		
 		// And last!!!!
@@ -859,26 +875,26 @@ NewEnactionView.prototype = {
 		var randominputid=WidgetCommon.getRandomUUID();
 
 		// The container of all these 'static' elements
-		var thediv = this.genview.thedoc.createElement('div');
+		var thediv = this.genview.createElement('div');
 		thediv.className='borderedInput';
 
 		// Dynamic input container
-		var containerDiv=this.genview.thedoc.createElement('div');
+		var containerDiv=this.genview.createElement('div');
 		containerDiv.id=randominputid;
 
 		// 'Static' elements
-		var theinput = this.genview.thedoc.createElement('span');
+		var theinput = this.genview.createElement('span');
 		// The addition button
 		theinput.className = 'plus';
 		theinput.innerHTML='Input <span style="color:red;">'+input.name+'</span> ';
 		
-		var thechoicetext=this.genview.thedoc.createElement('span');
+		var thechoicetext=this.genview.createElement('span');
 		thechoicetext.className='radio left';
 		GeneralView.initBaseCN(thechoicetext);
 		GeneralView.checkCN(thechoicetext);
 		thechoicetext.innerHTML='as text';
 		
-		var thechoicefile=this.genview.thedoc.createElement('span');
+		var thechoicefile=this.genview.createElement('span');
 		thechoicefile.className='radio left';
 		GeneralView.initBaseCN(thechoicefile);
 		thechoicefile.innerHTML='as file';
@@ -912,21 +928,21 @@ NewEnactionView.prototype = {
 				// let's get it...
 				//newinput=newinput.parentNode;
 			} else {
-				newinput=newenactview.genview.thedoc.createElement('input');
+				newinput=newenactview.genview.createElement('input');
 				newinput.type='text';
 				newinput.name=controlname;
 
-				glass=newenactview.genview.thedoc.createElement('span');
+				glass=newenactview.genview.createElement('span');
 				glass.className='magglass';
 				glass.innerHTML='&nbsp;';
 				WidgetCommon.addEventListener(glass,'click',function() {
 					var renewinput;
 					if(newinput.type=='text') {
-						renewinput=newenactview.genview.thedoc.createElement('textarea');
+						renewinput=newenactview.genview.createElement('textarea');
 						renewinput.cols=60;
 						renewinput.rows=10;
 					} else {
-						renewinput=newenactview.genview.thedoc.createElement('input');
+						renewinput=newenactview.genview.createElement('input');
 						renewinput.type='text';
 					}
 					// Replacing old text are with new one!
@@ -938,11 +954,11 @@ NewEnactionView.prototype = {
 
 			}
 
-			var remover=newenactview.genview.thedoc.createElement('span');
+			var remover=newenactview.genview.createElement('span');
 			remover.className='plus remove';
 			remover.innerHTML='&nbsp;';
 
-			var mydiv=newenactview.genview.thedoc.createElement('div');
+			var mydiv=newenactview.genview.createElement('div');
 			WidgetCommon.addEventListener(remover,'click',function() {
 				containerDiv.removeChild(mydiv);
 			},false);
@@ -956,7 +972,7 @@ NewEnactionView.prototype = {
 		}, false);
 
 		// Now, it is time to create the selection
-		var thechoice = this.genview.thedoc.createElement('span');
+		var thechoice = this.genview.createElement('span');
 		thechoice.className='borderedOption';
 		thechoice.appendChild(thechoicetext);
 		thechoice.appendChild(thechoicefile);
@@ -995,12 +1011,12 @@ NewEnactionView.prototype = {
 	},
 	
 	openSubmitFrame: function() {
-		var elem=this.genview.thedoc.getElementById('submitEnaction');
+		var elem=this.genview.getElementById('submitEnaction');
 		elem.className='submitEnaction';
 	},
 	
 	closeSubmitFrame: function() {
-		var elem=this.genview.thedoc.getElementById('submitEnaction');
+		var elem=this.genview.getElementById('submitEnaction');
 		elem.className='hidden';
 	},
 	
@@ -1013,7 +1029,7 @@ NewEnactionView.prototype = {
 			which not works in IE :-(
 			
 		// The iframe which will contain what we need
-		var iframe = this.genview.thedoc.createElement('iframe');
+		var iframe = this.genview.createElement('iframe');
 		var iframeName = iframe.name = WidgetCommon.getRandomUUID();
 		iframe.frameBorder = '0';
 		// This one was not working with Konqueror
@@ -1068,8 +1084,10 @@ NewEnactionView.prototype = {
 			newenactview.newEnactUploading.removeChild(iframe);
 			*/
 			WidgetCommon.removeEventListener(iframe,'load',iframeLoaded,false);
-			iframe = undefined;
 			newenactview.newEnactForm.target = undefined;
+			// Avoiding post messages on page reload
+			iframe.src="about:blank";
+			iframe = undefined;
 		};
 		WidgetCommon.addEventListener(iframe,'load',iframeLoaded,false);
 		
@@ -1095,7 +1113,7 @@ NewEnactionView.prototype = {
 					window.open(theURL);
 
 					// And leave a trace!
-					var theli=this.genview.thedoc.createElement('li');
+					var theli=this.genview.createElement('li');
 					theli.innerHTML=time+': <a href="'+theURL+'">'+enactId+'</a>';
 					this.submittedList.appendChild(theli);
 				}

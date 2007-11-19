@@ -459,7 +459,7 @@ foreach my $wf (@workflowlist) {
 					my($fentry)=$depdir.'/'.$entry;
 					if(-f $fentry && $fentry =~ /\.xml$/) {
 						my($depnode) = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'dependsOn');
-						$depnode->setAtribute('sub',$depreldir.'/'.$entry);
+						$depnode->setAttribute('sub',$depreldir.'/'.$entry);
 						$wfe->appendChild($depnode);
 					}
 				}
