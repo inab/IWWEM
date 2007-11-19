@@ -38,6 +38,24 @@ GeneralView.freeContainer = function (container) {
 	}
 };
 
+GeneralView.checkCN = function (elem) {
+	if(elem && elem.className) {
+		elem.className += ' checked';
+	}
+}
+
+GeneralView.initBaseCN = function (elem) {
+	if(elem && elem.className) {
+		elem.baseClassName=elem.className;
+	}
+}
+
+GeneralView.revertCN = function (elem) {
+	if(elem && elem.baseClassName) {
+		elem.className=elem.baseClassName;
+	}
+}
+
 GeneralView.preProcess = function (thedesc) {
 	if(!thedesc)  thedesc='';
 	if(thedesc.search(/<[^>]+>/m)==-1) {
@@ -58,6 +76,7 @@ GeneralView.preProcess = function (thedesc) {
 	
 	return thedesc;
 };
+
 
 GeneralView.dataIslandMarker='dataIsland';
 
@@ -124,6 +143,56 @@ GeneralView.prototype = {
 		filecontrol.name=thename;
 		
 		return filecontrol;
+	},
+	
+	/* Generates a new graphical input */
+	generateFileSpan: function (thetext,controlname) {
+		var randominputid=WidgetCommon.getRandomUUID();
+
+		// The container of all these 'static' elements
+		var thediv = this.thedoc.createElement('div');
+		thediv.className='borderedInput';
+
+		// Dynamic input container
+		var containerDiv=this.thedoc.createElement('div');
+		containerDiv.id=randominputid;
+
+		// 'Static' elements
+		var theinput = this.thedoc.createElement('span');
+		// The addition button
+		theinput.className = 'plus';
+		theinput.innerHTML=thetext;
+		
+		var genview=this;
+		WidgetCommon.addEventListener(theinput, 'click', function() {
+			var newinput=genview.createCustomizedFileControl(controlname);
+
+			// As we are interested in the container (the parent)
+			// let's get it...
+			//newinput=newinput.parentNode;
+
+			var remover=genview.thedoc.createElement('span');
+			remover.className='plus remove';
+			remover.innerHTML='&nbsp;';
+
+			var mydiv=genview.thedoc.createElement('div');
+			WidgetCommon.addEventListener(remover,'click',function() {
+				containerDiv.removeChild(mydiv);
+			},false);
+
+			mydiv.appendChild(remover);
+			mydiv.appendChild(newinput);
+
+			// Adding it to the container
+			containerDiv.appendChild(mydiv);
+		}, false);
+
+		// Last children!
+		thediv.appendChild(theinput);
+
+		thediv.appendChild(containerDiv);
+
+		return thediv;
 	}
 };
 	

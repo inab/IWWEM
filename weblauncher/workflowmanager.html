@@ -31,8 +31,11 @@
 				<p><b>Outputs</b>
 				<div id="outputs">&nbsp;</div>
 				</p>
-				<b>Description</b>
+				<p><b>Description</b>
 				<div id="description" style="text-align:justify">&nbsp;</div>
+				</p>
+				<b>Available enaction snapshots</b>
+				<div id="snapshots" style="text-align:justify">&nbsp;</div>
 			</div>
 		</td></tr><tr><td class="buttons">
 			<div align="center">
@@ -48,7 +51,10 @@
 			</div>
 		</td><td class="buttons">
 			<div align="right" style="vertical-align: bottom;">
+				<span id="confirm" class='checkbox right red'>Confirm</span><br>
+				<!--
 				<label>Confirm<input type="checkbox" name="confirm" id="confirm"></input></label><br>
+				-->
 				<div class="button" onclick="genview.manview.deleteWorkflow()">Delete <img src="style/redball.png"></img></div>
 			</div>
 		</td></tr><tr><td>
@@ -64,21 +70,26 @@
 </div>
 <div class="hidden" id="newWorkflow">
 	<div class="secondary">
-		<div align="center">Please introduce your workflow</div>
+		<div align="center">Please introduce your workflow and the local workflows it depends on</div>
+		<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img>
+			<iframe src="about:blank" frameborder="0" id="uploadIFRAME" name="uploadIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
+		</div>
 		<form id="formNewWF" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data">
 			<div align="center">
-				<div class="borderedOption"><span id="newWFStyleText" class="radio">As text</span>&nbsp;<span id="newWFStyleFile" class="radio">As file</span></div>
-				<div id="newWFContainer"></div>
-			</div>
-			<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img>
-				<iframe src="about:blank" frameborder="0" id="uploadIFRAME" name="uploadIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
+				<table><tr><td>
+					<div class="borderedOption"><span id="newWFStyleText" class="radio left">As text</span>&nbsp;<span id="newWFStyleFile" class="radio left">As file</span></div>
+				</td></tr><tr><td>
+					<div id="newWFContainer"></div>
+				</td></tr><tr><td>
+					<div id="newSubWFContainer"></div>
+				</td></tr></table>
 			</div>
 		</form>
 		<div class="button back" onclick="genview.newwfview.closeNewWorkflowFrame()"><img src="style/leftarrow.png"></img> Back</div>
 		<div class="button forward" onclick="genview.newwfview.upload()">Upload <img src="style/upload.png"></img></div>
 	</div>
 </div>
-<div class="hidden" id="workflowInputs">
+<div class="hidden" id="newEnaction">
 	<div class="secondary">
 		<div align="center">Please introduce your inputs for workflow</div>
 		<form id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data">
@@ -87,7 +98,16 @@
 					<div align="center" id="enactsvg"></div>
 				</td><td width="100%">
 					<div class="scrolldatalarge">
-						<div><span id="noneExampleSpan" class="radio">Use inputs</span> <span id="saveAsExampleSpan" class="checkbox">Save as example</span> <span id="useExampleSpan" class="radio">Use example</span></div>
+						<div style="margin: 5px 5px 5px 5px">
+							<span class="borderedOption">
+							<span id="noneExampleSpan" class="radio right">Use inputs</span>
+							<span id="saveAsExampleSpan" class="checkbox right blue">Save as example</span>
+							</span>
+							<span class="borderedOption">
+							<span id="useExampleSpan" class="radio right">Use example</span>
+							</span>
+							<div id="saveExampleDiv"></div>
+						</div>
 						<div id="newInputs"></div>
 					</div>
 				</td></tr>

@@ -42,15 +42,38 @@ function InputExample(inEx) {
 	this.name=inEx.getAttribute('name');
 	this.uuid=inEx.getAttribute('uuid');
 	this.date=inEx.getAttribute('date');
+	this.path=inEx.getAttribute('path');
 	this.description = WidgetCommon.getTextContent(inEx);
 }
 
-function OutputSnapshot(inEx) {
-	this.name=inEx.getAttribute('name');
-	this.uuid=inEx.getAttribute('uuid');
-	this.date=inEx.getAttribute('date');
-	this.description = WidgetCommon.getTextContent(inEx);
+InputExample.prototype = {
+	generateOption: function (/* optional */ thedoc) {
+		if(!thedoc)  thedoc=document;
+		var exSelOpt = thedoc.createElement('option');
+		exSelOpt.value = this.uuid;
+		exSelOpt.text = this.name+' ('+this.date+')';
+		
+		return exSelOpt;
+	}
+};
+
+function OutputSnapshot(ouSn) {
+	this.name=ouSn.getAttribute('name');
+	this.uuid=ouSn.getAttribute('uuid');
+	this.date=ouSn.getAttribute('date');
+	this.description = WidgetCommon.getTextContent(ouSn);
 }
+
+OutputSnapshot.prototype = {
+	generateOption: function (/* optional */ thedoc) {
+		if(!thedoc)  thedoc=document;
+		var snSelOpt = thedoc.createElement('option');
+		snSelOpt.value = this.uuid;
+		snSelOpt.text = this.name+' ('+this.date+')';
+		
+		return snSelOpt;
+	}
+};
 
 function WorkflowDesc(wfD) {
 	this.uuid = wfD.getAttribute('uuid');
@@ -60,6 +83,7 @@ function WorkflowDesc(wfD) {
 	this.lsid = wfD.getAttribute('lsid');
 	this.author = wfD.getAttribute('author');
 	
+	var depends=new Array();
 	var inputs=new Array();
 	var outputs=new Array();
 	var examples=new Array();
@@ -80,6 +104,9 @@ function WorkflowDesc(wfD) {
 					// differences among the standars
 					// and Internet Explorer behavior
 					this.description = WidgetCommon.getTextContent(child);
+					break;
+				case 'dependsOn':
+					this.depends.push(child.getAttribute('sub'));
 					break;
 				case 'example':
 					var newExample = new InputExample(child);
@@ -129,8 +156,10 @@ function ManagerView(genview) {
 	this.descContainer=genview.thedoc.getElementById('description');
 	this.inContainer=genview.thedoc.getElementById('inputs');
 	this.outContainer=genview.thedoc.getElementById('outputs');
+	this.snapContainer=genview.thedoc.getElementById('snapshots');
 
-	this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown.svg','75mm','90mm');
+	// this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown.svg','75mm','90mm');
+	this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown-inb.svg');
 	
 	this.wfA=new Array();
 	this.listRequest=undefined;
@@ -139,6 +168,19 @@ function ManagerView(genview) {
 	// To update on automatic changes of the selection box
 	var manview = this;
 	WidgetCommon.addEventListener(this.wfselect,'change',function () { manview.updateView();},false);
+	
+	// As confirm check is no more a real check, let's fake it!
+	this.check.checked=false;
+	GeneralView.initBaseCN(this.check);
+	WidgetCommon.addEventListener(this.check,'click', function() {
+		if(this.checked) {
+			GeneralView.revertCN(this);
+			this.checked=false;
+		} else {
+			GeneralView.checkCN(this);
+			this.checked=true;
+		}
+	},false);
 }
 
 ManagerView.prototype = {
@@ -157,6 +199,7 @@ ManagerView.prototype = {
 		GeneralView.freeContainer(this.lsidContainer);
 		GeneralView.freeContainer(this.authorContainer);
 		GeneralView.freeContainer(this.descContainer);
+		GeneralView.freeContainer(this.snapContainer);
 		GeneralView.freeContainer(this.inContainer);
 		GeneralView.freeContainer(this.outContainer);
 	},
@@ -181,6 +224,7 @@ ManagerView.prototype = {
 			// Clearing input & output info
 			GeneralView.freeContainer(this.inContainer);
 			GeneralView.freeContainer(this.outContainer);
+			GeneralView.freeContainer(this.snapContainer);
 			
 			// Basic information
 			this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
@@ -200,21 +244,28 @@ ManagerView.prototype = {
 			// This is needed to append links to the description itself
 			var thep = this.genview.thedoc.createElement('p');
 			alink = this.genview.thedoc.createElement('a');
-			alink.href = this.WFBase+'/'+workflow.path;
-			alink.target = '_blank';
-			alink.innerHTML = '<i>Download Workflow</i>';
-			thep.appendChild(alink);
-			this.descContainer.appendChild(thep);
-			
-			thep = this.genview.thedoc.createElement('p');
-			alink = this.genview.thedoc.createElement('a');
 			alink.href = this.WFBase+'/'+workflow.svgpath;
 			alink.target = '_blank';
 			alink.innerHTML = '<i>Download Workflow Graph (SVG)</i>';
 			thep.appendChild(alink);
 			this.descContainer.appendChild(thep);
 			
-			// And now, inputs and outputs
+			thep = this.genview.thedoc.createElement('p');
+			alink = this.genview.thedoc.createElement('a');
+			alink.href = this.WFBase+'/'+workflow.path;
+			alink.target = '_blank';
+			alink.innerHTML = '<i>Download Workflow</i>';
+			thep.appendChild(alink);
+			this.descContainer.appendChild(thep);
+			
+			// Possible dependencies
+			if(workflow.depends.length>0) {
+				thep = this.genview.thedoc.createElement('p');
+				thep.innerHTML = '<i>(This workflow depends on '+workflow.depends.length+' subworkflow'+((workflow.depends.length>1)?'s':'')+')</i>';
+				this.descContainer.appendChild(thep);
+			}
+			
+			// Now, inputs and outputs
 			var ul;
 			for(var iofacet in workflow.inputs) {
 				var io=workflow.inputs[iofacet];
@@ -250,6 +301,26 @@ ManagerView.prototype = {
 			} else {
 				this.outContainer.innerHTML='<i>(None)</i>';
 			}
+			
+			// And at last, snapshots
+			ul=undefined
+			for(var si=0;si<workflow.snapshots.length;si++) {
+				var snap=workflow.snapshots[si];
+				if(!ul)  ul=this.genview.thedoc.createElement('ul');
+				var li=this.genview.thedoc.createElement('li');
+				var line='<i><a href="enactionviewer.html?jobId='+snap.uuid+'">'+snap.name+'</a> ('+snap.date+')</i>';
+				if('description' in snap) {
+					line += '<br>'+GeneralView.preProcess(snap.description);
+				}
+				li.innerHTML=line;
+				ul.appendChild(li);
+			}
+			if(ul) {
+				this.inContainer.appendChild(ul);
+			} else {
+				this.inContainer.innerHTML='<i>(None)</i>';
+			}
+			
 		} else {
 			this.clearView();
 		}
@@ -381,6 +452,7 @@ ManagerView.prototype = {
 		if(this.check.checked && this.wfselect.selectedIndex!=-1) {
 			var sureErase=confirm('Are you REALLY sure you want to erase this workflow?');
 			this.check.checked=false;
+			GeneralView.revertCN(this.check);
 			if(sureErase) {
 				this.reloadList(this.wfselect.options[this.wfselect.selectedIndex].value);
 			}
@@ -398,14 +470,21 @@ function NewWorkflowView(genview) {
 	this.newWFUploading=genview.thedoc.getElementById('newWFUploading');
 	
 	this.newWFStyleText=genview.thedoc.getElementById('newWFStyleText');
+	GeneralView.initBaseCN(this.newWFStyleText);
+	
 	this.newWFStyleFile=genview.thedoc.getElementById('newWFStyleFile');
+	GeneralView.initBaseCN(this.newWFStyleFile);
 	
 	var newwfview = this;
+	// Either text or file
 	WidgetCommon.addEventListener(this.newWFStyleText, 'click', function() { newwfview.setTextControl(); }, false);
 	WidgetCommon.addEventListener(this.newWFStyleFile, 'click', function() { newwfview.setFileControl(); }, false);
 	
 	this.newWFControl = undefined;
 	//this.iframe = undefined;
+	
+	// More on subworkflows
+	this.newSubWFContainer=genview.thedoc.getElementById('newSubWFContainer');
 	
 	// Setting up data island request
 	if(BrowserDetect.browser=='Konqueror') {
@@ -422,6 +501,7 @@ NewWorkflowView.prototype = {
 	openNewWorkflowFrame: function () {
 		// These methods only work when they must!
 		this.setFileControl();
+		this.generateSubworkflowSpan();
 		this.newWFUploading.style.visibility='hidden';
 		
 		this.genview.openFrame('newWorkflow');
@@ -434,21 +514,21 @@ NewWorkflowView.prototype = {
 	},
 	
 	setTextControl: function() {
-		this.newWFStyleText.className='radio checked';
-		this.newWFStyleFile.className='radio';
+		GeneralView.checkCN(this.newWFStyleText);
+		GeneralView.revertCN(this.newWFStyleFile);
 		this.clearView();
 		var textbox = this.genview.thedoc.createElement('textarea');
 		this.newWFControl = textbox;
 		textbox.name="workflow";
 		textbox.cols=80;
-		textbox.rows=25;
+		textbox.rows=15;
 
 		this.newWFContainer.appendChild(textbox);
 	},
 	
 	setFileControl: function() {
-		this.newWFStyleText.className='radio';
-		this.newWFStyleFile.className='radio checked';
+		GeneralView.revertCN(this.newWFStyleText);
+		GeneralView.checkCN(this.newWFStyleFile);
 		this.clearView();
 		var filecontrol = this.genview.createCustomizedFileControl("workflow");
 		this.newWFControl = filecontrol;
@@ -458,10 +538,17 @@ NewWorkflowView.prototype = {
 		this.newWFContainer.appendChild(filecontrol);
 	},
 	
+	/* Generates a new graphical input */
+	generateSubworkflowSpan: function () {
+		var fileSpan= this.genview.generateFileSpan('Add local subworkflow','workflowDep');
+		this.newSubWFContainer.appendChild(fileSpan);
+	},
+	
 	closeNewWorkflowFrame: function() {
 		if(!this.uploading) {
 			this.genview.closeFrame();
 			this.clearView();
+			GeneralView.freeContainer(this.newSubWFContainer);
 		}
 	},
 	
@@ -561,8 +648,7 @@ function NewEnactionView(genview) {
 	this.baclava=new Array();
 	
 	this.workflow=undefined;
-	this.inputmode=false;
-	this.saveExample=false;
+	this.WFBase=undefined;
 	
 	// Setting up data island request
 	if(BrowserDetect.browser=='Konqueror') {
@@ -574,55 +660,105 @@ function NewEnactionView(genview) {
 		this.newEnactForm.appendChild(dataIsland);
 	}
 	
+	this.noneExampleSpan=genview.thedoc.getElementById('noneExampleSpan');
+	GeneralView.initBaseCN(this.noneExampleSpan);
+	this.saveAsExampleSpan=genview.thedoc.getElementById('saveAsExampleSpan');
+	GeneralView.initBaseCN(this.saveAsExampleSpan);
+	this.useExampleSpan=genview.thedoc.getElementById('useExampleSpan');
+	GeneralView.initBaseCN(this.useExampleSpan);
+	
+	this.inputstatecontrol=undefined;
+	
+	this.saveExampleDiv=genview.thedoc.getElementById('saveExampleDiv');
+	
+	this.inputmode=undefined;
+	this.saveExample=false;
+
 	this.setupInputType();
-	this.setInputMode(0);
 }
 
 NewEnactionView.prototype = {
+	setInputMode: function(control) {
+		if(this.inputstatecontrol!=control) {
+			// Graphical handling
+			if(this.inputstatecontrol) {
+				GeneralView.revertCN(this.inputstatecontrol);
+			}
+			this.inputstatecontrol=control;
+			
+			this.disposeContainers();
+			
+			if(control) {
+				GeneralView.checkCN(control);
+				if(control==this.noneExampleSpan) {
+					this.inputmode=false;
+					this.generateInputsHandlers();
+				} else {
+					this.setSaveExampleMode(false);
+					this.inputmode=true;
+					this.generateExamplesSelect();
+				}
+			} else {
+				this.inputmode=undefined;
+			}
+		}
+	},
+	
+	setSaveExampleMode: function(state) {
+		if(!this.inputmode) {
+			if(state!=this.saveExample) {
+				if(this.saveExample) {
+					this.saveExample=false;
+					GeneralView.revertCN(this.saveAsExampleSpan);
+					GeneralView.freeContainer(this.saveExampleDiv);
+				} else {
+					this.saveExample=true;
+					GeneralView.checkCN(this.saveAsExampleSpan);
+					
+					// MORE - creating dialog fields
+					var spanName=this.genview.thedoc.createElement('span');
+					spanName.innerHTML='Example Name';
+					var brName=this.genview.thedoc.createElement('br');
+					var exampleName=this.genview.thedoc.createElement('input');
+					exampleName.type='text';
+					exampleName.name='exampleName';
+					var br=this.genview.thedoc.createElement('br');
+					var spanDesc=this.genview.thedoc.createElement('span');
+					spanDesc.innerHTML='Description';
+					var brDesc=this.genview.thedoc.createElement('br');
+					var exampleDesc=this.genview.thedoc.createElement('textarea');
+					exampleDesc.cols=60;
+					exampleDesc.rows=10;
+					exampleDesc.name='exampleDesc';
+					
+					this.saveExampleDiv.appendChild(spanName);
+					this.saveExampleDiv.appendChild(brName);
+					this.saveExampleDiv.appendChild(exampleName);
+					this.saveExampleDiv.appendChild(br);
+					this.saveExampleDiv.appendChild(spanDesc);
+					this.saveExampleDiv.appendChild(brDesc);
+					this.saveExampleDiv.appendChild(exampleDesc);
+				}
+			}
+		}
+	},
+	
+	switchSaveExampleMode: function() {
+		this.setSaveExampleMode(this.saveExample?false:true);
+	},
+	
 	setupInputType: function() {
 		// Input type selectors
-		var noneExampleSpan=genview.thedoc.getElementById('noneExampleSpan');
-		var saveAsExampleSpan=genview.thedoc.getElementById('saveAsExampleSpan');
-		var useExampleSpan=genview.thedoc.getElementById('useExampleSpan');
-
-		var inputstatecontrol=undefined;
 		var newenact = this;
 		var oninputClickHandler = function() {
-			if(inputstatecontrol!=this) {
-				if(inputstatecontrol) {
-					inputstatecontrol.className='radio';
-				}
-				this.className='radio checked';
-				inputstatecontrol=this;
-
-				GeneralView.freeContainer(containerDiv);
-			}
-			
-			if(inputstatecontrol==noneExampleSpan) {
-				newenact.inputmode=false;
-				newenact.disposeContainers();
-				newenact.generateInputsHandlers();
-			} else {
-				newenact.saveExample=false;
-				saveAsExampleSpan.className='checkbox';
-				newenact.disposeContainers();
-				newenact.generateExamplesSelect();
-			}
+			newenact.setInputMode(this);
 		};
 		
-		WidgetCommon.addEventListener(noneExampleSpan, 'click', oninputclickHandler, false);
-		WidgetCommon.addEventListener(useExampleSpan, 'click', oninputclickHandler, false);
+		WidgetCommon.addEventListener(noneExampleSpan, 'click', oninputClickHandler, false);
+		WidgetCommon.addEventListener(useExampleSpan, 'click', oninputClickHandler, false);
 		
 		var saveExampleClickHandler = function() {
-			if(inputstatecontrol==noneExampleSpan) {
-				if(newenact.inputmode) {
-					newenact.inputmode=false;
-					saveAsExampleSpan.className='checkbox';
-				} else {
-					newenact.inputmode=true;
-					saveAsExampleSpan.className='checkbox checked';
-				}
-			}
+			newenact.switchSaveExampleMode();
 		};
 		
 		WidgetCommon.addEventListener(saveAsExampleSpan, 'click', saveExampleClickHandler, false);
@@ -636,14 +772,70 @@ NewEnactionView.prototype = {
 			
 			// SVG graph
 			this.workflow = workflow;
+			this.WFBase = WFBase;
 			this.enactSVG.loadSVG(this.enactSVGContainer.id,WFBase+'/'+workflow.svgpath,'100mm','120mm');
 			
 			// Inputs
-			this.generateInputHandlers();
+			this.setInputMode(this.noneExampleSpan);
 			
 			// And at last, open frame
-			this.genview.openFrame('workflowInputs');
+			this.genview.openFrame('newEnaction');
 		}
+	},
+	
+	generateExamplesSelect: function() {
+		// Examples selection
+		var workflow=this.workflow;
+		
+		// First cell will have the selection form
+		var exSelect = this.genview.thedoc.createElement('select');
+		exSelect.name = 'BACLAVA_FILE';
+		
+		// Second one will have the div
+		// for the description
+		var divdesc = this.genview.thedoc.createElement('div');
+		divdesc.className = 'scrolldatamin';
+		
+		// And last!!!!
+		this.inputsContainer.innerHTML='Example ';
+		this.inputsContainer.appendChild(exSelect);
+		this.inputsContainer.appendChild(divdesc);
+		
+		// Now it is time to fill in the select control
+		for(var examplefacet in workflow.examples) {
+			var example=workflow.examples[examplefacet];
+			var exSelOpt=example.generateOption();
+			
+			// Last: save selection!
+			try {
+				exSelect.add(exSelOpt,null);
+			} catch(e) {
+				exSelect.add(exSelOpt);
+			}
+		}
+		
+		// And the on change event, which must be taken into account
+		var onSelectChange=function() {
+			GeneralView.freeContainer(divdesc);
+			if(exSelect.selectedIndex!=-1) {
+				var example = workflow.examples[exSelect.options[exSelect.selectedIndex].value];
+				
+				var output='<b>Example name:</b> '+example.name+'<br>';
+				output += '<b>UUID:</b> '+example.uuid+'<br>';
+				output += '<b>Date:</b> '+example.date+'<br>';
+				output += '<i><a href="'+this.WFBase+'/'+example.path+'">Download link</a></i><br>';
+				output += '<b><u>Description</u></b><br>';
+				if(example.description && example.description.length>0) {
+					output += GeneralView.preProcess(example.description);
+				} else {
+					output += '<i>(None)</i>';
+				}
+				
+				divdesc.innerHTML=output;
+			}
+		};
+		
+		WidgetCommon.addEventListener(exSelect,'change',onSelectChange,false);
 	},
 	
 	generateInputsHandlers: function() {
@@ -681,11 +873,14 @@ NewEnactionView.prototype = {
 		theinput.innerHTML='Input <span style="color:red;">'+input.name+'</span> ';
 		
 		var thechoicetext=this.genview.thedoc.createElement('span');
-		thechoicetext.className='radio checked';
+		thechoicetext.className='radio left';
+		GeneralView.initBaseCN(thechoicetext);
+		GeneralView.checkCN(thechoicetext);
 		thechoicetext.innerHTML='as text';
 		
 		var thechoicefile=this.genview.thedoc.createElement('span');
-		thechoicefile.className='radio';
+		thechoicefile.className='radio left';
+		GeneralView.initBaseCN(thechoicefile);
 		thechoicefile.innerHTML='as file';
 		
 		var statecontrol=thechoicetext;
@@ -693,9 +888,9 @@ NewEnactionView.prototype = {
 		var onclickHandler=function() {
 			if(statecontrol!=this) {
 				if(statecontrol) {
-					statecontrol.className='radio';
+					GeneralView.revertCN(statecontrol);
 				}
-				this.className='radio checked';
+				GeneralView.checkCN(this);
 				statecontrol=this;
 				
 				GeneralView.freeContainer(containerDiv);
@@ -778,53 +973,7 @@ NewEnactionView.prototype = {
 	
 	/* Generates a new graphical input */
 	generateBaclavaSpan: function () {
-		var randominputid=WidgetCommon.getRandomUUID();
-
-		// The container of all these 'static' elements
-		var thediv = this.genview.thedoc.createElement('div');
-		thediv.className='borderedInput';
-
-		// Dynamic input container
-		var containerDiv=this.genview.thedoc.createElement('div');
-		containerDiv.id=randominputid;
-
-		// 'Static' elements
-		var theinput = this.genview.thedoc.createElement('span');
-		// The addition button
-		theinput.className = 'plus';
-		theinput.innerHTML='Add Baclava file';
-		
-		var newenactview=this;
-		WidgetCommon.addEventListener(theinput, 'click', function() {
-			var controlname='BACLAVA_FILE';
-			var newinput=newenactview.genview.createCustomizedFileControl(controlname);
-
-			// As we are interested in the container (the parent)
-			// let's get it...
-			//newinput=newinput.parentNode;
-
-			var remover=newenactview.genview.thedoc.createElement('span');
-			remover.className='plus remove';
-			remover.innerHTML='&nbsp;';
-
-			var mydiv=newenactview.genview.thedoc.createElement('div');
-			WidgetCommon.addEventListener(remover,'click',function() {
-				containerDiv.removeChild(mydiv);
-			},false);
-
-			mydiv.appendChild(remover);
-			mydiv.appendChild(newinput);
-
-			// Adding it to the container
-			containerDiv.appendChild(mydiv);
-		}, false);
-		
-		// Last children!
-		thediv.appendChild(theinput);
-
-		thediv.appendChild(containerDiv);
-		
-		return thediv;
+		return this.genview.generateFileSpan('Add Baclava file','BACLAVA_FILE');
 	},
 	
 	disposeContainers: function() {
@@ -835,6 +984,7 @@ NewEnactionView.prototype = {
 		// Removing all the content from the containers
 		this.enactSVG.removeSVG();
 		this.disposeContainers();
+		this.setInputMode(undefined);
 	},
 	
 	closeNewEnactionFrame: function() {

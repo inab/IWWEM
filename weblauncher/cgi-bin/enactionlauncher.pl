@@ -34,7 +34,7 @@ mkpath($jobdir);
 
 my($wfile)=$jobdir . '/'. $WorkflowCommon::WORKFLOWFILE;
 my($efile)=$jobdir . '/joberrlog.txt';
-my($wrelpath)=undef;
+my($workflowId)=undef;
 my($wfilefetched)=undef;
 my($baclavafound)=undef;
 my($inputdir)=$jobdir . '/jobinput';
@@ -45,6 +45,10 @@ my($inputcount)=0;
 my($retval)=0;
 my($dataisland)=undef;
 my($dataislandTag)=undef;
+
+my($exampleName)=undef;
+my($exampleDesc)=undef;
+my(@saveExample)=();
 
 # First step, parameter and workflow storage (if any!)
 PARAMPROC:
@@ -67,12 +71,12 @@ foreach my $param ($query->param()) {
 		my($WFH);
 		if(open($WFH,'>',$wfile)) {
 			unless(defined($WORKFLOW)) {
-				$wrelpath=$query->param($param);
+				$workflowId=$query->param($param);
 				
-				my($wabspath)=$WorkflowCommon::WORKFLOWDIR . '/' . $wrelpath . '/' . $WorkflowCommon::WORKFLOWFILE;
+				my($wabspath)=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::WORKFLOWFILE;
 				
 				# Is it a 'sure' path?
-				if(index($wrelpath,'/')==0 || index($wrelpath,'../')!=-1 || ! -f $wabspath) {
+				if(index($workflowId,'/')==0 || index($workflowId,'../')!=-1 || ! -f $wabspath) {
 					$retval = 2;
 					last;
 				}
@@ -90,9 +94,9 @@ foreach my $param ($query->param()) {
 			}
 			
 			# Time to copy dependencies needed by workflow
-			if(defined($wrelpath)) {
+			if(defined($workflowId)) {
 				close($WORKFLOW);
-				my($depsdir)=$WorkflowCommon::WORKFLOWDIR . '/' . $wrelpath . '/' . $WorkflowCommon::DEPDIR;
+				my($depsdir)=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::DEPDIR;
 				my($jobdepsdir)=$jobdir.'/'.$WorkflowCommon::DEPDIR;
 				mkpath($jobdepsdir);
 				my($DIR);
@@ -115,6 +119,10 @@ foreach my $param ($query->param()) {
 		}
 	} elsif($param eq $WorkflowCommon::BACLAVAPARAM) {
 		$baclavafound=1;
+	} elsif($param eq $WorkflowCommon::PARAMSAVEEX) {
+		$exampleName=$query->param($param);
+	} elsif($param eq $WorkflowCommon::PARAMSAVEEXDESC) {
+		$exampleDesc=$query->param($param);
 	} elsif(length($param)>length($WorkflowCommon::PARAMPREFIX) && index($param,$WorkflowCommon::PARAMPREFIX)==0) {
 		# Single param handling
 		my $paramName = substr($param,length($WorkflowCommon::PARAMPREFIX));
@@ -184,12 +192,12 @@ if(defined($baclavafound)) {
 	my($fcount)=0;
 	if(scalar(@BFH)==0) {
 		# We are going to use examples!
-		if(defined($wrelpath)) {
+		if(defined($workflowId)) {
 			@BFH=$query->param($param);
 
 			foreach my $exfile (@BFH) {
 				my($baclavaname)=$paramPath.'/'.$fcount.'.xml';
-				my($example)=$WorkflowCommon::WORKFLOWDIR.'/'.$wrelpath.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$exfile.'.xml';
+				my($example)=$WorkflowCommon::WORKFLOWDIR.'/'.$workflowId.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$exfile.'.xml';
 				next  if(index($exfile,'/')==0 || index($exfile,'../')!=-1 || ! -f $example );
 				if(copy($example,$baclavaname)) {
 					push(@baclavadesc,'-inputDoc',$baclavaname);
@@ -220,6 +228,40 @@ if(defined($baclavafound)) {
 	}
 	
 	$inputcount++;
+}
+
+# This example node will be used to notify
+# the creation of the example file
+my($example)=undef;
+# Saving as an example
+if(defined($exampleName) && defined($workflowId)) {
+	my($randname);
+	my($relrandfile);
+	my($randfile);
+	do {
+		$randname=WorkflowCommon::genUUID();
+		$relrandfile=$workflowId.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$randname.'.xml';
+		$randfile=$WorkflowCommon::WORKFLOWDIR.'/'.$relrandfile;
+	} while(-f $randfile);
+	
+	my($parser)=XML::LibXML->new();
+	my($catalogfile)=$WorkflowCommon::WORKFLOWDIR.'/'.$workflowId.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
+	my($catalog)=$parser->parseFile($catalogfile);
+	my($example)=$catalog->createElementNS($WorkflowCommon::WFD_NS,'example');
+	$example->setAttribute('uuid',$randname);
+	$example->setAttribute('name',$exampleName);
+	$example->setAttribute('path',$relrandfile);
+	$example->setAttribute('date',LockNLog::getPrintableNow());
+	if(defined($exampleDesc) && length($exampleDesc) > 0) {
+		$example->appendChild($catalog->createCDATASection(encode('UTF-8',$exampleDesc)));
+	}
+	
+	# Save example name and description
+	$catalog->documentElement()->appendChild($example);
+	$catalog->toFile($catalogfile);
+	
+	# Last
+	push(@saveExample,'-saveInputs',$randfile);
 }
 
 # We must signal here errors and exit
@@ -256,25 +298,26 @@ unless(defined($cpid)) {
 		close($CPID);
 	}
 	
+	if(defined($workflowId)) {
+		my($WFID);
+		if(open($WFID,'>',$jobdir.'/WFID')) {
+			print $WFID $workflowId;
+			close($WFID);
+		}
+	}
+	
 	# Now, reporting...
 	print $query->header(-type=>(defined($dataisland)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store');
 	my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
 	my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionlaunched');
 	$root->setAttribute('time',LockNLog::getPrintableNow());
 	$root->setAttribute('jobId',$jobid);
-	my($comment)=<<COMMENTEOF;
-	This content was generated by enactionlauncher, an
-	application of the network workflow enactor from INB.
-	The workflow enactor itself is based on Taverna core,
-	and uses it.
-	
-	Author: José María Fernández González (C) 2007
-	Institutions:
-	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
-	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
-COMMENTEOF
-	$root->appendChild($outputDoc->createComment( encode('UTF-8',$comment) ));
+	$root->appendChild($outputDoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTEL) ));
 	$outputDoc->setDocumentElement($root);
+	
+	if(defined($example)) {
+		$root->appendChild($outputDoc->importNode($example));
+	}
 	
 	if(defined($dataisland)) {
 		print "<html><body><$dataislandTag id='".$WorkflowCommon::PARAMISLAND."'>\n";
@@ -309,7 +352,8 @@ COMMENTEOF
 #			'-expandSubWorkflows',
 			'-statusDir',$jobdir,
 			@baclavadesc,
-			@inputdesc
+			@inputdesc,
+			@saveExample
 		);
 	});
 	my($FATAL);

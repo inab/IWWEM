@@ -117,6 +117,63 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
         </xsd:attribute>
     </xsd:complexType>
     
+    <xsd:element name="example">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Input examples, in baclava format]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:simpleContent>
+                <xsd:extension base="xsd:string">
+                    <xsd:attribute name="uuid" type="xsd:string" use="required"/>
+                    <xsd:attribute name="name" type="xsd:string" use="required"/>
+                    <xsd:attribute name="path" type="xsd:anyURI" use="required"/>
+                    <xsd:attribute name="date" type="xsd:dateTime" use="required"/>
+                </xsd:extension>
+            </xsd:simpleContent>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name="snapshot">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Snapshots from workflow executions]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:simpleContent>
+                <xsd:extension base="xsd:string">
+                    <xsd:attribute name="uuid" type="xsd:string" use="required"/>
+                    <xsd:attribute name="name" type="xsd:string" use="required"/>
+                    <xsd:attribute name="date" type="xsd:dateTime" use="required"/>
+                </xsd:extension>
+            </xsd:simpleContent>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name="examples">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+    Examples catalog
+]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element ref="example" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name="snapshots">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+    Snapshots catalog
+]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element ref="snapshot" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    
     <xsd:element name="workflow">
         <xsd:annotation>
             <xsd:documentation><![CDATA[The description of a particular workflow]]></xsd:documentation>
@@ -127,6 +184,22 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[Available documentation related to the workflow. It might be in HTML]]></xsd:documentation>
                     </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="dependsOn" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[
+The subworkflows' this workflow depends on...
+]]></xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:attribute name="dep" type="xsd:anyURI" use="required">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[
+The relative URI to the subworkflow
+]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                    </xsd:complexType>
                 </xsd:element>
                 <xsd:element name="input" minOccurs="0" maxOccurs="unbounded" type="IODesc">
                     <xsd:annotation>
@@ -143,20 +216,9 @@ creating it when it is more interested in side-effects than in the generated
 results.]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="example" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:annotation>
-                        <xsd:documentation><![CDATA[Input examples, in baclava format]]></xsd:documentation>
-                    </xsd:annotation>
-                    <xsd:complexType>
-                        <xsd:simpleContent>
-                            <xsd:extension base="xsd:string">
-                                <xsd:attribute name="uuid" type="xsd:string" use="required"/>
-                                <xsd:attribute name="name" type="xsd:string" use="required"/>
-                                <xsd:attribute name="path" type="xsd:anyURI" use="required"/>
-                            </xsd:extension>
-                        </xsd:simpleContent>
-                    </xsd:complexType>
-                </xsd:element>
+                <xsd:element ref="example" minOccurs="0" maxOccurs="unbounded"/>
+                
+                <xsd:element ref="snapshot" minOccurs="0" maxOccurs="unbounded"/>
             </xsd:sequence>
             <xsd:attribute name="lsid" type="xsd:string" use="required">
                 <xsd:annotation>
@@ -248,6 +310,16 @@ workflowlister frontend module returns the information following this sub-schema
 an enaction job has been successfully enqueued]]></xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
+            <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element ref="example" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[
+When a input has been signaled to be saved as an example
+this element is included to tell that it was done properly.
+]]></xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
             <xsd:attributeGroup ref="TimeJob"/>
         </xsd:complexType>
     </xsd:element>
@@ -276,6 +348,7 @@ an enaction job has been successfully enqueued]]></xsd:documentation>
                     </xsd:annotation>
                     <xsd:complexType>
                         <xsd:sequence minOccurs="1" maxOccurs="1">
+                            <xsd:element ref="snapshot" minOccurs="0" maxOccurs="1"/>
                             <xsd:element ref="input" minOccurs="0" maxOccurs="unbounded"/>
                             <xsd:element ref="output" minOccurs="0" maxOccurs="unbounded"/>
                             <xsd:element name="step" minOccurs="0" maxOccurs="unbounded">

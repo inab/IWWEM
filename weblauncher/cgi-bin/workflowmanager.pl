@@ -7,6 +7,8 @@ use Encode;
 use File::Path;
 use File::Temp;
 use FindBin;
+use LWP::UserAgent;
+use URI;
 use XML::LibXML;
 
 use lib "$FindBin::Bin";
@@ -24,6 +26,8 @@ my($retval)=0;
 my($retvalmsg)=undef;
 my($dataisland)=undef;
 my($dataislandTag)=undef;
+my($hasInputWorkflow)=undef;
+my($hasInputWorkflowDeps)=undef;
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
@@ -50,18 +54,31 @@ foreach my $param ($query->param()) {
 			rmtree($WorkflowCommon::WORKFLOWDIR.'/'.$wrelpath);
 		}
 	} elsif($param eq 'workflow') {
-		# Now, time to recognize the content
-		my @UPHL=$query->upload($param);
-		
-		last if($query->cgi_error());
-		
+		$hasInputWorkflow=1;
+	} elsif($param eq 'workflowDep') {
+		$hasInputWorkflowDeps=1;
+	}
+}
+
+my $parser = XML::LibXML->new();
+my $context = XML::LibXML::XPathContext->new();
+$context->registerNs('s',$WorkflowCommon::SCUFL_NS);
+
+# Parsing input workflows
+if(defined($hasInputWorkflow)) {
+	# Now, time to recognize the content
+	my($param)='workflow';
+	my @UPHL=$query->upload($param);
+
+	unless($query->cgi_error()) {
+
 		my($isfh)=1;
-		
+
 		if(scalar(@UPHL)==0) {
 			@UPHL=$query->param($param);
 			$isfh=undef;
 		}
-		
+
 		foreach my $UPH (@UPHL) {
 			# Generating a unique identifier
 			my($randname);
@@ -74,27 +91,196 @@ foreach my $param ($query->param()) {
 				$randname=WorkflowCommon::genUUID();
 				$randdir=$WorkflowCommon::WORKFLOWDIR.'/'.$randname;
 			} while(-d $randdir);
-			
+
 			# Creating workflow directory
 			mkpath($randdir);
 			# Saving the workflow data
 			$randfilexml = $randdir . '/' . $WorkflowCommon::WORKFLOWFILE;
 			$randfilesvg = $randdir . '/' . $WorkflowCommon::SVGFILE;
-			my($WFH);
-			if(open($WFH,'>',$randfilexml)) {
+			
+			my($WFmaindoc);
+			
+			eval {
+				# CGI provides fake filehandlers :-(
+				# so we have to use the push parser
+				$parser->init_push();
 				if(defined($isfh)) {
-					# It is a file
 					my($line);
 					while($line=<$UPH>) {
-						print $WFH $line;
+						$parser->push($line);
 					}
+					# Rewind the handler
+					seek($UPH,0,0);
 				} else {
-					# It is a text field
-					print $WFH $UPH;
+					$parser->push($UPH);
 				}
-				close($WFH);
+				$WFmaindoc=$parser->finish_push();
+				$WFmaindoc->toFile($randfilexml);
+			};
+			
+			unless($@) {
+				# Resolving and saving dependencies
+				my($depdir)=$randdir.'/'.$WorkflowCommon::DEPDIR;
+				mkpath($depdir);
+				my(@unpatchedWF)=($randfilexml);
+				my(%WFhash)=($randfilexml=>[$WFmaindoc,$randfilexml,undef,undef]);
+				my(%WFunresolved)=();
 				
-				# Now it is time to validate it!
+				my($peta)=undef;
+				my($ua)=LWP::UserAgent->new();
+				# Getting the base uri for subworkflows
+				my($cgibaseuri)=WorkflowCommon::getCGIBaseURI($query);
+				$cgibaseuri =~ s/cgi-bin\/[^\/]+$//;
+				foreach my $WFuri (@unpatchedWF) {
+					my($WFdoc)=$WFhash{$WFuri}[0];
+					
+					# Really do we have deps? I doubt it...
+					my(@internalDeps)=$context->findnodes('//s:processor/s:workflow/s:xscufllocation',$WFdoc);
+					if(scalar(@internalDeps)>0) {
+						foreach my $dep (@internalDeps) {
+							my($uritext)=$dep->textContent();
+							if(defined($uritext) && length($uritext)>0) {
+								unless(exists($WFhash{$uritext})) {
+									my($newWFdoc)=undef;
+									my($URI)=URI->new($uritext);
+									if($URI->scheme eq 'file') {
+										my($file)=$URI->file();
+										# Local dependency
+										if(defined($hasInputWorkflowDeps)) {
+											# Looking for it among submitted deps
+											my($relfile)=undef;
+											
+											# Getting the relative file for guessing
+											if($file =~ /[\/\\]([^\/\\]+)$/) {
+												$relfile=$1;
+											} else {
+												$relfile=$file;
+											}
+											
+											# The elements of this array can be something like
+											# "filename, referer ..."
+											# "full file name"
+											# etc...
+											# So we can only play with $file and $relfile,
+											# which have a known structure.
+											my(@depnames) = $query->param('workflowDep');
+											my($found)=undef;
+											my($pos)=0;
+											foreach my $depname (@depnames) {
+												if(rindex($depname,$file)!=-1 || rindex($depname,$relfile)!=-1) {
+													$found=$pos;
+													last;
+												}
+												
+												# Next round
+												$pos++;
+											}
+											
+											# I believe it was found
+											if(defined($found)) {
+												my(@DEPH) = $query->upload('workflowDep');
+												last  if($query->cgi_error());
+												
+												my($FAKEH)=$DEPH[$found];
+												eval {
+													$parser->init_push();
+													my($line);
+													while($line=<$FAKEH>) {
+														$parser->push($line);
+													}
+													# Rewind the handler
+													seek($FAKEH,0,0);
+													$newWFdoc=$parser->finish_push();
+												};
+											} else {
+												$peta="FATAL ERROR: Unresolved local dependency (not found $file)";
+												last;
+											}
+										} else {
+											$peta="FATAL ERROR: Unresolved local dependency (not sent $file)";
+											last;
+										}
+									} else {
+										# Remote one, let's get it!
+										eval {
+											$parser->start_push();
+											$ua->request(HTTP::Request->new(GET=>$uritext),
+													sub {
+														my($chunk, $res)=@_;
+
+														$parser->push($chunk);
+													}
+												);
+											$newWFdoc=$parser->finish_push();
+										};
+									}
+									
+									# Now it is time to give it a filename
+									unless($@) {
+										my($reldepname);
+										my($newWFname);
+										do {
+											$reldepname = $WorkflowCommon::DEPDIR.'/'.WorkflowCommon::genUUID().'.xml';
+											$newWFname = $randdir .'/'.$reldepname;
+										} while(-f $newWFname);
+
+										eval {
+											$newWFdoc->toFile($newWFname);
+										};
+
+										if($@) {
+											# There was a problem in the process
+											$peta=$@;
+											last;
+										}
+
+										# And recording the patched dependency
+										my($patchedURI) = $cgibaseuri . $WorkflowCommon::WORKFLOWRELDIR .'/'.$randname .'/'.$reldepname;
+
+										# Saving the subworkflow
+										$WFhash{$uritext}=[$newWFdoc,$newWFname,undef,$patchedURI];
+									} else {
+										# There was a problem in the process
+										$peta=$@;
+										last;
+									}
+								}
+									
+								# Cleaning up the content of the dependency
+								foreach my $child ($dep->childNodes()) {
+									$dep->removeChild($child);
+								}
+
+								# So we can add new text node with no problem
+								$dep->appendChild($WFdoc->createTextNode($WFhash{$uritext}[3]));
+								# And mark it to save later because
+								# there are patched dependencies
+								$WFhash{$WFuri}[2]=1;
+							}
+						}
+						# There was some problem...
+						last  if($query->cgi_error() || defined($peta));
+					}
+				}
+				
+				if(defined($peta) || $query->cgi_error()) {
+					# TODO error handling
+					$retval=1;
+					$retvalmsg=$peta  if(defined($peta));
+					rmtree($randdir);
+					last;
+				}
+				
+				# Last step, save all the changed content
+				# Some workflows could have been patched,
+				# so they should be re-saved
+				foreach my $wfval (values(%WFhash)) {
+					next unless(defined($wfval->[2]));
+
+					$wfval->[0]->toFile($wfval->[1]);
+				}
+				
+				# Now it is time to validate the whole mess!
 				my(@command)=($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser',
 					'-baseDir',$WorkflowCommon::MAVENDIR,
 					'-workflow',$randfilexml,
@@ -107,7 +293,7 @@ foreach my $param ($query->param()) {
 				my($BSTDERR,$BSTDOUT);
 				open($BSTDOUT,'>&',\*STDOUT);
 				open($BSTDERR,'>&',\*STDERR);
-				
+
 				# Now, setting up the temporal file
 				# and the redirections
 				my($LOG)=File::Temp->new();
@@ -115,13 +301,12 @@ foreach my $param ($query->param()) {
 				open($TMPLOG,'>',$LOG->filename());
 				open(STDOUT,'>&',$TMPLOG);
 				open(STDERR,'>&',$TMPLOG);
-				
+
 				# The command
 #				my($comm)=$WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser -baseDir '.$WorkflowCommon::MAVENDIR.' -workflow '.$randfilexml.' -svggraph '.$randfilesvg.' -expandSubWorkflows';
-#				$retval=system($comm.' > /tmp/naruto 2>&1');
-				
+
 				$retval=system(@command);
-				
+
 				# And returning to original handlers
 				open(STDOUT,'>&',$BSTDOUT);
 				open(STDERR,'>&',$BSTDERR);
@@ -131,7 +316,7 @@ foreach my $param ($query->param()) {
 				$TMPLOG=undef;
 				$BSTDOUT=undef;
 				$BSTDERR=undef;
-				
+
 				# If it failed, it is better erasing the workflow
 				# because it is not a valid one!
 				if($retval!=0) {
@@ -140,7 +325,7 @@ foreach my $param ($query->param()) {
 					my($ERRLOG);
 					if(open($ERRLOG,'<',$LOG->filename())) {
 						my($line);
-						$retvalmsg='';
+						$retvalmsg=''  unless(defined($retvalmsg));
 						while($line=<$ERRLOG>) {
 							$retvalmsg .= $line;
 						}
@@ -149,10 +334,27 @@ foreach my $param ($query->param()) {
 					rmtree($randdir);
 					last;
 				} else {
-					mkpath($randdir.'/'.$WorkflowCommon::DEPDIR);
+					# Creating empty catalogs
 					mkpath($randdir.'/'.$WorkflowCommon::EXAMPLESDIR);
+					my($excatalog)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+					my($exroot)=$excatalog->createElementNS($WorkflowCommon::WFD_NS,'examples');
+					$exroot->appendChild($excatalog->createComment( encode('UTF-8',$WorkflowCommon::COMMENTEL) ));
+					$excatalog->setDocumentElement($exroot);
+					$excatalog->toFile($randdir.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE);
+
 					mkpath($randdir.'/'.$WorkflowCommon::SNAPSHOTSDIR);
+					my($snapcatalog)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+					my($snaproot)=$excatalog->createElementNS($WorkflowCommon::WFD_NS,'snapshots');
+					$snaproot->appendChild($snapcatalog->createComment( encode('UTF-8',$WorkflowCommon::COMMENTES) ));
+					$snapcatalog->setDocumentElement($snaproot);
+					$snapcatalog->toFile($randdir.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE);
 				}
+			} else {
+				$retval=2;
+				$retvalmsg = ''  unless(defined($retvalmsg));
+				$retvalmsg .= 'Error while parsing input workflow: '.$@;
+				remtree($randdir);
+				last;
 			}
 		}
 	}
@@ -209,19 +411,8 @@ my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflowlist');
 $root->setAttribute('time',LockNLog::getPrintableNow());
 $root->setAttribute('relURI',$WorkflowCommon::WORKFLOWRELDIR);
 $outputDoc->setDocumentElement($root);
-my($comment)=<<COMMENTEOF;
-	This content was generated by workflowmanager, an
-	application of the network workflow enactor from INB.
-	The workflow enactor itself is based on Taverna core,
-	and uses it.
-	
-	Author: José María Fernández González (C) 2007
-	Institutions:
-	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
-	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
-COMMENTEOF
 
-$root->appendChild($outputDoc->createComment( encode('UTF-8',$comment) ));
+$root->appendChild($outputDoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTWM) ));
 
 # Attached Error Message (if any)
 if($retval!=0) {
@@ -232,8 +423,6 @@ if($retval!=0) {
 	}
 	$root->appendChild($message);
 }
-
-my $parser = XML::LibXML->new();
 
 foreach my $wf (@workflowlist) {
 	eval {
@@ -257,6 +446,26 @@ foreach my $wf (@workflowlist) {
 			my($wdesc)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
 			$wdesc->appendChild($outputDoc->createCDATASection($desc->textContent()));
 			$wfe->appendChild($wdesc);
+			
+			# Now, including dependencies
+			my($DEPDIRH);
+			my($depreldir)=$wf.'/'.$WorkflowCommon::DEPDIR;
+			my($depdir)=$WorkflowCommon::WORKFLOWDIR.'/'.$depreldir;
+			if(opendir($DEPDIRH,$depdir)) {
+				my($entry);
+				while($entry=readdir($DEPDIRH)) {
+					next  if(index($entry,'.')==0);
+					
+					my($fentry)=$depdir.'/'.$entry;
+					if(-f $fentry && $fentry =~ /\.xml$/) {
+						my($depnode) = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'dependsOn');
+						$depnode->setAtribute('sub',$depreldir.'/'.$entry);
+						$wfe->appendChild($depnode);
+					}
+				}
+				
+				closedir($DEPDIRH);
+			}
 			
 			# Getting Inputs
 			@nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'source');
@@ -312,6 +521,18 @@ foreach my $wf (@workflowlist) {
 				
 				# At last, appending this output
 				$wfe->appendChild($output);
+			}
+			
+			# Now importing the examples catalog
+			my($examples)=$parser->parse_file($WorkflowCommon::WORKFLOWDIR.'/'.$wf.'/'.$WorkflowCommon::EXAMPLESDIR . '/' . $WorkflowCommon::CATALOGFILE);
+			for my $child ($examples->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'example')) {
+				$wfe->appendChild($outputDoc->importNode($child));
+			}
+			
+			# And the snapshots one!
+			my($snapshots)=$parser->parse_file($WorkflowCommon::WORKFLOWDIR.'/'.$wf.'/'.$WorkflowCommon::SNAPSHOTSDIR . '/' . $WorkflowCommon::CATALOGFILE);
+			for my $child ($snapshots->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'snapshot')) {
+				$wfe->appendChild($outputDoc->importNode($child));
 			}
 			
 			# At last, appending the new workflow entry

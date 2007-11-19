@@ -81,7 +81,9 @@ TavernaSVG.prototype = {
 		if(this.SVGtramp) {
 			if(!thedoc)  thedoc=document;
 			
-			this.SVGtramp.setBestScaleFromConstraintDimensions(lenW,lenH);
+			if(lenW && lenH) {
+				this.SVGtramp.setBestScaleFromConstraintDimensions(lenW,lenH);
+			}
 			
 			//if(!this.asEmbed) {
 			/*
@@ -131,9 +133,11 @@ TavernaSVG.prototype = {
 			
 			if(!thedoc)  thedoc=document;
 			this.clearSVG(thedoc);
-
+			
+			/*
 			if(!bestScaleW)  bestScaleW='400pt';
 			if(!bestScaleH)  bestScaleH=bestScaleW;
+			*/
 			// Now it is time to generate a new SVG object
 			var node=thedoc.getElementById(nodeid);
 			var gensvgid;

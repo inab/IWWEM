@@ -93,24 +93,36 @@ span.magglass {
 	font-size: 20px;
 }
 
-span.radio {
+span.radio , span.checkbox {
 	/* Black IE magic */
 	behavior:url(hover.htc);
 	/*
 	width: 16px;
 	*/
 	height: 16px;
-	padding-left: 17px;
 	
-	background-image: url(radio.png);
-	background-position: center left;
 	background-repeat: no-repeat;
+	margin: 2px 2px 2px 2px;
 	cursor: pointer;
 	
 	text-align: left;
 	white-space: nowrap;
  	vertical-align: middle;
 	font-size: 14px;
+}
+
+span.radio.left , span.checkbox.left {
+	padding-left: 17px;
+	background-position: center left;
+}
+
+span.radio.right , span.checkbox.right {
+	padding-right: 17px;
+	background-position: center right;
+}
+
+span.radio {
+	background-image: url(radio.png);
 }
 
 span.radiohover , span.radio:hover {
@@ -122,29 +134,21 @@ span.radio.checked {
 }
 
 span.checkbox {
-	/* Black IE magic */
-	behavior:url(hover.htc);
-	/*
-	width: 16px;
-	*/
-	height: 16px;
-	padding-left: 17px;
-	
 	background-image: url(checkbox.png);
-	background-position: center left;
-	background-repeat: no-repeat;
-	cursor: pointer;
-	
-	text-align: left;
-	white-space: nowrap;
- 	vertical-align: middle;
-	font-size: 14px;
 }
 
-span.checkboxhover , span.checkbox:hover {
+span.checkboxhover.blue , span.checkbox.blue:hover {
 	background-image: url(checkbox-focus.png);
 }
 
-span.checkbox.checked {
+span.checkbox.blue.checked {
 	background-image: url(checkbox-checked.png);
+}
+
+span.checkboxhover.red , span.checkbox.red:hover {
+	background-image: url(checkbox-red-focus.png);
+}
+
+span.checkbox.red.checked {
+	background-image: url(checkbox-red-checked.png);
 }

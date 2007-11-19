@@ -43,7 +43,7 @@
 		</apply>
 	</target>
 	
-	<target depends="maven-compile,perl-check" description="It checks the whole project's modules" name="check">
+	<target depends="perl-check,maven-compile" description="It checks the whole project's modules" name="check">
 	</target>
 	
 	<target depends="check" description="It deploys the whole project to the destination repository" name="deploy">

@@ -86,12 +86,12 @@ function SVGtramp(LoadEvent) {
 		var baseTransform=this.g_element.getAttribute("transform");
 		if(baseTransform) {
 			var scales = /scale\( *([0-9.]+) *,? *([0-9.]+) *\)/.exec(baseTransform);
-			if(scales.length>0) {
+			if(scales && scales.length>0) {
 				this.realScaleW=parseFloat(scales[1]);
 				this.realScaleH=parseFloat(scales[2]);
 			} else {
 				var scale = /scale\( *([0-9.]+) *\)/.exec(baseTransform);
-				if(scale.length>0) {
+				if(scale && scale.length>0) {
 					this.realScaleH=this.realScaleW=parseFloat(scale[1]);
 				}
 			}
