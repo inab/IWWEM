@@ -478,11 +478,8 @@ function NewWorkflowView(genview) {
 	
 	// Setting up data island request
 	if(BrowserDetect.browser=='Konqueror') {
-		var dataIsland = genview.createElement('input');
-		dataIsland.type="hidden";
-		dataIsland.name=GeneralView.dataIslandMarker;
 		// This value must be 1 for IE data islands
-		dataIsland.value="2";
+		var dataIsland = genview.createHiddenInput(GeneralView.dataIslandMarker,"2");
 		this.newWFForm.appendChild(dataIsland);
 	}
 }
@@ -630,6 +627,7 @@ function NewEnactionView(genview) {
 	
 	this.iframe=genview.getElementById('enactIFRAME');
 	this.newEnactForm=genview.getElementById('formEnactor');
+	this.workflowHiddenInput=genview.getElementById('workflowHiddenInput');
 	this.inputsContainer=genview.getElementById('newInputs');
 	this.enactSVGContainer = genview.getElementById('enactsvg');
 	this.newEnactUploading = genview.getElementById('newEnactUploading');
@@ -644,11 +642,8 @@ function NewEnactionView(genview) {
 	
 	// Setting up data island request
 	if(BrowserDetect.browser=='Konqueror') {
-		var dataIsland = genview.createElement('input');
-		dataIsland.type="hidden";
-		dataIsland.name=GeneralView.dataIslandMarker;
 		// This value must be 1 for IE data islands
-		dataIsland.value="2";
+		var dataIsland = genview.createHiddenInput(GeneralView.dataIslandMarker,"2");
 		this.newEnactForm.appendChild(dataIsland);
 	}
 	
@@ -817,30 +812,18 @@ NewEnactionView.prototype = {
 		this.inputsContainer.appendChild(exSelect);
 		this.inputsContainer.appendChild(divdesc);
 		
-		// Now it is time to fill in the select control
-		for(var examplefacet in workflow.examples) {
-			var example=workflow.examples[examplefacet];
-			var exSelOpt=example.generateOption();
-			
-			// Last: save selection!
-			try {
-				exSelect.add(exSelOpt,null);
-			} catch(e) {
-				exSelect.add(exSelOpt);
-			}
-		}
-		
 		// And the on change event, which must be taken into account
+		var WFBase = this.manview.WFBase;
 		var onSelectChange=function() {
 			GeneralView.freeContainer(divdesc);
 			if(exSelect.selectedIndex!=-1) {
 				var example = workflow.examples[exSelect.options[exSelect.selectedIndex].value];
 				
-				var output='<b>Example name:</b> '+example.name+'<br>';
-				output += '<b>UUID:</b> '+example.uuid+'<br>';
-				output += '<b>Date:</b> '+example.date+'<br>';
-				output += '<i><a href="'+this.WFBase+'/'+example.path+'">Download link</a></i><br>';
-				output += '<b><u>Description</u></b><br>';
+				var output='<b>Example name:</b> '+example.name;
+				output += '<p>UUID:</b>&nbsp;'+example.uuid+'</p>';
+				output += '<p><b>Date:</b> '+example.date+'</p>';
+				output += '<p><i><a href="'+WFBase+'/'+example.path+'">Download link</a></i></p>';
+				output += '<b>Description</b><br>';
 				if(example.description && example.description.length>0) {
 					output += GeneralView.preProcess(example.description);
 				} else {
@@ -852,9 +835,31 @@ NewEnactionView.prototype = {
 		};
 		
 		WidgetCommon.addEventListener(exSelect,'change',onSelectChange,false);
+		
+		// Now it is time to fill in the select control
+		var atLeastOne=undefined;
+		for(var examplefacet in workflow.examples) {
+			var example=workflow.examples[examplefacet];
+			var exSelOpt=example.generateOption();
+			atLeastOne=1;
+			
+			// Last: save selection!
+			try {
+				exSelect.add(exSelOpt,null);
+			} catch(e) {
+				exSelect.add(exSelOpt);
+			}
+		}
+		
+		// And setting it up!
+		if(atLeastOne) {
+			exSelect.selectedIndex=0;
+			onSelectChange();
+		}
 	},
 	
 	generateInputsHandlers: function() {
+		this.inputCounter=0;
 		// baclava onclick
 		var thebaclava = this.generateBaclavaSpan();
 		this.inputsContainer.appendChild(thebaclava);
@@ -901,6 +906,7 @@ NewEnactionView.prototype = {
 		
 		var statecontrol=thechoicetext;
 		
+		var newenactview=this;
 		var onclickHandler=function() {
 			if(statecontrol!=this) {
 				if(statecontrol) {
@@ -909,14 +915,14 @@ NewEnactionView.prototype = {
 				GeneralView.checkCN(this);
 				statecontrol=this;
 				
-				GeneralView.freeContainer(containerDiv);
+				// Keeping an accurate number of inputs
+				newenactview.inputCounter -= GeneralView.freeContainer(containerDiv);
 			}
 		};
 		
 		WidgetCommon.addEventListener(thechoicetext, 'click', onclickHandler, false);
 		WidgetCommon.addEventListener(thechoicefile, 'click', onclickHandler, false);
 		
-		var newenactview=this;
 		WidgetCommon.addEventListener(theinput, 'click', function() {
 			var newinput;
 			var glass;
@@ -969,6 +975,8 @@ NewEnactionView.prototype = {
 
 			// Adding it to the container
 			containerDiv.appendChild(mydiv);
+			// Keeping an accurate input counter
+			newenactview.inputCounter++;
 		}, false);
 
 		// Now, it is time to create the selection
@@ -989,7 +997,7 @@ NewEnactionView.prototype = {
 	
 	/* Generates a new graphical input */
 	generateBaclavaSpan: function () {
-		return this.genview.generateFileSpan('Add Baclava file','BACLAVA_FILE');
+		return this.genview.generateFileSpan('Add Baclava file','BACLAVA_FILE',this);
 	},
 	
 	disposeContainers: function() {
@@ -1021,6 +1029,10 @@ NewEnactionView.prototype = {
 	},
 	
 	enact: function () {
+		if(!this.inputmode && this.inputCounter<=0) {
+			alert('You must introduce an input before trying to\nstart the enaction process');
+		}
+		
 		// First, locking the window
 		this.openSubmitFrame();
 		
@@ -1043,12 +1055,13 @@ NewEnactionView.prototype = {
 		*/
 		var iframe=this.iframe;
 		var iframeName=this.iframe.name;
+		this.workflowHiddenInput.value = this.workflow.uuid;
 		
 		// The hooks
 		var newenactview = this;
 		var iframeLoaded = function() {
 			// First, parsing content
-			GeneralView.freeContainer(newwfview.genview.manview.messageDiv);
+			GeneralView.freeContainer(newenactview.genview.manview.messageDiv);
 			var xdoc=WidgetCommon.getIFrameDocument(iframe);
 			if(xdoc) {
 				if(BrowserDetect.browser=='Explorer') {
@@ -1073,9 +1086,9 @@ NewEnactionView.prototype = {
 			
 			// Now, cleaning up iframe traces!
 			newenactview.closeSubmitFrame();
-			if(launched) {
-				newenactview.closeNewEnactionFrame();
-			}
+			//if(launched) {
+			newenactview.closeNewEnactionFrame();
+			//}
 			
 			/*
 				Dynamic IFRAME handling
@@ -1086,7 +1099,7 @@ NewEnactionView.prototype = {
 			WidgetCommon.removeEventListener(iframe,'load',iframeLoaded,false);
 			newenactview.newEnactForm.target = undefined;
 			// Avoiding post messages on page reload
-			iframe.src="about:blank";
+			// iframe.src="about:blank";
 			iframe = undefined;
 		};
 		WidgetCommon.addEventListener(iframe,'load',iframeLoaded,false);
@@ -1110,11 +1123,14 @@ NewEnactionView.prototype = {
 					var time=enactIdDOM.documentElement.getAttribute('time');
 					// Time to open a new window
 					var theURL="enactionviewer.html?jobId="+enactId;
-					window.open(theURL);
-
+					var popup=window.open(theURL,'_blank');
+					if(!popup) {
+						alert('Your browser has just blocked the new enaction window.\nYou can find the link under the\nSubmitted Enaction Jobs area');
+					}
+					
 					// And leave a trace!
 					var theli=this.genview.createElement('li');
-					theli.innerHTML=time+': <a href="'+theURL+'">'+enactId+'</a>';
+					theli.innerHTML=time+': <a href="'+theURL+'" target="_blank">'+enactId+'</a>';
 					this.submittedList.appendChild(theli);
 				}
 			} else {

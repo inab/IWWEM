@@ -26,18 +26,22 @@ GeneralView.dataIslandMarker='dataIsland';
 
 GeneralView.freeContainer = function (container) {
 	// Removing all the content from the container
+	var erased=0;
 	if(container) {
 		var eraseme = container.firstChild;
-
+		
 		while(eraseme) {
 			var toerase = eraseme;
 			eraseme = eraseme.nextSibling;
 			container.removeChild(toerase);
+			erased++;
 		}
 
 		// Last resort!
 		//container.innerHTML = '&nbsp;';
 	}
+	
+	return erased;
 };
 
 GeneralView.checkCN = function (elem) {
@@ -74,6 +78,7 @@ GeneralView.initCheck = function(check) {
 
 GeneralView.preProcess = function (thedesc) {
 	if(!thedesc)  thedesc='';
+	thedesc=thedesc.toString();
 	if(thedesc.search(/<[^>]+>/m)==-1) {
 		thedesc = thedesc.replace(/((?:ftp)|(?:https?):\/\/[a-zA-Z0-9.]+\/[^\n\r\t ()]*)/g,"<a href='$1' target='_blank'>$1</a>");
 		thedesc = thedesc.replace(/([a-zA-Z0-9.%]+@[a-zA-Z0-9.%]+)/g,"<a href='mailto:$1' target='_blank'>$1</a>");
@@ -161,7 +166,7 @@ GeneralView.prototype = {
 	},
 	
 	/* Generates a new graphical input */
-	generateFileSpan: function (thetext,controlname) {
+	generateFileSpan: function (thetext,controlname, /* optional */ external) {
 		var randominputid=WidgetCommon.getRandomUUID();
 
 		// The container of all these 'static' elements
@@ -193,6 +198,11 @@ GeneralView.prototype = {
 			var mydiv=genview.createElement('div');
 			WidgetCommon.addEventListener(remover,'click',function() {
 				containerDiv.removeChild(mydiv);
+
+				// Keeping an accurate counter
+				if(external && external.inputCounter) {
+					external.inputCounter--;
+				}
 			},false);
 
 			mydiv.appendChild(remover);
@@ -200,6 +210,11 @@ GeneralView.prototype = {
 
 			// Adding it to the container
 			containerDiv.appendChild(mydiv);
+			
+			// Keeping an accurate counter
+			if(external && external.inputCounter) {
+				external.inputCounter++;
+			}
 		}, false);
 
 		// Last children!
@@ -223,7 +238,17 @@ GeneralView.prototype = {
 	},
 	
 	createElement: function(tagName) {
-		return this.createElement(tagName);
+		return this.thedoc.createElement(tagName);
+	},
+	
+	createHiddenInput: function(thename,thevalue) {
+		var input = this.createElement('input');
+		input.type="hidden";
+		input.name=thename;
+		// This value must be 1 for IE data islands
+		input.value=thevalue;
+		
+		return input;
 	}
 };
 	

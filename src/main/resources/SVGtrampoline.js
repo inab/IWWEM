@@ -1,7 +1,7 @@
 /*
 	SVGtrampoline.js
 	from INB Web Workflow Enactor & Manager (IWWE&M)
-	Author: JosÈ MarÌa Fern·ndez Gonz·lez (C) 2007
+	Author: Jos√© Mar√≠a Fern√°ndez Gonz√°lez (C) 2007
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
@@ -107,18 +107,16 @@ function SVGtramp(LoadEvent) {
 SVGtramp.getTextContent = function (oNode) {
 	var retval;
 	if(oNode) {
- 		if(navigator.vendor && navigator.vendor.indexOf('Apple')!=-1) {
-			retval=SVGtramp.nodeGetText(oNode,true);
-		} else {
-			try {
+		try {
+			if(navigator.userAgent && navigator.userAgent.indexOf('MSIE')!=-1) {
 				retval=oNode.text;
-			} catch(e) {
-				try {
-					retval=oNode.textContent;
-				} catch(ee) {
-					retval=SVGtramp.nodeGetText(oNode,true);
-				}
+			} else if(navigator.vendor && navigator.vendor.indexOf('Apple')!=-1){
+				retval=SVGtramp.nodeGetText(oNode,true);
+			} else {
+				retval=oNode.textContent;
 			}
+		} catch(e) {
+			retval=SVGtramp.nodeGetText(oNode,true);
 		}
 	}
 	
@@ -312,25 +310,30 @@ SVGtramp.prototype = {
 	
 	setCSSProp: function (styleNode,prop,newValue) {
 		if(styleNode && prop) {
-			if(newValue && newValue!='') {
-				var newProp = prop+": "+newValue;
-
-				//var previouscssText = styleNode.style.cssText;
-				var susId = this.suspendRedraw();
-				var previouscssText = styleNode.getAttribute("style");
-				if(!previouscssText)  previouscssText="";
-
-				var propR = new RegExp(prop+" *:[^;]*");
-
-				if(previouscssText.search(propR)==-1) {
-					newcssText = newProp + ";" + previouscssText;
-				} else {
-					var newcssText=previouscssText.replace(propR,newProp);
+			if(newValue) {
+				if(typeof newValue != 'string') {
+					newValue=newValue.toString();
 				}
+				if(newValue!='') {
+					var newProp = prop+": "+newValue;
 
-				//styleNode.style.cssText=newcssText;
-				styleNode.setAttribute("style",newcssText);
-				this.unsuspendRedraw(susId);
+					//var previouscssText = styleNode.style.cssText;
+					var susId = this.suspendRedraw();
+					var previouscssText = styleNode.getAttribute("style");
+					if(!previouscssText)  previouscssText="";
+
+					var propR = new RegExp(prop+" *:[^;]*");
+
+					if(previouscssText.search(propR)==-1) {
+						newcssText = newProp + ";" + previouscssText;
+					} else {
+						var newcssText=previouscssText.replace(propR,newProp);
+					}
+
+					//styleNode.style.cssText=newcssText;
+					styleNode.setAttribute("style",newcssText);
+					this.unsuspendRedraw(susId);
+				}
 			} else {
 				this.removeCSSProp(styleNode,prop);
 			}

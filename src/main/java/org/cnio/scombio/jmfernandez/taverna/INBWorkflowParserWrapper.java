@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
 import java.net.MalformedURLException;
@@ -778,7 +779,8 @@ public class INBWorkflowParserWrapper {
 			
 			// At last, saving!!!
 			if(dotFile!=null) {
-				PrintStream ps=new PrintStream(new BufferedOutputStream(new FileOutputStream(dotFile)));
+				//PrintStream ps=new PrintStream(new BufferedOutputStream(new FileOutputStream(dotFile)));
+				PrintStream ps=new PrintStream(dotFile,"UTF-8");
 
 				ps.print(dotContent);
 
@@ -850,7 +852,7 @@ public class INBWorkflowParserWrapper {
 						// There are some problems with next sentence and some new Xalan
 						// distributions, so the workaround is creating ourselves the
 						// FileOutputStream instead of using File straight!
-						FileOutputStream foe=new FileOutputStream(SVGFile);
+						PrintWriter foe=new PrintWriter(SVGFile,"UTF-8");
 						t.transform(new DOMSource(svg),new StreamResult(foe));
 						foe.flush();
 						foe.close();

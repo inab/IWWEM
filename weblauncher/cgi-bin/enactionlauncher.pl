@@ -156,11 +156,12 @@ foreach my $param ($query->param()) {
 			if(open($PARH,'>',$destfile)) {
 				if(defined($isfh)) {
 					my($line);
+					# We hope the file will be in UTF-8
 					while($line=<$PH>) {
 						print $PARH $line;
 					}
 				} else {
-					print $PARH $PH;
+					print $PARH encode('UTF-8',$PH);
 				}
 				close($PARH);
 			} else {
@@ -246,7 +247,7 @@ if(defined($exampleName) && defined($workflowId)) {
 	
 	my($parser)=XML::LibXML->new();
 	my($catalogfile)=$WorkflowCommon::WORKFLOWDIR.'/'.$workflowId.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
-	my($catalog)=$parser->parseFile($catalogfile);
+	my($catalog)=$parser->parse_file($catalogfile);
 	my($example)=$catalog->createElementNS($WorkflowCommon::WFD_NS,'example');
 	$example->setAttribute('uuid',$randname);
 	$example->setAttribute('name',$exampleName);

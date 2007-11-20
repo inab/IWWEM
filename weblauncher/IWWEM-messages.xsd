@@ -396,10 +396,10 @@ this element is included to tell that it was done properly.
                                 <xsd:documentation><![CDATA[The state of the enaction]]></xsd:documentation>
                             </xsd:annotation>
                         </xsd:attribute>
+                        <xsd:attribute ref="relURI" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
             </xsd:sequence>
-            <xsd:attribute ref="relURI" use="required"/>
         </xsd:complexType>
     </xsd:element>
 </xsd:schema>

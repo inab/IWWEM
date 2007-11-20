@@ -12,7 +12,7 @@
 	(which have an internal injected trampoline)
 */
 
-function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,thedoc) {
+function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish,thedoc) {
 	this._svgloadtimer = undefined;
 	this.svgobj = undefined;
 	this.asEmbed=undefined;
@@ -20,17 +20,20 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,thedoc) {
 	this.defaultid = undefined;
 	this.defaultbestScaleW = undefined;
 	this.defaultbestScaleH = undefined;
+	this.defaultCallOnFinish = undefined;
 	this.defaultthedoc = undefined;
 	
 	this.loading = undefined;
 	this.queue = new Array();
 	this.current = undefined;
+	this.SVGtramp = undefined;
 	
 	if(nodeid && url) {
 		this.defaultid = nodeid;
 		this.defaultsvg = url;
 		this.defaultbestScaleW = bestScaleW;
 		this.defaultbestScaleH = bestScaleH;
+		this.defaultCallOnFinish = callOnFinish;
 		this.defaultthedoc = thedoc;
 		
 		this.removeSVG();
@@ -38,6 +41,26 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,thedoc) {
 }
 
 TavernaSVG.prototype = {
+	getTitleToNode: function() {
+		if(this.SVGtramp) {
+			return this.SVGtramp.titleToNode;
+		}
+		
+		return undefined;
+	},
+	
+	getNodeToTitle: function() {
+		if(this.SVGtramp) {
+			return this.SVGtramp.nodeToTitle;
+		}
+		
+		return undefined;
+	},
+	
+	getTrampoline: function() {
+		return this.SVGtramp;
+	},
+	
 	clearSVG: function (/* optional */ thedoc) {
 		// Before any creation, clear SVG trampoline and SVG object traces!
 		if(this.svgobj) {
@@ -53,7 +76,7 @@ TavernaSVG.prototype = {
 				}
 			}
 			// Second, remove trampoline
-			delete this['SVGtramp'];
+			this.SVGtramp=undefined;
 			// Third, remove previous SVG
 			try {
 				this.svgobj.parentNode.removeChild(this.svgobj);
@@ -72,7 +95,7 @@ TavernaSVG.prototype = {
 	removeSVG: function (/* optional */ thedoc) {
 		// Before any creation, clear SVG trampoline and SVG object traces!
 		if(this.defaultsvg) {
-			this.loadSVG(this.defaultid,this.defaultsvg,this.defaultbestScaleW,this.defaultbestScaleH,this.defaultthedoc);
+			this.loadSVG(this.defaultid,this.defaultsvg,this.defaultbestScaleW,this.defaultbestScaleH,this.defaultCallOnFinish,this.defaultthedoc);
 		} else {
 			this.clearSVG(thedoc);
 		}
@@ -98,8 +121,8 @@ TavernaSVG.prototype = {
 		}
 	},
 
-	loadSVG: function (nodeid,url,/* optional */ bestScaleW, bestScaleH, thedoc) {
-		this.queue.push(new Array(nodeid,url,bestScaleW, bestScaleH, thedoc));
+	loadSVG: function (nodeid,url,/* optional */ bestScaleW, bestScaleH, callOnFinish, thedoc) {
+		this.queue.push(new Array(nodeid,url,bestScaleW, bestScaleH, callOnFinish, thedoc));
 		if(!this.loading) {
 			this.loading=true;
 			this.loadQueuedSVG();
@@ -111,6 +134,7 @@ TavernaSVG.prototype = {
 		var url=undefined;
 		var bestScaleW=undefined;
 		var bestScaleH=undefined;
+		var callOnFinish=undefined;
 		var thedoc=undefined;
 		var load;
 		if(this.current) {
@@ -119,7 +143,8 @@ TavernaSVG.prototype = {
 			url=load[1];
 			bestScaleW=load[2];
 			bestScaleH=load[3];
-			thedoc=load[4];
+			callOnFinish=load[4];
+			thedoc=load[5];
 		}
 		while(load = this.queue.shift()) {
 			if(nodeid==load[0] && url==load[1]) {
@@ -130,7 +155,8 @@ TavernaSVG.prototype = {
 			url=load[1];
 			bestScaleW=load[2];
 			bestScaleH=load[3];
-			thedoc=load[4];
+			callOnFinish=load[4];
+			thedoc=load[5];
 			
 			if(!thedoc)  thedoc=document;
 			this.clearSVG(thedoc);
@@ -199,7 +225,13 @@ TavernaSVG.prototype = {
 							}
 							thissvg.SVGrescale(bestScaleW,bestScaleH);
 							thissvg._svgloadtimer=undefined;
-							thissvg.loadQueuedSVG();
+							try {
+								if(callOnFinish) {
+									callOnFinish();
+								}
+							} finally {
+								thissvg.loadQueuedSVG();
+							}
 						}
 					},100);
 					return;

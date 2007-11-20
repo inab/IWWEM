@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintStream;
 
@@ -258,7 +259,21 @@ public class INBWorkflowLauncherWrapper
 			logger.debug("Param "+values.get(0)+" has been set to "+values.get(1));
 		} else if (param.equals("-inputFile")) {
 			File ifile=NewFile(values.get(1));
-			baseInputs.put(values.get(0),DataThingFactory.fetchFromURL(ifile.toURL()));
+			
+			// Reading input file
+			FileInputStream fis = new FileInputStream(ifile);
+			InputStreamReader isr=new InputStreamReader(fis,"UTF-8");
+			BufferedReader br = new BufferedReader(isr);
+			char[] buffer=new char[16384];
+			StringBuilder content=new StringBuilder();
+			int read;
+			while((read=br.read(buffer,0,buffer.length))!=-1) {
+				content.append(buffer,0,read);
+			}
+			br.close();
+			isr.close();
+			fis.close();
+			baseInputs.put(values.get(0),DataThingFactory.bake(content.toString()));
 		} else if (param.equals("-inputURL")) {
 			baseInputs.put(values.get(0),DataThingFactory.fetchFromURL(new URL(values.get(1))));
 		} else if (param.equals("-inputArray")) {

@@ -12,8 +12,40 @@ function EnactionViewerCustomInit() {
 }
 
 function EnactionViewerCustomDispose() {
-	if(this.enactview && this.enact.svg) {
-		this.enact.svg.clearSVG();
+	if(this.enactview && this.enactview.svg) {
+		this.enactview.svg.clearSVG();
+	}
+}
+
+function WorkflowStep(stepDOM, /* optional */ parentStep) {
+	this.name=stepDOM.getAttribute('name');
+	this.state=stepDOM.getAttribute('state');
+	this.parentStep=parentStep;
+	this.input={};
+	this.output={};
+	for(var child = stepDOM.firstChild; child; child = child.nextSibling) {
+		if(child.nodeType==1) {
+			switch(child.tagName) {
+				case 'iterations':
+					var iterations=new Array();
+					for(var iter=child.firstChild;iter;iter=iter.nextSibling) {
+						if(child.nodeType==1 && child.tagName=='step') {
+							iterations.push(new WorkflowStep(iter,this));
+						}
+					}
+					// To finish
+					this.iterations=iterations;
+					break;
+				case 'input':
+					// Baclava not cached (yet)
+					this.input[child.getAttribute('name')]=undefined;
+					break;
+				case 'output':
+					// Baclava not cached (yet)
+					this.output[child.getAttribute('name')]=undefined;
+					break;
+			}
+		}
 	}
 }
 
@@ -29,12 +61,14 @@ function EnactionView(genview) {
 	this.genview=genview;
 	
 	// Relevant objects, ordered by document appearance
+	this.dateSpan=genview.getElementById('dateSpan');
 	this.generalStatusSpan=genview.getElementById('generalStatusSpan');
 	this.stageSpan=genview.getElementById('stageSpan');
 	this.statusSpan=genview.getElementById('statusSpan');
 	
 	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg');
 	
+	this.iterationSelect=genview.getElementById('iterationSelect');
 	this.inContainer=genview.getElementById('inputs');
 	this.outContainer=genview.getElementById('outputs');
 	
@@ -69,7 +103,10 @@ function EnactionView(genview) {
 	this.snapshotDescContainer=genview.getElementById('snapshotDescContainer');
 	
 	// Now, time to initialize all!
-	
+
+	//this.JobsBase=undefined;
+	//
+	//this.domStatus=undefined;
 	this.internalDispose();
 	
 	
@@ -85,6 +122,17 @@ function EnactionView(genview) {
 	}
 }
 
+EnactionView.getJobDir = function(jobId) {
+	if(jobId) {
+		jobId=jobId.toString();
+		if(jobId.indexOf('snapshot:')==0) {
+			jobId=jobId.substring(jobId.lastIndexOf(':')+1);
+		}
+	}
+	
+	return jobId;
+};
+	
 EnactionView.prototype = {
 	openReloadFrame: function () {
 		this.genview.openFrame('reloadEnaction');
@@ -101,6 +149,7 @@ EnactionView.prototype = {
 		// Some free containers will be here
 		this.clearMimeSelect();
 		this.dataviewer.clearView();
+		GeneralView.freeContainer(this.dateSpan);
 		GeneralView.freeContainer(this.generalStatusSpan);
 		GeneralView.freeContainer(this.stageSpan);
 		GeneralView.freeContainer(this.statusSpan);
@@ -115,12 +164,196 @@ EnactionView.prototype = {
 	},
 	
 	internalDispose: function() {
-		this.wfDOM=undefined;
+		this.JobsBase=undefined;
+		this.domStatus=undefined;
 		this.svg.removeSVG();
+		this.initializedSVG=undefined;
+		this.waitingSVG=undefined;
+		this.stepCache={};
 		// TODO?
 	},
 	
 	fillEnactionStatus: function(enactDOM) {
+		// First, get the jobs rel uri
+		var statusL=enactDOM.getElementsByTagName('enactionstatus');
+		
+		// Second, get the relevant information 
+		for(var i=0;i< statusL.length;i++) {
+			var enStatus=statusL.item(i);
+			if(enStatus.getAttribute('jobId')==this.jobId) {
+				this.jobDir=EnactionView.getJobDir(this.jobId);
+				this.JobsBase=enStatus.getAttribute('relURI');
+				this.domStatus=enStatus;
+				
+				this.dateSpan.innerHTML=enStatus.getAttribute('time');
+				
+				var state=enStatus.getAttribute('state');
+				
+				// First run
+				if(state!='unknown' && !this.initializedSVG) {
+					this.initializedSVG=1;
+					var enactview=this;
+					this.waitingSVG=1;
+					this.svg.loadSVG(GeneralView.SVGDivId,
+						this.JobsBase+'/'+this.jobDir+'/workflow.svg',
+						'100mm',
+						'120mm',
+						function() {
+							alert('cachondeo');
+							enactview.clearJobNodes();
+							enactview.waitingSVG=undefined;
+							enactview.refreshEnactionStatus(state);
+						});
+				} else {
+					if(state=='unknown') {
+						this.waitingSVG=1;
+					}
+					this.refreshEnactionStatus(state);
+				}
+				
+				// Found, so no more iterations
+				break;
+			}
+		}
+	},
+	
+	refreshEnactionStatus: function(state) {
+		var gstate=state;
+		if(state=='dead' || state=='error') {
+			gstate="<span style='color:red'><b>"+gstate+"</b></span>";
+			this.errorJobNodes();
+		} else if(state=='running' || state=='unknown') {
+			gstate='<i>'+gstate+'</i>';
+			if(state=='unknown') {
+				gstate='<b>'+gstate+'</b>';
+			}
+		}
+
+		if(state=='finished') {
+			this.finishedJobNodes();
+		}
+
+		this.generalStatusSpan.innerHTML=gstate;
+		for(var child=this.domStatus.firstChild;child; child=child.nextSibling) {
+			// Walking through the steps
+			if(child.nodeType==1 && child.tagName=='step') {
+				var stepName = child.getAttribute('name');
+				var update=1;
+				// Is it cached?
+				if(stepName in this.stepCache) {
+					var stepState=child.getAttribute('state');
+					var prevStepState=this.stepCache[stepName].state;
+					if(stepState==prevStepState && !this.stepCache[stepName].iterations) {
+						update=undefined;
+					}
+				}
+				// Updating the step cache
+				if(update) {
+					var step=new WorkflowStep(child);
+					this.stepCache[step.name]=step;
+					this.updateStepView(step);
+				}
+			}
+		}
+	},
+	
+	updateStepView: function(step) {
+		var tramp=this.svg.getTrampoline();
+		var susId=tramp.suspendRedraw();
+		try {
+			// Setting the fill
+			switch(step.state) {
+				case 'queued':
+					tramp.changeNodeFill(step.name,'violet');
+					break;
+				case 'running':
+					tramp.changeNodeFill(step.name,'yellow');
+					break;
+				case 'finished':
+					tramp.changeNodeFill(step.name,'green');
+					break;
+				case 'error':
+					tramp.changeNodeFill(step.name,'red');
+					break;
+			}
+			
+			// And the click property
+			switch(step.state) {
+				case 'running':
+				case 'finished':
+				case 'error':
+					var enactview=this;
+					tramp.setNodeHandler(step.name,function () {
+						enactview.showStepFromId(this.getAttribute("id"));
+					},'click');
+					break;
+			}
+		} finally {
+			tramp.unsuspendRedraw(susId);
+		}
+	},
+	
+	showStepFromId: function (theid) {
+		var nodeToTitle=this.svg.getNodeToTitle();
+		if(theid in nodeToTitle) {
+			var step=this.stepCache[nodeToTitle[theid]];
+			// To finish
+			this.stageSpan.innerHTML=step.name;
+			this.statusSpan.innerHTML=step.state;
+			GeneralView.freeContainer(this.inContainer);
+			for(var input in step.input) {
+				this.inContainer.innerHTML += input+'<br>';
+			}
+			GeneralView.freeContainer(this.outContainer);
+			for(var output in step.output) {
+				this.outContainer.innerHTML += output+'<br>';
+			}
+		}
+	},
+	
+	clearJobNodes: function() {
+		var titleToNode=this.svg.getTitleToNode();
+		var tramp=this.svg.getTrampoline();
+		var susId=tramp.suspendRedraw();
+		try {
+			for(var tit in titleToNode) {
+				if(tit.indexOf('WORKFLOWINTERNALSOURCE')!=0) {
+					tramp.changeNodeFillOpacity(tit,'0.0');
+				}
+			}
+		} finally {
+			tramp.unsuspendRedraw(susId);
+		}
+	},
+	
+	errorJobNodes: function() {
+		var titleToNode=this.svg.getTitleToNode();
+		var tramp=this.svg.getTrampoline();
+		var susId=tramp.suspendRedraw();
+		try {
+			for(var tit in titleToNode) {
+				if(tit.indexOf('WORKFLOWINTERNALSINK')==0) {
+					tramp.changeNodeFill(tit,'red');
+				}
+			}
+		} finally {
+			tramp.unsuspendRedraw(susId);
+		}
+	},
+	
+	finishedJobNodes: function() {
+		var titleToNode=this.svg.getTitleToNode();
+		var tramp=this.svg.getTrampoline();
+		var susId=tramp.suspendRedraw();
+		try {
+			for(var tit in titleToNode) {
+				if(tit.indexOf('WORKFLOWINTERNALSINK')==0) {
+					tramp.changeNodeFillOpacity(tit,'1.0');
+				}
+			}
+		} finally {
+			tramp.unsuspendRedraw(susId);
+		}
 	},
 	
 	reloadStatus: function(jobId,isFullReload,snapshotName,snapshotDesc) {

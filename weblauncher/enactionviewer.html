@@ -16,31 +16,36 @@
 	<script type="text/javascript" src="js/FCKeditor/fckeditor.js"></script>
 	<script type="text/javascript" src="js/dynamicSVGhandling.js"></script>
 	<script type="text/javascript" src="js/IWWEM-common.js"></script>
+	<script type="text/javascript" src="js/base64.js"></script>
 	<script type="text/javascript" src="js/enactionviewer.js"></script>
 </head>
 <body onload="InitIWWEM(EnactionViewerCustomInit)" onunload="DisposeIWWEM(EnactionViewerCustomDispose)">
 <div align="center"><b>INB Web Workflow Enaction Viewer</b></div>
 	<table style="width:100%">
 		<tr><td class="middle">
+			Date: <span id="dateSpan"></span><br>
 			General status: <span id="generalStatusSpan"></span>
 		</td><td class="data">
-			Stage: <span id="stageSpan"></span>
-		</td><td align="right" valign="top">
+			Step: <span id="stageSpan"></span>
+		</td><td style="width:230px;vertical-align:top">
 			Status: <span id="statusSpan"></span>
 		</td></tr><tr><td class="middle">
 			<div id="svgdiv"></div>
 			<!--<select name="workflow" id="workflow" style="width:230px;" size="20"></select>-->
 		</td><td class="data">
 			<div class="scrolldata">
-				<b>Inputs</b>
-				<div id="inputs">&nbsp;</div>
-				<b>Outputs</b>
-				<div id="outputs">&nbsp;</div>
+				<form>
+					<b>Iteration </b><select id="iterationSelect"></select><br>
+					<b>Inputs</b>
+					<div id="inputs">&nbsp;</div>
+					<b>Outputs</b>
+					<div id="outputs">&nbsp;</div>
+				</form>
 			</div>
-		</td><td align="right" valign="top">
-			<span id="IOTypeSpan"></span> <span id="IONameSpan"></span><br>
+		</td><td style="width:230px;vertical-align:top">
 			<form>
-				<select id="mimeSelect" style="width:230px"></select>
+				<span id="IOTypeSpan"></span> <span id="IONameSpan"></span><br>
+				MIME <select id="mimeSelect"></select>
 			</form>
 			<div id="dataviewer"></div>
 		</td></tr><tr><td class="buttons">

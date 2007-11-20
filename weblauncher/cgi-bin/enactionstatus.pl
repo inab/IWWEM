@@ -76,7 +76,7 @@ sub appendResults($$$) {
 				# Now we have a pid, we can check for the enaction job
 				my($state)=undef;
 				my($includeSubs)=1;
-				if( -f $jobdir . '/FINISHED') {
+				if( -f $jobdir . '/FINISH') {
 					$state = 'finished';
 				} elsif( -f $jobdir . '/FAILED.txt') {
 					$state = 'error';
@@ -97,7 +97,7 @@ sub appendResults($$$) {
 					my($iteratedir)=$jobdir . '/Iterations';
 					if(-d $iteratedir) {
 						my($iternode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'iterations');
-						$parent->appendChild($iternode);
+						$step->appendChild($iternode);
 						appendResults($iteratedir,$outputDoc,$iternode);
 					}
 				}
@@ -156,32 +156,35 @@ my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionreport');
 $outputDoc->setDocumentElement($root);
 
 $root->appendChild($outputDoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTES) ));
-$root->setAttribute('relURI',$WorkflowCommon::JOBRELDIR);
 
-if(defined($dispose)) {
-	# Disposal execution
-	foreach my $jobId (@jobIdList) {
-		my($es)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionstatus');
-		$es->setAttribute('jobId',$jobId);
-		$es->setAttribute('time',LockNLog::getPrintableNow());
-		
-		# Time to know the overall status of this enaction
-		my($state)=undef;
-		my($jobdir)=undef;
-		my($wfsnap)=undef;
-		
-		if(index($jobId,$WorkflowCommon::SNAPSHOTPREFIX)==0) {
-			if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
-				$wfsnap=$1;
-				$jobId=$2;
-				$jobdir=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
-			}
-		} else {
-			$jobdir=$WorkflowCommon::JOBDIR . '/' .$jobId;
+# Disposal execution
+foreach my $jobId (@jobIdList) {
+	my($es)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionstatus');
+	$es->setAttribute('jobId',$jobId);
+	$es->setAttribute('time',LockNLog::getPrintableNow());
+	$es->setAttribute('relURI',$WorkflowCommon::JOBRELDIR);
+
+	# Time to know the overall status of this enaction
+	my($state)=undef;
+	my($jobdir)=undef;
+	my($wfsnap)=undef;
+
+	if(index($jobId,$WorkflowCommon::SNAPSHOTPREFIX)==0) {
+		if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			$wfsnap=$1;
+			$jobId=$2;
+			$jobdir=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
+			# It is an snapshot, so the relative URI changes
+			$es->setAttribute('relURI',$WorkflowCommon::WORKFLOWRELDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR);
 		}
+	} else {
+		$jobdir=$WorkflowCommon::JOBDIR . '/' .$jobId;
+	}
 
-		# Is it a valid job id?
-		if(index($jobId,'/')==-1 && defined($jobdir) && -d $jobdir && -r $jobdir) {
+	# Is it a valid job id?
+	if(index($jobId,'/')==-1 && defined($jobdir) && -d $jobdir && -r $jobdir) {
+		# Disposal execution
+		if(defined($dispose)) {
 			#
 			my($pidfile)=$jobdir . '/PID';
 			my($PID);
@@ -190,7 +193,7 @@ if(defined($dispose)) {
 				close($PID);
 
 				# Now we have a pid, we can check for the enaction job
-				if(! -f ($jobdir . '/FINISHED') && ! -f ($jobdir . '/FAILED.txt') && kill(0,$killpid)) {
+				if(! -f ($jobdir . '/FINISH') && ! -f ($jobdir . '/FAILED.txt') && kill(0,$killpid)) {
 					if(kill(TERM => -$killpid)) {
 						sleep(1);
 						# You must die!!!!!!!!!!
@@ -199,7 +202,7 @@ if(defined($dispose)) {
 				}
 			}
 			$state = 'disposed';
-			
+
 			# Catalog must be maintained
 			if(defined($wfsnap)) {
 				my($parser)=XML::LibXML->new();
@@ -208,49 +211,20 @@ if(defined($dispose)) {
 				eval {
 					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
-					
+
 					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$jobId']",$catdoc);
 					foreach my $snap (@eraseSnap) {
 						$snap->parentNode->removeChild($snap);
 					}
 					$catdoc->toFile($catfile);
 				};
-				
+
 			}
-			
+
 			# The job should have passed out, time to erase the working directory!
 			rmtree($jobdir);
-		}
-
-		$state='unknown'  unless(defined($state));
-
-		$es->setAttribute('state',$state);
-		$root->appendChild($es);
-	}
-} else {
-	# Status report
-	foreach my $jobId (@jobIdList) {
-		my($es)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionstatus');
-		$es->setAttribute('jobId',$jobId);
-		$es->setAttribute('time',LockNLog::getPrintableNow());
-
-		# Time to know the overall status of this enaction
-		my($state)=undef;
-		my($jobdir)=undef;
-		my($wfsnap)=undef;
-		
-		if(index($jobId,$WorkflowCommon::SNAPSHOTPREFIX)==0) {
-			if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
-				$wfsnap=$1;
-				$jobId=$2;
-				$jobdir=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
-			}
 		} else {
-			$jobdir=$WorkflowCommon::JOBDIR . '/' .$jobId;
-		}
-		
-		# Is it a valid job id?
-		if(index($jobId,'/')==-1 && defined($jobdir) && -d $jobdir && -r $jobdir) {
+			# Status report
 			# Disallowed snapshots over snapshots!
 			if(defined($snapshotName) && !defined($wfsnap)) {
 				my($workflowId)=undef;
@@ -260,7 +234,7 @@ if(defined($dispose)) {
 					$workflowId=<$WFID>;
 					close($WFID);
 				}
-				
+
 				# So, let's take a snapshot!
 				if(defined($workflowId) && index($workflowId,'/')==-1) {
 					# First, read the catalog
@@ -270,7 +244,7 @@ if(defined($dispose)) {
 					eval {
 						# Read catalog
 						my($catdoc)=$parser->parse_file($catfile);
-						
+
 						# Creating uuid
 						my($uuid)=undef;
 						my($snapdir)=undef;
@@ -278,7 +252,7 @@ if(defined($dispose)) {
 							$uuid=WorkflowCommon::genUUID();
 							$snapdir=$snapbasedir.'/'.$uuid;
 						} while(-d $snapdir);
-						
+
 						# Taking snapshot!
 						if(system("cp","-dpr",$jobdir,$snapdir)==0) {
 							# Last but one, register snapshot
@@ -294,18 +268,18 @@ if(defined($dispose)) {
 
 							# Last step, update catalog!
 							$catdoc->toFile($catfile);
-							
+
 							# And let's add it to the report
 							$es->appendNode($outputDoc->importNode($snapnode));
 						}
 					};
-					
+
 					# TODO: report, checks...
 					#unless($@) {
 					#}
 				}
 			}
-			
+
 			my($pidfile)=$jobdir . '/PID';
 			my($includeSubs)=1;
 			my($PID);
@@ -316,7 +290,7 @@ if(defined($dispose)) {
 				close($PID);
 
 				# Now we have a pid, we can check for the enaction job
-				if( -f $jobdir . '/FINISHED') {
+				if( -f $jobdir . '/FINISH') {
 					$state = 'finished';
 				} elsif( -f $jobdir . '/FAILED.txt') {
 					$state = 'error';
@@ -344,12 +318,12 @@ if(defined($dispose)) {
 				processStep($jobdir,$outputDoc,$es);
 			}
 		}
-
-		$state='unknown'  unless(defined($state));
-
-		$es->setAttribute('state',$state);
-		$root->appendChild($es);
 	}
+
+	$state='unknown'  unless(defined($state));
+
+	$es->setAttribute('state',$state);
+	$root->appendChild($es);
 }
 
 print $query->header(-type=>'text/xml',-charset=>'UTF-8',-cache=>'no-cache, no-store');
