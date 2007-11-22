@@ -17,19 +17,121 @@ function EnactionViewerCustomDispose() {
 	}
 }
 
+function Baclava(dataThing) {
+	this.name=dataThing.getAttribute('key');
+	for(var child=dataThing.firstChild;child;child=child.nextSibling) {
+		if(child.nodeType==1 && GeneralView.getLocalName(child)=='myGridDataDocument') {
+			this.syntacticType=child.getAttribute('syntactictype');
+			for(var myData=child.firstChild;myData;myData=myData.nextSibling) {
+				if(myData.nodeType==1) {
+					switch(GeneralView.getLocalName(myData)) {
+						case 'metadata':
+							this.setMetadata(myData);
+							break;
+						case 'partialOrder':
+						case 'dataElement':
+							this.data=Baclava.Data(myData);
+							break;
+					}
+				}
+			}
+			break;
+		}
+	}
+}
+
+Baclava.BACLAVA_NS='http://org.embl.ebi.escience/baclava/0.1alpha';
+
+Baclava.prototype = {
+	// Stores the assigned metadata
+	setMetadata: function(metadata) {
+		var mime=new Array();
+		var mimeNodes = GeneralView.getElementsByTagNameNS(metadata,GeneralView.XSCUFL_NS,'mimeType');
+		if(mimeNodes.length>0) {
+			for(var i=0;i<mimeNodes.length;i++) {
+				var mim=mimeNodes.item(i);
+				mime.push(WidgetCommon.getTextContent(mim));
+			}
+		} else {
+			mime.push('text/plain');
+		}
+		this.mime=mime;
+	}
+};
+
+/* A Baclava XML parser */
+Baclava.Parser = function(baclavaXML,thehash,themessagediv) {
+	if(baclavaXML && baclavaXML.documentElement && GeneralView.getLocalName(baclavaXML.documentElement)=='dataThingMap') {
+		for(var dataThing = baclavaXML.documentElement.firstChild; dataThing; dataThing=dataThing.nextSibling) {
+			if(dataThing.nodeType==1 && GeneralView.getLocalName(dataThing)=='dataThing') {
+				var bacla=new Baclava(dataThing);
+				thehash[bacla.name]=bacla;
+			}
+		}
+	}
+	// We should notify here in some way, like this one
+	thehash[WorkflowStep.GOT]=1;
+};
+
+Baclava.Data = function(partial) {
+	var data=undefined;
+	switch(GeneralView.getLocalName(partial)) {
+		case 'partialOrder':
+			var processRelations=undefined;
+			switch(partial.getAttribute('type')) {
+				case 'list':
+					data={};
+				case 'set':
+					processRelations=1;
+					break;
+			}
+			for(var list=partial.firstChild; list; list=list.nextSibling) {
+				if(list.nodeType==1) {
+					switch(GeneralView.getLocalName(list)) {
+						case 'relationList':
+							if(processRelations) {
+								// Even Taverna core does nothing at this step!!!
+							}
+							break;
+						case 'itemList':
+							for(var item=list.firstChild;item;item=item.nextSibling) {
+								if(item.nodeType==1) {
+									var idx = item.getAttribute('index');
+									data[idx] = Baclava.Data(item);
+								}
+							}
+							break;
+					}
+				}
+			}
+			break;
+		case 'dataElement':
+			var ndata = GeneralView.getElementsByTagNameNS(partial,Baclava.BACLAVA_NS,'dataElementData');
+			if(ndata && ndata.length>0) {
+				//data=Base64.decode(WidgetCommon.getTextContent(ndata.item(0)));
+				data=WidgetCommon.getTextContent(ndata.item(0));
+			}
+			break;
+	}
+	
+	return data;
+};
+
 function WorkflowStep(stepDOM, /* optional */ parentStep) {
 	this.name=stepDOM.getAttribute('name');
 	this.state=stepDOM.getAttribute('state');
 	this.parentStep=parentStep;
 	this.input={};
+	this.bacInput=undefined;
 	this.output={};
+	this.bacOutput=undefined;
 	for(var child = stepDOM.firstChild; child; child = child.nextSibling) {
 		if(child.nodeType==1) {
-			switch(child.tagName) {
+			switch(GeneralView.getLocalName(child)) {
 				case 'iterations':
 					var iterations=new Array();
 					for(var iter=child.firstChild;iter;iter=iter.nextSibling) {
-						if(child.nodeType==1 && child.tagName=='step') {
+						if(iter.nodeType==1 && GeneralView.getLocalName(iter)=='step') {
 							iterations.push(new WorkflowStep(iter,this));
 						}
 					}
@@ -49,12 +151,278 @@ function WorkflowStep(stepDOM, /* optional */ parentStep) {
 	}
 }
 
+WorkflowStep.GOT='----GOT----';
+
+WorkflowStep.prototype = {
+	fetchBaclavaObject: function(theurl,thehash,themessagediv,/* optional */ thenotify, istep) {
+		var request;
+		try {
+			request=new XMLHttpRequest();
+			request.onreadystatechange=function() {
+				if(request.readyState==4) {
+					try {
+						if('status' in request) {
+							if(request.status == 200) {
+								if(request.parseError && request.parseError.errorCode!=0) {
+									themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR ('+
+										request.parseError.errorCode+
+										") while parsing list at ("+
+										request.parseError.line+
+										","+request.parseError.linePos+
+										"):</h1></blink><pre>"+request.parseError.reason+"</pre>";
+								} else {
+									var response = request.responseXML;
+									if(!response) {
+										if(request.responseText) {
+											var parser = new DOMParser();
+											response = parser.parseFromString(request.responseText,'application/xml');
+										} else {
+											// Backend error.
+											themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR B: (with '+theurl+') Please notify it to INB Web Workflow Manager developer</h1></blink>';
+										}
+									}
+									// Only parse when an answer is available
+									Baclava.Parser(response,thehash,themessagediv);
+									try {
+										if(thenotify)  thenotify(istep);
+									} catch(noti) {
+										alert(WidgetCommon.DebugError(noti));
+										// IgnoreIT(R)
+									}
+								}
+								
+							} else {
+								// Communications error.
+								var statusText='';
+								if(('statusText' in request) && request.statusText) {
+									statusText=request.statusText;
+								}
+								themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR while fetching list: '+
+									request.status+' '+statusText+'</h1></blink>';
+							}
+						} else {
+							themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR F: (with '+theurl+') Please notify it to INB Web Workflow Manager developer</h1></blink>';
+						}
+					} catch(e) {
+						themessagediv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to complete '+theurl+' reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
+					} finally {
+					}
+				}
+			};
+			
+			// Now it is time to send the query
+			request.open('GET',theurl,true);
+			request.send(null);
+		} catch(e) {
+			themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR: Unable to start '+theurl+' reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
+			request=undefined;
+		}
+		
+		return request;
+	},
+	
+	fetchBaclava: function(baseJob,themessagediv,gotInputHandler,gotOutputHandler,/* optional */ istep) {
+		var relpath=baseJob+'/'+this.name+'/';
+		if(!(this.input[WorkflowStep.GOT]) && !this.bacInput) {
+			this.bacInput=this.fetchBaclavaObject(relpath+'Inputs.xml',this.input,themessagediv,gotInputHandler,istep);
+		}
+		
+		if(!(this.output[WorkflowStep.GOT]) && !this.bacOutput) {
+			this.bacOutput=this.fetchBaclavaObject(relpath+'Outputs.xml',this.output,themessagediv,gotOutputHandler,istep);
+		}
+		
+		// Now, the iterations
+		if(this.iterations) {
+			for(var i=0; i< this.iterations.length ; i++) {
+				this.iterations[i].fetchBaclava(relpath+'Iterations',themessagediv,gotInputHandler,gotOutputHandler,i);
+			}
+		}
+	}
+};
+
 /* Data viewer, the must-be royal crown */
 function DataViewer(dataviewerId,genview) {
 	this.genview=genview;
 	
 	this.dataviewerDiv=genview.getElementById(dataviewerId);
+	this.mimeSelect=genview.getElementById('mimeSelect');
+	this.data=undefined;
+	this.base64data=undefined;
+	this.mimeList=undefined;
+	
+	jmolInitialize('js/jmol');
+	jmolSetDocument(undefined);
+	
+	var dataview=this;
+	this.mimeChangeFunc=function() {
+		if(this.selectedIndex!=-1) {
+			dataview.applyView(this.options[this.selectedIndex].value);
+		}
+	};
 }
+
+DataViewer.prototype={
+	openProcessFrame: function () {
+		this.genview.openFrame('preprocessData');
+	},
+	
+	closeProcessFrame: function() {
+		this.genview.closeFrame();
+	},
+	
+	clearView: function () {
+		WidgetCommon.removeEventListener(this.mimeSelect,'change',this.mimeChangeFunc,false);
+		this.data=undefined;
+		this.base64data=undefined;
+		this.mimeList=undefined;
+		GeneralView.freeContainer(this.dataviewerDiv);
+		GeneralView.freeSelect(this.mimeSelect);
+	},
+		
+	show: function(data,mimeList) {
+		this.clearView();
+		
+		// First, fill in mime type
+		if(mimeList) {
+			if(mimeList.length==0) {
+				mimeList.push('text/plain');
+			}
+			this.mimeList=mimeList;
+
+			for(var i=0;i<mimeList.length;i++) {
+				var iterM=this.genview.createElement('option');
+				iterM.text=iterM.value=mimeList[i];
+				try {
+					this.mimeSelect.add(iterM,null);
+				} catch(e) {
+					this.mimeSelect.add(iterM);
+				}
+			}
+
+			// Second, set the data
+			// which it is in base64
+			this.openProcessFrame();
+			var dataview=this;
+			this.base64data=data;
+			Base64.streamDecode(data,function(decdata) {
+				dataview.data=decdata;
+				
+				dataview.closeProcessFrame();
+				// Third, apply best view!
+				dataview.applyView();
+				
+				// Fourth, assign handler
+				WidgetCommon.addEventListener(dataview.mimeSelect,'change',dataview.mimeChangeFunc,false);
+			});
+		} else {
+			// Default case, no view
+			var iterM=this.genview.createElement('option');
+			iterM.text=iterM.value='NO ONE';
+			try {
+				this.mimeSelect.add(iterM,null);
+			} catch(e) {
+				this.mimeSelect.add(iterM);
+			}
+			this.mimeList=undefined;
+			this.data=undefined;
+		}
+	},
+	
+	applyView: function (mime) {
+		// Choose the best view
+		if(!mime) {
+			if(this.mimeList) {
+				// Default case
+				mime=undefined;
+				var bestIndex=-1;
+				var tpIndex=-1;
+				for(var i=0;i<this.mimeList.length;i++) {
+					if(bestIndex==-1 && this.mimeList[i]!='text/plain' && this.mimeList[i]!='application/octet-stream') {
+						bestIndex=i;
+					}
+					if(this.mimeList[i]=='text/plain' || (tpIndex==-1 && this.mimeList[i]=='application/octet-stream')) {
+						tpIndex=i;
+					}
+				}
+				
+				if(bestIndex==-1) {
+					if(tpIndex==-1) {
+						tpIndex==0;
+					}
+					bestIndex=tpIndex;
+				}
+				mime=this.mimeList[bestIndex];
+				
+				this.mimeSelect.selectedIndex=bestIndex;
+			} else {
+				// No data :-(
+				this.dataviewerDiv.innerHTML='<i>NO DATA</i>';
+				return;
+			}
+		}
+		
+		
+		// Now, time to apply view
+		if(this.data) {
+			GeneralView.freeContainer(this.dataviewerDiv);
+			switch(mime) {
+				case 'application/octet-stream':
+					this.dataviewerDiv.innerHTML='Sorry, unable to show binary-labeled data (yet)!';
+					break;
+				case 'image/*':
+					var img=new Image();
+					img.src='data:image/*;base64,'+this.base64data;
+					this.dataviewerDiv.appendChild(img);
+					break;
+				case 'image/svg+xml':
+					var objres=undefined;
+					if(BrowserDetect.browser!='Explorer') {
+						objres=this.genview.createElement('object');
+						objres.setAttribute("data",url);
+					} else {
+						objres=this.genview.createElement('embed');
+						objres.setAttribute("pluginspage","http://www.adobe.com/svg/viewer/install/");
+						objres.setAttribute("src",url);
+					}
+					objres.setAttribute("type","image/svg+xml");
+					objres.setAttribute("wmode","transparent");
+					objres.setAttribute("width",'100%');
+					objres.setAttribute("height",'100%');
+					this.dataviewerDiv.appendChild(objres);
+					break;
+				case 'chemical/x-pdb':
+					this.dataviewerDiv.innerHTML=jmolAppletInline([300,450],
+						this.data,
+						'cartoon on;color cartoons structure',
+						'jmol'
+					);
+					// 'define ~myset (*.N?);select ~myset;color green;select *;color cartoons structure;color rockets chain;color backbone blue'
+					//jmolLoadInline(this.data,'jmol');
+					break;
+				case 'text/html':
+					// A bit risky, isn't it?
+					// Better an iframe, but not know
+					this.dataviewerDiv.innerHTML=this.data;
+					break;
+				case 'text/xml':
+				case 'text/plain':
+				default:
+					// Use the prettyfier!
+					var dataCont = this.genview.createElement('pre');
+					dataCont.className='prettyprint noborder';
+					var htmldata=this.data;
+					htmldata=htmldata.replace(/&/g,'&amp;');
+					htmldata=htmldata.replace(/</g,'&lt;');
+					htmldata=htmldata.replace(/>/g,'&gt;');
+					dataCont.innerHTML=htmldata;
+					this.dataviewerDiv.appendChild(dataCont);
+					// Now, prettyPrint!!!!
+					prettyPrint();
+					break;
+			}
+		}
+	}
+};
 
 /* Window handling code */
 function EnactionView(genview) {
@@ -71,10 +439,11 @@ function EnactionView(genview) {
 	this.iterationSelect=genview.getElementById('iterationSelect');
 	this.inContainer=genview.getElementById('inputs');
 	this.outContainer=genview.getElementById('outputs');
+	this.inputsSpan=genview.getElementById('inputsSpan');
+	this.outputsSpan=genview.getElementById('outputsSpan');
 	
 	this.IOTypeSpan=genview.getElementById('IOTypeSpan');
 	this.IONameSpan=genview.getElementById('IONameSpan');
-	this.mimeSelect=genview.getElementById('mimeSelect');
 	this.dataviewer=new DataViewer('dataviewer',genview);
 	
 	var enactview=this;
@@ -109,7 +478,9 @@ function EnactionView(genview) {
 	//this.domStatus=undefined;
 	this.internalDispose();
 	
-	
+	this.stepClickHandler = function () {
+		enactview.showStepFromId(this.getAttribute("id"));
+	};
 	
 	// At last, getting the enaction id
 	var qsParm=new Array();
@@ -132,6 +503,8 @@ EnactionView.getJobDir = function(jobId) {
 	
 	return jobId;
 };
+
+EnactionView.BaseHREF = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
 	
 EnactionView.prototype = {
 	openReloadFrame: function () {
@@ -147,7 +520,12 @@ EnactionView.prototype = {
 		
 		// TODO
 		// Some free containers will be here
-		this.clearMimeSelect();
+		GeneralView.freeSelect(this.mimeSelect);
+		
+		this.step=undefined;
+		this.istep=undefined;
+		this.setStep();
+		
 		this.dataviewer.clearView();
 		GeneralView.freeContainer(this.dateSpan);
 		GeneralView.freeContainer(this.generalStatusSpan);
@@ -157,25 +535,27 @@ EnactionView.prototype = {
 		GeneralView.freeContainer(this.IONameSpan);
 	},
 	
-	clearMimeSelect: function() {
-		for(var ri=this.mimeSelect.length-1;ri>=0;ri--) {
-			this.mimeSelect.remove(ri);
-		}
-	},
-	
 	internalDispose: function() {
 		this.JobsBase=undefined;
+		this.jobDir=undefined;
 		this.domStatus=undefined;
 		this.svg.removeSVG();
 		this.initializedSVG=undefined;
 		this.waitingSVG=undefined;
 		this.stepCache={};
+		this.step=undefined;
+		this.istep=undefined;
+		this.setStep();
+		if(this.iterSelectHandler) {
+			WidgetCommon.removeEventListener(this.iterationSelect,'change',this.iterSelectHandler,false);
+			this.iterationSelect=undefined;
+		}
 		// TODO?
 	},
 	
 	fillEnactionStatus: function(enactDOM) {
 		// First, get the jobs rel uri
-		var statusL=enactDOM.getElementsByTagName('enactionstatus');
+		var statusL=GeneralView.getElementsByTagNameNS(enactDOM,GeneralView.IWWEM_NS,'enactionstatus');
 		
 		// Second, get the relevant information 
 		for(var i=0;i< statusL.length;i++) {
@@ -183,6 +563,7 @@ EnactionView.prototype = {
 			if(enStatus.getAttribute('jobId')==this.jobId) {
 				this.jobDir=EnactionView.getJobDir(this.jobId);
 				this.JobsBase=enStatus.getAttribute('relURI');
+
 				this.domStatus=enStatus;
 				
 				this.dateSpan.innerHTML=enStatus.getAttribute('time');
@@ -199,7 +580,6 @@ EnactionView.prototype = {
 						'100mm',
 						'120mm',
 						function() {
-							alert('cachondeo');
 							enactview.clearJobNodes();
 							enactview.waitingSVG=undefined;
 							enactview.refreshEnactionStatus(state);
@@ -217,18 +597,26 @@ EnactionView.prototype = {
 		}
 	},
 	
-	refreshEnactionStatus: function(state) {
+	genGraphicalState: function(state) {
 		var gstate=state;
 		if(state=='dead' || state=='error') {
 			gstate="<span style='color:red'><b>"+gstate+"</b></span>";
-			this.errorJobNodes();
 		} else if(state=='running' || state=='unknown') {
 			gstate='<i>'+gstate+'</i>';
 			if(state=='unknown') {
 				gstate='<b>'+gstate+'</b>';
 			}
 		}
-
+		
+		return gstate;
+	},
+	
+	refreshEnactionStatus: function(state) {
+		var gstate=this.genGraphicalState(state);
+		if(state=='dead' || state=='error') {
+			this.errorJobNodes();
+		}
+		
 		if(state=='finished') {
 			this.finishedJobNodes();
 		}
@@ -236,7 +624,7 @@ EnactionView.prototype = {
 		this.generalStatusSpan.innerHTML=gstate;
 		for(var child=this.domStatus.firstChild;child; child=child.nextSibling) {
 			// Walking through the steps
-			if(child.nodeType==1 && child.tagName=='step') {
+			if(child.nodeType==1 && GeneralView.getLocalName(child)=='step') {
 				var stepName = child.getAttribute('name');
 				var update=1;
 				// Is it cached?
@@ -252,6 +640,9 @@ EnactionView.prototype = {
 					var step=new WorkflowStep(child);
 					this.stepCache[step.name]=step;
 					this.updateStepView(step);
+					if(this.step && step.name==this.step.name) {
+						this.setStep(step);
+					}
 				}
 			}
 		}
@@ -283,9 +674,8 @@ EnactionView.prototype = {
 				case 'finished':
 				case 'error':
 					var enactview=this;
-					tramp.setNodeHandler(step.name,function () {
-						enactview.showStepFromId(this.getAttribute("id"));
-					},'click');
+					tramp.removeNodeHandler(step.name,this.stepClickHandler,'click');
+					tramp.setNodeHandler(step.name,this.stepClickHandler,'click');
 					break;
 			}
 		} finally {
@@ -297,16 +687,110 @@ EnactionView.prototype = {
 		var nodeToTitle=this.svg.getNodeToTitle();
 		if(theid in nodeToTitle) {
 			var step=this.stepCache[nodeToTitle[theid]];
-			// To finish
-			this.stageSpan.innerHTML=step.name;
-			this.statusSpan.innerHTML=step.state;
-			GeneralView.freeContainer(this.inContainer);
-			for(var input in step.input) {
-				this.inContainer.innerHTML += input+'<br>';
+			this.setStep(step);
+		}
+	},
+	
+	setStep: function (step,iteration) {
+		// To finish
+		if(!step) {
+			step=this.step;
+		}
+		// Unfilling iterations
+		if(this.iterSelectHandler) {
+			WidgetCommon.removeEventListener(this.iterationSelect,'change',this.iterSelectHandler,false);
+			this.iterSelectHandler=undefined;
+		}
+		GeneralView.freeSelect(this.iterationSelect);
+
+		if(step) {
+			if(!iteration) {
+				iteration=-1;
+			} else {
+				iteration=parseInt(iteration);
 			}
+			if(!this.step || this.step.name!=step.name || this.step!=step) {
+				this.stageSpan.innerHTML=step.name;
+				this.statusSpan.innerHTML=this.genGraphicalState(step.state);
+			}
+			this.step=step;
+			this.istep=iteration;
+
+			// Filling iterations
+			var iterO=this.genview.createElement('option');
+			iterO.value=-1;
+			iterO.text=(((step.input[WorkflowStep.GOT]) && (step.output[WorkflowStep.GOT]))?'':'* ')+'Whole';
+			try {
+				this.iterationSelect.add(iterO,null);
+			} catch(e) {
+				this.iterationSelect.add(iterO);
+			}
+			
+			// For the global step
+			var enactview=this;
+			var gstep=step;
+			// I'm using here absolute paths, because when this function is called from inside SVG
+			// click handlers, base href is the one from the SVG, not the one from this page.
+			var inputSignaler = function(istep) {
+				enactview.tryUpdateIOStatus(gstep,istep,gstep.input,enactview.inputsSpan,enactview.inContainer);
+			};
+
+			if(step.iterations) {
+				for(var i=0;i<gstep.iterations.length;i++) {
+					var ministep=gstep.iterations[i];
+					iterO=this.genview.createElement('option');
+					iterO.value=i;
+					iterO.text=(((ministep.input[WorkflowStep.GOT]) && (ministep.output[WorkflowStep.GOT]))?'':'* ')+ministep.name;
+					try {
+						this.iterationSelect.add(iterO,null);
+					} catch(e) {
+						this.iterationSelect.add(iterO);
+					}
+				}
+
+				// Looking this concrete iteration
+				if(iteration!=-1) {
+					step=gstep.iterations[iteration];
+				}
+
+				// Showing the correct position
+				this.iterationSelect.selectedIndex=iteration+1;
+
+				this.iterSelectHandler=function() {
+					if(this.selectedIndex!=-1) {
+						enactview.setStep(gstep,this.options[this.selectedIndex].value);
+					}
+				};
+				WidgetCommon.addEventListener(this.iterationSelect,'change',this.iterSelectHandler,false);
+			}
+			// Fetching data after, not BEFORE creating the select
+			var outputSignaler = function(istep) {
+				enactview.tryUpdateIOStatus(gstep,istep,gstep.output,enactview.outputsSpan,enactview.outContainer);
+			};
+			gstep.fetchBaclava(EnactionView.BaseHREF+'/'+this.JobsBase+'/'+this.jobDir+'/Results',this.messageDiv,inputSignaler,outputSignaler);
+			
+			
+			// For this concrete (sub)step
+			// Inputs
+			this.updateIOStatus(step.input,this.inputsSpan,this.inContainer);
+
+			// Outputs
+			this.updateIOStatus(step.output,this.outputsSpan,this.outContainer);
+		} else {
+			// Clearing view
+			GeneralView.freeContainer(this.inContainer);
 			GeneralView.freeContainer(this.outContainer);
-			for(var output in step.output) {
-				this.outContainer.innerHTML += output+'<br>';
+			this.stageSpan.innerHTML='NONE';
+			this.statusSpan.innerHTML='NONE'
+			this.inContainer.innerHTML='<i>(None)</i>';
+			this.outContainer.innerHTML='<i>(None)</i>';
+			var iterO=this.genview.createElement('option');
+			iterO.value='NONE';
+			iterO.text='NONE';
+			try {
+				this.iterationSelect.add(iterO,null);
+			} catch(e) {
+				this.iterationSelect.add(iterO);
 			}
 		}
 	},
@@ -356,6 +840,83 @@ EnactionView.prototype = {
 		}
 	},
 	
+	updateIOStatus: function(stepIO,IOSpan,IOContainer) {
+		GeneralView.freeContainer(IOContainer);
+		var loaded=stepIO[WorkflowStep.GOT];
+		IOSpan.className=(loaded)?'IOStat':'IOStatLoading';
+		if(loaded) {
+			for(var IO in stepIO) {
+				if(IO==WorkflowStep.GOT)  continue;
+				this.generateIO(IO,(loaded)?stepIO[IO].data:undefined,(loaded)?stepIO[IO].mime:undefined,IOContainer);
+			}
+		}
+	},
+	
+	tryUpdateIOStatus: function(gstep,istep,stepIO,IOSpan,IOContainer) {
+		if(this.step==gstep) {
+			// Update the selection text
+			var tstep;
+			if(!istep) {
+				istep=-1;
+				tstep='Whole';
+			} else {
+				istep=parseInt(istep);
+				tstep=istep+1;
+			}
+			
+			this.iterationSelect.options[istep+1].text=tstep;
+			
+			// And perhaps the generated tree!
+			if(this.istep==istep) {
+				this.updateIOStatus(stepIO,IOSpan,IOContainer);
+			}
+		}
+	},
+	
+	// Tree-like structure
+	generateIO: function(thekey,theval,mime,parentContainer) {
+		if(typeof theval != 'object') {
+			// A leaf
+			var span = this.genview.createElement('div');
+			span.innerHTML=thekey;
+			if(theval) {
+				span.className='leaf';
+				var dataviewer=this.dataviewer;
+				// Event to show the information
+				WidgetCommon.addEventListener(span,'click',function () {
+					dataviewer.show(theval,mime);
+				},false);
+			} else {
+				span.className='deadleaf';
+			}
+			
+			//parentContainer.appendChild(this.genview.createElement('br'));
+			parentContainer.appendChild(span);
+		} else {
+			// A branch
+			var div = this.genview.createElement('div');
+			div.className='branch';
+			var span = this.genview.createElement('span');
+			span.className='branchlabel';
+			span.innerHTML=thekey;
+			div.appendChild(span);
+			parentContainer.appendChild(div);
+			// Event to show the contents
+			WidgetCommon.addEventListener(span,'click',function () {
+				if(this.parentNode.className=='branch') {
+					this.parentNode.className+=' open';
+				} else {
+					this.parentNode.className='branch';
+				}
+			},false);
+			
+			// Now the children
+			for(var facet in theval) {
+				this.generateIO(facet,theval[facet],mime,div);
+			}
+		}
+	},
+	
 	reloadStatus: function(jobId,isFullReload,snapshotName,snapshotDesc) {
 		// Getting the enaction information
 		if(!jobId)  jobId=this.jobId;
@@ -397,6 +958,7 @@ EnactionView.prototype = {
 											response = parser.parseFromString(enactQueryReq.responseText,'application/xml');
 										} else {
 											// TODO
+											enactQueryReq.enactview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>';
 											// Backend error.
 										}
 									}

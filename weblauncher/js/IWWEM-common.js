@@ -10,8 +10,8 @@
 /* Window handling code */
 function GeneralView(customInit, /* optional */thedoc) {
 	this.thedoc = (thedoc)?thedoc:document;
-	this.outer=this.thedoc.getElementById('outerAbsDiv');
-	this.shimmer=this.thedoc.getElementById('shimmer');
+	this.outer=this.getElementById('outerAbsDiv');
+	this.shimmer=this.getElementById('shimmer');
 	
 	this.visibleId=undefined;
 	if(customInit && typeof customInit == 'function') {
@@ -23,6 +23,10 @@ function GeneralView(customInit, /* optional */thedoc) {
 GeneralView._loadtimer=undefined;
 GeneralView.SVGDivId='svgdiv';
 GeneralView.dataIslandMarker='dataIsland';
+
+GeneralView.IWWEM_NS='http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend';
+GeneralView.XSCUFL_NS='http://org.embl.ebi.escience/xscufl/0.1alpha';
+
 
 GeneralView.freeContainer = function (container) {
 	// Removing all the content from the container
@@ -39,6 +43,19 @@ GeneralView.freeContainer = function (container) {
 
 		// Last resort!
 		//container.innerHTML = '&nbsp;';
+	}
+	
+	return erased;
+};
+
+GeneralView.freeSelect = function (container) {
+	// Removing all the content from the container
+	var erased=0;
+	if(container) {
+		for(var ri=container.length-1;ri>=0;ri--) {
+			container.remove(ri);
+			erased++;
+		}
 	}
 	
 	return erased;
@@ -76,6 +93,55 @@ GeneralView.initCheck = function(check) {
 	};
 };
 
+GeneralView.getLocalName = function(node) {
+	if(node.localName)  return node.localName;
+	
+	var nodeTagName = node.tagName;
+	if(nodeTagName.indexOf(':')!=-1) {
+		nodeTagName = nodeTagName.substring(nodeTagName.indexOf(':')+1);
+	}
+	
+	return nodeTagName;
+};
+
+GeneralView.isLocalName = function(node,tagName) {
+	var nodeTagName=GeneralView.getLocalName(node);
+	if(tagName.indexOf(':')!=-1) {
+		tagName=tagName.substring(tagName.indexOf(':')+1);
+	}
+	
+	return nodeTagName==tagName;
+};
+
+GeneralView.getElementsByTagNameNS = function(node,namespace,localName) {
+	if(node.getElementsByTagNameNS)  return node.getElementsByTagNameNS(namespace,localName);
+	
+	return GeneralView.slowGetElementsByTagNameNS(node,namespace,localName);
+}
+
+GeneralView.slowGetElementsByTagNameNS = function(node,namespace,localName, /* optional */ nodelist) {
+	if(!nodelist)  {
+		nodelist=new Array();
+		nodelist.item=function(i) {
+			return this[i];
+		};
+	}
+	
+	if(node.nodeType==9)  node=node.documentElement;
+	
+	if(localName=='*' || GeneralView.getLocalName(node)==localName) {
+		nodelist.push(node);
+	}
+	
+	for(var child=node.firstChild;child;child=child.nextSibling) {
+		if(child.nodeType==1) {
+			GeneralView.slowGetElementsByTagNameNS(child,namespace,localName,nodelist);
+		}
+	}
+	
+	return nodelist;
+};
+
 GeneralView.preProcess = function (thedesc) {
 	if(!thedesc)  thedesc='';
 	thedesc=thedesc.toString();
@@ -111,13 +177,13 @@ GeneralView.prototype = {
 			this.shimmer.className='shimmer';
 		}
 		this.outer.className='outerAbsDiv';
-		var elem=this.thedoc.getElementById(divId);
+		var elem=this.getElementById(divId);
 		elem.className='transAbsDiv';
 		
 	},
 	
 	closeFrame: function () {
-		var elem=this.thedoc.getElementById(this.visibleId);
+		var elem=this.getElementById(this.visibleId);
 		this.visibleId=undefined;
 
 		elem.className='hidden';
@@ -234,7 +300,7 @@ GeneralView.prototype = {
 	},
 	
 	getElementById: function(theid) {
-		return this.thedoc.getElementById(theid);
+		return WidgetCommon.getElementById(theid,this.thedoc);
 	},
 	
 	createElement: function(tagName) {

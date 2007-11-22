@@ -36,7 +36,7 @@
 	<target depends="init" description="Checking of Perl frontend modules" name="perl-check">
 		<apply executable="perl" dir="${weblauncher.src}" failonerror="true">
 			<arg value="-c"/>
-			<fileset dir="${weblauncher.src}" followsymlinks="false">
+			<fileset dir="${weblauncher.src}/cgi-bin" followsymlinks="false">
 				<include name="**/*.pl" />
 				<include name="**/*.pm" />
 			</fileset>
@@ -46,7 +46,10 @@
 	<target depends="perl-check,maven-compile" description="It checks the whole project's modules" name="check">
 	</target>
 	
-	<target depends="check" description="It deploys the whole project to the destination repository" name="deploy">
+	<target depends="check,rawdeploy" description="It deploys the whole project to the destination repository" name="deploy">
+	</target>
+
+	<target description="It deploys the whole project to the destination repository" name="rawdeploy">
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"

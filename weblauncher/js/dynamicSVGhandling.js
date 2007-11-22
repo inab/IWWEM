@@ -146,7 +146,7 @@ TavernaSVG.prototype = {
 			callOnFinish=load[4];
 			thedoc=load[5];
 		}
-		while(load = this.queue.shift()) {
+		while((load = this.queue.shift())) {
 			if(nodeid==load[0] && url==load[1]) {
 				continue;
 			}

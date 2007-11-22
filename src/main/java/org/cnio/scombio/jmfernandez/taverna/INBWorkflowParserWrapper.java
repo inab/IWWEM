@@ -273,8 +273,11 @@ public class INBWorkflowParserWrapper {
 		{"saxpath","saxpath","1.0-FCS"},
 		{"dom4j","dom4j","1.6"},
 //		{"batik","batik-transcoder","1.6-1"},
+		{"xerces","xercesImpl","2.6.2"},
+		{"xalan","xalan","2.5.2"},
+		{"log4j","log4j","1.2.12"},
 	};
-	
+	/*
 	private static final String[][] ExternalArtifactList={
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-biomart-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-localworkers",TAVERNA_BASE_VERSION},
@@ -285,6 +288,21 @@ public class INBWorkflowParserWrapper {
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-wsdl-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-apiconsumer-processor",TAVERNA_BASE_VERSION},
 		{"biomoby.org","taverna-biomoby",TAVERNA_BASE_VERSION},
+		{TAVERNA_GROUP_ID,"taverna-contrib",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
+	};
+	*/
+	
+	private static final String[][] ExternalArtifactList={
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-biomart-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-localworkers","1.6.2.1"},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-stringconstant-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-notification-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-beanshell-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-soaplab-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-wsdl-processor","1.6.2.1"},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-apiconsumer-processor","1.6.2.1"},
+		{"biomoby.org","taverna-biomoby","1.6.2.1"},
 		{TAVERNA_GROUP_ID,"taverna-contrib",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
 	};

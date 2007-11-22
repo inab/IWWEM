@@ -31,7 +31,7 @@ function IODesc(ioD) {
 	this.mime=new Array();
 	for(var child=ioD.firstChild; child ; child=child.nextSibling) {
 		if(child.nodeType==1) {
-			switch(child.tagName) {
+			switch(GeneralView.getLocalName(child)) {
 				case 'description':
 					// This is needed because there are some
 					// differences among the standars
@@ -104,11 +104,13 @@ function WorkflowDesc(wfD) {
 	this.snapshots=snapshots;
 	
 	this.description=undefined;
+	this.hasInputs=undefined;
+	this.hasExamples=undefined;
 	
 	for(var child=wfD.firstChild;child;child=child.nextSibling) {
 		// Only element children, please!
 		if(child.nodeType == 1) {
-			switch(child.tagName) {
+			switch(GeneralView.getLocalName(child)) {
 				case 'description':
 					// This is needed because there are some
 					// differences among the standars
@@ -121,6 +123,7 @@ function WorkflowDesc(wfD) {
 				case 'example':
 					var newExample = new InputExample(child);
 					examples[newExample.uuid]=newExample;
+					this.hasExamples=1;
 					break;
 				case 'snapshot':
 					var newSnapshot = new OutputSnapshot(child);
@@ -129,6 +132,7 @@ function WorkflowDesc(wfD) {
 				case 'input':
 					var newInput = new IODesc(child);
 					inputs[newInput.name]=newInput;
+					this.hasInputs=1;
 					break;
 				case 'output':
 					var newOutput = new IODesc(child);
@@ -296,10 +300,8 @@ ManagerView.prototype = {
 			
 			// Second, remove its content
 			this.wfA=new Array();
-			for(var ri=this.wfselect.length-1;ri>=0;ri--) {
-				this.wfselect.remove(ri);
-			}
-
+			GeneralView.freeSelect(this.wfselect);
+			
 			// Third, populate it!
 			/*
 			var docFacet = 'documentElement';
@@ -310,9 +312,9 @@ ManagerView.prototype = {
 			*/
 			if(listDOM.documentElement &&
 				listDOM.documentElement.tagName &&
-				listDOM.documentElement.tagName=='workflowlist'
+				GeneralView.getLocalName(listDOM.documentElement)=='workflowlist'
 			) {
-				var wfL = listDOM.getElementsByTagName('workflow');
+				var wfL = GeneralView.getElementsByTagNameNS(listDOM,GeneralView.IWWEM_NS,'workflow');
 				this.WFBase = listDOM.documentElement.getAttribute('relURI');
 				for(var i=0;i<wfL.length;i++) {
 					var workflow=new WorkflowDesc(wfL.item(i));
@@ -329,7 +331,7 @@ ManagerView.prototype = {
 				}
 
 				// Including the possible error message
-				var message = listDOM.getElementsByTagName('message');
+				var message = GeneralView.getElementsByTagNameNS(listDOM,GeneralView.IWWEM_NS,'message');
 				if(message.length>0) {
 					var child=message.item(0);
 					var mtext;
@@ -377,8 +379,8 @@ ManagerView.prototype = {
 											var parser = new DOMParser();
 											response = parser.parseFromString(listRequest.responseText,'application/xml');
 										} else {
-											// TODO
 											// Backend error.
+											listRequest.manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>';
 										}
 									}
 									listRequest.manview.fillWorkflowList(response);
@@ -668,16 +670,9 @@ function NewEnactionView(genview) {
 NewEnactionView.prototype = {
 	setInputMode: function(control) {
 		if(this.inputstatecontrol!=control) {
-			if(control==this.useExampleSpan && this.workflow && this.workflow.examples) {
-				var found=undefined;
-				for(var facet in this.workflow.examples) {
-					found=1;
-					break;
-				}
-				if(!found) {
-					alert('Sorry, there is no registered input example for this workflow');
-					return;
-				}
+			if(control==this.useExampleSpan && this.workflow && !this.workflow.hasExamples) {
+				alert('Sorry, there is no registered input example for this workflow');
+				return;
 			}
 			// Graphical handling
 			if(this.inputstatecontrol) {
@@ -836,23 +831,21 @@ NewEnactionView.prototype = {
 		
 		WidgetCommon.addEventListener(exSelect,'change',onSelectChange,false);
 		
-		// Now it is time to fill in the select control
-		var atLeastOne=undefined;
-		for(var examplefacet in workflow.examples) {
-			var example=workflow.examples[examplefacet];
-			var exSelOpt=example.generateOption();
-			atLeastOne=1;
-			
-			// Last: save selection!
-			try {
-				exSelect.add(exSelOpt,null);
-			} catch(e) {
-				exSelect.add(exSelOpt);
+		if(workflow.hasExamples) {
+			// Now it is time to fill in the select control
+			for(var examplefacet in workflow.examples) {
+				var example=workflow.examples[examplefacet];
+				var exSelOpt=example.generateOption();
+
+				// Last: save selection!
+				try {
+					exSelect.add(exSelOpt,null);
+				} catch(e) {
+					exSelect.add(exSelOpt);
+				}
 			}
-		}
-		
-		// And setting it up!
-		if(atLeastOne) {
+
+			// And setting it up!
 			exSelect.selectedIndex=0;
 			onSelectChange();
 		}
@@ -1029,94 +1022,95 @@ NewEnactionView.prototype = {
 	},
 	
 	enact: function () {
-		if(!this.inputmode && this.inputCounter<=0) {
+		if(this.workflow.hasInputs && !this.inputmode && this.inputCounter<=0) {
 			alert('You must introduce an input before trying to\nstart the enaction process');
-		}
-		
-		// First, locking the window
-		this.openSubmitFrame();
-		
-		/*
-			Dynamic IFRAME handling
-			which not works in IE :-(
-			
-		// The iframe which will contain what we need
-		var iframe = this.genview.createElement('iframe');
-		var iframeName = iframe.name = WidgetCommon.getRandomUUID();
-		iframe.frameBorder = '0';
-		// This one was not working with Konqueror
-		// iframe.style.display = 'none';
-		iframe.style.height=0;
-		iframe.style.width=0;
-		iframe.style.visibility='hidden';
-		
-		// Iframe must live somewhere
-		this.newEnactUploading.appendChild(iframe);
-		*/
-		var iframe=this.iframe;
-		var iframeName=this.iframe.name;
-		this.workflowHiddenInput.value = this.workflow.uuid;
-		
-		// The hooks
-		var newenactview = this;
-		var iframeLoaded = function() {
-			// First, parsing content
-			GeneralView.freeContainer(newenactview.genview.manview.messageDiv);
-			var xdoc=WidgetCommon.getIFrameDocument(iframe);
-			if(xdoc) {
-				if(BrowserDetect.browser=='Explorer') {
-					/* If we use a data island...
+		} else {
 
-					xdoc = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
-					if(xdoc)  xdoc = xdoc.XMLDocument;
-					*/
-					xdoc = xdoc.XMLDocument;
-				} else if(BrowserDetect.browser=='Konqueror') {
-					var CDATAIsland = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
-					if(CDATAIsland) {
-						var islandContent=WidgetCommon.getTextContent(CDATAIsland);
-						var parser = new DOMParser();
-						xdoc = parser.parseFromString(islandContent,'application/xml');
-					}
-				}
-			}
-			
-			// Second, job id and others
-			var launched=newenactview.parseEnactionIdAndLaunch(xdoc);
-			
-			// Now, cleaning up iframe traces!
-			newenactview.closeSubmitFrame();
-			//if(launched) {
-			newenactview.closeNewEnactionFrame();
-			//}
-			
+			// First, locking the window
+			this.openSubmitFrame();
+
 			/*
 				Dynamic IFRAME handling
 				which not works in IE :-(
 
-			newenactview.newEnactUploading.removeChild(iframe);
+			// The iframe which will contain what we need
+			var iframe = this.genview.createElement('iframe');
+			var iframeName = iframe.name = WidgetCommon.getRandomUUID();
+			iframe.frameBorder = '0';
+			// This one was not working with Konqueror
+			// iframe.style.display = 'none';
+			iframe.style.height=0;
+			iframe.style.width=0;
+			iframe.style.visibility='hidden';
+
+			// Iframe must live somewhere
+			this.newEnactUploading.appendChild(iframe);
 			*/
-			WidgetCommon.removeEventListener(iframe,'load',iframeLoaded,false);
-			newenactview.newEnactForm.target = undefined;
-			// Avoiding post messages on page reload
-			// iframe.src="about:blank";
-			iframe = undefined;
-		};
-		WidgetCommon.addEventListener(iframe,'load',iframeLoaded,false);
-		
-		// And results must go there
-		this.newEnactForm.target=iframeName;
-		// Let's go!
-		this.newEnactForm.submit();
+			var iframe=this.iframe;
+			var iframeName=this.iframe.name;
+			this.workflowHiddenInput.value = this.workflow.uuid;
+
+			// The hooks
+			var newenactview = this;
+			var iframeLoaded = function() {
+				// First, parsing content
+				GeneralView.freeContainer(newenactview.genview.manview.messageDiv);
+				var xdoc=WidgetCommon.getIFrameDocument(iframe);
+				if(xdoc) {
+					if(BrowserDetect.browser=='Explorer') {
+						/* If we use a data island...
+
+						xdoc = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
+						if(xdoc)  xdoc = xdoc.XMLDocument;
+						*/
+						xdoc = xdoc.XMLDocument;
+					} else if(BrowserDetect.browser=='Konqueror') {
+						var CDATAIsland = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
+						if(CDATAIsland) {
+							var islandContent=WidgetCommon.getTextContent(CDATAIsland);
+							var parser = new DOMParser();
+							xdoc = parser.parseFromString(islandContent,'application/xml');
+						}
+					}
+				}
+
+				// Second, job id and others
+				var launched=newenactview.parseEnactionIdAndLaunch(xdoc);
+
+				// Now, cleaning up iframe traces!
+				newenactview.closeSubmitFrame();
+				//if(launched) {
+				newenactview.closeNewEnactionFrame();
+				//}
+
+				/*
+					Dynamic IFRAME handling
+					which not works in IE :-(
+
+				newenactview.newEnactUploading.removeChild(iframe);
+				*/
+				WidgetCommon.removeEventListener(iframe,'load',iframeLoaded,false);
+				newenactview.newEnactForm.target = undefined;
+				// Avoiding post messages on page reload
+				iframe.src="about:blank";
+				iframe = undefined;
+			};
+			WidgetCommon.addEventListener(iframe,'load',iframeLoaded,false);
+
+			// And results must go there
+			this.newEnactForm.target=iframeName;
+			// Let's go!
+			this.newEnactForm.submit();
+		}
 	},
 	
 	parseEnactionIdAndLaunch: function(enactIdDOM) {
 		var enactId;
 		
 		if(enactIdDOM) {
-			if(('documentElement' in enactIdDOM) &&
-				('tagName' in enactIdDOM['documentElement']) &&
-				(enactIdDOM['documentElement']['tagName']=='enactionlaunched')
+			if(enactIdDOM.documentElement &&
+				enactIdDOM.documentElement.tagName &&
+				(GeneralView.getLocalName(enactIdDOM.documentElement)=='enactionlaunched')
 			) {
 				enactId = enactIdDOM.documentElement.getAttribute('jobId');
 				if(enactId) {

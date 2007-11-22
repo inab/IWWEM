@@ -93,6 +93,16 @@ td.middle {
 	width: 375;
 }
 
+.scroll {
+	vertical-align: top;
+	empty-cells: show;
+	display: block;
+	width:80mm;
+	height:120mm;
+	overflow: auto;
+	text-align: left;
+}
+
 .scrolldata {
 	vertical-align: top;
 	empty-cells: show;
@@ -205,4 +215,73 @@ div.fakefile {
 div.fakefile input {
 	margin-bottom: 5px;
 	margin-left: 0;
+}
+
+.IOStat, .IOStatLoading {
+	font-weight: bold
+}
+
+.IOStat img {
+	visibility: hidden;
+}
+
+.IOStatLoading img {
+	visibility: visible;
+}
+
+.branch > .branch , .branch > .leaf , .branch > .deadleaf , .branch > br {
+	display: none;
+}
+
+.branch.open > .branch , .branch.open > .leaf , .branch.open > .deadleaf , .branch.open > br {
+	display: block;
+}
+
+.branchlabel, .leaf, .deadleaf {
+	font-family: Arial, Helvetica, Georgia, sans-serif;
+	font-size: 10px;
+	background-position: center left;
+	background-repeat: no-repeat;
+	padding-left: 12px;
+}
+
+.branch, .leaf, .deadleaf {
+	margin-left: 20px;
+}
+
+.branch > .branchlabel {
+	background-image: url(twisty-clsd.png);
+}
+
+.branch.open > .branchlabel{
+	background-image: url(twisty-open.png);
+}
+
+.branch, .leaf {
+	cursor: pointer;
+}
+
+.leaf , .deadleaf {
+	background-image: url(branch.png);
+}
+
+.leaf {
+	font-style: italic;
+	color: green;
+}
+
+.deadleaf {
+	color: gray;
+}
+
+.branchlabel {
+	font-weight: bold;
+	color: brown;
+}
+
+/* Tweaking pretty-printing */
+
+.prettyprint.noborder {
+	border:0px;
+	font-size: 10px;
 }

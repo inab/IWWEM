@@ -1,6 +1,6 @@
 /*
 	This code is a slightly variant from Base64 class
-	from webtoolkit
+	from webtoolkit, prepared for slice processing
 */
 /**
 *
@@ -82,8 +82,10 @@ var Base64 = {
             }
 
         }
-
-        output = Base64._utf8_decode(output);
+	
+	if(!noUTF8) {
+	        output = Base64._utf8_decode(output);
+	}
 
         return output;
 
@@ -145,6 +147,82 @@ var Base64 = {
         }
 
         return string;
-    }
+    },
+    
+	// public method for Base64 stream decoding
+	streamDecode : function (input, end_callback, /* optional */ noUTF8, i, output) {
+		if(!i) {
+			i=0;
+			if(!noUTF8) {
+	        		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+			}
+		}
+		if(!output)  output="";
+		
+		for(var ilocal=0 ; ilocal<4096 && i<input.length ; ilocal++) {
+			var enc1 = this._keyStr.indexOf(input.charAt(i++));
+			var enc2 = this._keyStr.indexOf(input.charAt(i++));
+			var enc3 = this._keyStr.indexOf(input.charAt(i++));
+			var enc4 = this._keyStr.indexOf(input.charAt(i++));
 
+			var chr1 = (enc1 << 2) | (enc2 >> 4);
+			var chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+			var chr3 = ((enc3 & 3) << 6) | enc4;
+
+			output += String.fromCharCode(chr1);
+
+			if (enc3 != 64) {
+				output += String.fromCharCode(chr2);
+			}
+			if (enc4 != 64) {
+				output += String.fromCharCode(chr3);
+			}
+		}
+		
+		if(i<input.length) {
+			setTimeout(function() {
+				Base64.streamDecode(input,end_callback,noUTF8,i,output);
+			},50);
+		} else if(noUTF8) {
+			end_callback(output);
+		} else {
+			// Next chain
+			setTimeout(function() {
+				Base64.streamUTF8Decode(output,end_callback);
+			},100);
+		}
+	},
+	
+	// private method for UTF8 stream decoding
+	streamUTF8Decode : function (bytetext, end_callback, /* optional */ i, utftext) {
+		if(!utftext)  utftext="";
+		if(!i)  i = 0;
+		
+		for(var ilocal=0 ; ilocal < 8192 && i <bytetext.length ; ilocal++) {
+
+			var c = bytetext.charCodeAt(i);
+
+			if (c < 128) {
+				utftext += String.fromCharCode(c);
+				i++;
+			} else if((c > 191) && (c < 224)) {
+				var c2 = bytetext.charCodeAt(i+1);
+				utftext += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+				i += 2;
+			} else {
+				var c2 = bytetext.charCodeAt(i+1);
+				var c3 = bytetext.charCodeAt(i+2);
+				utftext += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+				i += 3;
+			}
+		}
+		
+		if(i<bytetext.length) {
+			setTimeout(function() {
+				Base64.streamUTF8Decode(bytetext,end_callback,i,utftext);
+			},100);
+		} else {
+			end_callback(utftext);
+		}
+	}
 }

@@ -23,12 +23,15 @@
 <div align="center"><b>INB Web Workflow Enaction Viewer</b></div>
 	<table style="width:100%">
 		<tr><td class="middle">
-			Date: <span id="dateSpan"></span><br>
-			General status: <span id="generalStatusSpan"></span>
+			<u>Date</u>: <span id="dateSpan"></span><br>
+			<u>General status</u>: <span id="generalStatusSpan"></span>
 		</td><td class="data">
-			Step: <span id="stageSpan"></span>
+			<u>Step</u>: <span id="stageSpan"></span>
 		</td><td style="width:230px;vertical-align:top">
-			Status: <span id="statusSpan"></span>
+			<form style="padding:0px;margin:0px">
+				<u>Status</u>: <span id="statusSpan"></span> <u>MIME</u> <select id="mimeSelect"></select><br>
+				<span id="IOTypeSpan"></span> <span id="IONameSpan"></span><br>
+			</form>
 		</td></tr><tr><td class="middle">
 			<div id="svgdiv"></div>
 			<!--<select name="workflow" id="workflow" style="width:230px;" size="20"></select>-->
@@ -36,18 +39,14 @@
 			<div class="scrolldata">
 				<form>
 					<b>Iteration </b><select id="iterationSelect"></select><br>
-					<b>Inputs</b>
+					<br><span id="inputsSpan" class="IOStat">Inputs&nbsp;<img src="style/ajaxLoader.gif"></img></span>
 					<div id="inputs">&nbsp;</div>
-					<b>Outputs</b>
+					<br><span id="outputsSpan" class="IOStat">Outputs&nbsp;<img src="style/ajaxLoader.gif"></img></span>
 					<div id="outputs">&nbsp;</div>
 				</form>
 			</div>
 		</td><td style="width:230px;vertical-align:top">
-			<form>
-				<span id="IOTypeSpan"></span> <span id="IONameSpan"></span><br>
-				MIME <select id="mimeSelect"></select>
-			</form>
-			<div id="dataviewer"></div>
+			<div id="dataviewer" class="scroll"></div>
 		</td></tr><tr><td class="buttons">
 			<div align="center">
 				<table><tr><td>
@@ -107,5 +106,12 @@
 		<img src="style/big-ajax-loader.gif"></img>
 	</td></tr></table>
 </div>
+<div class="hidden" id="preprocessData">
+	<table style="width:100%; height:100%"><tr valign="middle"><td align="center">
+		<img src="style/big-ajax-process.gif"></img>
+	</td></tr></table>
+</div>
+<iframe class="hidden" frameborder="0" src="about:blank" id="shimmer">
+</iframe>
 </body>
 </html>
