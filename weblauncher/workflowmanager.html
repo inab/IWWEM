@@ -41,7 +41,7 @@
 		</td></tr><tr><td class="buttons">
 			<div align="center">
 				<table><tr><td>
-					<div class="button" onclick="genview.manview.reloadList()">Reload <img src="style/reload.png"></div>
+					<div class="button" onclick="genview.manview.reloadList()">Update <img src="style/reload.png"></div>
 				</td><td>
 					<div class="button" onclick="genview.newwfview.openNewWorkflowFrame()">Add new <img src="style/blueplus.png"></div>
 				</td></tr></table>
@@ -89,8 +89,16 @@
 				</td></tr></table>
 			</div>
 		</form>
-		<div class="button back" onclick="genview.newwfview.closeNewWorkflowFrame()"><img src="style/leftarrow.png"></img> Back</div>
-		<div class="button forward" onclick="genview.newwfview.upload()">Upload <img src="style/upload.png"></img></div>
+		<div class="button back" onclick="genview.newwfview.closeNewWorkflowFrame()">
+			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+				<img src="style/leftarrow.png"></img> Back
+			</td></tr></table>
+		</div>
+		<div class="button forward" onclick="genview.newwfview.upload()">
+			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+				Upload <img src="style/upload.png"></img>
+			</td></tr></table>
+		</div>
 	</div>
 </div>
 <div class="hidden" id="newEnaction">
@@ -121,8 +129,16 @@
 		<div id="newEnactUploading">
 			<iframe src="about:blank" frameborder="0" id="enactIFRAME" name="enactIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
 		</div>
-		<div class="button back" onclick="genview.newenactview.closeNewEnactionFrame()"><img src="style/leftarrow.png"></img> Back</div>
-		<div class="button forward" onclick="genview.newenactview.enact()">Start! <img src="style/run.png"></img></div>
+		<div class="button back" onclick="genview.newenactview.closeNewEnactionFrame()">
+			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+				<img src="style/leftarrow.png"></img> Back
+			</td></tr></table>
+		</div>
+		<div class="button forward" onclick="genview.newenactview.enact()">
+			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+				Start! <img src="style/run.png"></img>
+			</td></tr></table>
+		</div>
 	</div>
 </div>
 <div class="hidden" id="reloadWorkflows">

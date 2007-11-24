@@ -84,6 +84,7 @@ td.data {
 	vertical-align: top;
 	empty-cells: show;
 	display: table-cell;
+	overflow: auto;
 }
 
 td.middle {

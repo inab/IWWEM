@@ -381,9 +381,12 @@ DataViewer.prototype={
 					this.dataviewerDiv.innerHTML='Sorry, unable to show binary-labeled data (yet)!';
 					break;
 				case 'image/*':
+				case 'image/png':
+				case 'image/jpeg':
+				case 'image/gif':
 					// This works with any browser but explorer, nuts!
 					var img=new Image();
-					img.src='data:image/*;base64,'+this.base64data;
+					img.src='data:'+mime+';base64,'+this.base64data;
 					this.dataviewerDiv.appendChild(img);
 					break;
 				case 'image/svg+xml':
@@ -402,7 +405,16 @@ DataViewer.prototype={
 					objres.setAttribute("height",'100%');
 					this.dataviewerDiv.appendChild(objres);
 					break;
+				case 'chemical/x-alchemy':
+				case 'chemical/x-cif':
+				case 'chemical/x-gaussian-cube':
+				case 'chemical/x-mdl-molfile':
+				case 'chemical/x-mdl-sdfile':
+				case 'chemical/x-mmcif':
+				case 'chemical/x-mol2':
+				case 'chemical/x-mopac-out':
 				case 'chemical/x-pdb':
+				case 'chemical/x-xyz':
 					/*
 					this.dataviewerDiv.innerHTML=jmolAppletInline([300,450],
 						this.data,
@@ -459,7 +471,14 @@ DataViewer.prototype={
 				case 'text/html':
 					// A bit risky, isn't it?
 					// Better an iframe, but not know
-					this.dataviewerDiv.innerHTML=this.data;
+					//this.dataviewerDiv.innerHTML=this.data;
+					var ifraId='_ifra_';
+					this.dataviewerDiv.innerHTML="<iframe id='"+ifraId+"' name='"+ifraId+"' frameborder='0' style='margin: 0px; padding: 0px; overflow: auto; height:100%; width: 100%;'></iframe>";
+					var ifra=WidgetCommon.getIFrameDocumentFromId(ifraId);
+					ifra.open('text/html');
+					ifra.write(this.data);
+					ifra.close();
+					ifra=null;
 					break;
 				case 'text/x-taverna-web-url':
 					var a=this.genview.createElement('a');
@@ -470,6 +489,7 @@ DataViewer.prototype={
 					break;
 				case 'text/xml':
 				case 'text/plain':
+				//case 'chemical/x-fasta':
 				default:
 					// Use the prettyfier!
 					var dataCont = this.genview.createElement('pre');

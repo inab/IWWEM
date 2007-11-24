@@ -887,7 +887,7 @@ NewEnactionView.prototype = {
 		// 'Static' elements
 		var theinput = this.genview.createElement('span');
 		// The addition button
-		theinput.className = 'plus';
+		theinput.className = 'add';
 		theinput.innerHTML='Input <span style="color:red;">'+input.name+'</span> ';
 		
 		var thechoicetext=this.genview.createElement('span');
@@ -920,7 +920,7 @@ NewEnactionView.prototype = {
 		radiothechoicetext.addEventListener('click', onclickHandler, false);
 		radiothechoicefile.addEventListener('click', onclickHandler, false);
 		
-		WidgetCommon.addEventListener(theinput, 'click', function() {
+		var pluslistener = function() {
 			var newinput;
 			var glass;
 			var controlname='PARAM_'+input.name
@@ -957,8 +957,14 @@ NewEnactionView.prototype = {
 
 			}
 
+			var adder = newenactview.genview.createElement('span');
+			// The addition button
+			adder.className = 'add';
+			adder.innerHTML='&nbsp;';
+			WidgetCommon.addEventListener(adder, 'click', pluslistener, false);
+			
 			var remover=newenactview.genview.createElement('span');
-			remover.className='plus remove';
+			remover.className='add remove';
 			remover.innerHTML='&nbsp;';
 
 			var mydiv=newenactview.genview.createElement('div');
@@ -966,6 +972,7 @@ NewEnactionView.prototype = {
 				containerDiv.removeChild(mydiv);
 			},false);
 
+			mydiv.appendChild(adder);
 			mydiv.appendChild(remover);
 			if(glass)  mydiv.appendChild(glass);
 			mydiv.appendChild(newinput);
@@ -974,7 +981,8 @@ NewEnactionView.prototype = {
 			containerDiv.appendChild(mydiv);
 			// Keeping an accurate input counter
 			newenactview.inputCounter++;
-		}, false);
+		};
+		WidgetCommon.addEventListener(theinput, 'click', pluslistener, false);
 
 		// Now, it is time to create the selection
 		var thechoice = this.genview.createElement('span');

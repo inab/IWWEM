@@ -299,22 +299,26 @@ GeneralView.prototype = {
 		// 'Static' elements
 		var theinput = this.createElement('span');
 		// The addition button
-		theinput.className = 'plus';
+		theinput.className = 'add';
 		theinput.innerHTML=thetext;
 		
 		var genview=this;
-		WidgetCommon.addEventListener(theinput, 'click', function() {
+		var addlistener = function() {
 			var newinput=genview.createCustomizedFileControl(controlname);
 
 			// As we are interested in the container (the parent)
 			// let's get it...
 			//newinput=newinput.parentNode;
 
+			var adder=genview.createElement('span');
+			adder.className='add';
+			adder.innerHTML='&nbsp;';
+			WidgetCommon.addEventListener(adder, 'click', addlistener, false);
+			
 			var remover=genview.createElement('span');
-			remover.className='plus remove';
+			remover.className='add remove';
 			remover.innerHTML='&nbsp;';
 
-			var mydiv=genview.createElement('div');
 			WidgetCommon.addEventListener(remover,'click',function() {
 				containerDiv.removeChild(mydiv);
 
@@ -324,6 +328,8 @@ GeneralView.prototype = {
 				}
 			},false);
 
+			var mydiv=genview.createElement('div');
+			mydiv.appendChild(adder);
 			mydiv.appendChild(remover);
 			mydiv.appendChild(newinput);
 
@@ -334,7 +340,8 @@ GeneralView.prototype = {
 			if(external && external.inputCounter) {
 				external.inputCounter++;
 			}
-		}, false);
+		};
+		WidgetCommon.addEventListener(theinput, 'click', addlistener, false);
 
 		// Last children!
 		thediv.appendChild(theinput);

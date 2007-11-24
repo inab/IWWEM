@@ -45,12 +45,12 @@
 					<div id="outputs">&nbsp;</div>
 				</form>
 			</div>
-		</td><td style="width:230px;vertical-align:top">
+		</td><td style="width:230px;vertical-align:top;text-align:center">
 			<div id="dataviewer" class="scroll"></div>
 		</td></tr><tr><td class="buttons">
 			<div align="center">
 				<table><tr><td>
-					<div class="button" onclick="genview.enactview.reloadStatus()">Reload <img src="style/reload.png"></div>
+					<div class="button" onclick="genview.enactview.reloadStatus()">Update <img src="style/reload.png"></div>
 				</td><td>
 					<div class="button" onclick="genview.enactview.openOtherEnactionFrame()">Open enaction<img src="style/blueplus.png"></div>
 				</td></tr></table>
@@ -83,22 +83,38 @@
 		<form id="formViewEnaction" action="enactionviewer.html" method="get">
 			<div align="center">Please introduce your enaction Id: <input type="text" id="jobId" name="jobId"></input></div>
 		</form>
-		<div class="button back" onclick="genview.enactview.closeOtherEnactionFrame()"><img src="style/leftarrow.png"></img> Back</div>
-		<div class="button forward" onclick="genview.enactview.viewEnaction()">View<img src="style/run.png"></img></div>
+		<div class="button back" onclick="genview.enactview.closeOtherEnactionFrame()">
+			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+				<img src="style/leftarrow.png"></img> Back
+			</td></tr></table>
+		</div>
+		<div class="button forward" onclick="genview.enactview.viewEnaction()">
+			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+				View <img src="style/run.png"></img>
+			</td></tr></table>
+		</div>
 	</div>
 </div>
 <div class="hidden" id="snapshotEnaction">
 	<div class="secondary">
 		<table width="50%" align="center"><tr><td align="center">
-			<form id="formSnapshotEnaction" action="cgi-bin/enactionstatus" method="post" target="_blank">
+			<form id="formSnapshotEnaction" target="_blank">
 				Snapshot Name<br>
 				<input id="snapshotName" name="snapshotName" type="text"></input>
 				<p>Snapshot Description</p>
 				<div id="snapshotDescContainer"></div>
 			</form>
 		</td></tr></table>
-		<div class="button back" onclick="genview.enactview.closeSnapshotFrame()"><img src="style/leftarrow.png"></img> Back</div>
-		<div class="button forward" onclick="genview.enactview.takeSnapshot()">Take snapshot<img src="style/snapshot.png"></img></div>
+		<div class="button back" onclick="genview.enactview.closeSnapshotFrame()">
+			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+				<img src="style/leftarrow.png"></img> Back
+			</td></tr></table>
+		</div>
+		<div class="button forward" onclick="genview.enactview.takeSnapshot()">
+			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+				Take snapshot<img src="style/snapshot.png"></img>
+			</td></tr></table>
+		</div>
 	</div>
 </div>
 <div class="hidden" id="reloadEnaction">

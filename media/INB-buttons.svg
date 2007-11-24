@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 12.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 51448)  -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="45.417"
+   id="Layer_1"
+   inkscape:version="0.45.1"
+   sodipodi:docbase="/home/jmfernandez/projects/INBWorkflowLauncher/media"
+   sodipodi:docname="INB-buttons.svg"
+   sodipodi:version="0.32"
+   space="preserve"
+   style="overflow:visible;enable-background:new 0 0 135.353 45.417;"
+   version="1.1"
+   viewBox="0 0 135.353 45.417"
+   width="135.353"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <metadata
+     id="metadata51">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Tasto 1</dc:title>
+        <dc:description />
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>unsorted</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://www.openclipart.org/">
+            <dc:title>Open Clip Art Library</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Architetto Francesco Rollandin</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Architetto Francesco Rollandin</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:date />
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://web.resource.org/cc/PublicDomain" />
+        <dc:language>en</dc:language>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://web.resource.org/cc/PublicDomain">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs23">
+    <radialGradient
+       r="109.1708"
+       id="radialGradient9737"
+       gradientUnits="userSpaceOnUse"
+       cy="12.0767"
+       cx="18.971701">
+      <stop
+         style="stop-color:#00edff;stop-opacity:1;"
+         offset="0"
+         id="stop9739" />
+      <stop
+         style="stop-color:#0087ff;stop-opacity:1;"
+         offset="1"
+         id="stop9741" />
+    </radialGradient>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#XMLID_2_"
+       id="radialGradient7633"
+       gradientUnits="userSpaceOnUse"
+       cx="18.971701"
+       cy="12.0767"
+       r="109.1708" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#radialGradient9737"
+       id="radialGradient8630"
+       gradientUnits="userSpaceOnUse"
+       cx="18.971701"
+       cy="12.0767"
+       r="109.1708" />
+  </defs>
+  <sodipodi:namedview
+     bordercolor="#666666"
+     borderopacity="1.0"
+     id="base"
+     inkscape:current-layer="g8610"
+     inkscape:cx="101.20745"
+     inkscape:cy="-4.3979196"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:window-height="1030"
+     inkscape:window-width="1400"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:zoom="5.2824837"
+     pagecolor="#ffffff" />
+  <g
+     id="g3"
+     inkscape:export-filename="/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/style/button3-hover.png"
+     inkscape:export-xdpi="90"
+     inkscape:export-ydpi="90"
+     transform="matrix(-1,0,0,-1,135.3529,45.417967)">
+    <path
+       d="M 131.013,2.352 C 125.194,-1.829 112.389,0.838 105.901,0.838 C 103.521,0.838 46.344,0.838 46.264,0.838 C 37.33,0.838 28.398,0.838 19.463,0.838 C 12.374,0.838 -0.002,-1.244 0,10.086 C 0,18.785 0.002,27.487 0.002,36.186 C 0.002,47.593 13.785,45.149 20.734,45.149 C 22.822,45.149 45.994,45.413 46.514,45.418 C 47.122,45.424 89.535,45.149 91.799,45.149 C 101.814,45.149 111.833,45.149 121.849,45.148 C 124.935,45.148 128.313,45.574 131.016,43.634 C 135.18,40.639 134.687,35.643 134.687,31.013 C 134.685,23.859 137.671,7.138 131.013,2.352 z "
+       id="path5"
+       style="fill:#0062cc;fill-opacity:1" />
+    <radialGradient
+       cx="18.971701"
+       cy="12.0767"
+       gradientUnits="userSpaceOnUse"
+       id="XMLID_2_"
+       r="109.1708">
+      <stop
+         id="stop8"
+         offset="0"
+         style="stop-color:#00edff;stop-opacity:1;" />
+      <stop
+         id="stop10"
+         offset="1"
+         style="stop-color:#0087ff;stop-opacity:1;" />
+    </radialGradient>
+    <path
+       d="M 129.251,4.022 C 123.569,0.184 111.067,2.633 104.732,2.633 C 102.408,2.633 46.582,2.633 46.504,2.633 C 37.78,2.633 29.059,2.633 20.335,2.633 C 13.415,2.633 1.331,0.722 1.332,11.122 C 1.332,19.106 1.334,27.095 1.334,35.079 C 1.334,45.55 14.792,43.305 21.576,43.305 C 23.616,43.305 46.24,43.547 46.749,43.552 C 47.343,43.558 88.753,43.305 90.965,43.305 C 100.742,43.305 110.524,43.305 120.304,43.304 C 123.318,43.304 126.615,43.697 129.253,41.916 C 133.32,39.167 132.838,34.58 132.838,30.331 C 132.837,23.763 135.753,8.415 129.251,4.022 z "
+       id="path12"
+       style="fill:url(#XMLID_2_)" />
+    <path
+       d="M 5.879,7.746 C 8.445,7.746 7.242,35.963 6.687,38.865 C 5.763,43.679 3.61,29.921 3.557,28.753 C 3.473,26.873 2.669,7.743 5.879,7.746"
+       id="path14"
+       style="fill:#00d2ff;fill-opacity:1" />
+    <path
+       d="M 129.175,7.746 C 131.741,7.746 130.537,35.963 129.983,38.865 C 129.058,43.679 126.907,29.921 126.853,28.753 C 126.768,26.873 125.964,7.743 129.175,7.746"
+       id="path16"
+       style="fill:#006ee6;fill-opacity:1" />
+    <path
+       d="M 6.497,5.897 C 6.506,3.681 128.639,4.126 128.643,5.899 C 128.643,7.793 6.515,11.391 6.497,5.897"
+       id="path18"
+       style="fill:#00d2ff;fill-opacity:1" />
+    <path
+       d="M 7.35,38.631 C 7.341,36.419 83.837,37.388 90.098,37.399 C 101.802,37.417 115.842,36.966 127.206,38.074 C 135.98,38.928 112.976,40.295 111.687,40.346 C 101.17,40.764 7.315,43.625 7.35,38.631"
+       id="path20"
+       style="fill:#006ee6;fill-opacity:1" />
+  </g>
+  <g
+     style="overflow:visible"
+     id="g7613"
+     inkscape:export-filename="/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/style/button3-active.png"
+     inkscape:export-xdpi="90"
+     inkscape:export-ydpi="90"
+     transform="translate(-1.146993,-51.08026)">
+    <path
+       d="M 131.013,2.352 C 125.194,-1.829 112.389,0.838 105.901,0.838 C 103.521,0.838 46.344,0.838 46.264,0.838 C 37.33,0.838 28.398,0.838 19.463,0.838 C 12.374,0.838 -0.002,-1.244 0,10.086 C 0,18.785 0.002,27.487 0.002,36.186 C 0.002,47.593 13.785,45.149 20.734,45.149 C 22.822,45.149 45.994,45.413 46.514,45.418 C 47.122,45.424 89.535,45.149 91.799,45.149 C 101.814,45.149 111.833,45.149 121.849,45.148 C 124.935,45.148 128.313,45.574 131.016,43.634 C 135.18,40.639 134.687,35.643 134.687,31.013 C 134.685,23.859 137.671,7.138 131.013,2.352 z "
+       id="path7615"
+       style="fill:#0062cc;fill-opacity:1" />
+    <radialGradient
+       cx="18.971701"
+       cy="12.0767"
+       gradientUnits="userSpaceOnUse"
+       id="radialGradient7617"
+       r="109.1708">
+      <stop
+         id="stop7619"
+         offset="0"
+         style="stop-color:#00edff;stop-opacity:1;" />
+      <stop
+         id="stop7621"
+         offset="1"
+         style="stop-color:#0087ff;stop-opacity:1;" />
+    </radialGradient>
+    <path
+       d="M 129.251,4.022 C 123.569,0.184 111.067,2.633 104.732,2.633 C 102.408,2.633 46.582,2.633 46.504,2.633 C 37.78,2.633 29.059,2.633 20.335,2.633 C 13.415,2.633 1.331,0.722 1.332,11.122 C 1.332,19.106 1.334,27.095 1.334,35.079 C 1.334,45.55 14.792,43.305 21.576,43.305 C 23.616,43.305 46.24,43.547 46.749,43.552 C 47.343,43.558 88.753,43.305 90.965,43.305 C 100.742,43.305 110.524,43.305 120.304,43.304 C 123.318,43.304 126.615,43.697 129.253,41.916 C 133.32,39.167 132.838,34.58 132.838,30.331 C 132.837,23.763 135.753,8.415 129.251,4.022 z "
+       id="path7623"
+       style="fill:url(#radialGradient7633)" />
+    <path
+       d="M 5.879,7.746 C 8.445,7.746 7.242,35.963 6.687,38.865 C 5.763,43.679 3.61,29.921 3.557,28.753 C 3.473,26.873 2.669,7.743 5.879,7.746"
+       id="path7625"
+       style="fill:#006ee6;fill-opacity:1" />
+    <path
+       d="M 129.175,7.746 C 131.741,7.746 130.537,35.963 129.983,38.865 C 129.058,43.679 126.907,29.921 126.853,28.753 C 126.768,26.873 125.964,7.743 129.175,7.746"
+       id="path7627"
+       style="fill:#00d2ff;fill-opacity:1" />
+    <path
+       d="M 6.497,5.897 C 6.506,3.681 128.639,4.126 128.643,5.899 C 128.643,7.793 6.515,11.391 6.497,5.897"
+       id="path7629"
+       style="fill:#006ee6;fill-opacity:1" />
+    <path
+       d="M 7.35,38.631 C 7.341,36.419 83.837,37.388 90.098,37.399 C 101.802,37.417 115.842,36.966 127.206,38.074 C 135.98,38.928 112.976,40.295 111.687,40.346 C 101.17,40.764 7.315,43.625 7.35,38.631"
+       id="path7631"
+       style="fill:#00d2ff;fill-opacity:1" />
+  </g>
+  <g
+     style="overflow:visible"
+     id="g8610"
+     inkscape:export-filename="/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/style/button3-inactive.png"
+     inkscape:export-xdpi="90"
+     inkscape:export-ydpi="90"
+     transform="matrix(-1,0,0,-1,143.39841,99.929208)">
+    <path
+       d="M 131.013,2.352 C 125.194,-1.829 112.389,0.838 105.901,0.838 C 103.521,0.838 46.344,0.838 46.264,0.838 C 37.33,0.838 28.398,0.838 19.463,0.838 C 12.374,0.838 -0.002,-1.244 0,10.086 C 0,18.785 0.002,27.487 0.002,36.186 C 0.002,47.593 13.785,45.149 20.734,45.149 C 22.822,45.149 45.994,45.413 46.514,45.418 C 47.122,45.424 89.535,45.149 91.799,45.149 C 101.814,45.149 111.833,45.149 121.849,45.148 C 124.935,45.148 128.313,45.574 131.016,43.634 C 135.18,40.639 134.687,35.643 134.687,31.013 C 134.685,23.859 137.671,7.138 131.013,2.352 z "
+       id="path8612"
+       style="fill:#0062cc;fill-opacity:1" />
+    <radialGradient
+       cx="18.971701"
+       cy="12.0767"
+       gradientUnits="userSpaceOnUse"
+       id="radialGradient8614"
+       r="109.1708">
+      <stop
+         id="stop8616"
+         offset="0"
+         style="stop-color:#00edff;stop-opacity:1;" />
+      <stop
+         id="stop8618"
+         offset="1"
+         style="stop-color:#0087ff;stop-opacity:1;" />
+    </radialGradient>
+    <g
+       id="g12901"
+       style="opacity:0.5">
+      <path
+         style="fill:url(#radialGradient8630);fill-opacity:1.0"
+         id="path8620"
+         d="M 129.251,4.022 C 123.569,0.184 111.067,2.633 104.732,2.633 C 102.408,2.633 46.582,2.633 46.504,2.633 C 37.78,2.633 29.059,2.633 20.335,2.633 C 13.415,2.633 1.331,0.722 1.332,11.122 C 1.332,19.106 1.334,27.095 1.334,35.079 C 1.334,45.55 14.792,43.305 21.576,43.305 C 23.616,43.305 46.24,43.547 46.749,43.552 C 47.343,43.558 88.753,43.305 90.965,43.305 C 100.742,43.305 110.524,43.305 120.304,43.304 C 123.318,43.304 126.615,43.697 129.253,41.916 C 133.32,39.167 132.838,34.58 132.838,30.331 C 132.837,23.763 135.753,8.415 129.251,4.022 z " />
+      <path
+         style="fill:#00d2ff;fill-opacity:1"
+         id="path8622"
+         d="M 5.879,7.746 C 8.445,7.746 7.242,35.963 6.687,38.865 C 5.763,43.679 3.61,29.921 3.557,28.753 C 3.473,26.873 2.669,7.743 5.879,7.746" />
+      <path
+         style="fill:#006ee6;fill-opacity:1"
+         id="path8624"
+         d="M 129.175,7.746 C 131.741,7.746 130.537,35.963 129.983,38.865 C 129.058,43.679 126.907,29.921 126.853,28.753 C 126.768,26.873 125.964,7.743 129.175,7.746" />
+      <path
+         style="fill:#00d2ff;fill-opacity:1"
+         id="path8626"
+         d="M 6.497,5.897 C 6.506,3.681 128.639,4.126 128.643,5.899 C 128.643,7.793 6.515,11.391 6.497,5.897" />
+      <path
+         style="fill:#006ee6;fill-opacity:1"
+         id="path8628"
+         d="M 7.35,38.631 C 7.341,36.419 83.837,37.388 90.098,37.399 C 101.802,37.417 115.842,36.966 127.206,38.074 C 135.98,38.928 112.976,40.295 111.687,40.346 C 101.17,40.764 7.315,43.625 7.35,38.631" />
+    </g>
+  </g>
+</svg>

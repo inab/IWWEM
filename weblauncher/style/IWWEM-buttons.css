@@ -5,11 +5,11 @@
 	behavior:url(hover.htc);
 	
 	/* Standard classes */
-	width: 105px;
-	height: 26px;
+	width: 135px;
+	height: 45px;
 	padding: 0px;
 	
-	background-image: url(button2-inactive.png);
+	background-image: url(button3-inactive.png);
 	background-position: center center;
 	background-repeat: no-repeat;
 	cursor: pointer;
@@ -17,6 +17,8 @@
 	display: table-cell;
 	text-align: center;
  	vertical-align: middle;
+	color: black;
+	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 15px;
 	/*
 	background-color: gray;
@@ -28,18 +30,12 @@
 	vertical-align: middle;
 }
 
-/*
-.buttonLaunch:before {
-	content: 'Launch!';
-}
-*/
-
 .buttonhover , div.button:hover , span.button:hover {
-	background-image: url(button2-hover.png);
+	background-image: url(button3-hover.png);
 }
 
 .buttonactive , div.button:active , span.button:active {
-	background-image: url(button2-active.png);
+	background-image: url(button3-active.png);
 }
 
 .button.back {
@@ -60,7 +56,7 @@
 span.plus {
 	width: 9px;
 	height: 9px;
-	padding-left: 9px;
+	padding-left: 10px;
 	
 	background-image: url(twisty-clsd.png);
 	background-position: center left;
@@ -70,11 +66,35 @@ span.plus {
 	text-align: center;
 	white-space: nowrap;
  	vertical-align: middle;
+	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 14px;
 }
 
 span.plus.remove {
 	background-image: url(twisty-open.png);
+}
+
+span.add {
+	width: 20px;
+	height: 20px;
+	padding-left: 22px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	
+	background-image: url(lumen_add.png);
+	background-position: center left;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	
+	text-align: center;
+	white-space: nowrap;
+ 	vertical-align: middle;
+	font-family: Arial, Helvetica, Georgia, sans-serif;
+	font-size: 14px;
+}
+
+span.add.remove {
+	background-image: url(lumen_minus.png);
 }
 
 span.magglass {
@@ -90,6 +110,7 @@ span.magglass {
 	text-align: center;
 	white-space: nowrap;
  	vertical-align: middle;
+	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 20px;
 }
 
@@ -110,6 +131,7 @@ span.radio , span.checkbox {
 	text-align: left;
 	white-space: nowrap;
  	vertical-align: middle;
+	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 14px;
 }
 
