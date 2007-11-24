@@ -257,11 +257,11 @@ foreach my $jobId (@jobIdList) {
 						if(system("cp","-dpr",$jobdir,$snapdir)==0) {
 							# Last but one, register snapshot
 							my($snapnode)=$catdoc->createElementNS($WorkflowCommon::WFD_NS,'snapshot');
-							$snapnode->setAttribute('name',$snapshotName);
+							$snapnode->setAttribute('name',encode('UTF-8',$snapshotName));
 							$snapnode->setAttribute('uuid',$WorkflowCommon::SNAPSHOTPREFIX.$workflowId.':'.$uuid);
 							$snapnode->setAttribute('date',LockNLog::getPrintableNow());
 							if(defined($snapshotDesc) && length($snapshotDesc)>0) {
-								$snapnode->appendChild($catdoc->createCDATASection($snapshotDesc));
+								$snapnode->appendChild($catdoc->createCDATASection(encode('UTF-8',$snapshotDesc)));
 							}
 
 							$catdoc->documentElement->appendChild($snapnode);

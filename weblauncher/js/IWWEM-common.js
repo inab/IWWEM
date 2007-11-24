@@ -14,6 +14,7 @@ function GeneralView(customInit, /* optional */thedoc) {
 	this.shimmer=this.getElementById('shimmer');
 	
 	this.visibleId=undefined;
+	this.usingShimmer=undefined;
 	if(customInit && typeof customInit == 'function') {
 		this.customInit=customInit;
 		this.customInit();
@@ -93,6 +94,47 @@ GeneralView.initCheck = function(check) {
 	};
 };
 
+GeneralView.Check = function(control) {
+	this.control=control;
+	this.checked=false;
+	
+	if(control && control.className) {
+		this.baseClassName=control.className;
+	}
+};
+
+GeneralView.Check.prototype = {
+	setCheck: function (state) {
+		if(state && !this.checked) {
+			this.doCheck();
+		} else if(!state && this.checked) {
+			this.doUncheck();
+		}
+	},
+	
+	doCheck: function () {
+		if(this.baseClassName) {
+			this.control.className += ' checked';
+		}
+		this.checked=true;
+	},
+	
+	doUncheck: function () {
+		if(this.baseClassName) {
+			this.control.className=this.baseClassName;
+		}
+		this.checked=false;
+	},
+	
+	addEventListener: function (eventType, listener, useCapture) {
+		WidgetCommon.addEventListener(this.control, eventType, listener, useCapture);
+	},
+	
+	removeEventListener: function (eventType, listener, useCapture) {
+		WidgetCommon.removeEventListener(this.control, eventType, listener, useCapture);
+	}
+};
+
 GeneralView.getLocalName = function(node) {
 	if(node.localName)  return node.localName;
 	
@@ -146,7 +188,7 @@ GeneralView.preProcess = function (thedesc) {
 	if(!thedesc)  thedesc='';
 	thedesc=thedesc.toString();
 	if(thedesc.search(/<[^>]+>/m)==-1) {
-		thedesc = thedesc.replace(/((?:ftp)|(?:https?):\/\/[a-zA-Z0-9.]+\/[^\n\r\t ()]*)/g,"<a href='$1' target='_blank'>$1</a>");
+		thedesc = thedesc.replace(/((?:ftp)|(?:https?):\/\/[a-zA-Z0-9.]+[^\n\r\t ()]*)/g,"<a href='$1' target='_blank'>$1</a>");
 		thedesc = thedesc.replace(/([a-zA-Z0-9.%]+@[a-zA-Z0-9.%]+)/g,"<a href='mailto:$1' target='_blank'>$1</a>");
 		// thedesc = thedesc.replace(/mailto:([^\n\r\t ()]+)/g,"<a href='mailto:$1' target='_blank'>$1</a>");
 		
@@ -167,30 +209,41 @@ GeneralView.preProcess = function (thedesc) {
 
 /* Now, the instance methods */
 GeneralView.prototype = {
-	openFrame: function (divId) {
+	openFrame: function (divId, /* optional */ useShimmer) {
 		if(this.visibleId) {
 			this.closeFrame();
 		}
 
 		this.visibleId=divId;
-		if(BrowserDetect.browser=='Explorer' || BrowserDetect.browser=='Safari') {
+		if(useShimmer || BrowserDetect.browser=='Explorer' || BrowserDetect.browser=='Safari') {
 			this.shimmer.className='shimmer';
+			this.usingShimmer=1;
 		}
 		this.outer.className='outerAbsDiv';
 		var elem=this.getElementById(divId);
 		elem.className='transAbsDiv';
+		/* This is to take some times
 		
+		var d=new Date();
+		this.from=d.getTime();
+		*/
 	},
 	
 	closeFrame: function () {
+		var d=new Date();
+		var to=d.getTime();
 		var elem=this.getElementById(this.visibleId);
 		this.visibleId=undefined;
 
 		elem.className='hidden';
 		this.outer.className='hidden';
-		if(BrowserDetect.browser=='Explorer' || BrowserDetect.browser=='Safari') {
+		if(this.usingShimmer) {
 			this.shimmer.className='hidden';
 		}
+		/* This is to take some times
+		
+		alert('Spent '+((to-this.from)/1000)+' seconds');
+		*/
 	},
 	
 	/*

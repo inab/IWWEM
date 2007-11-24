@@ -110,7 +110,8 @@ SVGtramp.getTextContent = function (oNode) {
 		try {
 			if(navigator.userAgent && navigator.userAgent.indexOf('MSIE')!=-1) {
 				retval=oNode.text;
-			} else if(navigator.vendor && navigator.vendor.indexOf('Apple')!=-1){
+			} else if((navigator.vendor && navigator.vendor.indexOf('Apple')!=-1)||
+				(navigator.appName && navigator.appName.indexOf('Adobe')!=-1)){
 				retval=SVGtramp.nodeGetText(oNode,true);
 			} else {
 				retval=oNode.textContent;
@@ -423,11 +424,11 @@ SVGtramp.prototype = {
 			if(event.length > 0) {
 				var theNode=this.SVGDoc.getElementById(node);
 				if(theNode) {
-					theNode[event]=handler;
+					//theNode[event]=handler;
 
 					if(handler!=null) {
-						SVGtramp.addEventListener(theNode,event,handler,false);
 						this.setCSSProp(theNode,"cursor","pointer");
+						SVGtramp.addEventListener(theNode,event,handler,false);
 					}
 
 					retval=true;
@@ -722,8 +723,46 @@ SVGtramp.SVGLength.prototype = {
 /* Event handling code */
 /***********************/
 /* Based on a previous work on widgetCommon */
+/* Based on a previous work on widgetCommon */
+SVGtramp.HandlerHash={};
+
+SVGtramp.callHashHandler = function(theid,eventType) {
+	var listeners=SVGtramp.HandlerHash[theid][eventType];
+	if(listeners && listeners.length>0) {
+		for(var i=0;i<listeners.length;i++) {
+			try {
+				if(typeof listeners[i] == 'string') {
+					eval(listeners[i]);
+				} else {
+					listeners[i](theid);
+				}
+			} catch(e) {
+				// Ignore them???
+			}
+		}
+	}
+};
+
 SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
-	if(top.addEventListener) {
+	if(!top || (navigator.appName && navigator.appName.indexOf('Adobe')!=-1)) {
+		// Adobe & KDE aberrations
+		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
+			try {
+				if(eventType && object && listener) {
+					if(!(object.id in SVGtramp.HandlerHash)) {
+						SVGtramp.HandlerHash[object.id]={};
+					}
+					if(!(eventType in SVGtramp.HandlerHash[object.id])) {
+						SVGtramp.HandlerHash[object.id][eventType]=new Array();
+					}
+					SVGtramp.HandlerHash[object.id][eventType].push(listener);
+					object.setAttribute('on'+eventType,'SVGtramp.callHashHandler("'+object.id+'","'+eventType+'")');
+				}
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	} else if(top.addEventListener) {
 		// W3C DOM compatible browsers
 		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
@@ -738,7 +777,7 @@ SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 			}
 		};
 	} else if(top.attachEvent) {
-		// Internet Explorer
+		// Internet Explorer ???? (no native implementation yet)
 		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 			try {
 				if(object.attachEvent) {
@@ -769,7 +808,34 @@ SVGtramp.addEventListenerToId = function (objectId, eventType, listener, useCapt
 };
 
 SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
-	if(top.removeEventListener) {
+	if(!top || (navigator.appName && navigator.appName.indexOf('Adobe')!=-1)) {
+		// Adobe & KDE aberrations
+		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
+			try {
+				if(eventType && object && listener) {
+					if((object.id in SVGtramp.HandlerHash) &&
+						(eventType in SVGtramp.HandlerHash[object.id]) &&
+						SVGtramp.HandlerHash[object.id][eventType].length>0
+					) {
+						var listeners=SVGtramp.HandlerHash[object.id][eventType];
+						for(var i=0;i<listeners.length;i++) {
+							if(listener==listeners[i]) {
+								listeners.splice(i,1);
+								break;
+							}
+						}
+						
+						if(listeners.length==0) {
+							object.removeAttribute('on'+eventType);
+						}
+						
+					}
+				}
+			} catch(e) {
+				// IgnoreIt!(R)
+			}
+		};
+	} else if(top.removeEventListener) {
 		// W3C DOM compatible browsers
 		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
@@ -784,7 +850,7 @@ SVGtramp.removeEventListener = function (object, eventType, listener, useCapture
 			}
 		};
 	} else if(top.detachEvent) {
-		// Internet Explorer
+		// Internet Explorer ???? (no native implementation yet)
 		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
 			try {
 				if(object.detachEvent) {

@@ -179,13 +179,12 @@ function ManagerView(genview) {
 	
 	var manview = this;
 	// As confirm check is no more a real check, let's fake it!
-	this.check=genview.getElementById('confirm');
-	GeneralView.initCheck(this.check);
-	WidgetCommon.addEventListener(this.check,'click', function() {
-		if(this.checked) {
-			this.setCheck(false);
+	var check = this.check = new GeneralView.Check(genview.getElementById('confirm'));
+	this.check.addEventListener('click', function() {
+		if(check.checked) {
+			check.doUncheck();
 		} else if(manview.wfselect.selectedIndex!=-1) {
-			this.setCheck(true);
+			check.doCheck();
 		} else {
 			alert('This confirmation can only be checked when a workflow is selected');
 		}
@@ -403,6 +402,7 @@ ManagerView.prototype = {
 						// Removing 'Loading...' frame
 						listRequest.manview.closeReloadFrame();
 						listRequest.manview.listRequest=undefined;
+						listRequest.onreadystatechange=new Function();
 						listRequest=undefined;
 					}
 				}
@@ -461,16 +461,14 @@ function NewWorkflowView(genview) {
 	this.newWFContainer=genview.getElementById('newWFContainer');
 	this.newWFUploading=genview.getElementById('newWFUploading');
 	
-	this.newWFStyleText=genview.getElementById('newWFStyleText');
-	GeneralView.initBaseCN(this.newWFStyleText);
+	this.newWFStyleText=new GeneralView.Check(genview.getElementById('newWFStyleText'));
 	
-	this.newWFStyleFile=genview.getElementById('newWFStyleFile');
-	GeneralView.initBaseCN(this.newWFStyleFile);
+	this.newWFStyleFile=new GeneralView.Check(genview.getElementById('newWFStyleFile'));
 	
 	var newwfview = this;
 	// Either text or file
-	WidgetCommon.addEventListener(this.newWFStyleText, 'click', function() { newwfview.setTextControl(); }, false);
-	WidgetCommon.addEventListener(this.newWFStyleFile, 'click', function() { newwfview.setFileControl(); }, false);
+	this.newWFStyleText.addEventListener('click', function() { newwfview.setTextControl(); }, false);
+	this.newWFStyleFile.addEventListener('click', function() { newwfview.setFileControl(); }, false);
 	
 	this.newWFControl = undefined;
 	//this.iframe = undefined;
@@ -503,8 +501,8 @@ NewWorkflowView.prototype = {
 	},
 	
 	setTextControl: function() {
-		GeneralView.checkCN(this.newWFStyleText);
-		GeneralView.revertCN(this.newWFStyleFile);
+		this.newWFStyleText.doCheck();
+		this.newWFStyleFile.doUncheck();
 		this.clearView();
 		var textbox = this.genview.createElement('textarea');
 		this.newWFControl = textbox;
@@ -516,8 +514,8 @@ NewWorkflowView.prototype = {
 	},
 	
 	setFileControl: function() {
-		GeneralView.revertCN(this.newWFStyleText);
-		GeneralView.checkCN(this.newWFStyleFile);
+		this.newWFStyleFile.doCheck();
+		this.newWFStyleText.doUncheck();
 		this.clearView();
 		var filecontrol = this.genview.createCustomizedFileControl("workflow");
 		this.newWFControl = filecontrol;
@@ -649,14 +647,11 @@ function NewEnactionView(genview) {
 		this.newEnactForm.appendChild(dataIsland);
 	}
 	
-	this.noneExampleSpan=genview.getElementById('noneExampleSpan');
-	GeneralView.initBaseCN(this.noneExampleSpan);
+	this.noneExampleSpan=new GeneralView.Check(genview.getElementById('noneExampleSpan'));
 	
-	this.saveAsExample=genview.getElementById('saveAsExampleSpan');
-	GeneralView.initCheck(this.saveAsExample);
+	this.saveAsExample=new GeneralView.Check(genview.getElementById('saveAsExampleSpan'));
 	
-	this.useExampleSpan=genview.getElementById('useExampleSpan');
-	GeneralView.initBaseCN(this.useExampleSpan);
+	this.useExampleSpan=new GeneralView.Check(genview.getElementById('useExampleSpan'));
 	
 	this.inputstatecontrol=undefined;
 	
@@ -669,22 +664,31 @@ function NewEnactionView(genview) {
 
 NewEnactionView.prototype = {
 	setInputMode: function(control) {
-		if(this.inputstatecontrol!=control) {
-			if(control==this.useExampleSpan && this.workflow && !this.workflow.hasExamples) {
+		if(!this.inputstatecontrol || this.inputstatecontrol.control!=control) {
+			if(control==this.useExampleSpan.control && this.workflow && !this.workflow.hasExamples) {
 				alert('Sorry, there is no registered input example for this workflow');
 				return;
 			}
 			// Graphical handling
 			if(this.inputstatecontrol) {
-				GeneralView.revertCN(this.inputstatecontrol);
+				this.inputstatecontrol.doUncheck();
 			}
-			this.inputstatecontrol=control;
+			
+			var radiocontrol=undefined;
+			if(control) {
+				if(control==this.useExampleSpan.control) {
+					radiocontrol=this.useExampleSpan;
+				} else {
+					radiocontrol=this.noneExampleSpan;
+				}
+			}
+			this.inputstatecontrol=radiocontrol;
 			
 			this.disposeContainers();
 			
-			if(control) {
-				GeneralView.checkCN(control);
-				if(control==this.noneExampleSpan) {
+			if(radiocontrol) {
+				radiocontrol.doCheck();
+				if(radiocontrol==this.noneExampleSpan) {
 					this.inputmode=false;
 					this.generateInputsHandlers();
 				} else {
@@ -757,14 +761,14 @@ NewEnactionView.prototype = {
 			newenact.setInputMode(this);
 		};
 		
-		WidgetCommon.addEventListener(this.noneExampleSpan, 'click', oninputClickHandler, false);
-		WidgetCommon.addEventListener(this.useExampleSpan, 'click', oninputClickHandler, false);
+		this.noneExampleSpan.addEventListener('click', oninputClickHandler, false);
+		this.useExampleSpan.addEventListener('click', oninputClickHandler, false);
 		
 		var saveExampleClickHandler = function() {
 			newenact.switchSaveExampleMode();
 		};
 		
-		WidgetCommon.addEventListener(this.saveAsExample, 'click', saveExampleClickHandler, false);
+		this.saveAsExample.addEventListener('click', saveExampleClickHandler, false);
 	},
 	
 	openNewEnactionFrame: function () {
@@ -779,7 +783,7 @@ NewEnactionView.prototype = {
 			this.enactSVG.loadSVG(this.enactSVGContainer.id,WFBase+'/'+workflow.svgpath,'100mm','120mm');
 			
 			// Inputs
-			this.setInputMode(this.noneExampleSpan);
+			this.setInputMode(this.noneExampleSpan.control);
 			this.setSaveExampleMode(false);
 			
 			// And at last, open frame
@@ -888,39 +892,39 @@ NewEnactionView.prototype = {
 		
 		var thechoicetext=this.genview.createElement('span');
 		thechoicetext.className='radio left';
-		GeneralView.initBaseCN(thechoicetext);
-		GeneralView.checkCN(thechoicetext);
 		thechoicetext.innerHTML='as text';
+		var radiothechoicetext=new GeneralView.Check(thechoicetext);
+		radiothechoicetext.doCheck();
 		
 		var thechoicefile=this.genview.createElement('span');
 		thechoicefile.className='radio left';
-		GeneralView.initBaseCN(thechoicefile);
 		thechoicefile.innerHTML='as file';
+		var radiothechoicefile=new GeneralView.Check(thechoicefile);
 		
-		var statecontrol=thechoicetext;
+		var radiostatecontrol=radiothechoicetext;
 		
 		var newenactview=this;
 		var onclickHandler=function() {
-			if(statecontrol!=this) {
-				if(statecontrol) {
-					GeneralView.revertCN(statecontrol);
+			if(!radiostatecontrol || radiostatecontrol.control!=this) {
+				if(radiostatecontrol) {
+					radiostatecontrol.doUncheck();
 				}
-				GeneralView.checkCN(this);
-				statecontrol=this;
+				radiostatecontrol=(this==radiothechoicefile.control)?radiothechoicefile:radiothechoicetext;
+				radiostatecontrol.doCheck();
 				
 				// Keeping an accurate number of inputs
 				newenactview.inputCounter -= GeneralView.freeContainer(containerDiv);
 			}
 		};
 		
-		WidgetCommon.addEventListener(thechoicetext, 'click', onclickHandler, false);
-		WidgetCommon.addEventListener(thechoicefile, 'click', onclickHandler, false);
+		radiothechoicetext.addEventListener('click', onclickHandler, false);
+		radiothechoicefile.addEventListener('click', onclickHandler, false);
 		
 		WidgetCommon.addEventListener(theinput, 'click', function() {
 			var newinput;
 			var glass;
 			var controlname='PARAM_'+input.name
-			if(statecontrol == thechoicefile) {
+			if(radiostatecontrol == radiothechoicefile) {
 				newinput=newenactview.genview.createCustomizedFileControl(controlname);
 
 				// As we are interested in the container (the parent)

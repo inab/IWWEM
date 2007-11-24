@@ -250,7 +250,7 @@ if(defined($exampleName) && defined($workflowId)) {
 	my($catalog)=$parser->parse_file($catalogfile);
 	my($example)=$catalog->createElementNS($WorkflowCommon::WFD_NS,'example');
 	$example->setAttribute('uuid',$randname);
-	$example->setAttribute('name',$exampleName);
+	$example->setAttribute('name',encode('UTF-8',$exampleName));
 	$example->setAttribute('path',$relrandfile);
 	$example->setAttribute('date',LockNLog::getPrintableNow());
 	if(defined($exampleDesc) && length($exampleDesc) > 0) {

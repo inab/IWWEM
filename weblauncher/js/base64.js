@@ -57,9 +57,7 @@ var Base64 = {
         var enc1, enc2, enc3, enc4;
         var i = 0;
 	
-	if(!noUTF8) {
-	        input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-	}
+        input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
         while (i < input.length) {
 
@@ -153,17 +151,17 @@ var Base64 = {
 	streamDecode : function (input, end_callback, /* optional */ noUTF8, i, output) {
 		if(!i) {
 			i=0;
-			if(!noUTF8) {
-	        		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-			}
+        		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+			if(!output)  output="";
 		}
-		if(!output)  output="";
+		var _keyStr = this._keyStr;
+		var ilength = input.length;
 		
-		for(var ilocal=0 ; ilocal<4096 && i<input.length ; ilocal++) {
-			var enc1 = this._keyStr.indexOf(input.charAt(i++));
-			var enc2 = this._keyStr.indexOf(input.charAt(i++));
-			var enc3 = this._keyStr.indexOf(input.charAt(i++));
-			var enc4 = this._keyStr.indexOf(input.charAt(i++));
+		for(var ilocal=0 ; ilocal<4096 && i<ilength ; ilocal++) {
+			var enc1 = _keyStr.indexOf(input.charAt(i++));
+			var enc2 = _keyStr.indexOf(input.charAt(i++));
+			var enc3 = _keyStr.indexOf(input.charAt(i++));
+			var enc4 = _keyStr.indexOf(input.charAt(i++));
 
 			var chr1 = (enc1 << 2) | (enc2 >> 4);
 			var chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
@@ -179,7 +177,7 @@ var Base64 = {
 			}
 		}
 		
-		if(i<input.length) {
+		if(i<ilength) {
 			setTimeout(function() {
 				Base64.streamDecode(input,end_callback,noUTF8,i,output);
 			},50);
@@ -194,11 +192,12 @@ var Base64 = {
 	},
 	
 	// private method for UTF8 stream decoding
-	streamUTF8Decode : function (bytetext, end_callback, /* optional */ i, utftext) {
+	streamUTF8Decode: function (bytetext, end_callback, /* optional */ i, utftext) {
 		if(!utftext)  utftext="";
 		if(!i)  i = 0;
 		
-		for(var ilocal=0 ; ilocal < 8192 && i <bytetext.length ; ilocal++) {
+		var blength=bytetext.length;
+		for(var ilocal=0 ; ilocal < 8192 && i <blength ; ilocal++) {
 
 			var c = bytetext.charCodeAt(i);
 
@@ -217,12 +216,99 @@ var Base64 = {
 			}
 		}
 		
-		if(i<bytetext.length) {
+		if(i<blength) {
 			setTimeout(function() {
 				Base64.streamUTF8Decode(bytetext,end_callback,i,utftext);
 			},100);
 		} else {
 			end_callback(utftext);
 		}
+	},
+	
+	// public method for Base64 stream decoding
+	streamBase64UTF8Decode: function (input, end_callback, /* optional */ i, transient, output) {
+		if(!i) {
+			i=0;
+        		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+			transient=new Array();
+			if(!output)  output="";
+		}
+		var _keyStr = this._keyStr;
+		var ilength = input.length;
+		
+		for(var ilocal=0 ; ilocal<4096 && i<ilength ; ilocal++) {
+			var enc1 = _keyStr.indexOf(input.charAt(i++));
+			var enc2 = _keyStr.indexOf(input.charAt(i++));
+			var enc3 = _keyStr.indexOf(input.charAt(i++));
+			var enc4 = _keyStr.indexOf(input.charAt(i++));
+
+			var chr1 = (enc1 << 2) | (enc2 >> 4);
+			var chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+			var chr3 = ((enc3 & 3) << 6) | enc4;
+
+			transient.push(chr1);
+			//output += String.fromCharCode(chr1);
+
+			if (enc3 != 64) {
+				transient.push(chr2);
+				//output += String.fromCharCode(chr2);
+			}
+			if (enc4 != 64) {
+				transient.push(chr3);
+				//output += String.fromCharCode(chr3);
+			}
+			
+			var toRemove=0;
+			var tLength=transient.length;
+			if(tLength>2047) {
+				while(toRemove < tLength) {
+					var c=transient[toRemove];
+					if(c < 128) {
+						output += String.fromCharCode(c);
+						toRemove++;
+					} else if((c > 191) && (c < 224)) {
+						if((toRemove+1)>=tLength)  break;
+						output += String.fromCharCode(((c & 31) << 6) | (transient[toRemove+1] & 63));
+						toRemove+=2;
+					} else if((toRemove+1)>=tLength) {
+						break;
+					} else {
+						output += String.fromCharCode(((c & 15) << 12) | ((transient[toRemove+1] & 63) << 6) | (transient[toRemove+2] & 63));
+						toRemove+=3;
+					}
+				}
+				transient.splice(0,toRemove);
+			}
+		}
+		
+		if(i<ilength) {
+			setTimeout(function() {
+				Base64.streamBase64UTF8Decode(input,end_callback,i,transient,output);
+			},50);
+		} else {
+			// Last transient bytes must be converted
+			var tLength=transient.length;
+			if(tLength>0) {
+				var toRemove=0;
+				while(toRemove < tLength) {
+					var c=transient[toRemove];
+					if(c < 128) {
+						output += String.fromCharCode(c);
+						toRemove++;
+					} else if((c > 191) && (c < 224)) {
+						if((toRemove+1)>=tLength)  break;
+						output += String.fromCharCode(((c & 31) << 6) | (transient[toRemove+1] & 63));
+						toRemove+=2;
+					} else if((toRemove+1)>=tLength) {
+						break;
+					} else {
+						output += String.fromCharCode(((c & 15) << 12) | ((transient[toRemove+1] & 63) << 6) | (transient[toRemove+2] & 63));
+						toRemove+=3;
+					}
+				}
+			}
+			end_callback(output);
+		}
 	}
+
 }

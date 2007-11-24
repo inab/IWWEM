@@ -118,12 +118,14 @@ Baclava.Data = function(partial) {
 };
 
 function WorkflowStep(stepDOM, /* optional */ parentStep) {
-	this.name=stepDOM.getAttribute('name');
+	this.name=stepDOM.getAttribute('name') || stepDOM.getAttribute('jobId');
 	this.state=stepDOM.getAttribute('state');
 	this.parentStep=parentStep;
 	this.input={};
+	this.hasInputs=undefined;
 	this.bacInput=undefined;
 	this.output={};
+	this.hasOutputs=undefined;
 	this.bacOutput=undefined;
 	for(var child = stepDOM.firstChild; child; child = child.nextSibling) {
 		if(child.nodeType==1) {
@@ -141,10 +143,12 @@ function WorkflowStep(stepDOM, /* optional */ parentStep) {
 				case 'input':
 					// Baclava not cached (yet)
 					this.input[child.getAttribute('name')]=undefined;
+					this.hasInputs=1;
 					break;
 				case 'output':
 					// Baclava not cached (yet)
 					this.output[child.getAttribute('name')]=undefined;
+					this.hasOutputs=1;
 					break;
 			}
 		}
@@ -159,10 +163,11 @@ WorkflowStep.prototype = {
 		try {
 			request=new XMLHttpRequest();
 			request.onreadystatechange=function() {
+				//themessagediv.innerHTML += request.readyState + '<br>';
 				if(request.readyState==4) {
 					try {
 						if('status' in request) {
-							if(request.status == 200) {
+							if(request.status == 200 || request.status == 304) {
 								if(request.parseError && request.parseError.errorCode!=0) {
 									themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR ('+
 										request.parseError.errorCode+
@@ -197,7 +202,7 @@ WorkflowStep.prototype = {
 								if(('statusText' in request) && request.statusText) {
 									statusText=request.statusText;
 								}
-								themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR while fetching list: '+
+								themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR while fetching '+theurl+': '+
 									request.status+' '+statusText+'</h1></blink>';
 							}
 						} else {
@@ -206,6 +211,7 @@ WorkflowStep.prototype = {
 					} catch(e) {
 						themessagediv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to complete '+theurl+' reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
 					} finally {
+						request.onreadystatechange=new Function();
 					}
 				}
 			};
@@ -222,19 +228,23 @@ WorkflowStep.prototype = {
 	},
 	
 	fetchBaclava: function(baseJob,themessagediv,gotInputHandler,gotOutputHandler,/* optional */ istep) {
-		var relpath=baseJob+'/'+this.name+'/';
-		if(!(this.input[WorkflowStep.GOT]) && !this.bacInput) {
+		var relpath=baseJob+'/'+EnactionView.getJobDir(this.name)+'/';
+		
+		// Determining whether 
+		if(this.hasInputs && !(this.input[WorkflowStep.GOT]) && !this.bacInput) {
 			this.bacInput=this.fetchBaclavaObject(relpath+'Inputs.xml',this.input,themessagediv,gotInputHandler,istep);
 		}
 		
-		if(!(this.output[WorkflowStep.GOT]) && !this.bacOutput) {
+		if(this.hasOutputs && !(this.output[WorkflowStep.GOT]) && !this.bacOutput) {
 			this.bacOutput=this.fetchBaclavaObject(relpath+'Outputs.xml',this.output,themessagediv,gotOutputHandler,istep);
 		}
 		
 		// Now, the iterations
 		if(this.iterations) {
-			for(var i=0; i< this.iterations.length ; i++) {
-				this.iterations[i].fetchBaclava(relpath+'Iterations',themessagediv,gotInputHandler,gotOutputHandler,i);
+			var iti = this.iterations;
+			var itil = iti.length;
+			for(var i=0; i<itil ; i++) {
+				iti[i].fetchBaclava(relpath+'Iterations',themessagediv,gotInputHandler,gotOutputHandler,i);
 			}
 		}
 	}
@@ -263,7 +273,7 @@ function DataViewer(dataviewerId,genview) {
 
 DataViewer.prototype={
 	openProcessFrame: function () {
-		this.genview.openFrame('preprocessData');
+		this.genview.openFrame('preprocessData',1);
 	},
 	
 	closeProcessFrame: function() {
@@ -304,7 +314,8 @@ DataViewer.prototype={
 			this.openProcessFrame();
 			var dataview=this;
 			this.base64data=data;
-			Base64.streamDecode(data,function(decdata) {
+			// Base64.streamDecode(data,function(decdata) {
+			Base64.streamBase64UTF8Decode(data,function(decdata) {
 				dataview.data=decdata;
 				
 				dataview.closeProcessFrame();
@@ -347,7 +358,7 @@ DataViewer.prototype={
 				
 				if(bestIndex==-1) {
 					if(tpIndex==-1) {
-						tpIndex==0;
+						tpIndex=0;
 					}
 					bestIndex=tpIndex;
 				}
@@ -370,6 +381,7 @@ DataViewer.prototype={
 					this.dataviewerDiv.innerHTML='Sorry, unable to show binary-labeled data (yet)!';
 					break;
 				case 'image/*':
+					// This works with any browser but explorer, nuts!
 					var img=new Image();
 					img.src='data:image/*;base64,'+this.base64data;
 					this.dataviewerDiv.appendChild(img);
@@ -391,18 +403,70 @@ DataViewer.prototype={
 					this.dataviewerDiv.appendChild(objres);
 					break;
 				case 'chemical/x-pdb':
+					/*
 					this.dataviewerDiv.innerHTML=jmolAppletInline([300,450],
 						this.data,
 						'cartoon on;color cartoons structure',
 						'jmol'
 					);
-					// 'define ~myset (*.N?);select ~myset;color green;select *;color cartoons structure;color rockets chain;color backbone blue'
-					//jmolLoadInline(this.data,'jmol');
+					*/
+					//jmolSetCallback('loadStructCallback',);
+					switch(BrowserDetect.browser) {
+						case 'Explorer':
+						case 'Safari':
+						case 'Opera':
+							this.dataviewerDiv.innerHTML=jmolAppletInline([300,450],
+								this.data,
+								'select all ; wireframe off ; spacefill off ; cartoon on ; color cartoons structure',
+								'jmol'
+							);
+							break;
+						default:
+							var applet = this.genview.createElement('applet');
+							var param = this.genview.createElement("param");
+							param.setAttribute("name","progressbar");
+							param.setAttribute("value","true");
+							applet.appendChild(param);
+							applet.name="jmol";
+							applet.setAttribute("archive","JmolApplet0.jar");
+							applet.setAttribute("codebase","js/jmol");
+							applet.setAttribute("mayscript","true");
+							applet.setAttribute("style","width:300;height:450");
+							applet.setAttribute("code","JmolApplet");
+
+							this.dataviewerDiv.appendChild(applet);
+
+							var dataview=this;
+
+							var loadme = function() {
+								if(applet.isActive && applet.loadInline) {
+									//alert(applet.loadInline);
+									setTimeout(function() {
+										applet.loadInline(
+											dataview.data,
+											'select all ; wireframe off ; spacefill off ; cartoon on ; color cartoons structure'
+	//										'define ~myset (*.N?);select ~myset;color green;select *;color cartoons structure;color rockets chain;color backbone blue'
+										);
+									},500);
+								} else {
+									setTimeout(loadme,100);
+								}
+							};
+							loadme();
+							break;
+					}
 					break;
 				case 'text/html':
 					// A bit risky, isn't it?
 					// Better an iframe, but not know
 					this.dataviewerDiv.innerHTML=this.data;
+					break;
+				case 'text/x-taverna-web-url':
+					var a=this.genview.createElement('a');
+					a.href=this.data;
+					a.target='_blank';
+					a.innerHTML=this.data;
+					this.dataviewerDiv.appendChild(a);
 					break;
 				case 'text/xml':
 				case 'text/plain':
@@ -410,14 +474,19 @@ DataViewer.prototype={
 					// Use the prettyfier!
 					var dataCont = this.genview.createElement('pre');
 					dataCont.className='prettyprint noborder';
-					var htmldata=this.data;
-					htmldata=htmldata.replace(/&/g,'&amp;');
-					htmldata=htmldata.replace(/</g,'&lt;');
-					htmldata=htmldata.replace(/>/g,'&gt;');
-					dataCont.innerHTML=htmldata;
+					var tnode = this.genview.thedoc.createTextNode(this.data);
+					dataCont.appendChild(tnode);
 					this.dataviewerDiv.appendChild(dataCont);
+					
 					// Now, prettyPrint!!!!
-					prettyPrint();
+					if(/^\s*</.test(this.data) && />\s*$/.test(this.data)) {
+						var htmldata=this.data.toString();
+						htmldata=htmldata.replace(/&/g,'&amp;');
+						htmldata=htmldata.replace(/</g,'&lt;');
+						htmldata=htmldata.replace(/>/g,'&gt;');
+						htmldata=htmldata.replace(/"/g,'&quot;');
+						dataCont.innerHTML=prettyPrintOne(htmldata);
+					}
 					break;
 			}
 		}
@@ -448,13 +517,12 @@ function EnactionView(genview) {
 	
 	var enactview=this;
 	
-	this.check=genview.getElementById('confirm');
-	GeneralView.initCheck(this.check);
-	WidgetCommon.addEventListener(this.check,'click', function() {
-		if(this.checked) {
-			this.setCheck(false);
+	var check = this.check=new GeneralView.Check(genview.getElementById('confirm'));
+	this.check.addEventListener('click', function() {
+		if(check.checked) {
+			check.doUncheck();
 		} else {
-			this.setCheck(true);
+			check.doCheck();
 		}
 	},false);
 	
@@ -478,8 +546,12 @@ function EnactionView(genview) {
 	//this.domStatus=undefined;
 	this.internalDispose();
 	
-	this.stepClickHandler = function () {
-		enactview.showStepFromId(this.getAttribute("id"));
+	this.stepClickHandler = function (theid) {
+		enactview.showStepFromId(this.getAttribute?this.getAttribute("id"):theid);
+	};
+	
+	this.jobClickHandler = function (theid) {
+		enactview.showWorkflowJobFromId(this.getAttribute?this.getAttribute("id"):theid);
 	};
 	
 	// At last, getting the enaction id
@@ -508,7 +580,7 @@ EnactionView.BaseHREF = window.location.pathname.substring(0,window.location.pat
 	
 EnactionView.prototype = {
 	openReloadFrame: function () {
-		this.genview.openFrame('reloadEnaction');
+		this.genview.openFrame('reloadEnaction',1);
 	},
 	
 	closeReloadFrame: function() {
@@ -571,7 +643,7 @@ EnactionView.prototype = {
 				var state=enStatus.getAttribute('state');
 				
 				// First run
-				if(state!='unknown' && !this.initializedSVG) {
+				if(state!='unknown' && state!='queued' && !this.initializedSVG) {
 					this.initializedSVG=1;
 					var enactview=this;
 					this.waitingSVG=1;
@@ -580,14 +652,10 @@ EnactionView.prototype = {
 						'100mm',
 						'120mm',
 						function() {
-							enactview.clearJobNodes();
 							enactview.waitingSVG=undefined;
 							enactview.refreshEnactionStatus(state);
 						});
 				} else {
-					if(state=='unknown') {
-						this.waitingSVG=1;
-					}
 					this.refreshEnactionStatus(state);
 				}
 				
@@ -612,39 +680,45 @@ EnactionView.prototype = {
 	},
 	
 	refreshEnactionStatus: function(state) {
-		var gstate=this.genGraphicalState(state);
-		if(state=='dead' || state=='error') {
-			this.errorJobNodes();
-		}
+		if(!state)  state='undefined';
 		
-		if(state=='finished') {
-			this.finishedJobNodes();
-		}
-
-		this.generalStatusSpan.innerHTML=gstate;
-		for(var child=this.domStatus.firstChild;child; child=child.nextSibling) {
-			// Walking through the steps
-			if(child.nodeType==1 && GeneralView.getLocalName(child)=='step') {
-				var stepName = child.getAttribute('name');
-				var update=1;
-				// Is it cached?
-				if(stepName in this.stepCache) {
-					var stepState=child.getAttribute('state');
-					var prevStepState=this.stepCache[stepName].state;
-					if(stepState==prevStepState && !this.stepCache[stepName].iterations) {
-						update=undefined;
+		if(state!='unknown' && state!='queued' && state!='undefined') {
+			// Updating the step cache for the meta-step
+			// i.e., the workflow
+			var step=new WorkflowStep(this.domStatus);
+			this.stepCache[this.jobId]=step;
+			this.updateJobView(step);
+			if(this.step && step.name==this.step.name) {
+				this.setStep(step);
+			}
+			
+			
+			for(var child=this.domStatus.firstChild; child; child=child.nextSibling) {
+				// Walking through the steps
+				if(child.nodeType==1 && GeneralView.getLocalName(child)=='step') {
+					var stepName = child.getAttribute('name');
+					var update=1;
+					// Is it cached?
+					if(stepName in this.stepCache) {
+						var stepState=child.getAttribute('state');
+						var prevStepState=this.stepCache[stepName].state;
+						if(stepState==prevStepState && !this.stepCache[stepName].iterations) {
+							update=undefined;
+						}
 					}
-				}
-				// Updating the step cache
-				if(update) {
-					var step=new WorkflowStep(child);
-					this.stepCache[step.name]=step;
-					this.updateStepView(step);
-					if(this.step && step.name==this.step.name) {
-						this.setStep(step);
+					// Updating the step cache
+					if(update) {
+						var step=new WorkflowStep(child);
+						this.stepCache[step.name]=step;
+						this.updateStepView(step);
+						if(this.step && step.name==this.step.name) {
+							this.setStep(step);
+						}
 					}
 				}
 			}
+		} else {
+			this.svg.removeSVG();
 		}
 	},
 	
@@ -683,12 +757,61 @@ EnactionView.prototype = {
 		}
 	},
 	
+	updateJobView: function(step) {
+		var gstate=this.genGraphicalState(step.state);
+		this.generalStatusSpan.innerHTML=gstate;
+		
+		var tramp=this.svg.getTrampoline();
+		var susId=tramp.suspendRedraw();
+		try {
+			// And the click property
+			switch(step.state) {
+				case 'finished':
+					this.finishedJobNodes();
+					break;
+			}
+			
+			// Setting up Input/Output handlers
+			switch(step.state) {
+				case 'queued':
+					this.clearJobNodes();
+					break;
+				case 'error':
+				case 'frozen':
+				case 'dead':
+					this.errorJobNodes(step.state);
+				case 'running':
+				case 'finished':
+					var enactview=this;
+					for(var input in step.input) {
+						var sname='WORKFLOWINTERNALSOURCE_'+input;
+						tramp.removeNodeHandler(sname,this.jobClickHandler,'click');
+						tramp.setNodeHandler(sname,this.jobClickHandler,'click');
+					}
+
+					for(var output in step.output) {
+						var sname='WORKFLOWINTERNALSINK_'+output;
+						tramp.removeNodeHandler(sname,this.jobClickHandler,'click');
+						tramp.setNodeHandler(sname,this.jobClickHandler,'click');
+					}
+					break;
+			}
+		} finally {
+			tramp.unsuspendRedraw(susId);
+		}
+	},
+	
 	showStepFromId: function (theid) {
 		var nodeToTitle=this.svg.getNodeToTitle();
 		if(theid in nodeToTitle) {
 			var step=this.stepCache[nodeToTitle[theid]];
 			this.setStep(step);
 		}
+	},
+	
+	showWorkflowJobFromId: function (theid) {
+		var step=this.stepCache[this.jobId];
+		this.setStep(step);
 	},
 	
 	setStep: function (step,iteration) {
@@ -732,12 +855,14 @@ EnactionView.prototype = {
 			// I'm using here absolute paths, because when this function is called from inside SVG
 			// click handlers, base href is the one from the SVG, not the one from this page.
 			var inputSignaler = function(istep) {
-				enactview.tryUpdateIOStatus(gstep,istep,gstep.input,enactview.inputsSpan,enactview.inContainer);
+				enactview.tryUpdateIOStatus(gstep,istep,'input',enactview.inputsSpan,enactview.inContainer,'hasInputs');
 			};
 
 			if(step.iterations) {
-				for(var i=0;i<gstep.iterations.length;i++) {
-					var ministep=gstep.iterations[i];
+				var giter=gstep.iterations;
+				var giterl = giter.length;
+				for(var i=0;i<giterl;i++) {
+					var ministep=giter[i];
 					iterO=this.genview.createElement('option');
 					iterO.value=i;
 					iterO.text=(((ministep.input[WorkflowStep.GOT]) && (ministep.output[WorkflowStep.GOT]))?'':'* ')+ministep.name;
@@ -765,17 +890,17 @@ EnactionView.prototype = {
 			}
 			// Fetching data after, not BEFORE creating the select
 			var outputSignaler = function(istep) {
-				enactview.tryUpdateIOStatus(gstep,istep,gstep.output,enactview.outputsSpan,enactview.outContainer);
+				enactview.tryUpdateIOStatus(gstep,istep,'output',enactview.outputsSpan,enactview.outContainer,'hasOutputs');
 			};
-			gstep.fetchBaclava(EnactionView.BaseHREF+'/'+this.JobsBase+'/'+this.jobDir+'/Results',this.messageDiv,inputSignaler,outputSignaler);
+			gstep.fetchBaclava(EnactionView.BaseHREF+'/'+this.JobsBase+((step.name!=this.jobId)?('/'+this.jobDir+'/Results'):''),this.messageDiv,inputSignaler,outputSignaler);
 			
 			
 			// For this concrete (sub)step
 			// Inputs
-			this.updateIOStatus(step.input,this.inputsSpan,this.inContainer);
+			this.updateIOStatus(step.input,this.inputsSpan,this.inContainer,step.hasInputs);
 
 			// Outputs
-			this.updateIOStatus(step.output,this.outputsSpan,this.outContainer);
+			this.updateIOStatus(step.output,this.outputsSpan,this.outContainer,step.hasOutputs);
 		} else {
 			// Clearing view
 			GeneralView.freeContainer(this.inContainer);
@@ -801,7 +926,7 @@ EnactionView.prototype = {
 		var susId=tramp.suspendRedraw();
 		try {
 			for(var tit in titleToNode) {
-				if(tit.indexOf('WORKFLOWINTERNALSOURCE')!=0) {
+				if(tit.indexOf('WORKFLOWINTERNALSOURCECONTROL')!=0) {
 					tramp.changeNodeFillOpacity(tit,'0.0');
 				}
 			}
@@ -810,14 +935,14 @@ EnactionView.prototype = {
 		}
 	},
 	
-	errorJobNodes: function() {
+	errorJobNodes: function(stateName) {
 		var titleToNode=this.svg.getTitleToNode();
 		var tramp=this.svg.getTrampoline();
 		var susId=tramp.suspendRedraw();
 		try {
 			for(var tit in titleToNode) {
 				if(tit.indexOf('WORKFLOWINTERNALSINK')==0) {
-					tramp.changeNodeFill(tit,'red');
+					tramp.changeNodeFill(tit,(stateName=='frozen')?'blue':'red');
 				}
 			}
 		} finally {
@@ -840,10 +965,10 @@ EnactionView.prototype = {
 		}
 	},
 	
-	updateIOStatus: function(stepIO,IOSpan,IOContainer) {
+	updateIOStatus: function(stepIO,IOSpan,IOContainer,hasIO) {
 		GeneralView.freeContainer(IOContainer);
 		var loaded=stepIO[WorkflowStep.GOT];
-		IOSpan.className=(loaded)?'IOStat':'IOStatLoading';
+		IOSpan.className=(!hasIO || loaded)?'IOStat':'IOStatLoading';
 		if(loaded) {
 			for(var IO in stepIO) {
 				if(IO==WorkflowStep.GOT)  continue;
@@ -852,7 +977,7 @@ EnactionView.prototype = {
 		}
 	},
 	
-	tryUpdateIOStatus: function(gstep,istep,stepIO,IOSpan,IOContainer) {
+	tryUpdateIOStatus: function(gstep,istep,stepIOFacet,IOSpan,IOContainer,hasIOFacet) {
 		if(this.step==gstep) {
 			// Update the selection text
 			var tstep;
@@ -868,7 +993,7 @@ EnactionView.prototype = {
 			
 			// And perhaps the generated tree!
 			if(this.istep==istep) {
-				this.updateIOStatus(stepIO,IOSpan,IOContainer);
+				this.updateIOStatus(gstep[stepIOFacet],IOSpan,IOContainer,gstep[hasIOFacet]);
 			}
 		}
 	},
@@ -982,6 +1107,7 @@ EnactionView.prototype = {
 						// Removing 'Loading...' frame
 						enactQueryReq.enactview.closeReloadFrame();
 						enactQueryReq.enactview.enactQueryReq=undefined;
+						enactQueryReq.onreadystatechange = new Function();
 						enactQueryReq=undefined;
 					}
 				}
@@ -997,7 +1123,7 @@ EnactionView.prototype = {
 	disposeEnaction: function() {
 		if(this.check.checked) {
 			var sureDispose=confirm('Are you REALLY sure you want to dispose this enaction?');
-			this.check.setCheck(false);
+			this.check.doUncheck();
 			if(sureDispose) {
 				this.openOtherEnactionFrame(true);
 			}
@@ -1018,7 +1144,7 @@ EnactionView.prototype = {
 			this.internalDispose();
 		}
 		
-		this.genview.openFrame('viewOtherEnaction');
+		this.genview.openFrame('viewOtherEnaction',1);
 	},
 	
 	viewEnaction: function() {
@@ -1055,13 +1181,18 @@ EnactionView.prototype = {
 			snapshotDesc.name='snapshotDesc';
 			this.snapshotDescContainer.appendChild(snapshotDesc);
 		}
-		this.genview.openFrame('snapshotEnaction');
+		this.genview.openFrame('snapshotEnaction',1);
 	},
 	
 	takeSnapshot: function() {
 		if(this.snapshotName.value && this.snapshotName.value.length>0) {
 			var snapshotName=this.snapshotName.value;
 			var snapshotDesc;
+			if(FCKeditor_IsCompatibleBrowser()) {
+				for ( var i = 0; i < window.frames.length; ++i )
+					if ( window.frames[i].FCK )
+						window.frames[i].FCK.UpdateLinkedField();
+			}
 			var snapDescInput=this.genview.getElementById('snapshotDesc');
 			if(snapDescInput && snapDescInput.value) {
 				snapshotDesc=snapDescInput.value;

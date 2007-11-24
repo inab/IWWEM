@@ -95,7 +95,9 @@ span.magglass {
 
 span.radio , span.checkbox {
 	/* Black IE magic */
+	/*
 	behavior:url(hover.htc);
+	*/
 	/*
 	width: 16px;
 	*/
@@ -111,6 +113,14 @@ span.radio , span.checkbox {
 	font-size: 14px;
 }
 
+span.radio {
+	background-image: url(radio.png);
+}
+
+span.checkbox {
+	background-image: url(checkbox.png);
+}
+
 span.radio.left , span.checkbox.left {
 	padding-left: 17px;
 	background-position: center left;
@@ -121,27 +131,19 @@ span.radio.right , span.checkbox.right {
 	background-position: center right;
 }
 
-span.radio {
-	background-image: url(radio.png);
-}
-
 span.radiohover , span.radio:hover {
 	background-image: url(radio-focus.png);
 }
 
-span.radio.checked {
+span.radio.checked , span.radio.left.checked , span.radio.right.checked {
 	background-image: url(radio-checked.png);
-}
-
-span.checkbox {
-	background-image: url(checkbox.png);
 }
 
 span.checkboxhover.blue , span.checkbox.blue:hover {
 	background-image: url(checkbox-focus.png);
 }
 
-span.checkbox.blue.checked {
+span.checkbox.blue.checked , span.checkbox.left.blue.checked , span.checkbox.right.blue.checked {
 	background-image: url(checkbox-checked.png);
 }
 
@@ -149,7 +151,7 @@ span.checkboxhover.red , span.checkbox.red:hover {
 	background-image: url(checkbox-red-focus.png);
 }
 
-span.checkbox.red.checked {
+span.checkbox.red.checked , span.checkbox.left.red.checked , span.checkbox.right.red.checked {
 	background-image: url(checkbox-red-checked.png);
 }
 
@@ -157,6 +159,6 @@ span.checkboxhover.green , span.checkbox.green:hover {
 	background-image: url(checkbox-green-focus.png);
 }
 
-span.checkbox.green.checked {
+span.checkbox.green.checked , span.checkbox.left.green.checked , span.checkbox.right.green.checked {
 	background-image: url(checkbox-green-checked.png);
 }
