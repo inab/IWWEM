@@ -37,7 +37,7 @@ $MAXJOBS = 2;
 # the delay (in seconds) between checks.
 # It is not higher because it is
 # restricted from LockNLog side.
-$JOBCHECKDELAY = 10;
+$JOBCHECKDELAY = 1;
 # Launcher directory
 $LAUNCHERDIR = $FindBin::Bin.'/INBWorkflowLauncher';
 # Maven directory used by raven instance inside
