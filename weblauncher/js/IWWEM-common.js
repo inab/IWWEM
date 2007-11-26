@@ -323,7 +323,7 @@ GeneralView.prototype = {
 				containerDiv.removeChild(mydiv);
 
 				// Keeping an accurate counter
-				if(external && external.inputCounter) {
+				if(external && ('inputCounter' in external) && (typeof external.inputCounter == 'number')) {
 					external.inputCounter--;
 				}
 			},false);
@@ -337,7 +337,7 @@ GeneralView.prototype = {
 			containerDiv.appendChild(mydiv);
 			
 			// Keeping an accurate counter
-			if(external && external.inputCounter) {
+			if(external && ('inputCounter' in external) && (typeof external.inputCounter == 'number')) {
 				external.inputCounter++;
 			}
 		};

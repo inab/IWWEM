@@ -69,11 +69,10 @@ TavernaSVG.prototype = {
 			if(this._svgloadtimer) {
 				clearInterval(this._svgloadtimer);
 				this._svgloadtimer=undefined;
-				if(BrowserDetect.browser!='Explorer') {
-					delete window['SVGtrampoline'];
-				} else {
-					window['SVGtrampoline']=undefined;
-				}
+			}
+			window.SVGtrampoline=undefined;
+			if(BrowserDetect.browser!='Explorer' && BrowserDetect.browser!='Konqueror') {
+				delete window['SVGtrampoline'];
 			}
 			// Second, remove trampoline
 			this.SVGtramp=undefined;
@@ -215,13 +214,12 @@ TavernaSVG.prototype = {
 				if(BrowserDetect.browser!='Konqueror') {
 					this._svgloadtimer=setInterval(function() {
 						// Transferring the trampoline!
-						if ('SVGtrampoline' in window && window['SVGtrampoline']) {
+						if ('SVGtrampoline' in window && window.SVGtrampoline) {
 							clearInterval(thissvg._svgloadtimer);
-							thissvg.SVGtramp=window['SVGtrampoline'];
+							thissvg.SVGtramp=window.SVGtrampoline;
+							window.SVGtrampoline=undefined;
 							if(BrowserDetect.browser!='Explorer' && BrowserDetect.browser!='Konqueror') {
 								delete window['SVGtrampoline'];
-							} else {
-								window['SVGtrampoline']=undefined;
 							}
 							thissvg.SVGrescale(bestScaleW,bestScaleH);
 							thissvg._svgloadtimer=undefined;

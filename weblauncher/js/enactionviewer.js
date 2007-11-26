@@ -250,6 +250,17 @@ WorkflowStep.prototype = {
 	}
 };
 
+function JMolAlert(appname,info,addi) {
+	if(info=='Script completed' && JMolAlert.runme) {
+		//var d=new Date();
+		//alert('alerta '+d.getTime()+' '+appname+' '+info+' '+addi);
+		// This alert avoids a Java plugin deadlock
+		setTimeout(JMolAlert.runme,100);
+	}
+}
+
+JMolAlert.runme=undefined;
+
 /* Data viewer, the must-be royal crown */
 function DataViewer(dataviewerId,genview) {
 	this.genview=genview;
@@ -261,7 +272,8 @@ function DataViewer(dataviewerId,genview) {
 	this.mimeList=undefined;
 	
 	jmolInitialize('js/jmol');
-	jmolSetDocument(undefined);
+	jmolSetDocument(false);
+	jmolSetCallback('messageCallback','JMolAlert');
 	
 	var dataview=this;
 	this.mimeChangeFunc=function() {
@@ -432,7 +444,17 @@ DataViewer.prototype={
 								'select all ; wireframe off ; spacefill off ; cartoon on ; color cartoons structure',
 								'jmol'
 							);
+						default:
+							var dataview=this;
+							JMolAlert.runme=function() {
+								jmolLoadInlineScript(dataview.data,
+									'select all ; wireframe off ; spacefill off ; cartoon on ; color cartoons structure',
+									'jmol');
+								JMolAlert.runme=undefined;
+							};
+							this.dataviewerDiv.innerHTML=jmolApplet([300,450],'echo','jmol');
 							break;
+						/*
 						default:
 							var applet = this.genview.createElement('applet');
 							var param = this.genview.createElement("param");
@@ -451,21 +473,26 @@ DataViewer.prototype={
 							var dataview=this;
 
 							var loadme = function() {
-								if(applet.isActive && applet.loadInline) {
-									//alert(applet.loadInline);
-									setTimeout(function() {
-										applet.loadInline(
-											dataview.data,
-											'select all ; wireframe off ; spacefill off ; cartoon on ; color cartoons structure'
-	//										'define ~myset (*.N?);select ~myset;color green;select *;color cartoons structure;color rockets chain;color backbone blue'
-										);
-									},500);
-								} else {
+								try {
+									if(applet.isActive() && applet.loadInline) {
+										//alert(applet.loadInline);
+										setTimeout(function() {
+											applet.loadInline(
+												dataview.data,
+												'select all ; wireframe off ; spacefill off ; cartoon on ; color cartoons structure'
+	//											'define ~myset (*.N?);select ~myset;color green;select *;color cartoons structure;color rockets chain;color backbone blue'
+											);
+										},500);
+									} else {
+										setTimeout(loadme,100);
+									}
+								} catch(e) {
 									setTimeout(loadme,100);
 								}
 							};
 							loadme();
 							break;
+						*/
 					}
 					break;
 				case 'text/html':
@@ -687,15 +714,25 @@ EnactionView.prototype = {
 	
 	genGraphicalState: function(state) {
 		var gstate=state;
-		if(state=='dead' || state=='error') {
-			gstate="<span style='color:red'><b>"+gstate+"</b></span>";
-		} else if(state=='running' || state=='unknown') {
-			gstate='<i>'+gstate+'</i>';
-			if(state=='unknown') {
+		switch(state) {
+			case 'queued':
+			case '':
+				gstate="<tt>queued</tt>";
+				break;
+			case 'frozen':
+				gstate="<span style='color:blue'><b>"+gstate+"</b></span>";
+				break;
+			case 'dead':
+			case 'error':
+				gstate="<span style='color:red'><b>"+gstate+"</b></span>";
+				break;
+			case 'unknown':
 				gstate='<b>'+gstate+'</b>';
-			}
+			case 'running':
+				gstate='<i>'+gstate+'</i>';
+				break;
 		}
-		
+
 		return gstate;
 	},
 	
