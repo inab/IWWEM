@@ -294,7 +294,7 @@ unless(defined($cpid)) {
 } elsif($cpid!=0) {
 	# I'm the parent, and I have a child!!!!
 	my($CPID);
-	if(open($CPID,'>',$jobdir.'/PID')) {
+	if(open($CPID,'>',$jobdir.'/PPID')) {
 		print $CPID $cpid;
 		close($CPID);
 	}
@@ -347,19 +347,39 @@ unless(defined($cpid)) {
 	my($mutex)=LockNLog::Mutex->new($WorkflowCommon::MAXJOBS,$WorkflowCommon::JOBCHECKDELAY);
 	# Now trying to become a true workflow launcher!!!!
 	$mutex->mutex(sub {
-		exec($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
-			'-baseDir',$WorkflowCommon::MAVENDIR,
-			'-workflow',$wfile,
-#			'-expandSubWorkflows',
-			'-statusDir',$jobdir,
-			@baclavadesc,
-			@inputdesc,
-			@saveExample
-		);
+		my($runpid)=fork();
+		unless(defined($runpid)) {
+			my($FATAL);
+			open($FATAL,'>',$jobdir . '/FATAL');
+			close($FATAL);
+			print STDERR "FATAL ERROR-0: Failed to become a workflow launcher!";
+		} elsif($runpid!=0) {
+			# I'm the son which holds the run slot
+			waitpid($runpid,0);
+			
+			# Now, the slot can freed properly
+		} else {
+			# I'm the grandson, which can be killed
+			setsid();
+			my($RUNPID);
+			if(open($RUNPID,'>',$jobdir.'/PID')) {
+				print $RUNPID $runpid;
+				close($RUNPID);
+			}
+			
+			exec($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
+				'-baseDir',$WorkflowCommon::MAVENDIR,
+				'-workflow',$wfile,
+#				'-expandSubWorkflows',
+				'-statusDir',$jobdir,
+				@baclavadesc,
+				@inputdesc,
+				@saveExample
+			);
+			my($FATAL);
+			open($FATAL,'>',$jobdir . '/FATAL');
+			close($FATAL);
+			print STDERR "FATAL ERROR-1: Failed to become a workflow launcher!";
+		}
 	});
-	my($FATAL);
-	open($FATAL,'>',$jobdir . '/FATAL');
-	close($FATAL);
-	print STDERR "FATAL ERROR: Failed to become a workflow launcher!";
-	exit 1;
 }

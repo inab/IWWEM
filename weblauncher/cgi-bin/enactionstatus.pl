@@ -282,40 +282,54 @@ foreach my $jobId (@jobIdList) {
 				}
 			}
 
-			my($pidfile)=$jobdir . '/PID';
+			my($ppidfile)=$jobdir . '/PPID';
 			my($includeSubs)=1;
-			my($PID);
-			if(-f $jobdir . '/FATAL' || ! -f $pidfile) {
+			my($PPID);
+			if(-f $jobdir . '/FATAL' || ! -f $ppidfile) {
 				$state='dead';
-			} elsif(!defined($wfsnap) && open($PID,'<',$pidfile)) {
-				my($pid)=<$PID>;
-				close($PID);
-
-				# Now we have a pid, we can check for the enaction job
-				if( -f $jobdir . '/FINISH') {
-					$state = 'finished';
-				} elsif( -f $jobdir . '/FAILED.txt') {
-					$state = 'error';
-				} elsif(kill(0,$pid) > 0) {
-					# It could be still running...
-					unless(defined($dispose)) {
-						if( -f $jobdir . '/START') {
-							$state = 'running';
+			} elsif(!defined($wfsnap) && open($PPID,'<',$ppidfile)) {
+				my($ppid)=<$PPID>;
+				close($PPID);
+				
+				my($pidfile)=$jobdir . '/PID';
+				my($PID);
+				unless(-f $pidfile) {
+					# So it could be queued
+					$state = 'queued';
+					$includeSubs=undef;
+				} elsif(open($PID,'<',$pidfile)) {
+					my($pid)=<$PID>;
+					close($PID);
+					
+					# Now we have a pid, we can check for the enaction job
+					if( -f $jobdir . '/FINISH') {
+						$state = 'finished';
+					} elsif( -f $jobdir . '/FAILED.txt') {
+						$state = 'error';
+					} elsif(kill(0,$pid) > 0) {
+						# It could be still running...
+						unless(defined($dispose)) {
+							if( -f $jobdir . '/START') {
+								$state = 'running';
+							} else {
+								# So it could be queued
+								$state = 'unknown';
+								$includeSubs=undef;
+							}
 						} else {
-							# So it could be queued
-							$state = 'queued';
-							$includeSubs=undef;
+							$state = 'killed';
+							if(kill(TERM => -$pid)) {
+								sleep(1);
+								# You must die!!!!!!!!!!
+								kill(KILL => -$pid)  if(kill(0,$pid));
+							}
 						}
 					} else {
-						$state = 'killed';
-						if(kill(TERM => -$pid)) {
-							sleep(1);
-							# You must die!!!!!!!!!!
-							kill(KILL => -$pid)  if(kill(0,$pid));
-						}
+						$state = 'dead';
 					}
 				} else {
-					$state = 'dead';
+					$state = 'fatal';
+					$includeSubs=undef;
 				}
 			} elsif(defined($wfsnap)) {
 				$state = 'frozen';
