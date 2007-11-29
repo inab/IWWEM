@@ -148,12 +148,13 @@ var Base64 = {
     },
     
 	// public method for Base64 stream decoding
-	streamDecode : function (input, end_callback, /* optional */ noUTF8, i, output) {
+	streamFromBase64ToByte: function (input, end_callback, /* optional */ noUTF8, i, output) {
 		if(!i) {
 			i=0;
         		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 			if(!output)  output="";
 		}
+		
 		var _keyStr = this._keyStr;
 		var ilength = input.length;
 		
@@ -179,25 +180,25 @@ var Base64 = {
 		
 		if(i<ilength) {
 			setTimeout(function() {
-				Base64.streamDecode(input,end_callback,noUTF8,i,output);
+				Base64.streamFromBase64ToByte(input,end_callback,noUTF8,i,output);
 			},50);
 		} else if(noUTF8) {
 			end_callback(output);
 		} else {
 			// Next chain
 			setTimeout(function() {
-				Base64.streamUTF8Decode(output,end_callback);
+				Base64.streamFromByteToUTF8(output,end_callback);
 			},100);
 		}
 	},
 	
 	// private method for UTF8 stream decoding
-	streamUTF8Decode: function (bytetext, end_callback, /* optional */ i, utftext) {
+	streamFromByteToUTF8: function (bytetext, end_callback, /* optional */ i, utftext) {
 		if(!utftext)  utftext="";
 		if(!i)  i = 0;
 		
 		var blength=bytetext.length;
-		for(var ilocal=0 ; ilocal < 8192 && i <blength ; ilocal++) {
+		for(var ilocal=0 ; ilocal < 8192 && i < blength ; ilocal++) {
 
 			var c = bytetext.charCodeAt(i);
 
@@ -218,7 +219,7 @@ var Base64 = {
 		
 		if(i<blength) {
 			setTimeout(function() {
-				Base64.streamUTF8Decode(bytetext,end_callback,i,utftext);
+				Base64.streamFromByteToUTF8(bytetext,end_callback,i,utftext);
 			},100);
 		} else {
 			end_callback(utftext);
@@ -226,7 +227,7 @@ var Base64 = {
 	},
 	
 	// public method for Base64 stream decoding
-	streamBase64UTF8Decode: function (input, end_callback, /* optional */ i, transientArr, output) {
+	streamFromBase64ToUTF8: function (input, end_callback, /* optional */ i, transientArr, output) {
 		if(!i) {
 			i=0;
         		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
@@ -283,7 +284,7 @@ var Base64 = {
 		
 		if(i<ilength) {
 			setTimeout(function() {
-				Base64.streamBase64UTF8Decode(input,end_callback,i,transientArr,output);
+				Base64.streamFromBase64ToUTF8(input,end_callback,i,transientArr,output);
 			},50);
 		} else {
 			// Last transient bytes must be converted
@@ -296,10 +297,12 @@ var Base64 = {
 						output += String.fromCharCode(c);
 						toRemove++;
 					} else if((c > 191) && (c < 224)) {
+						// An exception should be fired, instead a break
 						if((toRemove+1)>=tLength)  break;
 						output += String.fromCharCode(((c & 31) << 6) | (transientArr[toRemove+1] & 63));
 						toRemove+=2;
 					} else if((toRemove+1)>=tLength) {
+						// An exception should be fired, instead a break
 						break;
 					} else {
 						output += String.fromCharCode(((c & 15) << 12) | ((transientArr[toRemove+1] & 63) << 6) | (transientArr[toRemove+2] & 63));
@@ -308,6 +311,191 @@ var Base64 = {
 				}
 			}
 			end_callback(output);
+		}
+	},
+
+	// public method for encoding
+	streamFromUTF8ToByteToBase64 : function (input, end_callback) {
+		Base64.streamFromUTF8ToByte(input, function(bytetext) {
+			Base64.streamFromByteToBase64(bytetext,end_callback);
+		});
+	},
+	
+	// private method for UTF-8 stream encoding
+	streamFromUTF8ToByte: function (utftext, end_callback, /* optional */ n, bytetext) {
+		if(!bytetext) {
+			bytetext="";
+			utftext = utftext.replace(/\r\n/g,"\n");
+		}
+		if(!n)  n = 0;
+		
+		var nlength = n + 8192;
+		var ulength = utftext.length;
+		if(nlength > ulength)  nlength=ulength;
+		for (; n < nlength ; n++) {
+			var c = utftext.charCodeAt(n);
+
+			if (c < 128) {
+				bytetext += String.fromCharCode(c);
+			} else if((c > 127) && (c < 2048)) {
+				bytetext += String.fromCharCode((c >> 6) | 192 , (c & 63) | 128);
+			} else {
+				bytetext += String.fromCharCode((c >> 12) | 224 , ((c >> 6) & 63) | 128 , (c & 63) | 128);
+			}
+		}
+		
+		if(n<ulength) {
+			setTimeout(function() {
+				Base64.streamFromUTF8ToByte(utftext,end_callback,n,bytetext);
+			},100);
+		} else {
+			end_callback(bytetext);
+		}
+	},
+
+	streamFromByteToBase64 : function (input, end_callback, /* optional */ i , output) {
+		if(!i) {
+			i=0;
+			if(!output)  output="";
+		}
+		
+		var _keyStr = this._keyStr;
+		var ilength = input.length;
+		
+		for(var ilocal=0; ilocal<4096 && i<ilength ; ilocal++) {
+			var chr1 = input.charCodeAt(i++);
+			var chr2 = input.charCodeAt(i++);
+			var chr3 = input.charCodeAt(i++);
+
+			var enc1 = chr1 >> 2;
+			var enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+			var enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+			var enc4 = chr3 & 63;
+
+			if (isNaN(chr2)) {
+				enc3 = enc4 = 64;
+			} else if (isNaN(chr3)) {
+				enc4 = 64;
+			}
+
+			output += _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+		}
+		
+		if(i<ilength) {
+			setTimeout(function() {
+				Base64.streamFromByte64ToBase64(input,end_callback,i,output);
+			},50);
+		} else {
+			// Next chain
+			end_callback(output);
+		}
+	},
+	
+	streamFromUTF8ToBase64: function (utftext, end_callback, /* optional */ n, transientArr, base64text) {
+		if(!n) {
+			n = 0;
+			utftext = utftext.replace(/\r\n/g,"\n");
+			transientArr=new Array();
+			if(!base64text)  base64text="";
+		}
+		
+		var nlength = n + 8192;
+		var ulength = utftext.length;
+		if(nlength > ulength)  nlength=ulength;
+		for (; n < nlength ; n++) {
+			var c = utftext.charCodeAt(n);
+
+			if (c < 128) {
+				transientArr.push(c);
+				//bytetext += String.fromCharCode(c);
+			} else if((c > 127) && (c < 2048)) {
+				transientArr.push((c >> 6) | 192 , (c & 63) | 128);
+				//bytetext += String.fromCharCode((c >> 6) | 192 , (c & 63) | 128);
+			} else {
+				transientArr.push((c >> 12) | 224 , ((c >> 6) & 63) | 128 , (c & 63) | 128);
+				//bytetext += String.fromCharCode((c >> 12) | 224 , ((c >> 6) & 63) | 128 , (c & 63) | 128);
+			}
+			
+			var tLength=transientArr.length;
+			if(tLength>2047) {
+				// Max work, with a times 3 value
+				tLength -= (tLength % 3);
+				var toRemove=0;
+				while(toRemove < tLength) {
+					var chr1 = transientArr[toRemove++];
+					var chr2 = transientArr[toRemove++];
+					var chr3 = transientArr[toRemove++];
+
+					var enc1 = chr1 >> 2;
+					var enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+					var enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+					var enc4 = chr3 & 63;
+					
+					/* This won't happen here
+					
+					if (isNaN(chr2)) {
+						enc3 = enc4 = 64;
+					} else if (isNaN(chr3)) {
+						enc4 = 64;
+					}
+					
+					*/
+
+					base64text += _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+
+				}
+				transientArr.splice(0,toRemove);
+			}
+		}
+		
+		if(n<ulength) {
+			setTimeout(function() {
+				Base64.streamFromUTF8ToByte(utftext,end_callback,n,bytetext);
+			},50);
+		} else {
+			var tLength=transientArr.length;
+			if(tLength>0) {
+				// Max work, with a times 3 value
+				var restLength=(tLength % 3);
+				if(restLength>0) {
+					for(var irest=3-restLength;irest >0;irest--) {
+						transientArr.push(NaN);
+					}
+					tLength -= restLength;
+				}
+				var toRemove=0;
+				while(toRemove < tLength) {
+					var chr1 = transientArr[toRemove++];
+					var chr2 = transientArr[toRemove++];
+					var chr3 = transientArr[toRemove++];
+
+					var enc1 = chr1 >> 2;
+					var enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+					var enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+					var enc4 = chr3 & 63;
+
+					base64text += _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+				}
+				if(restLength>0) {
+					var chr1 = transientArr[toRemove++];
+					var chr2 = transientArr[toRemove++];
+					var chr3 = transientArr[toRemove++];
+
+					var enc1 = chr1 >> 2;
+					var enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+					var enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+					var enc4 = chr3 & 63;
+					
+					if (isNaN(chr2)) {
+						enc3 = enc4 = 64;
+					} else if (isNaN(chr3)) {
+						enc4 = 64;
+					}
+
+					base64text += _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+				}
+			}
+			end_callback(bytetext);
 		}
 	}
 

@@ -213,6 +213,7 @@ TavernaSVG.prototype = {
 					objres=thedoc.createElement('embed');
 					objres.setAttribute("type","image/svg+xml");
 					objres.setAttribute("pluginspage","http://www.adobe.com/svg/viewer/install/");
+					objres.setAttribute("style","overflow: auto;");
 					objres.setAttribute("src",url);
 					this.asEmbed=true;
 					// This line was killing IE and WebKit js

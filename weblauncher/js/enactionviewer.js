@@ -327,7 +327,7 @@ DataViewer.prototype={
 			var dataview=this;
 			this.base64data=data;
 			// Base64.streamDecode(data,function(decdata) {
-			Base64.streamBase64UTF8Decode(data,function(decdata) {
+			Base64.streamFromBase64ToUTF8(data,function(decdata) {
 				dataview.data=decdata;
 				
 				dataview.closeProcessFrame();
