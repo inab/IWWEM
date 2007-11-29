@@ -655,6 +655,7 @@ EnactionView.prototype = {
 	},
 	
 	internalDispose: function() {
+		this.jobId=undefined;
 		this.JobsBase=undefined;
 		this.jobDir=undefined;
 		this.domStatus=undefined;
@@ -696,7 +697,8 @@ EnactionView.prototype = {
 					this.waitingSVG=1;
 					this.svg.loadSVG(GeneralView.SVGDivId,
 						this.JobsBase+'/'+this.jobDir+'/workflow.svg',
-						'100mm',
+//						'100mm',
+						'120mm',
 						'120mm',
 						function() {
 							enactview.waitingSVG=undefined;
@@ -724,6 +726,7 @@ EnactionView.prototype = {
 				break;
 			case 'dead':
 			case 'error':
+			case 'killed':
 				gstate="<span style='color:red'><b>"+gstate+"</b></span>";
 				break;
 			case 'unknown':
@@ -775,6 +778,8 @@ EnactionView.prototype = {
 				}
 			}
 		} else {
+			var gstate=this.genGraphicalState(state);
+			this.generalStatusSpan.innerHTML=gstate;
 			this.svg.removeSVG();
 		}
 	},
@@ -1099,16 +1104,19 @@ EnactionView.prototype = {
 		}
 	},
 	
-	reloadStatus: function(jobId,isFullReload,snapshotName,snapshotDesc) {
+	reloadStatus: function(/* optional */ jobId,isFullReload,snapshotName,snapshotDesc,isKill) {
 		// Getting the enaction information
 		if(!jobId)  jobId=this.jobId;
-		var qsParm = new Array();
+		var qsParm = {};
 		qsParm['jobId']=jobId;
 		if(snapshotName) {
 			qsParm['snapshotName']=snapshotName;
 			if(snapshotDesc) {
 				qsParm['snapshotDesc']=snapshotDesc;
 			}
+		}
+		if(isKill) {
+			qsParm['dispose']='0';
 		}
 		var enactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionstatus");
 		var enactQueryReq = this.enactQueryReq = new XMLHttpRequest();
@@ -1177,31 +1185,36 @@ EnactionView.prototype = {
 		}
 	},
 	
-	disposeEnaction: function() {
+	disposeEnaction: function(isDispose) {
 		if(this.check.checked) {
-			var sureDispose=confirm('Are you REALLY sure you want to dispose this enaction?');
+			var sureDispose=confirm('Are you REALLY sure you want to '+(isDispose?'dispose (and kill)':'kill (but not dispose)')+' this enaction?');
 			this.check.doUncheck();
 			if(sureDispose) {
-				this.openOtherEnactionFrame(true);
+				this.openOtherEnactionFrame(true,isDispose);
 			}
 		}
 	},
 	
-	openOtherEnactionFrame: function(/* optional */ isFullDispose) {
-		if(isFullDispose) {
+	openOtherEnactionFrame: function(/* optional */ isDispose,isFullDispose) {
+		if(isDispose) {
 			if(this.jobId) {
-				var dispo=new XMLHttpRequest();
-				var qsParm=new Array();
-				qsParm['jobId']=this.jobId;
-				qsParm['dispose']=1;
-				var disposeQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionstatus");
-				dispo.open('GET',disposeQuery);
-				dispo.send(null);
+				if(isFullDispose) {
+					var dispo=new XMLHttpRequest();
+					var qsParm={};
+					qsParm['jobId']=this.jobId;
+					qsParm['dispose']='1';
+					var disposeQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionstatus");
+					dispo.open('GET',disposeQuery);
+					dispo.send(null);
+					this.internalDispose();
+					this.genview.openFrame('viewOtherEnaction',1);
+				} else {
+					this.reloadStatus(undefined,undefined,undefined,undefined,1);
+				}
 			}
-			this.internalDispose();
+		} else {
+			this.genview.openFrame('viewOtherEnaction',1);
 		}
-		
-		this.genview.openFrame('viewOtherEnaction',1);
 	},
 	
 	viewEnaction: function() {

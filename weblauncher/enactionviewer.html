@@ -61,13 +61,15 @@
 				src="style/snapshot.png"></img></div>
 			</div>
 		</td><td class="buttons">
-			<div align="right" style="vertical-align: bottom;">
-				<span id="confirm" class='checkbox right red'>Confirm</span><br>
+			<table align="right" style="margin:0px;padding:0px"><tr valign="middle"><td align="center">
+				<span id="confirm" class='checkbox right red'>Confirm</span>
+			</td></tr><tr><td>
 				<!--
 				<label>Confirm<input type="checkbox" name="confirm" id="confirm"></input></label><br>
 				-->
-				<div class="button" onclick="genview.enactview.disposeEnaction()">Dispose <img src="style/redball.png"></img></div>
-			</div>
+				<div class="button" onclick="genview.enactview.disposeEnaction()">Kill Job <img src="style/redball.png"></img></div>
+				<div class="button" onclick="genview.enactview.disposeEnaction(1)">Dispose <img src="style/redball.png"></img></div>
+			</td></tr></table>
 		</td></tr>
 	</table>
 	<!-- Messages table -->
@@ -81,7 +83,9 @@
 <div class="hidden" id="viewOtherEnaction">
 	<div class="secondary">
 		<form id="formViewEnaction" action="enactionviewer.html" method="get">
-			<div align="center">Please introduce your enaction Id: <input type="text" id="jobId" name="jobId"></input></div>
+				<table style="width:100%; height:100%"><tr valign="middle"><td align="center">
+					Please introduce your enaction Id:<br><input type="text" id="jobId" name="jobId"></input>
+				</td></tr></table>
 		</form>
 		<div class="button back" onclick="genview.enactview.closeOtherEnactionFrame()">
 			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">

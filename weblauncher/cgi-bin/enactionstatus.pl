@@ -130,7 +130,9 @@ foreach my $param ($query->param()) {
 		@jobIdList=$query->param($param);
 		last  if($query->cgi_error());
 	} elsif($param eq 'dispose') {
-		$dispose=1;
+		$dispose=$query->param($param);
+		$dispose=($dispose ne '1')?0:1;
+		last  if($query->cgi_error());
 	} elsif($param eq 'snapshotName') {
 		$snapshotName=$query->param($param);
 		last  if($query->cgi_error());
@@ -184,7 +186,7 @@ foreach my $jobId (@jobIdList) {
 	# Is it a valid job id?
 	if(index($jobId,'/')==-1 && defined($jobdir) && -d $jobdir && -r $jobdir) {
 		# Disposal execution
-		if(defined($dispose)) {
+		if(defined($dispose) && $dispose eq '1') {
 			#
 			my($pidfile)=$jobdir . '/PID';
 			my($PID);
@@ -296,12 +298,21 @@ foreach my $jobId (@jobIdList) {
 					$state = 'error';
 				} elsif(kill(0,$pid) > 0) {
 					# It could be still running...
-					if( -f $jobdir . '/START') {
-						$state = 'running';
+					unless(defined($dispose)) {
+						if( -f $jobdir . '/START') {
+							$state = 'running';
+						} else {
+							# So it could be queued
+							$state = 'queued';
+							$includeSubs=undef;
+						}
 					} else {
-						# So it could be queued
-						$state = 'queued';
-						$includeSubs=undef;
+						$state = 'killed';
+						if(kill(TERM => -$pid)) {
+							sleep(1);
+							# You must die!!!!!!!!!!
+							kill(KILL => -$pid)  if(kill(0,$pid));
+						}
 					}
 				} else {
 					$state = 'dead';

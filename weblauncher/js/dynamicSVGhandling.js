@@ -14,6 +14,7 @@
 
 function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish,thedoc) {
 	this._svgloadtimer = undefined;
+	this.svglink = undefined;
 	this.svgobj = undefined;
 	this.asEmbed=undefined;
 	this.defaultsvg = undefined;
@@ -88,6 +89,10 @@ TavernaSVG.prototype = {
 			this.svgobj=undefined;
 			this.asEmbed=undefined;
 			this.current=undefined;
+		}
+		if(this.svglink) {
+			this.svglink.parentNode.removeChild(this.svglink);
+			this.svglink=undefined;
 		}
 	},
 
@@ -169,6 +174,13 @@ TavernaSVG.prototype = {
 			var gensvgid;
 
 			if(node) {
+				var ahref = thedoc.createElement('a');
+				ahref.href=url;
+				ahref.target='_blank';
+				ahref.innerHTML='Open the graph<br>';
+				node.appendChild(ahref);
+				this.svglink=ahref;
+				
 				gensvgid = WidgetCommon.getRandomUUID();
 				var objres;
 

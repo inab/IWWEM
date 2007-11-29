@@ -93,10 +93,10 @@ function WorkflowDesc(wfD) {
 	this.author = wfD.getAttribute('author');
 	
 	var depends=new Array();
-	var inputs=new Array();
-	var outputs=new Array();
-	var examples=new Array();
-	var snapshots=new Array();
+	var inputs={};
+	var outputs={};
+	var examples={};
+	var snapshots={};
 	this.depends=depends;
 	this.inputs=inputs;
 	this.outputs=outputs;
@@ -237,7 +237,8 @@ ManagerView.prototype = {
 		var workflow = this.getCurrentWorkflow();
 		if(workflow) {
 			// SVG graph
-			this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
+			//this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
+			this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'120mm','120mm');
 			
 			// Basic information
 			this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
@@ -313,30 +314,30 @@ ManagerView.prototype = {
 				listDOM.documentElement.tagName &&
 				GeneralView.getLocalName(listDOM.documentElement)=='workflowlist'
 			) {
-				var wfL = GeneralView.getElementsByTagNameNS(listDOM,GeneralView.IWWEM_NS,'workflow');
 				this.WFBase = listDOM.documentElement.getAttribute('relURI');
-				for(var i=0;i<wfL.length;i++) {
-					var workflow=new WorkflowDesc(wfL.item(i));
-					this.wfA[workflow.uuid]=workflow;
+				for(var child=listDOM.documentElement.firstChild ; child ; child=child.nextSibling) {
+					if(child.nodeType==1) {
+						 switch(GeneralView.getLocalName(child)) {
+						 	case 'workflow':
+								var workflow=new WorkflowDesc(child);
+								this.wfA[workflow.uuid]=workflow;
 
-					var wfO = workflow.generateOption(this.genview.thedoc);
+								var wfO = workflow.generateOption(this.genview.thedoc);
 
-					// Last: save selection!
-					try {
-						this.wfselect.add(wfO,null);
-					} catch(e) {
-						this.wfselect.add(wfO);
+								// Last: save selection!
+								try {
+									this.wfselect.add(wfO,null);
+								} catch(e) {
+									this.wfselect.add(wfO);
+								}
+								break;
+							case 'message':
+								var mtext=WidgetCommon.getTextContent(child);
+								if(!mtext)  mtext='';
+								this.messageDiv.innerHTML += '<p><u>Return Value:</u> '+child.getAttribute('retval')+'</p><pre>'+mtext+'</pre>';
+								break;
+						}
 					}
-				}
-
-				// Including the possible error message
-				var message = GeneralView.getElementsByTagNameNS(listDOM,GeneralView.IWWEM_NS,'message');
-				if(message.length>0) {
-					var child=message.item(0);
-					var mtext;
-					mtext=WidgetCommon.getTextContent(child);
-					if(!mtext)  mtext='';
-					this.messageDiv.innerHTML += '<p><u>Return Value:</u> '+child.getAttribute('retval')+'</p><pre>'+mtext+'</pre>';
 				}
 			} else {
 				this.WFBase='.';

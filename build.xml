@@ -94,4 +94,14 @@
 			command="chmod -v -R go+w ${deploy.ssh.dir}/cgi-bin/inb-maven"
 		/>
 	</target>
+
+	<target description="Cleaning the project" name="clean">
+		<exec executable="mvn" failonerror="true">
+			<arg value="clean"/>
+		</exec>
+		<exec executable="svn" failonerror="true">
+			<arg value="update"/>
+			<arg value="target"/>
+		</exec>
+	</target>
 </project>
