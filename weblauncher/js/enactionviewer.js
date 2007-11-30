@@ -276,9 +276,12 @@ function DataViewer(dataviewerId,genview) {
 	jmolSetCallback('messageCallback','JMolAlert');
 	
 	var dataview=this;
-	this.mimeChangeFunc=function() {
-		if(this.selectedIndex!=-1) {
-			dataview.applyView(this.options[this.selectedIndex].value);
+	// Changed due Internet Explorer
+	this.mimeChangeFunc=function(event) {
+		if(!event)  event=window.event;
+		var target=(event.currentTarget)?event.currentTarget:event.srcElement;
+		if(target.selectedIndex!=-1) {
+			dataview.applyView(target.options[target.selectedIndex].value);
 		}
 	};
 }
@@ -602,7 +605,7 @@ function EnactionView(genview) {
 	};
 	
 	// At last, getting the enaction id
-	var qsParm=new Array();
+	var qsParm={};
 	WidgetCommon.parseQS(qsParm);
 	if(('jobId' in qsParm) && qsParm['jobId'] && qsParm['jobId'].length > 0) {
 		var jobId=qsParm['jobId'];
@@ -943,9 +946,11 @@ EnactionView.prototype = {
 				// Showing the correct position
 				this.iterationSelect.selectedIndex=iteration+1;
 
-				this.iterSelectHandler=function() {
-					if(this.selectedIndex!=-1) {
-						enactview.setStep(gstep,this.options[this.selectedIndex].value);
+				this.iterSelectHandler=function(event) {
+					if(!event)  event=window.event;
+					var target=(event.currentTarget)?event.currentTarget:event.srcElement;
+					if(target.selectedIndex!=-1) {
+						enactview.setStep(gstep,target.options[target.selectedIndex].value);
 					}
 				};
 				WidgetCommon.addEventListener(this.iterationSelect,'change',this.iterSelectHandler,false);
@@ -1089,11 +1094,13 @@ EnactionView.prototype = {
 			div.appendChild(span);
 			parentContainer.appendChild(div);
 			// Event to show the contents
-			WidgetCommon.addEventListener(span,'click',function () {
-				if(this.parentNode.className=='branch') {
-					this.parentNode.className+=' open';
+			WidgetCommon.addEventListener(span,'click',function (event) {
+				if(!event)  event=window.event;
+				var target=(event.currentTarget)?event.currentTarget:event.srcElement;
+				if(target.parentNode.className=='branch') {
+					target.parentNode.className+=' open';
 				} else {
-					this.parentNode.className='branch';
+					target.parentNode.className='branch';
 				}
 			},false);
 			

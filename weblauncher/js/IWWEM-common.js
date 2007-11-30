@@ -64,13 +64,16 @@ GeneralView.freeSelect = function (container) {
 
 GeneralView.checkCN = function (elem) {
 	if(elem && elem.className) {
-		elem.className += ' checked';
+		elem.className = elem.firstClassName+'checked '+elem.className;
 	}
 };
 
 GeneralView.initBaseCN = function (elem) {
 	if(elem && elem.className) {
-		elem.baseClassName=elem.className;
+		var className;
+		
+		elem.baseClassName=className=elem.className;
+		elem.firstClassName=(className.indexOf(' ')==-1)?className:className.substring(0,className.indexOf(' '));
 	}
 };
 
@@ -99,7 +102,9 @@ GeneralView.Check = function(control) {
 	this.checked=false;
 	
 	if(control && control.className) {
-		this.baseClassName=control.className;
+		var className;
+		this.baseClassName=className=control.className;
+		this.firstClassName=(className.indexOf(' ')==-1)?className:className.substring(0,className.indexOf(' '));
 	}
 };
 
@@ -114,7 +119,7 @@ GeneralView.Check.prototype = {
 	
 	doCheck: function () {
 		if(this.baseClassName) {
-			this.control.className += ' checked';
+			this.control.className = this.firstClassName+'checked '+ this.control.className;
 		}
 		this.checked=true;
 	},
@@ -316,7 +321,7 @@ GeneralView.prototype = {
 			WidgetCommon.addEventListener(adder, 'click', addlistener, false);
 			
 			var remover=genview.createElement('span');
-			remover.className='add remove';
+			remover.className='remove';
 			remover.innerHTML='&nbsp;';
 
 			WidgetCommon.addEventListener(remover,'click',function() {

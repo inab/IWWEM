@@ -156,6 +156,8 @@ td.buttons {
 	vertical-align: center;
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 10px;
+	display: -moz-inline-block;
+	display: inline-block;
 }
 
 textarea, input, select {

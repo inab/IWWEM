@@ -1,5 +1,8 @@
 /* INB Web Workflow Launcher Buttons CSS */
 
+/* Some changes have been made to meet Internet Explorer impairness */
+/* about handling multiple classes restriction */
+
 .button {
 	/* Black IE magic */
 	behavior:url(hover.htc);
@@ -14,7 +17,10 @@
 	background-repeat: no-repeat;
 	cursor: pointer;
 	
+	/*
 	display: table-cell;
+	*/
+	display: block;
 	text-align: center;
  	vertical-align: middle;
 	color: black;
@@ -38,14 +44,16 @@
 	background-image: url(button3-active.png);
 }
 
-.button.back {
+/* Button back .button.back */
+.back {
 	position: absolute;
 	margin-left: 10px;
 	left: 5%;
 	bottom: 6%;
 }
 
-.button.forward {
+/* Button forward .button.forward */
+.forward {
 	position: absolute;
 	
 	margin-right: 10px;
@@ -53,12 +61,12 @@
 	bottom: 6%;
 }
 
-span.plus {
+/* For trees (old) */
+span.plus , span.minus {
 	width: 9px;
 	height: 9px;
 	padding-left: 10px;
 	
-	background-image: url(twisty-clsd.png);
 	background-position: center left;
 	background-repeat: no-repeat;
 	cursor: pointer;
@@ -70,18 +78,23 @@ span.plus {
 	font-size: 14px;
 }
 
-span.plus.remove {
+span.plus {
+	background-image: url(twisty-clsd.png);
+}
+
+/* This one was .plus.minus */
+span.minus {
 	background-image: url(twisty-open.png);
 }
 
-span.add {
+/* Dynamic add/remove */
+span.add , span.remove {
 	width: 20px;
 	height: 20px;
 	padding-left: 22px;
 	padding-top: 3px;
 	padding-bottom: 3px;
 	
-	background-image: url(lumen_add.png);
 	background-position: center left;
 	background-repeat: no-repeat;
 	cursor: pointer;
@@ -93,7 +106,12 @@ span.add {
 	font-size: 14px;
 }
 
-span.add.remove {
+span.add {
+	background-image: url(lumen_add.png);
+}
+
+/* This one was .add.remove */
+span.remove {
 	background-image: url(lumen_minus.png);
 }
 
@@ -143,12 +161,14 @@ span.checkbox {
 	background-image: url(checkbox.png);
 }
 
-span.radio.left , span.checkbox.left {
+/* This one was .radio.left .checkbox.left */
+span.left {
 	padding-left: 17px;
 	background-position: center left;
 }
 
-span.radio.right , span.checkbox.right {
+/* This one was .radio.right .checkbox.right */
+span.right {
 	padding-right: 17px;
 	background-position: center right;
 }
@@ -157,30 +177,31 @@ span.radiohover , span.radio:hover {
 	background-image: url(radio-focus.png);
 }
 
-span.radio.checked , span.radio.left.checked , span.radio.right.checked {
+/* This one was span.radio.checked , span.radio.left.checked , span.radio.right.checked */
+span.radiochecked , span.radiocheckedhover , span.radiochecked:hover {
 	background-image: url(radio-checked.png);
 }
 
-span.checkboxhover.blue , span.checkbox.blue:hover {
+span.checkboxbluehover , span.checkboxblue:hover {
 	background-image: url(checkbox-focus.png);
 }
 
-span.checkbox.blue.checked , span.checkbox.left.blue.checked , span.checkbox.right.blue.checked {
+span.checkboxbluechecked , span.checkboxbluecheckedhover, span.checkboxbluechecked:hover {
 	background-image: url(checkbox-checked.png);
 }
 
-span.checkboxhover.red , span.checkbox.red:hover {
+span.checkboxredhover , span.checkboxred:hover {
 	background-image: url(checkbox-red-focus.png);
 }
 
-span.checkbox.red.checked , span.checkbox.left.red.checked , span.checkbox.right.red.checked {
+span.checkboxredchecked , span.checkboxredcheckedhover, span.checkboxredchecked:hover {
 	background-image: url(checkbox-red-checked.png);
 }
 
-span.checkboxhover.green , span.checkbox.green:hover {
+span.checkboxgreenhover , span.checkboxgreen:hover {
 	background-image: url(checkbox-green-focus.png);
 }
 
-span.checkbox.green.checked , span.checkbox.left.green.checked , span.checkbox.right.green.checked {
+span.checkboxgreenchecked , span.checkboxgreencheckedhover , span.checkboxgreenchecked:hover {
 	background-image: url(checkbox-green-checked.png);
 }

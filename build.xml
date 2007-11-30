@@ -8,7 +8,7 @@
 	-->
 	<property name="deploy.host" value="localhost" />
 	<property name="deploy.ssh.user" value="jmfernandez" />
-	<property name="deploy.ssh.dir" value="/home/jmfernandez/public_html/IWWEM" />
+	<property name="deploy.ssh.dir" value="/home/jmfernandez/public_html/IWWEM-new" />
 	
 	<dirname property="antfile.dir" file="${ant.file}"/>
 	<dirname property="antfile.dir.parent" file="${antfile.dir}"/>

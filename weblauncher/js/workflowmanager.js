@@ -173,7 +173,7 @@ function ManagerView(genview) {
 	// this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown.svg','75mm','90mm');
 	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg');
 	
-	this.wfA=new Array();
+	this.wfA={};
 	this.listRequest=undefined;
 	this.WFBase=undefined;
 	
@@ -193,7 +193,7 @@ function ManagerView(genview) {
 	// To update on automatic changes of the selection box
 	WidgetCommon.addEventListener(this.wfselect,'change',function () {
 		manview.updateView();
-		if(this.selectedIndex==-1 && manview.check.checked) {
+		if(manview.wfselect.selectedIndex==-1 && manview.check.checked) {
 			manview.check.setCheck(false);
 		}
 	},false);
@@ -299,7 +299,7 @@ ManagerView.prototype = {
 			this.clearView();
 			
 			// Second, remove its content
-			this.wfA=new Array();
+			this.wfA={};
 			GeneralView.freeSelect(this.wfselect);
 			
 			// Third, populate it!
@@ -350,7 +350,7 @@ ManagerView.prototype = {
 		// First, uncheck the beast!
 		this.check.setCheck(false);
 		
-		var qsParm = new Array();
+		var qsParm = {};
 		if(wfToErase) {
 			qsParm['eraseWFId']=wfToErase;
 		}
@@ -636,7 +636,6 @@ function NewEnactionView(genview) {
 	
 	this.enactSVG = new TavernaSVG();
 	this.inputs=new Array();
-	this.baclava=new Array();
 	
 	this.workflow=undefined;
 	this.WFBase=undefined;
@@ -758,8 +757,10 @@ NewEnactionView.prototype = {
 	setupInputType: function() {
 		// Input type selectors
 		var newenact = this;
-		var oninputClickHandler = function() {
-			newenact.setInputMode(this);
+		var oninputClickHandler = function(event) {
+			if(!event)  event=window.event;
+			var target=(event.currentTarget)?event.currentTarget:event.srcElement;
+			newenact.setInputMode(target);
 		};
 		
 		this.noneExampleSpan.addEventListener('click', oninputClickHandler, false);
@@ -905,12 +906,14 @@ NewEnactionView.prototype = {
 		var radiostatecontrol=radiothechoicetext;
 		
 		var newenactview=this;
-		var onclickHandler=function() {
-			if(!radiostatecontrol || radiostatecontrol.control!=this) {
+		var onclickHandler=function(event) {
+			if(!event)  event=window.event;
+			var target=(event.currentTarget)?event.currentTarget:event.srcElement;
+			if(!radiostatecontrol || radiostatecontrol.control!=target) {
 				if(radiostatecontrol) {
 					radiostatecontrol.doUncheck();
 				}
-				radiostatecontrol=(this==radiothechoicefile.control)?radiothechoicefile:radiothechoicetext;
+				radiostatecontrol=(target==radiothechoicefile.control)?radiothechoicefile:radiothechoicetext;
 				radiostatecontrol.doCheck();
 				
 				// Keeping an accurate number of inputs
@@ -921,7 +924,7 @@ NewEnactionView.prototype = {
 		radiothechoicetext.addEventListener('click', onclickHandler, false);
 		radiothechoicefile.addEventListener('click', onclickHandler, false);
 		
-		var pluslistener = function() {
+		var addlistener = function() {
 			var newinput;
 			var glass;
 			var controlname='PARAM_'+input.name
@@ -962,10 +965,10 @@ NewEnactionView.prototype = {
 			// The addition button
 			adder.className = 'add';
 			adder.innerHTML='&nbsp;';
-			WidgetCommon.addEventListener(adder, 'click', pluslistener, false);
+			WidgetCommon.addEventListener(adder, 'click', addlistener, false);
 			
 			var remover=newenactview.genview.createElement('span');
-			remover.className='add remove';
+			remover.className='remove';
 			remover.innerHTML='&nbsp;';
 
 			var mydiv=newenactview.genview.createElement('div');
@@ -983,7 +986,7 @@ NewEnactionView.prototype = {
 			// Keeping an accurate input counter
 			newenactview.inputCounter++;
 		};
-		WidgetCommon.addEventListener(theinput, 'click', pluslistener, false);
+		WidgetCommon.addEventListener(theinput, 'click', addlistener, false);
 
 		// Now, it is time to create the selection
 		var thechoice = this.genview.createElement('span');
