@@ -18,6 +18,7 @@ sub appendInputs($$$);
 sub appendOutputs($$$);
 sub appendIO($$$$);
 sub appendResults($$$);
+sub processStep($$$);
 
 sub appendInputs($$$) {
 	appendIO($_[0],$_[1],$_[2],'input');
@@ -128,18 +129,15 @@ my($snapshotDesc)=undef;
 foreach my $param ($query->param()) {
 	if($param eq 'jobId') {
 		@jobIdList=$query->param($param);
-		last  if($query->cgi_error());
 	} elsif($param eq 'dispose') {
 		$dispose=$query->param($param);
 		$dispose=($dispose ne '1')?0:1;
-		last  if($query->cgi_error());
 	} elsif($param eq 'snapshotName') {
 		$snapshotName=$query->param($param);
-		last  if($query->cgi_error());
 	} elsif($param eq 'snapshotDesc') {
 		$snapshotDesc=$query->param($param);
-		last  if($query->cgi_error());
 	}
+	last  if($query->cgi_error());
 }
 
 # We must signal here errors and exit

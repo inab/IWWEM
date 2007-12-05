@@ -75,7 +75,7 @@
 			username="${deploy.ssh.user}"
 			keyfile="${user.home}/.ssh/id_dsa"
 			passphrase=""
-			command="chmod -v ugo+x ${deploy.ssh.dir}/cgi-bin/workflowmanager ${deploy.ssh.dir}/cgi-bin/enactionlauncher ${deploy.ssh.dir}/cgi-bin/enactionstatus ${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowparser ${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowlauncher"
+			command="chmod -v ugo+x ${deploy.ssh.dir}/cgi-bin/workflowmanager ${deploy.ssh.dir}/cgi-bin/enactionlauncher ${deploy.ssh.dir}/cgi-bin/enactionstatus ${deploy.ssh.dir}/cgi-bin/enactproxy ${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowparser ${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowlauncher"
 		/>
 	</target>
 	<target depends="deploy" description="Fresh regeneration of Maven repository" name="freshdeploy">

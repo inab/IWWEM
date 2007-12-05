@@ -62,7 +62,7 @@ foreach my $param ($query->param()) {
 
 my $parser = XML::LibXML->new();
 my $context = XML::LibXML::XPathContext->new();
-$context->registerNs('s',$WorkflowCommon::SCUFL_NS);
+$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
 
 # Parsing input workflows
 if(defined($hasInputWorkflow)) {
@@ -429,7 +429,7 @@ foreach my $wf (@workflowlist) {
 		my($relwffile)=$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
 		my $doc = $parser->parse_file($WorkflowCommon::WORKFLOWDIR.'/'.$relwffile);
 		# Getting description from workflow definition
-		my @nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'workflowdescription');
+		my @nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
 		if(scalar(@nodelist)>0) {
 			my $wfe = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflow');
 			my($desc)=$nodelist[0];
@@ -468,13 +468,13 @@ foreach my $wf (@workflowlist) {
 			}
 			
 			# Getting Inputs
-			@nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'source');
+			@nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'source');
 			foreach my $source (@nodelist) {
 				my $input = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'input');
 				$input->setAttribute('name',$source->getAttribute('name'));
 				
 				# Description
-				my(@sourcedesc)=$source->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'description');
+				my(@sourcedesc)=$source->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'description');
 				if(scalar(@sourcedesc)>0) {
 					my($descnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
 					$descnode->appendChild($outputDoc->createCDATASection($sourcedesc[0]->textContent()));
@@ -482,7 +482,7 @@ foreach my $wf (@workflowlist) {
 				}
 				
 				# MIME types handling
-				my(@mimetypes)=$source->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'mimetype');
+				my(@mimetypes)=$source->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'mimetype');
 				# Taverna default mime type
 				push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
 				foreach my $mime (@mimetypes) {
@@ -496,13 +496,13 @@ foreach my $wf (@workflowlist) {
 			}
 			
 			# And Outputs
-			@nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'sink');
+			@nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'sink');
 			foreach my $sink (@nodelist) {
 				my $output = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'output');
 				$output->setAttribute('name',$sink->getAttribute('name'));
 				
 				# Description
-				my(@sinkdesc)=$sink->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'description');
+				my(@sinkdesc)=$sink->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'description');
 				if(scalar(@sinkdesc)>0) {
 					my($descnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
 					$descnode->appendChild($outputDoc->createCDATASection($sinkdesc[0]->textContent()));
@@ -510,7 +510,7 @@ foreach my $wf (@workflowlist) {
 				}
 				
 				# MIME types handling
-				my(@mimetypes)=$sink->getElementsByTagNameNS($WorkflowCommon::SCUFL_NS,'mimetype');
+				my(@mimetypes)=$sink->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'mimetype');
 				# Taverna default mime type
 				push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
 				foreach my $mime (@mimetypes) {

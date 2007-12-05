@@ -145,7 +145,7 @@ public class INBWorkflowLauncherWrapper
                         	System.exit(8);
                 	} catch (WorkflowSubmissionException e) {
                         	logger.error("Could not execute workflow " + workflowFile.getAbsolutePath(),e);
-                        	System.exit(9);
+                        	//System.exit(9);
                 	}
 
 			logger.debug("Workflow has finished");

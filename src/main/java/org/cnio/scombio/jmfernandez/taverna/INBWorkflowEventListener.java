@@ -59,10 +59,13 @@ public class INBWorkflowEventListener
 		throws IOException
 	{
 		File dataFile=new File(baseDir,name+EXT);
-		File dataDir=new File(baseDir,name);
-		dataDir.mkdirs();
 		WorkflowLauncher.saveOutputDoc(thing, dataFile);
-		WorkflowLauncher.saveOutputs(thing, dataDir);
+		/* We could avoid this waste!
+			
+			File dataDir=new File(baseDir,name);
+			dataDir.mkdirs();
+			WorkflowLauncher.saveOutputs(thing, dataDir);
+		*/
 	}
 	
 	protected File statusDir;

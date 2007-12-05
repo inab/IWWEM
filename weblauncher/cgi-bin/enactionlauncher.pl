@@ -367,19 +367,21 @@ unless(defined($cpid)) {
 				close($RUNPID);
 			}
 			
-			exec($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
-				'-baseDir',$WorkflowCommon::MAVENDIR,
-				'-workflow',$wfile,
-#				'-expandSubWorkflows',
-				'-statusDir',$jobdir,
-				@baclavadesc,
-				@inputdesc,
-				@saveExample
-			);
+			{
+				exec($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
+					'-baseDir',$WorkflowCommon::MAVENDIR,
+					'-workflow',$wfile,
+#					'-expandSubWorkflows',
+					'-statusDir',$jobdir,
+					@baclavadesc,
+					@inputdesc,
+					@saveExample
+				);
+			};
 			my($FATAL);
 			open($FATAL,'>',$jobdir . '/FATAL');
 			close($FATAL);
-			print STDERR "FATAL ERROR-1: Failed to become a workflow launcher!";
+			print STDERR "FATAL ERROR-1: Failed to become a workflow launcher!\n$!";
 		}
 	});
 }
