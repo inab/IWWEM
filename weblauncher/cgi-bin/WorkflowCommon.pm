@@ -8,7 +8,7 @@ use CGI;
 use FindBin;
 use POSIX qw(strftime);
 
-use vars qw($WORKFLOWFILE $SVGFILE $DEPDIR $EXAMPLESDIR $SNAPSHOTSDIR);
+use vars qw($WORKFLOWFILE $SVGFILE $PNGFILE $PDFFILE $DEPDIR $EXAMPLESDIR $SNAPSHOTSDIR);
 
 use vars qw($WORKFLOWRELDIR $WORKFLOWDIR $JOBRELDIR $JOBDIR $MAXJOBS $JOBCHECKDELAY $LAUNCHERDIR $MAVENDIR);
 
@@ -21,6 +21,8 @@ use vars qw($COMMENTPRE $COMMENTPOST $COMMENTWM $COMMENTEL $COMMENTES);
 # Workflow files constants
 $WORKFLOWFILE='workflow.xml';
 $SVGFILE='workflow.svg';
+$PDFFILE='workflow.pdf';
+$PNGFILE='workflow.png';
 $DEPDIR='dependencies';
 $EXAMPLESDIR='examples';
 $SNAPSHOTSDIR='snapshots';

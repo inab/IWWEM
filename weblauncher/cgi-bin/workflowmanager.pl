@@ -85,8 +85,8 @@ if(defined($hasInputWorkflow)) {
 			my($randdir);
 			my($randfilexml);
 			my($randfilesvg);
-#			my($randfilepng);
-#			my($randfilepdf);
+			my($randfilepng);
+			my($randfilepdf);
 			do {
 				$randname=WorkflowCommon::genUUID();
 				$randdir=$WorkflowCommon::WORKFLOWDIR.'/'.$randname;
@@ -97,6 +97,8 @@ if(defined($hasInputWorkflow)) {
 			# Saving the workflow data
 			$randfilexml = $randdir . '/' . $WorkflowCommon::WORKFLOWFILE;
 			$randfilesvg = $randdir . '/' . $WorkflowCommon::SVGFILE;
+			$randfilepng = $randdir . '/' . $WorkflowCommon::PNGFILE;
+			$randfilepdf = $randdir . '/' . $WorkflowCommon::PDFFILE;
 			
 			my($WFmaindoc);
 			
@@ -285,8 +287,8 @@ if(defined($hasInputWorkflow)) {
 					'-baseDir',$WorkflowCommon::MAVENDIR,
 					'-workflow',$randfilexml,
 					'-svggraph',$randfilesvg,
-#					'-pnggraph',$randfilepng,
-#					'-pdfgraph',$randfilepdf,
+					'-pnggraph',$randfilepng,
+					'-pdfgraph',$randfilepdf,
 					'-expandSubWorkflows');
 				
 				# Backing up STDOUT and STDERR
