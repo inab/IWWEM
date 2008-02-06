@@ -1,7 +1,7 @@
 /*
 	workflowmanager.js
 	from INB Web Workflow Enactor & Manager (IWWE&M)
-	Author: José María Fernández González (C) 2007
+	Author: José María Fernández González (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
@@ -87,10 +87,11 @@ OutputSnapshot.prototype = {
 function WorkflowDesc(wfD) {
 	this.uuid = wfD.getAttribute('uuid');
 	this.path = wfD.getAttribute('path');
-	this.svgpath = wfD.getAttribute('svg');
+	//this.svgpath = wfD.getAttribute('svg');
 	this.title = wfD.getAttribute('title');
 	this.lsid = wfD.getAttribute('lsid');
 	this.author = wfD.getAttribute('author');
+	this.graph = {};
 	
 	var depends=new Array();
 	var inputs={};
@@ -117,6 +118,10 @@ function WorkflowDesc(wfD) {
 					// and Internet Explorer behavior
 					this.description = WidgetCommon.getTextContent(child);
 					break;
+				case 'graph':
+					// Graph information
+					this.graph[child.getAttribute('mime')]=WidgetCommon.getTextContent(child);
+					break;
 				case 'dependsOn':
 					depends.push(child.getAttribute('sub'));
 					break;
@@ -141,6 +146,9 @@ function WorkflowDesc(wfD) {
 			}
 		}
 	}
+	
+	// Now, handling SVG special case
+	this.svgpath = ('image/svg+xml' in this.graph)?this.graph['image/svg+xml']:wfD.getAttribute('svg');
 }
 
 WorkflowDesc.prototype = {
@@ -258,26 +266,30 @@ ManagerView.prototype = {
 			// This is needed to append links to the description itself
 			var thep = this.genview.createElement('p');
 			alink = this.genview.createElement('a');
-			alink.href = this.WFBase+'/'+workflow.svgpath;
-			alink.target = '_blank';
-			alink.innerHTML = '<i>Download Workflow Graph (SVG)</i>';
-			thep.appendChild(alink);
-			this.descContainer.appendChild(thep);
-			
-			thep = this.genview.createElement('p');
-			alink = this.genview.createElement('a');
 			alink.href = this.WFBase+'/'+workflow.path;
 			alink.target = '_blank';
 			alink.innerHTML = '<i>Download Workflow</i>';
 			thep.appendChild(alink);
-			this.descContainer.appendChild(thep);
 			
 			// Possible dependencies
 			if(workflow.depends.length>0) {
-				thep = this.genview.createElement('p');
-				thep.innerHTML = '<i>(This workflow depends on '+workflow.depends.length+' subworkflow'+((workflow.depends.length>1)?'s':'')+')</i>';
-				this.descContainer.appendChild(thep);
+				thep.appendChild(this.genview.createElement('br'));
+				var thei = this.genview.createElement('i');
+				thei.innerHTML = '(This workflow depends on '+workflow.depends.length+' subworkflow'+((workflow.depends.length>1)?'s':'')+')';
+				thep.appendChild(thei);
 			}
+			this.descContainer.appendChild(thep);
+			
+			thep = this.genview.createElement('p');
+			for(var gmime in this.graph) {
+				alink = this.genview.createElement('a');
+				alink.href = this.WFBase+'/'+this.graph[gmime];
+				alink.target = '_blank';
+				alink.innerHTML = '<i>Download Workflow Graph ('+gmime+')</i>';
+				thep.appendChild(alink);
+				thep.appendChild(this.genview.createElement('br'));
+			}
+			this.descContainer.appendChild(thep);
 			
 			// Now, inputs and outputs
 			this.attachIOReport(workflow.inputs,this.inContainer);
