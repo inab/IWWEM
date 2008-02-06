@@ -9,7 +9,7 @@ the messages between frontend modules and AJAX layer of
 INB Web Workflow Launcher.
 
 INB Web Workflow Launcher has been created by
-José María Fernández González, 2007, for
+José María Fernández González, 2007-2008, for
 INB (http://www.inab.org/).
 
 Java backend modules have been made in Java and use Taverna core
@@ -184,6 +184,22 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[Available documentation related to the workflow. It might be in HTML]]></xsd:documentation>
                     </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="graph" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[Graphical representation of the workflow, relative to the workflow home]]></xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:simpleContent>
+                            <xsd:extension base="xsd:anyURI">
+                                <xsd:attribute name="mime" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:documentation><![CDATA[MIME type of this graph image]]></xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:attribute>
+                            </xsd:extension>
+                        </xsd:simpleContent>
+                    </xsd:complexType>
                 </xsd:element>
                 <xsd:element name="dependsOn" minOccurs="0" maxOccurs="unbounded">
                     <xsd:annotation>

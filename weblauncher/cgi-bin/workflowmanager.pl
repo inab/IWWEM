@@ -449,6 +449,19 @@ foreach my $wf (@workflowlist) {
 			$wdesc->appendChild($outputDoc->createCDATASection($desc->textContent()));
 			$wfe->appendChild($wdesc);
 			
+			# Adding links to its graphical representations
+			my($gfile,$gmime);
+			while(($gfile,$gmime)=each(%WorkflowCommon::GRAPHREP)) {
+				my $rfile = $wf.'/'.$gfile;
+				# Only include what has been generated!
+				if( -f $WorkflowCommon::WORKFLOWDIR.'/'.$rfile) {
+					my($gchild)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'graph');
+					$gchild->setAttribute('mime',$gmime);
+					$gchild->appendChild($outputDoc->createTextNode($gfile));
+					$wfe->appendChild($gchild);
+				}
+			}
+			
 			# Now, including dependencies
 			my($DEPDIRH);
 			my($depreldir)=$wf.'/'.$WorkflowCommon::DEPDIR;

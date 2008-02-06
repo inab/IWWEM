@@ -18,11 +18,20 @@ use vars qw($PARAMSAVEEX $PARAMSAVEEXDESC $CATALOGFILE);
 
 use vars qw($COMMENTPRE $COMMENTPOST $COMMENTWM $COMMENTEL $COMMENTES);
 
+use vars qw(%GRAPHREP);
+
 # Workflow files constants
 $WORKFLOWFILE='workflow.xml';
 $SVGFILE='workflow.svg';
 $PDFFILE='workflow.pdf';
 $PNGFILE='workflow.png';
+
+%GRAPHREP=(
+	$WorkflowCommon::SVGFILE => 'image/svg+xml',
+	$WorkflowCommon::PNGFILE => 'image/png',
+	$WorkflowCommon::PDFFILE => 'application/pdf'
+);
+
 $DEPDIR='dependencies';
 $EXAMPLESDIR='examples';
 $SNAPSHOTSDIR='snapshots';
@@ -66,7 +75,7 @@ $COMMENTPOST =<<COMMENTEOF;
 	The workflow enactor itself is based on Taverna core, and
 	uses it.
 	
-	Author: José María Fernández González (C) 2007
+	Author: José María Fernández González (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
