@@ -37,7 +37,6 @@ import net.sf.taverna.raven.repository.impl.LocalArtifactClassLoader;
 
 import net.sf.taverna.update.plugin.PluginManager;
 
-/*
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.batik.transcoder.image.ImageTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
@@ -45,7 +44,6 @@ import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 
 import org.apache.fop.svg.PDFTranscoder;
-*/
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
@@ -234,10 +232,8 @@ public class INBWorkflowParserWrapper {
 		{"-workflow","1","Workflow to be processed/run"},
 		{"-svggraph","1","File where to save workflow graph in SVG format"},
 		{"-dotgraph","1","File where to save workflow graph in DOT format"},
-/*
 		{"-pnggraph","1","File where to save workflow graph in PNG format"},
 		{"-pdfgraph","1","File where to save workflow graph in PDF format"},
-*/
 		{"-expandSubWorkflows","0","Sub-Workflows are expanded when workflow graph is generated"},
 		{"-collapseSubWorkflows","0","Sub-Workflows are collapsed when workflow graph is generated"},
 		{"-topDownOrientation","0","Workflow graph layout must be top-down"},
@@ -274,6 +270,8 @@ public class INBWorkflowParserWrapper {
 		{"saxpath","saxpath","1.0-FCS"},
 		{"dom4j","dom4j","1.6"},
 		{"org.apache.xmlgraphics","batik-transcoder","1.7"},
+		{"org.apache.xmlgraphics","batik-codec","1.7"},
+		{"org.apache.xmlgraphics","batik-swing","1.7"},
 		{"xerces","xercesImpl","2.6.2"},
 		{"xalan","xalan","2.5.2"},
 		{"log4j","log4j","1.2.12"},
@@ -361,11 +359,9 @@ public class INBWorkflowParserWrapper {
 	
 	protected File SVGFile;
 
-/*
 	protected File PNGFile;
 	
 	protected File PDFFile;
-*/
 	
 	boolean alignmentParam=false;
 	boolean expandWorkflowParam=false;
@@ -711,12 +707,10 @@ public class INBWorkflowParserWrapper {
 			dotFile = NewFile(values.get(0));
 		} else if (param.equals("-svggraph")) {
 			SVGFile = NewFile(values.get(0));
-/*
 		} else if (param.equals("-pnggraph")) {
 			PNGFile = NewFile(values.get(0));
 		} else if (param.equals("-pdfgraph")) {
 			PDFFile = NewFile(values.get(0));
-*/
 		} else if (param.equals("-topDownOrientation")) {
 			alignmentParam=false;
 		} else if (param.equals("-leftRightOrientation")) {
@@ -786,7 +780,7 @@ public class INBWorkflowParserWrapper {
 	private void generateWorkflowGraph(ScuflModel model)
 		throws FileNotFoundException,IOException
 	{
-		if(dotFile!=null || SVGFile!=null /*|| PNGFile!=null || PDFFile!=null*/) {
+		if(dotFile!=null || SVGFile!=null || PNGFile!=null || PDFFile!=null) {
 			DotView dotView=new DotView(model);
 			// Here the different graph drawing parameters
 			dotView.setPortDisplay(DotView.BOUND);
@@ -809,7 +803,7 @@ public class INBWorkflowParserWrapper {
 				
 			}
 			
-			if(SVGFile!=null /*|| PNGFile!=null || PDFFile!=null*/) {
+			if(SVGFile!=null || PNGFile!=null || PDFFile!=null) {
 				// Translating to SVG!!!!!
 				Document svg=ScuflSVGDiagram.getSVG(dotContent);
 				
@@ -886,7 +880,29 @@ public class INBWorkflowParserWrapper {
 					}
 				}
 				
-				/*
+				if(PDFFile!=null) {
+					// Create a PDF transcoder
+					PDFTranscoder pdft = new PDFTranscoder();
+
+					TranscoderInput input = new TranscoderInput(svg);
+
+					// Create the transcoder output.
+					FileOutputStream foe = new FileOutputStream(PDFFile);
+					TranscoderOutput output = new TranscoderOutput(foe);
+
+					// Save the PDF
+					try {
+						pdft.transcode(input, output);
+					} catch(TranscoderException te) {
+						logger.fatal("Transcoding to PDF failed",te);
+						System.exit(1);
+					} finally {
+						// Flush and close the stream.
+						foe.flush();
+						foe.close();
+					}
+				}
+				
 				if(PNGFile!=null) {
 					// Create a PNG transcoder
 					PNGTranscoder pngt = new PNGTranscoder();
@@ -915,30 +931,6 @@ public class INBWorkflowParserWrapper {
 						foe.close();
 					}
 				}
-				
-				if(PDFFile!=null) {
-					// Create a PDF transcoder
-					PDFTranscoder pdft = new PDFTranscoder();
-
-					TranscoderInput input = new TranscoderInput(svg);
-
-					// Create the transcoder output.
-					FileOutputStream foe = new FileOutputStream(PDFFile);
-					TranscoderOutput output = new TranscoderOutput(foe);
-
-					// Save the PDF
-					try {
-						pdft.transcode(input, output);
-					} catch(TranscoderException te) {
-						logger.fatal("Transcoding to PDF failed",te);
-						System.exit(1);
-					} finally {
-						// Flush and close the stream.
-						foe.flush();
-						foe.close();
-					}
-				}
-				*/
 			}
 		}
 	}

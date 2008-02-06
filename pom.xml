@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cnio.scombio.jmfernandez.taverna</groupId>
 	<artifactId>workflowlauncher</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0</version>
 	<name>INB workflow launcher, based on Taverna's workflow launcher example</name>
 	<description>
 		A workflow launcher which is able to instantiate a workflow
@@ -120,12 +120,6 @@
 			<artifactId>scufl-model</artifactId>
 			<version>1.7.0.0</version>
 		</dependency>
-		<!-- For ScuflSVGDiagram -->
-		<dependency>
-			<groupId>uk.org.mygrid.taverna.scufl.scufl-ui-components</groupId>
-			<artifactId>svg-diagram</artifactId>
-			<version>1.7.0.0</version>
-		</dependency>
 		<!-- For WorkflowLauncher -->
 		<dependency>
 			<groupId>uk.org.mygrid.taverna.scufl</groupId>
@@ -179,14 +173,38 @@
 			<artifactId>batik-transcoder</artifactId>
 			<version>1.7</version>
 		</dependency>
-		<!-- For FOP PDF transcoder -->
-		<!--
+		<!-- This one is needed for PNG transcoding -->
 		<dependency>
-			<groupId>fop</groupId>
-			<artifactId>fop</artifactId>
-			<version>0.93</version>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-codec</artifactId>
+			<version>1.7</version>
 		</dependency>
-		-->
+		<!-- This one is needed by ScuflSVGDiagram -->
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-swing</artifactId>
+			<version>1.7</version>
+		</dependency>
+		<!-- For ScuflSVGDiagram, which must not pull old batik versions! -->
+		<dependency>
+			<groupId>uk.org.mygrid.taverna.scufl.scufl-ui-components</groupId>
+			<artifactId>svg-diagram</artifactId>
+			<version>1.7.0.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>batik</groupId>
+					<artifactId>batik-svg-dom</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>batik</groupId>
+					<artifactId>batik-swing</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>batik</groupId>
+					<artifactId>batik-util</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	</dependencies>
 	<distributionManagement>
 		<!-- use the following if you're not using a snapshot version. -->

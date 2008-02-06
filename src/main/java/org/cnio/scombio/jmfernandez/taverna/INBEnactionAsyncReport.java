@@ -67,9 +67,9 @@ public class INBEnactionAsyncReport
 						}
 					}
 				} while(true);
-			} catch(IOException ioe) {
-				// Do nothing!!!
 			} catch(FileNotFoundException fnfe) {
+				// Do nothing!!!
+			} catch(IOException ioe) {
 				// Do nothing!!!
 			} finally {
 				ss.close();
