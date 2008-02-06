@@ -356,6 +356,8 @@ public class INBWorkflowLauncherWrapper
 			outputDir=new File(statusDir,INBWorkflowEventListener.OUTPUTS);
 			reportFile=new File(statusDir,"report.xml");
 			SVGFile=new File(statusDir,"workflow.svg");
+			PDFFile=new File(statusDir,"workflow.pdf");
+			PNGFile=new File(statusDir,"workflow.png");
 			
 			/*
 			File newWorkflowFile=new File(statusDir,"workflow.xml");
