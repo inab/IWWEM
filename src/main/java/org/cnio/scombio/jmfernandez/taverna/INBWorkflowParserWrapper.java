@@ -220,7 +220,8 @@ public class INBWorkflowParserWrapper {
 	 * This version has to match the version of the real dependency you have to
 	 * Taverna libraries on your classpath (ie. the pom.xml dependencies).
 	 */
-	public static final String TAVERNA_BASE_VERSION = "1.6.2.0";
+	public static final String TAVERNA_BASE_VERSION = "1.7.0.0";
+	public static final String TAVERNA_MINOR_VERSION = "1.7.0.0";
 	private static final String SCRIPT_NAME="inbworkflowparser";
 	private static final String SVG_TRAMPOLINE="SVGtrampoline.js";
 	private static final String SVG_JSINIT="RunScript(evt)";
@@ -272,7 +273,7 @@ public class INBWorkflowParserWrapper {
 		{"jaxen","jaxen","1.0-FCS"},
 		{"saxpath","saxpath","1.0-FCS"},
 		{"dom4j","dom4j","1.6"},
-//		{"batik","batik-transcoder","1.6-1"},
+		{"org.apache.xmlgraphics","batik-transcoder","1.7"},
 		{"xerces","xercesImpl","2.6.2"},
 		{"xalan","xalan","2.5.2"},
 		{"log4j","log4j","1.2.12"},
@@ -295,23 +296,25 @@ public class INBWorkflowParserWrapper {
 	
 	private static final String[][] ExternalArtifactList={
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-biomart-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-localworkers","1.6.2.1"},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-localworkers",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-stringconstant-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-notification-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-beanshell-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-soaplab-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-wsdl-processor","1.6.2.1"},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-apiconsumer-processor","1.6.2.1"},
-		{"biomoby.org","taverna-biomoby","1.6.2.1"},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-wsdl-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-apiconsumer-processor",TAVERNA_BASE_VERSION},
+		{"biomoby.org","taverna-biomoby",TAVERNA_BASE_VERSION},
 		{TAVERNA_GROUP_ID,"taverna-contrib",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
+//		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
 	};
 	
 	private static final String[] RepositoryLocationList={
 		"http://www.mygrid.org.uk/maven/repository/",
+		"http://moby.ucalgary.ca/moby_maven/",
+//		"http://mobycentral.icapture.ubc.ca/maven/",
+		"http://repo1.maven.org/maven2/",
 		"http://mirrors.sunsite.dk/maven2/",
 		"http://www.ibiblio.org/maven2/",
-		"http://mobycentral.icapture.ubc.ca/maven/",
 		"http://www.mygrid.org.uk/maven/snapshot-repository/",
 	};
 	

@@ -129,13 +129,24 @@ public class INBWorkflowLauncherWrapper
 		
 		if(model!=null) {
 			WorkflowLauncher launcher = new WorkflowLauncher(model);
-
+			
 			logger.debug("And now, executing workflow!!!!!");
 
 			Map<String, DataThing> outputs=null;
 			try {
 				if(statusDir!=null) {
+					// The listener
 					INBWorkflowEventListener iel=new INBWorkflowEventListener(statusDir,debugMode);
+					
+					// This is the place where the reporting thread should be created!
+					Thread t=new INBEnactionAsyncReport(launcher,statusDir);
+					
+					// The thread can die when the program has finished,
+					// so it has been marked as a server one
+					t.setDaemon(true);
+					// Let's start it...
+					t.start();
+
 					outputs = launcher.execute(baseInputs,iel);
 				} else {
 					outputs = launcher.execute(baseInputs);
