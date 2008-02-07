@@ -457,7 +457,7 @@ foreach my $wf (@workflowlist) {
 				if( -f $WorkflowCommon::WORKFLOWDIR.'/'.$rfile) {
 					my($gchild)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'graph');
 					$gchild->setAttribute('mime',$gmime);
-					$gchild->appendChild($outputDoc->createTextNode($gfile));
+					$gchild->appendChild($outputDoc->createTextNode($rfile));
 					$wfe->appendChild($gchild);
 				}
 			}
