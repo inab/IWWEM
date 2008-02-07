@@ -156,8 +156,10 @@ td.buttons {
 	vertical-align: center;
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 10px;
+	/*
 	display: -moz-inline-block;
 	display: inline-block;
+	*/
 }
 
 textarea, input, select {
@@ -240,16 +242,28 @@ div.fakefile input {
 	display: block;
 }
 
-.branchlabel, .leaf, .deadleaf {
+.branchlabel, .leaf, .deadleaf, .seed, .fruit {
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 10px;
-	background-position: center left;
 	background-repeat: no-repeat;
+	background-position: center left;
 	padding-left: 12px;
 }
 
 .branch, .leaf, .deadleaf {
 	margin-left: 20px;
+}
+
+.seed, .fruit  {
+	margin-left: 0px;
+}
+
+.seed {
+	background-image: url(twisty-question.png);
+}
+
+.fruit {
+	background-image: url(twisty-fruit.png);
 }
 
 .branch > .branchlabel {
@@ -287,4 +301,22 @@ div.fakefile input {
 .prettyprint.noborder {
 	border:0px;
 	font-size: 10px;
+}
+
+
+/* Selected options */
+.selOption, .selOptionEven {
+	background-color: white;
+	white-space: nowrap;
+	border-color: gray;
+	cursor: pointer;
+}
+
+.selOptionEven {
+	background-color: #F0F0F0;
+}
+
+.selOption.selected, .selOptionEven.selected {
+	background-color: #66CCFF;
+	white-space: normal;
 }

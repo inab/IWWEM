@@ -1,7 +1,7 @@
 /*
 	IWWE-common.js
 	from INB Web Workflow Enactor & Manager (IWWE&M)
-	Author: José María Fernández González (C) 2007
+	Author: José María Fernández González (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
@@ -137,6 +137,212 @@ GeneralView.Check.prototype = {
 	
 	removeEventListener: function (eventType, listener, useCapture) {
 		WidgetCommon.removeEventListener(this.control, eventType, listener, useCapture);
+	}
+};
+
+GeneralView.Option = function(genview,theval,thetext, /* Optional */selContext) {
+	this.genview=genview;
+	this.value=theval;
+	this.text=thetext;
+	this.index=undefined;
+	this.optContext=undefined;
+	this.selected=false;
+	this.name=undefined;
+	this.baseClassName=undefined;
+	if(selContext) {
+		this.appendOrInsertBeforeOrUpdateOption(selContext);
+	}
+};
+
+GeneralView.Option.prototype = {
+	appendOrInsertBeforeOrUpdateOption: function (/* Optional */ selContext,beforeOption) {
+		// Replacing previous element
+		var newel=undefined;
+		var elera=this.getOptionContext();
+		if(elera && elera.parentNode) {
+			newel=elera;
+		}
+		
+		if(newel) {
+			newel.innerHTML=this.text;
+		} else if(selContext) {
+			this.optContext = newel = this.genview.createElement('div');
+			this.baseClassName = newel.className = 'selOption';
+			if(this.text instanceof Node) {
+				newel.appendChild(this.text);
+			} else {
+				newel.innerHTML = this.text;
+			}
+			
+			var context = selContext.context;
+			this.name = selContext.name;
+			if(beforeEl) {
+				var beforeEl=context.options[beforeOption].getOptionContext();
+				/* Appending the line and the new line to the context */
+				context.insertBefore(newel,beforeEl);
+			} else {
+				/* Appending the line and the new line to the context */
+				context.appendChild(newel);
+			}
+			var opt = this;
+			var clickListener = function() {
+				selContext.setIndex(opt.index);
+			};
+			WidgetCommon.addEventListener(newel, 'click', clickListener, false);
+		}
+		
+		return newel;
+	},
+	
+	removeOption: function () {
+		if(this.optContext) {
+			var elera=this.getOptionContext();
+			if(elera && elera.parentNode) {
+				// First remove hypothetical input
+				this.setSelection(false);
+				// Second remove itself!
+				elera.parentNode.removeChild(elera);
+			}
+			this.name=undefined;
+			this.optContext=undefined;
+		}
+	},
+	
+	getOptionContext: function() {
+		return this.optContext;
+	},
+	
+	setSelection: function(boolVal) {
+		boolVal=(boolVal)?true:false;
+		if(boolVal!=this.selected) {
+			var elera=this.getOptionContext();
+			if(elera && elera.parentNode) {
+				if(boolVal) {
+					var newhid = this.genview.createHiddenInput(this.name,this.value);
+					elera.parentNode.insertBefore(newhid,elera);
+					this.selected=true;
+					elera.className += ' selected';
+				} else {
+					this.selected=false;
+					elera.parentNode.removeChild(elera.previousSibling);
+					elera.className=this.baseClassName;
+				}
+			}
+		}
+	},
+	
+	updateIndex: function(idx) {
+		var prevIndex=(this.index)?this.index:0;
+		if(idx%2 != prevIndex%2) {
+			this.optContext.className = this.baseClassName = (idx%2)?'selOptionEven':'selOption';
+			if(this.selected)  this.optContext.className += ' selected';
+		}
+		this.index=idx;
+	}
+};
+
+GeneralView.Select = function(genview,name,context) {
+	this.context=context;
+	this.selectedIndex=-1;
+	this.options=new Array();
+	this.changeListeners=new Array();
+	this.name=name;
+	this.multiple=false;
+	this.type='select-one';
+};
+
+GeneralView.Select.prototype = {
+	add: function (anOption,/* Optional */ beforeIdx) {
+		if(beforeIdx && beforeIdx<this.options.length) {
+			anOption.appendOrInsertBeforeOrUpdateOption(this,beforeIdx);
+			if(!this.multiple && this.selectedIndex!=-1 && beforeIdx>=this.selectedIndex) {
+				this.selectedIndex++;
+			}
+			anOption.updateIndex(beforeIdx);
+			for(var i=beforeIdx+1;i<this.options.length;i++) {
+				this.options[i].updateIndex(i);
+			}
+			this.options.splice(beforeIdx,0,anOption);
+		} else {
+			anOption.appendOrInsertBeforeOrUpdateOption(this);
+			anOption.updateIndex(this.options.length);
+			this.options.push(anOption);
+		}
+	},
+	
+	remove: function (idx) {
+		if(idx<this.options.length) {
+			if(!this.multiple && this.selectedIndex==idx) {
+				this.setIndex();
+			}
+			this.options[idx].removeOption();
+			this.options.splice(idx,1);
+		}
+	},
+	
+	setIndex: function(idx) {
+		var prevSel=this.selectedIndex;
+		if(prevSel!=idx || this.multiple) {
+			if(!this.multiple && prevSel!=-1) {
+				this.options[prevSel].setSelection(false);
+			}
+			if(typeof idx == 'number' && idx > -1 && idx < this.options.length) {
+				this.options[idx].setSelection(true);
+				if(!this.multiple) {
+					this.selectedIndex=idx;
+				}
+			} else if(!this.multiple) {
+				this.selectedIndex=-1;
+			}
+			
+			// And now, we have to call all the listeners!!!
+			for(var i=0;i<this.changeListeners.length;i++) {
+				var listener=this.changeListeners[i];
+				try {
+					if(typeof listener == 'string') {
+						eval(listener);
+					} else {
+						listener();
+					}
+				} catch(e) {
+					// Ignore them???
+				}
+			}
+		}
+	},
+	
+	setMultipleBehavior: function(isMultiple) {
+		isMultiple = (isMultiple)?true:false;
+		if(this.multiple != isMultiple) {
+			this.type=(isMultiple)?'select-multiple':'select-one';
+			this.multiple=isMultiple;
+			// We have to deactivate all set options
+			this.selectedIndex=-1;
+			if(!isMultiple) {
+				for(var i=this.options.length-1; i>=0;i--) {
+					this.options[i].setSelection(false);
+				}
+			}
+		}
+	},
+	
+	addEventListener: function (eventType, listener, useCapture) {
+		switch(eventType) {
+			case 'change':
+				this.changeListeners.push(listener);
+				break;
+			default:
+				WidgetCommon.addEventListener(this.context,eventType,listener,useCapture);
+				break;
+		}
+	},
+	
+	clear: function () {
+		GeneralView.freeContainer(this.context);
+		this.options=new Array();
+		this.selectedIndex=-1;
+		this.multiple=false;
+		this.type='select-one';
 	}
 };
 

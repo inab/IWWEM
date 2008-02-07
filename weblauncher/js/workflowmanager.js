@@ -152,11 +152,18 @@ function WorkflowDesc(wfD) {
 }
 
 WorkflowDesc.prototype = {
-	generateOption: function (/* optional */ thedoc) {
-		if(!thedoc)  thedoc=document;
-		var wfO = thedoc.createElement('option');
-		wfO.value = wfO.id = this.uuid;
-		wfO.text = this.title+' ['+this.lsid+']';
+//	generateOption: function (/* optional */ genview) {
+//		if(!genview)  genview=document;
+//		var wfO = genview.createElement('option');
+//		wfO.value = wfO.id = this.uuid;
+//		wfO.text = this.title+' ['+this.lsid+']';
+//		
+//		return wfO;
+//	}
+	generateOption: function (/* optional */ genview) {
+		if(!genview)  genview=document;
+		return  new GeneralView.Option(genview,this.uuid,this.title+' ['+this.lsid+']');
+		// wfO.id = this.uuid;
 		
 		return wfO;
 	}
@@ -167,7 +174,8 @@ WorkflowDesc.prototype = {
 */
 function ManagerView(genview) {
 	this.genview=genview;
-	this.wfselect=genview.getElementById('workflow');
+	//this.wfselect=genview.getElementById('workflow');
+	this.wfselect=new GeneralView.Select(genview,'workflow',genview.getElementById('workflow'));
 	this.messageDiv=genview.getElementById('messageDiv');
 	
 	this.titleContainer=genview.getElementById('title');
@@ -199,12 +207,21 @@ function ManagerView(genview) {
 	},false);
 	
 	// To update on automatic changes of the selection box
+	this.wfselect.addEventListener('change',function () {
+		manview.updateView();
+		if(manview.wfselect.selectedIndex==-1 && manview.check.checked) {
+			manview.check.setCheck(false);
+		}
+	},false);
+
+	/*
 	WidgetCommon.addEventListener(this.wfselect,'change',function () {
 		manview.updateView();
 		if(manview.wfselect.selectedIndex==-1 && manview.check.checked) {
 			manview.check.setCheck(false);
 		}
 	},false);
+	*/
 	
 }
 
@@ -281,11 +298,11 @@ ManagerView.prototype = {
 			this.descContainer.appendChild(thep);
 			
 			thep = this.genview.createElement('p');
-			for(var gmime in this.graph) {
+			for(var gmime in workflow.graph) {
 				alink = this.genview.createElement('a');
-				alink.href = this.WFBase+'/'+this.graph[gmime];
+				alink.href = this.WFBase+'/'+workflow.graph[gmime];
 				alink.target = '_blank';
-				alink.innerHTML = '<i>Download Workflow Graph ('+gmime+')</i>';
+				alink.innerHTML = '<i>Get Workflow Graph ('+gmime+')</i>';
 				thep.appendChild(alink);
 				thep.appendChild(this.genview.createElement('br'));
 			}
@@ -312,7 +329,8 @@ ManagerView.prototype = {
 			
 			// Second, remove its content
 			this.wfA={};
-			GeneralView.freeSelect(this.wfselect);
+			//GeneralView.freeSelect(this.wfselect);
+			this.wfselect.clear();
 			
 			// Third, populate it!
 			/*
@@ -334,7 +352,7 @@ ManagerView.prototype = {
 								var workflow=new WorkflowDesc(child);
 								this.wfA[workflow.uuid]=workflow;
 
-								var wfO = workflow.generateOption(this.genview.thedoc);
+								var wfO = workflow.generateOption(this.genview);
 
 								// Last: save selection!
 								try {
