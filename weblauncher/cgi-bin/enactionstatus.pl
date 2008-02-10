@@ -7,6 +7,7 @@ use FindBin;
 use CGI;
 use XML::LibXML;
 use File::Path;
+use Socket;
 
 use lib "$FindBin::Bin";
 use WorkflowCommon;
@@ -14,12 +15,16 @@ use WorkflowCommon;
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
 
+# Methods prototypes
 sub appendInputs($$$);
 sub appendOutputs($$$);
 sub appendIO($$$$);
 sub appendResults($$$);
 sub processStep($$$);
+sub getFreshEnactionReport($);
+sub getStoredEnactionReport($);
 
+# Methods declarations
 sub appendInputs($$$) {
 	appendIO($_[0],$_[1],$_[2],'input');
 }
@@ -110,6 +115,58 @@ sub appendResults($$$) {
 	}
 }
 
+sub getFreshEnactionReport($) {
+	my($portfile)=@_;
+	
+	my($PORTFILE);
+	die "FATAL ERROR: Unable to read portfile $ARGV[0]\n"  unless(open($PORTFILE,'<',$portfile));
+
+	my($line)=undef;
+	while($line=<$PORTFILE>) {
+		last;
+	}
+	die "ERROR: Unable to read $portfile contents!\n"  unless(defined($line));
+	close($PORTFILE);
+	chomp($line);
+
+	my($host,$port)=split(/:/,$line,2);
+	die "ERROR: Line '$line' from $portfile is invalid!\n"
+	unless(defined($port) && int($port) eq $port && $port > 0);
+
+	my($proto)= (getprotobyname('tcp'))[2];
+
+	# get the port address
+	my($iaddr) = inet_aton($host);
+	my($paddr) = pack_sockaddr_in($port, $iaddr);
+	# create the socket, connect to the port
+	my($SOCKET);
+	socket($SOCKET, PF_INET, SOCK_STREAM, $proto) or die "SOCKET ERROR: $!";
+	connect($SOCKET, $paddr) or die "CONNECT SOCKET ERROR: $!";
+
+	while ($line = <$SOCKET>) {
+		print $line;
+	}
+	close($SOCKET) or die "CLOSE SOCKET ERROR: $!"; 
+	
+	return $line;
+}
+
+sub getStoredEnactionReport($) {
+	my($dir);
+	
+	my($ER);
+	my($rep)='';
+	
+	if(open($ER,'<',$dir.'/report.xml')) {
+		my($line)=undef;
+		while($line=<$ER>) {
+			$rep .= $line;
+		}
+		close($ER);
+	}
+	
+	return $rep;
+}
 
 my($query)=CGI->new();
 
@@ -283,6 +340,8 @@ foreach my $jobId (@jobIdList) {
 			my($ppidfile)=$jobdir . '/PPID';
 			my($includeSubs)=1;
 			my($PPID);
+			my($enactionReport)=undef;
+			my($enactionReportError)=undef;
 			if(-f $jobdir . '/FATAL' || ! -f $ppidfile) {
 				$state='dead';
 			} elsif(!defined($wfsnap) && open($PPID,'<',$ppidfile)) {
@@ -293,6 +352,7 @@ foreach my $jobId (@jobIdList) {
 				my($PID);
 				unless(-f $pidfile) {
 					# So it could be queued
+					$enactionReport=getStoredEnactionReport($jobdir);
 					$state = 'queued';
 					$includeSubs=undef;
 				} elsif(open($PID,'<',$pidfile)) {
@@ -302,12 +362,21 @@ foreach my $jobId (@jobIdList) {
 					# Now we have a pid, we can check for the enaction job
 					if( -f $jobdir . '/FINISH') {
 						$state = 'finished';
+						$enactionReport=getStoredEnactionReport($jobdir);
 					} elsif( -f $jobdir . '/FAILED.txt') {
 						$state = 'error';
+						$enactionReport=getStoredEnactionReport($jobdir);
 					} elsif(kill(0,$pid) > 0) {
 						# It could be still running...
 						unless(defined($dispose)) {
 							if( -f $jobdir . '/START') {
+								# So, let's fetch the state
+								eval {
+									$enactionReport=getFreshEnactionReport($jobdir . '/socket');
+								};
+								
+								$enactionReportError=$@  if($@);
+								
 								$state = 'running';
 							} else {
 								# So it could be queued
@@ -324,6 +393,7 @@ foreach my $jobId (@jobIdList) {
 						}
 					} else {
 						$state = 'dead';
+						$enactionReport=getStoredEnactionReport($jobdir);
 					}
 				} else {
 					$state = 'fatal';
@@ -335,7 +405,27 @@ foreach my $jobId (@jobIdList) {
 				$state = 'fatal';
 				$includeSubs=undef;
 			}
+			
+			if(defined($enactionReport) && $enactionReport ne '') {
+				eval {
+					my($parser)=XML::LibXML->new();
 
+					my($repnode)=$parser->parse_string(decode('UTF-8', $enactionReport));
+					# And let's add it to the report
+					my($er)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReport');
+					$er->appendNode($outputDoc->importNode($repnode));
+					$es->appendNode($er);
+				};
+
+				$enactionReportError=$@  if($@);
+			}
+			
+			if(defined($enactionReportError) && $enactionReportError ne '') {
+				my($er)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReportError');
+				$er->appendChild($outputDoc->createCDATASection($enactionReportError));
+				$es->appendNode($er);
+			}
+			
 			# Now including subinformation...
 			if(defined($includeSubs)) {
 				processStep($jobdir,$outputDoc,$es);
