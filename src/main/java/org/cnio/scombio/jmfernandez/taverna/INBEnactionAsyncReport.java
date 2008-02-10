@@ -10,17 +10,17 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import org.embl.ebi.escience.scufl.tools.WorkflowLauncher;
+import org.embl.ebi.escience.scufl.enactor.WorkflowInstance;
 
 public class INBEnactionAsyncReport
 	extends Thread
 {
 	public final static String SOCKETFILE="socket";
-	private WorkflowLauncher launcher;
+	private WorkflowInstance wi;
 	private File statusDir;
 	
-	public INBEnactionAsyncReport(WorkflowLauncher launcher,File statusDir) {
-		this.launcher=launcher;
+	public INBEnactionAsyncReport(WorkflowInstance wi,File statusDir) {
+		this.wi=wi;
 		this.statusDir=statusDir;
 	}
 	
@@ -51,8 +51,8 @@ public class INBEnactionAsyncReport
 						// Sixth, printing the report through the socket
 						PrintStream ps = new PrintStream(s.getOutputStream(),true,"UTF-8");
 						String report;
-						synchronized (launcher) {
-							report=launcher.getProgressReportXML();
+						synchronized (wi) {
+							report=wi.getProgressReportXMLString();
 						}
 						ps.print(report);
 						ps.flush();
@@ -63,19 +63,19 @@ public class INBEnactionAsyncReport
 						try {
 							s.close();
 						} catch(IOException ioe3) {
-							// Do nothing!
+							// Do nothing! (or report it in a log file?)
 						}
 					}
 				} while(true);
 			} catch(FileNotFoundException fnfe) {
-				// Do nothing!!!
+				// Do nothing!!! (or report it in a log file?)
 			} catch(IOException ioe) {
-				// Do nothing!!!
+				// Do nothing!!! (or report it in a log file?)
 			} finally {
 				ss.close();
 			}
 		} catch(IOException ioe0) {
-			// Do nothing!!!
+			// Do nothing!!! (or report it in a log file?)
 		}
 	}
 }

@@ -108,6 +108,15 @@ public class INBWorkflowEventListener
 	public void workflowCreated(WorkflowCreationEvent e) {
 		logger.info("Workflow "+ e.getModel().getDescription().getTitle()+ " (LSID "+e.getDefinitionLSID()+") has been created");
 		
+		// This is the place where the reporting thread should be created!
+		Thread t=new INBEnactionAsyncReport(e.getWorkflowInstance(),statusDir);
+
+		// The thread can die when the program has finished,
+		// so it has been marked as a server one
+		t.setDaemon(true);
+		// Let's start it...
+		t.start();
+
 		try {
 			SaveDataThings(INPUTS,e.getInputs(),statusDir);
 		} catch(IOException ioe) {
