@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
     targetNamespace="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend"
+    elementFormDefault="qualified"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:iwwem="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend"
 >
