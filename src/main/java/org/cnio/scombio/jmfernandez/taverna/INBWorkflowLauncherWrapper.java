@@ -341,10 +341,10 @@ public class INBWorkflowLauncherWrapper
 		super.checkSetParams();
 		
 		if(statusDir!=null) {
-			logger.debug("statusDir has been set, so setting up outputDir, outputDocument and report");
+			logger.debug("statusDir has been set, so setting up outputDocument and report");
 			statusDir.mkdirs();
 			outputDocumentFile=new File(statusDir,INBWorkflowEventListener.OUTPUTS+INBWorkflowEventListener.EXT);
-			outputDir=new File(statusDir,INBWorkflowEventListener.OUTPUTS);
+			//outputDir=new File(statusDir,INBWorkflowEventListener.OUTPUTS);
 			reportFile=new File(statusDir,"report.xml");
 			SVGFile=new File(statusDir,"workflow.svg");
 			PDFFile=new File(statusDir,"workflow.pdf");
