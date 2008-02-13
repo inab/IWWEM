@@ -363,7 +363,7 @@ unless(defined($cpid)) {
 			setsid();
 			my($RUNPID);
 			if(open($RUNPID,'>',$jobdir.'/PID')) {
-				print $RUNPID $runpid;
+				print $RUNPID $$;
 				close($RUNPID);
 			}
 			
