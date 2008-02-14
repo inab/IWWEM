@@ -98,6 +98,13 @@ function SVGtramp(LoadEvent) {
 		}
 	}
 	
+	// The tooltips
+	try {
+	        new Title(this.SVGDoc, 12);
+	} catch(e) {
+		// IgnoreIT!(R)
+	}
+	
 	// And at last, the hooks
 	if(top) {
 		top.SVGtrampoline = this;

@@ -221,6 +221,7 @@ public class INBWorkflowParserWrapper {
 	public static final String TAVERNA_BASE_VERSION = "1.7.0.0";
 	public static final String TAVERNA_MINOR_VERSION = "1.7.0.0";
 	private static final String SCRIPT_NAME="inbworkflowparser";
+	private static final String SVG_TOOLTIP="SVGtooltip.js";
 	private static final String SVG_TRAMPOLINE="SVGtrampoline.js";
 	private static final String SVG_JSINIT="RunScript(evt)";
 	
@@ -817,46 +818,47 @@ public class INBWorkflowParserWrapper {
 				}
 				
 				// Then, we can fetch it!
-				InputStream SVGtrampHandler=cl.getResourceAsStream(SVG_TRAMPOLINE);
-				if(SVGtrampHandler!=null) {
-					InputStreamReader SVGtrampReader = null;
+				StringBuilder trampcode=new StringBuilder();
+				int bufferSize=16384;
+				char[] buffer=new char[bufferSize];
+				String[] trampres = {SVG_TOOLTIP,SVG_TRAMPOLINE};
+				for(String svgres:trampres) {
+					InputStream SVGResHandler=cl.getResourceAsStream(svgres);
+					if(SVGResHandler==null) {
+						throw new IOException("Unable to find/fetch SVG ECMAscript trampoline code stored at "+svgres);
+					}
+					InputStreamReader SVGResReader = null;
 					try {
-						SVGtrampReader = new InputStreamReader(new BufferedInputStream(SVGtrampHandler),"UTF-8");
+						SVGResReader = new InputStreamReader(new BufferedInputStream(SVGResHandler),"UTF-8");
 					} catch(UnsupportedEncodingException uee) {
 						logger.fatal("UNSUPPORTED ENCODING????",uee);
 						System.exit(1);
 					}
-					
-					StringBuilder trampcode=new StringBuilder();
-					int bufferSize=16384;
-					char[] buffer=new char[bufferSize];
-					
+
 					int readBytes;
-					while((readBytes=SVGtrampReader.read(buffer,0,bufferSize))!=-1) {
+					while((readBytes=SVGResReader.read(buffer,0,bufferSize))!=-1) {
 						trampcode.append(buffer,0,readBytes);
 					}
-					
-					// Now we have the content of the trampoline, let's create a CDATA with it!
-					CDATASection cdata=svg.createCDATASection(trampcode.toString());
-					// Freeing up some resources
-					trampcode=null;
-					buffer=null;
-					
-					Element SVGroot=svg.getDocumentElement();
-					
-					// The trampoline content lives inside a script tag
-					Element script=svg.createElementNS(SVGroot.getNamespaceURI(),"script");
-					script.setAttribute("type","text/ecmascript");
-					script.insertBefore(cdata,null);
-					
-					// Injecting the script inside the root
-					SVGroot.insertBefore(script,SVGroot.getFirstChild());
-					
-					// Last, setting up the initialization hook
-					SVGroot.setAttribute("onload",SVG_JSINIT);
-				} else {
-					throw new IOException("Unable to find/fetch SVG ECMAscript trampoline stored at "+SVG_TRAMPOLINE);
 				}
+				
+				// Now we have the content of the trampoline, let's create a CDATA with it!
+				CDATASection cdata=svg.createCDATASection(trampcode.toString());
+				// Freeing up some resources
+				trampcode=null;
+				buffer=null;
+
+				Element SVGroot=svg.getDocumentElement();
+
+				// The trampoline content lives inside a script tag
+				Element script=svg.createElementNS(SVGroot.getNamespaceURI(),"script");
+				script.setAttribute("type","text/ecmascript");
+				script.insertBefore(cdata,null);
+
+				// Injecting the script inside the root
+				SVGroot.insertBefore(script,SVGroot.getFirstChild());
+
+				// Last, setting up the initialization hook
+				SVGroot.setAttribute("onload",SVG_JSINIT);
 				
 				// At last, writing it...
 				if(SVGFile!=null) {
