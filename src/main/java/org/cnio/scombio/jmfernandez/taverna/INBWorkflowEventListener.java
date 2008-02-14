@@ -14,7 +14,12 @@ import org.apache.log4j.Level;
 
 import org.embl.ebi.escience.baclava.DataThing;
 
+import org.embl.ebi.escience.scufl.Processor;
+import org.embl.ebi.escience.scufl.ScuflModel;
+
+import org.embl.ebi.escience.scufl.enactor.WorkflowInstance;
 import org.embl.ebi.escience.scufl.enactor.WorkflowEventListener;
+
 import org.embl.ebi.escience.scufl.enactor.event.CollectionConstructionEvent;
 import org.embl.ebi.escience.scufl.enactor.event.UserChangedDataEvent;
 import org.embl.ebi.escience.scufl.enactor.event.NestedWorkflowCompletionEvent;
@@ -70,14 +75,17 @@ public class INBWorkflowEventListener
 	
 	protected File statusDir;
 	protected File resultsDir;
+	protected WorkflowInstance currentWI;
+	protected ClassLoader lcl;
 	
 	protected HashMap<String,Integer> iterState;
+	protected HashMap<WorkflowInstance,WorkflowInstance> wInheritance;
 
-	public INBWorkflowEventListener(File statusDir)
-	{	this(statusDir,false);
+	public INBWorkflowEventListener(File statusDir,ClassLoader lcl)
+	{	this(statusDir,lcl,false);
 	}
 	
-	public INBWorkflowEventListener(File statusDir,boolean debugMode)
+	public INBWorkflowEventListener(File statusDir,ClassLoader lcl,boolean debugMode)
 	{
 		if(debugMode) {
 			logger.setLevel(Level.DEBUG);
@@ -85,6 +93,9 @@ public class INBWorkflowEventListener
 		this.statusDir=statusDir;
 		this.resultsDir=new File(statusDir,RESULTS);
 		this.iterState=new HashMap<String,Integer>();
+		this.wInheritance=new HashMap<WorkflowInstance,WorkflowInstance>();
+		this.lcl=lcl;
+		currentWI=null;
 	}
 	
 	/**
@@ -109,25 +120,30 @@ public class INBWorkflowEventListener
 		logger.info("Workflow "+ e.getModel().getDescription().getTitle()+ " (LSID "+e.getDefinitionLSID()+") has been created");
 		
 		// This is the place where the reporting thread should be created!
-		Thread t=new INBEnactionAsyncReport(e.getWorkflowInstance(),statusDir);
+		// and we must take into account embedded workflows!
+		WorkflowInstance thisWI=e.getWorkflowInstance();
+		if(currentWI==null) {
+			currentWI=thisWI;
+			Thread t=new INBEnactionAsyncReport(thisWI,statusDir);
 
-		// The thread can die when the program has finished,
-		// so it has been marked as a server one
-		t.setDaemon(true);
-		// Let's start it...
-		t.start();
-
-		try {
-			SaveDataThings(INPUTS,e.getInputs(),statusDir);
-		} catch(IOException ioe) {
-			logger.error("Unable to save workflow inputs",ioe);
-		}
-		
-		try {
-			File start=new File(statusDir,START);
-			start.createNewFile();
-		} catch(IOException ioe) {
-			logger.error("Unable signal workflow creation",ioe);
+			// The thread can die when the program has finished,
+			// so it has been marked as a server one
+			t.setDaemon(true);
+			// Let's start it...
+			t.start();
+			
+			try {
+				SaveDataThings(INPUTS,e.getInputs(),statusDir);
+			} catch(IOException ioe) {
+				logger.error("Unable to save workflow inputs",ioe);
+			}
+			
+			try {
+				File start=new File(statusDir,START);
+				start.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal workflow creation",ioe);
+			}
 		}
 	}
 
@@ -138,11 +154,13 @@ public class INBWorkflowEventListener
 	public void workflowFailed(WorkflowFailureEvent e) {
 		logger.info("Workflow failed: "+ e.toString());
 		
-		try {
-			File failed=new File(statusDir,FAILED);
-			failed.createNewFile();
-		} catch(IOException ioe) {
-			logger.error("Unable signal workflow failure",ioe);
+		if(e.getWorkflowInstance()==currentWI) {
+			try {
+				File failed=new File(statusDir,FAILED);
+				failed.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal workflow failure",ioe);
+			}
 		}
 	}
 	
@@ -155,11 +173,13 @@ public class INBWorkflowEventListener
 	public void workflowCompleted(WorkflowCompletionEvent e) {
 		logger.info("Workflow completed: "+ e.toString());
 		
-		try {
-			File failed=new File(statusDir,FINISH);
-			failed.createNewFile();
-		} catch(IOException ioe) {
-			logger.error("Unable signal workflow completion",ioe);
+		if(e.getWorkflowInstance()==currentWI) {
+			try {
+				File finished=new File(statusDir,FINISH);
+				finished.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal workflow completion",ioe);
+			}
 		}
 	}
 	
@@ -176,33 +196,35 @@ public class INBWorkflowEventListener
 		
 		logger.info("Nested workflow "+procName+" failed due "+message);
 		
-		File thisProcess=new File(resultsDir,procName);
-		thisProcess.mkdirs();
-		
-		try {
-			File start=new File(thisProcess,START);
-			start.createNewFile();
-		} catch(IOException ioe) {
-			logger.error("Unable signal nested workflow "+procName+" failure",ioe);
-		}
-		
-		try {
-			SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
-		} catch(IOException ioe) {
-			logger.error("Unable to save nested workflow "+procName+" inputs",ioe);
-		}
-		
-		// Now, saving the causes
-		try {
-			File failed=new File(thisProcess,FAILED);
-			PrintWriter pw = new PrintWriter(failed,ENCODING);
-			pw.println("Cause: "+message+"\n");
-			ex.printStackTrace(pw);
-			pw.close();
-		} catch(UnsupportedEncodingException uee) {
-			logger.fatal("FATAL ENCODING ERROR",uee);
-		} catch(FileNotFoundException fnfe) {
-			logger.error("Unable to save nested workflow "+procName+" failure messages",fnfe);
+		if(e.getWorkflowInstance()==currentWI) {
+			File thisProcess=new File(resultsDir,procName);
+			thisProcess.mkdirs();
+
+			try {
+				File start=new File(thisProcess,START);
+				start.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal nested workflow "+procName+" failure",ioe);
+			}
+
+			try {
+				SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
+			} catch(IOException ioe) {
+				logger.error("Unable to save nested workflow "+procName+" inputs",ioe);
+			}
+
+			// Now, saving the causes
+			try {
+				File failed=new File(thisProcess,FAILED);
+				PrintWriter pw = new PrintWriter(failed,ENCODING);
+				pw.println("Cause: "+message+"\n");
+				ex.printStackTrace(pw);
+				pw.close();
+			} catch(UnsupportedEncodingException uee) {
+				logger.fatal("FATAL ENCODING ERROR",uee);
+			} catch(FileNotFoundException fnfe) {
+				logger.error("Unable to save nested workflow "+procName+" failure messages",fnfe);
+			}
 		}
 	}
 
@@ -213,15 +235,28 @@ public class INBWorkflowEventListener
 		event carries details of the workflow instance created.
 	*/
 	public void nestedWorkflowCreated(NestedWorkflowCreationEvent e) {
-		logger.debug("Workflow "+ e.getNestedWorkflowInstance().getID()+" has been created");
-	}
-
-	/**
-		Called when a nested workflow instance has completed its
-		invocation successfully. The event carries with it details of
-		the workflow instance invoked.
-	*/
-	public void nestedWorkflowCompleted(NestedWorkflowCompletionEvent e) {
+		WorkflowInstance nested=e.getNestedWorkflowInstance();
+		logger.debug("Workflow "+ nested.getID()+" has been created");
+		
+		/*
+		System.err.println(nested.getWorkflowModel());
+		try {
+			Class WFCLASS = lcl.loadClass("org.embl.ebi.escience.scuflworkers.workflow.WorkflowProcessor");
+			for(Processor p:e.getWorkflowInstance().getWorkflowModel().getProcessors()) {
+				ScuflModel scf=(ScuflModel)WFCLASS.getDeclaredMethod("getInternalModel",new Class[0]).invoke(p,new Object[0]);
+				ScuflModel ppp=p.getModel();
+				System.err.println(scf.hashCode());
+				System.err.println(ppp.hashCode());
+				//if(WFCLASS.isInstance(p) && scf==nested.getWorkflowModel())
+				if(WFCLASS.isInstance(p))
+					System.err.println("\t"+p.getName());
+			}
+		} catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		wInheritance.put(nested,e.getWorkflowInstance());
+		*/
+		/*
 		String procName=e.getProcessor().getName();
 		logger.info("Nested workflow "+procName+(e.isIterating()?"(I)":"(N)")+" has been completed");
 		
@@ -236,22 +271,51 @@ public class INBWorkflowEventListener
 		}
 		
 		try {
-			SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
+			SaveDataThings(INPUTS,e.getInputs(),thisProcess);
 		} catch(IOException ioe) {
 			logger.error("Unable to save nested workflow "+procName+" inputs",ioe);
 		}
+		*/
+	}
+
+	/**
+		Called when a nested workflow instance has completed its
+		invocation successfully. The event carries with it details of
+		the workflow instance invoked.
+	*/
+	public void nestedWorkflowCompleted(NestedWorkflowCompletionEvent e) {
+		String procName=e.getProcessor().getName();
+		logger.info("Nested workflow "+procName+(e.isIterating()?"(I)":"(N)")+" has been completed");
 		
-		try {
-			SaveDataThings(OUTPUTS,e.getOutputMap(),thisProcess);
-		} catch(IOException ioe) {
-			logger.error("Unable to save nested workflow "+procName+" outputs",ioe);
-		}
-		
-		try {
-			File finish=new File(thisProcess,FINISH);
-			finish.createNewFile();
-		} catch(IOException ioe) {
-			logger.error("Unable signal nested workflow "+procName+" completion",ioe);
+		if(e.getWorkflowInstance()==currentWI) {
+			File thisProcess=new File(resultsDir,procName);
+			thisProcess.mkdirs();
+
+			try {
+				File start=new File(thisProcess,START);
+				start.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal nested workflow "+procName+" initialization",ioe);
+			}
+
+			try {
+				SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
+			} catch(IOException ioe) {
+				logger.error("Unable to save nested workflow "+procName+" inputs",ioe);
+			}
+
+			try {
+				SaveDataThings(OUTPUTS,e.getOutputMap(),thisProcess);
+			} catch(IOException ioe) {
+				logger.error("Unable to save nested workflow "+procName+" outputs",ioe);
+			}
+
+			try {
+				File finish=new File(thisProcess,FINISH);
+				finish.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal nested workflow "+procName+" completion",ioe);
+			}
 		}
 	}
 	
@@ -265,78 +329,80 @@ public class INBWorkflowEventListener
 		String procName=e.getProcessor().getName();
 		logger.info("Process "+procName+(e.isIterating()?"(I)":"(N)")+" has been completed");
 		
-		File thisProcess=new File(resultsDir,procName);
-		thisProcess.mkdirs();
-		
-		// Global start
-		try {
-			File start=new File(thisProcess,START);
-			start.createNewFile();
-		} catch(IOException ioe) {
-			logger.error("Unable signal process "+procName+" initialization",ioe);
-		}
-		
-		String iterStepString=null;
-		if(e.isIterating()) {
-			File originalProcess=thisProcess;
-			thisProcess=new File(originalProcess,ITERATIONS);
-			int iterStep;
-			if(iterState.containsKey(procName)) {
-				iterStep=iterState.get(procName);
-			} else {
-				iterStep=0;
-				/*
-				try {
-					File iterate=new File(originalProcess,ITERATE);
-					iterate.createNewFile();
-				} catch(IOException ioe) {
-					logger.error("Unable signal process "+procName+" iteration flag",ioe);
-				}
-				*/
-			}
-			originalProcess=null;
-			
-			// Saving step and incrementing
-			iterStepString=Integer.toString(iterStep);
-			iterStep++;
-			iterState.put(procName,iterStep);
-			
-			// Trailing zeros
-			int ilength=iterStepString.length();
-			for(int i=4;i>ilength;i--) {
-				iterStepString="0"+iterStepString;
-			}
-			
-			thisProcess=new File(thisProcess,iterStepString);
+		if(e.getWorkflowInstance()==currentWI) {
+			File thisProcess=new File(resultsDir,procName);
 			thisProcess.mkdirs();
-			
-			
-			// Iteration start
+
+			// Global start
 			try {
 				File start=new File(thisProcess,START);
 				start.createNewFile();
 			} catch(IOException ioe) {
-				logger.error("Unable signal process "+procName+" initialization (step "+iterStepString+")",ioe);
+				logger.error("Unable signal process "+procName+" initialization",ioe);
 			}
-		}
-		
-		try {
-			SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
-		} catch(IOException ioe) {
-			logger.error("Unable to save process "+procName+" inputs"+((iterStepString!=null)?" (step "+iterStepString+")":""),ioe);
-		}
-		
-		try {
-			SaveDataThings(OUTPUTS,e.getOutputMap(),thisProcess);
-		} catch(IOException ioe) {
-			logger.error("Unable to save process "+procName+" outputs"+((iterStepString!=null)?" (step "+iterStepString+")":""),ioe);
-		}
-		
-		try {
-			File finish=new File(thisProcess,FINISH);
-			finish.createNewFile();
-		} catch(IOException ioe) {
-			logger.error("Unable signal process "+procName+" completion"+((iterStepString!=null)?" (step "+iterStepString+")":""),ioe);
+
+			String iterStepString=null;
+			if(e.isIterating()) {
+				File originalProcess=thisProcess;
+				thisProcess=new File(originalProcess,ITERATIONS);
+				int iterStep;
+				if(iterState.containsKey(procName)) {
+					iterStep=iterState.get(procName);
+				} else {
+					iterStep=0;
+					/*
+					try {
+						File iterate=new File(originalProcess,ITERATE);
+						iterate.createNewFile();
+					} catch(IOException ioe) {
+						logger.error("Unable signal process "+procName+" iteration flag",ioe);
+					}
+					*/
+				}
+				originalProcess=null;
+
+				// Saving step and incrementing
+				iterStepString=Integer.toString(iterStep);
+				iterStep++;
+				iterState.put(procName,iterStep);
+
+				// Trailing zeros
+				int ilength=iterStepString.length();
+				for(int i=4;i>ilength;i--) {
+					iterStepString="0"+iterStepString;
+				}
+
+				thisProcess=new File(thisProcess,iterStepString);
+				thisProcess.mkdirs();
+
+
+				// Iteration start
+				try {
+					File start=new File(thisProcess,START);
+					start.createNewFile();
+				} catch(IOException ioe) {
+					logger.error("Unable signal process "+procName+" initialization (step "+iterStepString+")",ioe);
+				}
+			}
+
+			try {
+				SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
+			} catch(IOException ioe) {
+				logger.error("Unable to save process "+procName+" inputs"+((iterStepString!=null)?" (step "+iterStepString+")":""),ioe);
+			}
+
+			try {
+				SaveDataThings(OUTPUTS,e.getOutputMap(),thisProcess);
+			} catch(IOException ioe) {
+				logger.error("Unable to save process "+procName+" outputs"+((iterStepString!=null)?" (step "+iterStepString+")":""),ioe);
+			}
+
+			try {
+				File finish=new File(thisProcess,FINISH);
+				finish.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal process "+procName+" completion"+((iterStepString!=null)?" (step "+iterStepString+")":""),ioe);
+			}
 		}
 	}
 	
@@ -349,33 +415,35 @@ public class INBWorkflowEventListener
 		String procName=e.getProcessor().getName();
 		logger.info("Iterating Process "+procName+" has been completed");
 		
-		File thisProcess=new File(resultsDir,e.getProcessor().getName());
-		thisProcess.mkdirs();
-		
-		try {
-			File start=new File(thisProcess,START);
-			start.createNewFile();
-		} catch(IOException ioe) {
-			logger.error("Unable signal iterated process "+procName+" initialization",ioe);
-		}
-		
-		try {
-			SaveDataThings(INPUTS,e.getOverallInputs(),thisProcess);
-		} catch(IOException ioe) {
-			logger.error("Unable to save iterated process "+procName+" inputs",ioe);
-		}
-		
-		try {
-			SaveDataThings(OUTPUTS,e.getOverallOutputs(),thisProcess);
-		} catch(IOException ioe) {
-			logger.error("Unable to save iterated process "+procName+" outputs",ioe);
-		}
-		
-		try {
-			File finish=new File(thisProcess,FINISH);
-			finish.createNewFile();
-		} catch(IOException ioe) {
-			logger.error("Unable signal iterated process "+procName+" completion",ioe);
+		if(e.getWorkflowInstance()==currentWI) {
+			File thisProcess=new File(resultsDir,e.getProcessor().getName());
+			thisProcess.mkdirs();
+
+			try {
+				File start=new File(thisProcess,START);
+				start.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal iterated process "+procName+" initialization",ioe);
+			}
+
+			try {
+				SaveDataThings(INPUTS,e.getOverallInputs(),thisProcess);
+			} catch(IOException ioe) {
+				logger.error("Unable to save iterated process "+procName+" inputs",ioe);
+			}
+
+			try {
+				SaveDataThings(OUTPUTS,e.getOverallOutputs(),thisProcess);
+			} catch(IOException ioe) {
+				logger.error("Unable to save iterated process "+procName+" outputs",ioe);
+			}
+
+			try {
+				File finish=new File(thisProcess,FINISH);
+				finish.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal iterated process "+procName+" completion",ioe);
+			}
 		}
 	}
 	
@@ -392,33 +460,35 @@ public class INBWorkflowEventListener
 		
 		logger.info("Process "+procName+" failed due "+message);
 		
-		File thisProcess=new File(resultsDir,procName);
-		thisProcess.mkdirs();
-		
-		try {
-			File start=new File(thisProcess,START);
-			start.createNewFile();
-		} catch(IOException ioe) {
-			logger.error("Unable signal process "+procName+" failure",ioe);
-		}
-		
-		try {
-			SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
-		} catch(IOException ioe) {
-			logger.error("Unable to save process "+procName+" inputs",ioe);
-		}
-		
-		// Now, saving the causes
-		try {
-			File failed=new File(thisProcess,FAILED);
-			PrintWriter pw = new PrintWriter(failed,ENCODING);
-			pw.println("Cause: "+message+"\n");
-			ex.printStackTrace(pw);
-			pw.close();
-		} catch(UnsupportedEncodingException uee) {
-			logger.fatal("FATAL ENCODING ERROR",uee);
-		} catch(FileNotFoundException fnfe) {
-			logger.error("Unable to save process "+procName+" failure messages",fnfe);
+		if(e.getWorkflowInstance()==currentWI) {
+			File thisProcess=new File(resultsDir,procName);
+			thisProcess.mkdirs();
+
+			try {
+				File start=new File(thisProcess,START);
+				start.createNewFile();
+			} catch(IOException ioe) {
+				logger.error("Unable signal process "+procName+" failure",ioe);
+			}
+
+			try {
+				SaveDataThings(INPUTS,e.getInputMap(),thisProcess);
+			} catch(IOException ioe) {
+				logger.error("Unable to save process "+procName+" inputs",ioe);
+			}
+
+			// Now, saving the causes
+			try {
+				File failed=new File(thisProcess,FAILED);
+				PrintWriter pw = new PrintWriter(failed,ENCODING);
+				pw.println("Cause: "+message+"\n");
+				ex.printStackTrace(pw);
+				pw.close();
+			} catch(UnsupportedEncodingException uee) {
+				logger.fatal("FATAL ENCODING ERROR",uee);
+			} catch(FileNotFoundException fnfe) {
+				logger.error("Unable to save process "+procName+" failure messages",fnfe);
+			}
 		}
 	}
 	
@@ -455,6 +525,11 @@ public class INBWorkflowEventListener
 	*/
 	public void workflowToBeDestroyed(WorkflowToBeDestroyedEvent e) {
 		logger.info("Workflow "+ e.getWorkflowInstance().getID()+ " is going to be destroyed");
+		
+		// Cleaning up!
+		if(e.getWorkflowInstance()==currentWI) {
+			currentWI=null;
+		}
 	}
 
 	/**

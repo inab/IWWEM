@@ -369,6 +369,8 @@ public class INBWorkflowParserWrapper {
 	boolean onlyMavenUpdate=false;
 	
 	protected boolean debugMode=false;
+	
+	protected ClassLoader lcl=null;
 
 	public static void main(String[] args) {
 		try {
@@ -506,6 +508,11 @@ public class INBWorkflowParserWrapper {
 		}
 
 		repository.update();
+		try {
+			lcl=repository.getLoader(new BasicArtifact(TAVERNA_SCUFL_GROUP_ID,"scufl-workflow",TAVERNA_BASE_VERSION),null);
+		} catch(Exception ex) {
+			ex.printStackTrace();
+		}
 		return repository;
 	}
 
