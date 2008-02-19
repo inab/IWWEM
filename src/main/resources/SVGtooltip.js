@@ -26,8 +26,14 @@ function Title(doc, sz) {
 	this.activate = function (evt) {
 		with(svgTitle) {
 			if (element == null) {
-				var  x = (evt.clientX - off.x)/scl +  0.25*size,
-				  y = (evt.clientY - off.y)/scl - size;
+				var  x,y;
+				if(evt.pageX) {
+					x = (evt.pageX - off.x)/scl +  0.25*size;
+					y = (evt.pageY - off.y)/scl - size;
+				} else {
+					x = (evt.clientX - off.x)/scl +  0.25*size,
+					y = (evt.clientY - off.y)/scl - size;
+				}
 				
 				var yRect=rec.getAttribute('height');
 				if(y<yRect)  y=yRect;
@@ -78,10 +84,12 @@ function Title(doc, sz) {
 	doc.documentElement.addEventListener("zoom", zoom, false);
 }
 
+Title.SVGNS='http://www.w3.org/2000/svg';
+
 Title.prototype = {
 	create: function(doc) {
 		this.doc = doc;
-		this.rec = doc.createElementNS('http://www.w3.org/2000/svg',"rect");
+		this.rec = doc.createElementNS(Title.SVGNS,"rect");
 		this.rec.setAttribute("y", -(this.size+5));
 		this.rec.setAttribute("x", -0.25*this.size);
 		this.rec.setAttribute("width", this.size+100);
@@ -90,11 +98,11 @@ Title.prototype = {
 
 		this.str = doc.createTextNode("");
 
-		this.txt = doc.createElementNS('http://www.w3.org/2000/svg',"text");
+		this.txt = doc.createElementNS(Title.SVGNS,"text");
 		this.txt.setAttribute("style", "font-family:Arial; font-size:" + this.size + "pt;fill:black;");
 		this.txt.appendChild(this.str);
 
-		this.grp = doc.createElementNS('http://www.w3.org/2000/svg',"g");
+		this.grp = doc.createElementNS(Title.SVGNS,"g");
 		this.grp.setAttribute("transform", "translate(0 0)");
 		this.grp.setAttribute("visibility", "hidden");
 		this.grp.appendChild(this.rec);

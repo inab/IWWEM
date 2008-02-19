@@ -221,6 +221,7 @@ public class INBWorkflowParserWrapper {
 	public static final String TAVERNA_BASE_VERSION = "1.7.0.0";
 	public static final String TAVERNA_MINOR_VERSION = "1.7.0.0";
 	private static final String SCRIPT_NAME="inbworkflowparser";
+	private static final String SVG_ZOOM="SVGzoom.js";
 	private static final String SVG_TOOLTIP="SVGtooltip.js";
 	private static final String SVG_TRAMPOLINE="SVGtrampoline.js";
 	private static final String SVG_JSINIT="RunScript(evt)";
@@ -828,7 +829,7 @@ public class INBWorkflowParserWrapper {
 				StringBuilder trampcode=new StringBuilder();
 				int bufferSize=16384;
 				char[] buffer=new char[bufferSize];
-				String[] trampres = {SVG_TOOLTIP,SVG_TRAMPOLINE};
+				String[] trampres = {SVG_TOOLTIP,SVG_ZOOM,SVG_TRAMPOLINE};
 				for(String svgres:trampres) {
 					InputStream SVGResHandler=cl.getResourceAsStream(svgres);
 					if(SVGResHandler==null) {

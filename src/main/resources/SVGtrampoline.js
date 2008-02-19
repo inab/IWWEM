@@ -56,11 +56,24 @@ function SVGtramp(LoadEvent) {
 		if(node.getAttribute("class") == 'node') {
 			var nodeId=node.getAttribute("id");
 			var titles=node.getElementsByTagName('title');
+			
 			if(titles.length>0) {
 				var textContent=SVGtramp.getTextContent(titles.item(0));
-				if(textContent && textContent.length > 0) {
+				if(textContent && textContent.length > 0
+					&& textContent!='scufl_graph'
+					&& textContent.indexOf('cluster_')!=0
+					&& textContent.indexOf('WORKFLOWINTERNALSOURCECONTROL')==-1
+					&& textContent.indexOf('WORKFLOWINTERNALSINKCONTROL')==-1
+				) {
 					titleToNode[textContent]=nodeId;
 					nodeToTitle[nodeId]=textContent;
+					
+					// Adding the bulbs
+					if(textContent.indexOf('WORKFLOWINTERNALSOURCE_')==-1
+						&& textContent.indexOf('WORKFLOWINTERNALSINK_')==-1
+					) {
+						this.addBulbs(node);
+					}
 				}
 			}
 		}
@@ -101,6 +114,13 @@ function SVGtramp(LoadEvent) {
 	// The tooltips
 	try {
 	        new Title(this.SVGDoc, 12);
+	} catch(e) {
+		// IgnoreIT!(R)
+	}
+	
+	// And the zoom
+	try {
+		SVGzoom(this.SVGDoc,this.g_element);
 	} catch(e) {
 		// IgnoreIT!(R)
 	}
@@ -146,6 +166,8 @@ SVGtramp.nodeGetText = function (oNode,deep) {
 	}
 	return s;
 };
+
+SVGtramp.SVGNS='http://www.w3.org/2000/svg';
 
 SVGtramp.prototype = {
 	/*
@@ -514,6 +536,65 @@ SVGtramp.prototype = {
 		try {
 			this.SVGroot.unsuspendRedraw(susId);
 		} catch(e) {}
+	},
+	
+	addBulbs: function (g,/* optional */ bulbcolor) {
+		var polygons=g.getElementsByTagName("polygon");
+		if(polygons.length>0) {
+			if(!bulbcolor)  bulbcolor='none';
+			var poly=polygons.item(0);
+			// Let's get the coordinates!
+			var points=poly.getAttribute("points").toString();
+			var coord=points.split(/[ ,]/);
+			// Only when points are there
+			if(coord.length > 5) {
+				var leftX=coord[0];
+				var rightX=coord[4];
+				var meanY=(parseFloat(coord[1])+parseFloat(coord[3]))/2;
+
+				// Now, time to create the bulbs!
+				var left=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
+				var right=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
+
+				var shortR=4;
+				var longR=10;
+				var longR2=longR*2;
+				left.setAttribute('d',"M"+leftX+","+(meanY-longR)+" v"+longR2+" a"+shortR+","+longR+" 0 0,0 0,-"+longR2+" z");
+				left.setAttribute('fill',bulbcolor);
+				right.setAttribute('d',"M"+rightX+","+(meanY+longR)+" v-"+longR2+" a"+shortR+","+longR+" 0 0,0 0,"+longR2+" z");
+				right.setAttribute('fill',bulbcolor);
+
+				// And let's append them!
+				g.appendChild(left);
+				g.appendChild(right);
+			}
+		}
+	},
+	
+	// Setting up the colour of the element's bulbs with the next id
+	setBulbColor: function(nodeId,bulbcolor) {
+		var retval=false;
+		if(nodeId) {
+			var theNode=this.SVGDoc.getElementById(nodeId);
+			if(theNode) {
+				var paths=theNode.getElementsByTagName("path");
+				for(var i=0;i<paths.length;i++) {
+					paths[i].setAttribute('fill',bulbcolor);
+					retval=true;
+				}
+			}
+		}
+		
+		return retval;
+	},
+	
+	// Setting up the colour of the element's bulbs with the next title
+	setNodeBulbColor: function (nodeName,bulbcolor) {
+		if(nodeName in this.titleToNode) {
+			return this.setBulbColor(this.titleToNode[nodeName],bulbcolor);
+		}
+		
+		return false;
 	}
 };
 
