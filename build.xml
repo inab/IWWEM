@@ -46,6 +46,33 @@
 	<target depends="perl-check,maven-compile" description="It checks the whole project's modules" name="check">
 	</target>
 	
+	<target depends="maven-compile" description="It deploys only the Java backend" name="backdeploy">
+		<sshexec
+			host="${deploy.host}"
+			username="${deploy.ssh.user}"
+			keyfile="${user.home}/.ssh/id_dsa"
+			passphrase=""
+			command="mkdir -v -p '${deploy.ssh.dir}/cgi-bin'"
+		/>
+		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}/cgi-bin" keyfile="${user.home}/.ssh/id_dsa" passphrase="">
+			<fileset dir="${weblauncher.src}/cgi-bin">
+				<include name="inb-maven"/>
+				<include name="inb-maven/**"/>
+				<include name="INBWorkflowLauncher"/>
+				<include name="INBWorkflowLauncher/**"/>
+				<exclude name="**/.svn"/>
+				<exclude name="**/.svn/**"/>
+			</fileset>
+		</scp>
+		<sshexec
+			host="${deploy.host}"
+			username="${deploy.ssh.user}"
+			keyfile="${user.home}/.ssh/id_dsa"
+			passphrase=""
+			command="chmod -v ugo+x ${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowparser ${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowlauncher"
+		/>
+	</target>
+	
 	<target depends="check,rawdeploy" description="It deploys the whole project to the destination repository" name="deploy">
 	</target>
 
