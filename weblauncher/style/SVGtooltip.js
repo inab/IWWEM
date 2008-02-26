@@ -1,0 +1,1 @@
+../../src/main/resources/SVGtooltip.js

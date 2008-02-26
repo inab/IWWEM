@@ -23,10 +23,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Set;
 
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import net.sf.taverna.raven.repository.Artifact;
 import net.sf.taverna.raven.repository.BasicArtifact;
@@ -73,9 +80,12 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import org.embl.ebi.escience.scufl.parser.XScuflFormatException;
 import org.embl.ebi.escience.scufl.ScuflException;
@@ -816,60 +826,91 @@ public class INBWorkflowParserWrapper {
 				// Translating to SVG!!!!!
 				Document svg=ScuflSVGDiagram.getSVG(dotContent);
 				
-				// Adding the ECMAscript trampoline needed to
-				// manipulate SVG from outside
-				
-				// First, we need a class loader
-				ClassLoader cl = getClass().getClassLoader();
-				if (cl == null) {
-					cl = ClassLoader.getSystemClassLoader();
+				// Now, it is time to patch styles, so Firefox bug
+				// about font sizes is avoided.
+				XPathFactory xpf=XPathFactory.newInstance();
+				XPath xp=xpf.newXPath();
+				try {
+					NodeList fnode = (NodeList) xp.evaluate("//@style[contains(.,'font-size')]",svg,XPathConstants.NODESET);
+					Pattern pat = Pattern.compile("font-size:([0-9]+\\.[0-9]+);");
+					int maxnode=fnode.getLength();
+					for(int inode=0;inode<maxnode;inode++) {
+						Attr att=(Attr)fnode.item(inode);
+						String origval=att.getValue();
+						Matcher match = pat.matcher(origval);
+						String repl = match.replaceAll("font-size:$1px;");
+						if(!origval.equals(repl)) {
+							att.setValue(repl);
+						}
+					}
+				} catch(XPathExpressionException xpee) {
+					// Do Nothing(R)!
 				}
 				
-				// Then, we can fetch it!
-				StringBuilder trampcode=new StringBuilder();
-				int bufferSize=16384;
-				char[] buffer=new char[bufferSize];
-				String[] trampres = {SVG_TOOLTIP,SVG_ZOOM,SVG_TRAMPOLINE};
-				for(String svgres:trampres) {
-					InputStream SVGResHandler=cl.getResourceAsStream(svgres);
-					if(SVGResHandler==null) {
-						throw new IOException("Unable to find/fetch SVG ECMAscript trampoline code stored at "+svgres);
-					}
-					InputStreamReader SVGResReader = null;
-					try {
-						SVGResReader = new InputStreamReader(new BufferedInputStream(SVGResHandler),"UTF-8");
-					} catch(UnsupportedEncodingException uee) {
-						logger.fatal("UNSUPPORTED ENCODING????",uee);
-						System.exit(1);
-					}
-
-					int readBytes;
-					while((readBytes=SVGResReader.read(buffer,0,bufferSize))!=-1) {
-						trampcode.append(buffer,0,readBytes);
-					}
-				}
-				
-				// Now we have the content of the trampoline, let's create a CDATA with it!
-				CDATASection cdata=svg.createCDATASection(trampcode.toString());
-				// Freeing up some resources
-				trampcode=null;
-				buffer=null;
-
+				// And this patch is needed by SVG zoom code
 				Element SVGroot=svg.getDocumentElement();
-
-				// The trampoline content lives inside a script tag
-				Element script=svg.createElementNS(SVGroot.getNamespaceURI(),"script");
-				script.setAttribute("type","text/ecmascript");
-				script.insertBefore(cdata,null);
-
-				// Injecting the script inside the root
-				SVGroot.insertBefore(script,SVGroot.getFirstChild());
-
-				// Last, setting up the initialization hook
-				SVGroot.setAttribute("onload",SVG_JSINIT);
+				Pattern sizepat = Pattern.compile("([0-9]+\\.?[0-9]*)[a-z]*");
+				Matcher mval;
 				
-				// At last, writing it...
+				mval = sizepat.matcher(SVGroot.getAttribute("width"));
+				SVGroot.setAttribute("width",mval.replaceAll("$1px"));
+				mval = sizepat.matcher(SVGroot.getAttribute("height"));
+				SVGroot.setAttribute("height",mval.replaceAll("$1px"));
+				sizepat=null;
+				mval=null;
+				
 				if(SVGFile!=null) {
+					// Adding the ECMAscript trampoline needed to
+					// manipulate SVG from outside
+
+					// First, we need a class loader
+					ClassLoader cl = getClass().getClassLoader();
+					if (cl == null) {
+						cl = ClassLoader.getSystemClassLoader();
+					}
+
+					// Then, we can fetch it!
+					StringBuilder trampcode=new StringBuilder();
+					int bufferSize=16384;
+					char[] buffer=new char[bufferSize];
+					String[] trampres = {SVG_TOOLTIP,SVG_ZOOM,SVG_TRAMPOLINE};
+					for(String svgres:trampres) {
+						InputStream SVGResHandler=cl.getResourceAsStream(svgres);
+						if(SVGResHandler==null) {
+							throw new IOException("Unable to find/fetch SVG ECMAscript trampoline code stored at "+svgres);
+						}
+						InputStreamReader SVGResReader = null;
+						try {
+							SVGResReader = new InputStreamReader(new BufferedInputStream(SVGResHandler),"UTF-8");
+						} catch(UnsupportedEncodingException uee) {
+							logger.fatal("UNSUPPORTED ENCODING????",uee);
+							System.exit(1);
+						}
+
+						int readBytes;
+						while((readBytes=SVGResReader.read(buffer,0,bufferSize))!=-1) {
+							trampcode.append(buffer,0,readBytes);
+						}
+					}
+
+					// Now we have the content of the trampoline, let's create a CDATA with it!
+					CDATASection cdata=svg.createCDATASection(trampcode.toString());
+					// Freeing up some resources
+					trampcode=null;
+					buffer=null;
+
+					// The trampoline content lives inside a script tag
+					Element script=svg.createElementNS(SVGroot.getNamespaceURI(),"script");
+					script.setAttribute("type","text/ecmascript");
+					script.insertBefore(cdata,null);
+
+					// Injecting the script inside the root
+					SVGroot.insertBefore(script,SVGroot.getFirstChild());
+
+					// Last, setting up the initialization hook
+					SVGroot.setAttribute("onload",SVG_JSINIT);
+
+					// At last, writing it...
 					TransformerFactory tf=TransformerFactory.newInstance();
 					try {
 						Transformer t=tf.newTransformer();

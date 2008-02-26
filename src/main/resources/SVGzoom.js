@@ -1,5 +1,13 @@
 /*
-	Zooming functions for SVG: made by JosÈ MarÌa Fern·ndez, 2008
+	SVGzoom.js
+	from INB Web Workflow Enactor & Manager (IWWE&M)
+	Author: Jos√© Mar√≠a Fern√°ndez Gonz√°lez (C) 2008
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+*/
+/*
+	Self-contained SVG Zooming functions
 */
 function SVGzoom(doc,gElem,/* optional */scale) {
 	var zoomW=150;
@@ -18,54 +26,48 @@ function SVGzoom(doc,gElem,/* optional */scale) {
 	}
 	var SVGNS='http://www.w3.org/2000/svg';
 	
-	var clipRect=doc.createElementNS(SVGNS,"rect");
-	clipRect.setAttribute('width',zoomW);
-	clipRect.setAttribute('height',zoomH);
-	var clipPath=doc.createElementNS(SVGNS,"clipPath");
-	clipPath.setAttribute('id',clipId);
-	clipPath.appendChild(clipRect);
-	
 	var backClip=doc.createElementNS(SVGNS,"rect");
 	//backClip.setAttribute('id','backclip');
-	backClip.setAttribute('width',zoomW);
-	backClip.setAttribute('height',zoomH);
+	backClip.setAttribute('width',zoomW+'px');
+	backClip.setAttribute('height',zoomH+'px');
 	backClip.setAttribute('style',"fill:white;stroke:black;");
 	
 	var forthClip=doc.createElementNS(SVGNS,"rect");
-	forthClip.setAttribute('width',zoomW);
-	forthClip.setAttribute('height',zoomH);
+	forthClip.setAttribute('width',zoomW+'px');
+	forthClip.setAttribute('height',zoomH+'px');
 	forthClip.setAttribute('style',"stroke:black;fill:none");
 	
 	var useElem=doc.createElementNS(SVGNS,"use");
 	useElem.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+gId);
 	useElem.setAttribute('transform','scale('+scale+') translate(0 0)');
 	
-	var useElemG=doc.createElementNS(SVGNS,"g");
-	useElemG.setAttribute('clip-path','url(#'+clipId+')');
-	useElemG.appendChild(useElem);
+	var svgG=doc.createElementNS(SVGNS,"svg");
+	svgG.setAttribute('width',zoomW+'px');
+	svgG.setAttribute('height',zoomH+'px');
+	svgG.appendChild(backClip);
+	svgG.appendChild(useElem);
+	svgG.appendChild(forthClip);
 	
 	var conG=doc.createElementNS(SVGNS,"g");
+	conG.setAttribute('style','cursor:move;');
 	conG.setAttribute('display','none');
 	conG.setAttribute('transform','translate(0 0)');
-	conG.appendChild(backClip);
-	conG.appendChild(useElemG);
-	conG.appendChild(forthClip);
+	conG.appendChild(svgG);
 	
 	var zoomTextNode = doc.createTextNode("To switch zoom function click graph and then press Ctrl or Z");
 	var zoomText=doc.createElementNS(SVGNS,"text");
 	zoomText.setAttribute("x","2");
 	zoomText.setAttribute("y","12");
 	zoomText.setAttribute("text-anchor","start");
-	zoomText.setAttribute("style", "font-family:Arial; font-size:8pt;fill:red;");
+	zoomText.setAttribute("style", "font-family:Arial; font-size:8px;fill:red;");
 	zoomText.appendChild(zoomTextNode);
 
-	doc.documentElement.appendChild(clipPath);
 	doc.documentElement.appendChild(conG);
 	doc.documentElement.appendChild(zoomText);
 	
 	// Inverse matriz needed to apply coordinate transformations
-	//var mInv = gElem.getScreenCTM().inverse();
 	var gVis=undefined;
+	var canEnter=true;
 	var realZoom=function(evt) {
 		try {
 			if(evt.pageX) {
@@ -81,15 +83,23 @@ function SVGzoom(doc,gElem,/* optional */scale) {
 				yPos=evt.clientY;
 			}
 		}
-		if(gVis) {
-			// var p = doc.documentElement.createSVGPoint();
+		if(gVis && canEnter) {
+			canEnter=undefined;
+			if(typeof xPos != 'number') {
+				xPos=0;
+			}
+			
+			if(typeof yPos != 'number') {
+				yPos=0;
+			}
+			
 			var x = xPos;
 			var y = yPos;
-			//p = p.matrixTransform(mInv);
-			x -= zoomW/(2*scale);
-			y -= zoomH/(2*scale);
-			conG.setAttribute('transform','translate('+(xPos-zoomW/2)+' '+(yPos-zoomH/2)+')');
-			useElem.setAttribute('transform','scale('+scale+') translate(-'+(x)+' -'+(y)+')');
+			x -= zoomW/(2.0*scale);
+			y -= zoomH/(2.0*scale);
+			conG.setAttribute('transform','translate('+(xPos-zoomW/2.0)+' '+(yPos-zoomH/2.0)+')');
+			useElem.setAttribute('transform','scale('+scale+') translate('+(-x)+' '+(-y)+')');
+			canEnter=true;
 		}
 	};
 	

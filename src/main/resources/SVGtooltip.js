@@ -1,4 +1,12 @@
 /*
+	SVGtooltip.js
+	from INB Web Workflow Enactor & Manager (IWWE&M)
+	Author: José María Fernández González (C) 2008
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+*/
+/*
 	Class to create SVG tooltips
 	The original code was from carto.net
 	Original Credits:
@@ -35,7 +43,7 @@ function Title(doc, sz) {
 					y = (evt.clientY - off.y)/scl - size;
 				}
 				
-				var yRect=rec.getAttribute('height');
+				var yRect=parseFloat(rec.getAttribute('height'));
 				if(y<yRect)  y=yRect;
 				
 				var evtelement = evt.currentTarget;
@@ -52,9 +60,9 @@ function Title(doc, sz) {
 
 				//str.nodeValue=''+x + ' '+y+' trafalgar';
 				var xRect = txt.getComputedTextLength() + 0.5*size;
-				var gWidth=doc.documentElement.getAttribute('width');
+				var gWidth=parseFloat(doc.documentElement.getAttribute('width'));
 				if(x+xRect > gWidth) x=gWidth-xRect;
-				rec.setAttribute("width", xRect);
+				rec.setAttribute("width", xRect+'px');
 				grp.setAttribute("transform", "translate(" + x + " " + y + ")");
 
 				grp.setAttribute("visibility", "visible");
@@ -71,11 +79,11 @@ function Title(doc, sz) {
 			scl = newscl;
 			off = evt.target.ownerDocument.documentElement.currentTranslate;
 
-			rec.setAttribute("y", -0.9*size);
-			rec.setAttribute("x", -0.25*size);
-			rec.setAttribute("height", 1.25*size);
-			rec.setAttribute("style", "stroke:black;fill:#edefc2;stroke-width:" + 1/scl +';');
-			txt.setAttribute("style", "font-family:Arial; font-size:" + size + "pt;fill:black;");
+			rec.setAttribute("y", -0.9*size+'px');
+			rec.setAttribute("x", -0.25*size+'px');
+			rec.setAttribute("height", 1.25*size+'px');
+			rec.setAttribute("style", "stroke:black;fill:#edefc2;stroke-width:" + 1/scl +'px;');
+			txt.setAttribute("style", "font-family:Arial; font-size:" + size + "px;fill:black;");
 		}
 	};
 	
@@ -90,16 +98,16 @@ Title.prototype = {
 	create: function(doc) {
 		this.doc = doc;
 		this.rec = doc.createElementNS(Title.SVGNS,"rect");
-		this.rec.setAttribute("y", -(this.size+5));
-		this.rec.setAttribute("x", -0.25*this.size);
-		this.rec.setAttribute("width", this.size+100);
-		this.rec.setAttribute("height", this.size+10);
-		this.rec.setAttribute("style", "stroke:black;fill:#edefc2;stroke-width:1");
+		this.rec.setAttribute("y", -(this.size+5)+'px');
+		this.rec.setAttribute("x", -0.25*this.size+'px');
+		this.rec.setAttribute("width", this.size+100+'px');
+		this.rec.setAttribute("height", this.size+10+'px');
+		this.rec.setAttribute("style", "stroke:black;fill:#edefc2;stroke-width:1px;");
 
 		this.str = doc.createTextNode("");
 
 		this.txt = doc.createElementNS(Title.SVGNS,"text");
-		this.txt.setAttribute("style", "font-family:Arial; font-size:" + this.size + "pt;fill:black;");
+		this.txt.setAttribute("style", "font-family:Arial; font-size:" + this.size + "px;fill:black;");
 		this.txt.appendChild(this.str);
 
 		this.grp = doc.createElementNS(Title.SVGNS,"g");
