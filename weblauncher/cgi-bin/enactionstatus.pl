@@ -138,12 +138,13 @@ sub getFreshEnactionReport($) {
 	socket($SOCKET, PF_INET, SOCK_STREAM, $proto) or die "SOCKET ERROR: $!";
 	connect($SOCKET, $paddr) or die "CONNECT SOCKET ERROR: $!";
 
+	my($buffer)='';
 	while ($line = <$SOCKET>) {
-		print $line;
+		$buffer.=$line;
 	}
 	close($SOCKET) or die "CLOSE SOCKET ERROR: $!"; 
 	
-	return $line;
+	return $buffer;
 }
 
 sub getStoredEnactionReport($) {
@@ -375,7 +376,8 @@ foreach my $jobId (@jobIdList) {
 								$state = 'running';
 							} else {
 								# So it could be queued
-								$state = 'unknown';
+								#$state = 'unknown';
+								$state = 'queued';
 								$includeSubs=undef;
 							}
 						} else {
@@ -408,7 +410,7 @@ foreach my $jobId (@jobIdList) {
 					my($repnode)=$parser->parse_string(decode('UTF-8', $enactionReport));
 					# And let's add it to the report
 					my($er)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReport');
-					$er->appendChild($outputDoc->importNode($repnode));
+					$er->appendChild($outputDoc->importNode($repnode->documentElement));
 					$es->appendChild($er);
 				};
 
