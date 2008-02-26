@@ -1,7 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
 # First we need to load environmental variables in order to use perl
 . /etc/profile
+
+if [ -z "$JAVA_HOME" -a -f /etc/bash.bashrc ] ; then
+	. /etc/bash.bashrc
+fi
 
 # Then, go!
 exec perl "${0}.pl" "$@"

@@ -34,21 +34,16 @@ sub appendOutputs($$$) {
 }
 
 sub appendIO($$$$) {
-	my($iodir,$outputDoc,$parent,$iotagname)=@_;
+	my($iofile,$outputDoc,$parent,$iotagname)=@_;
 	
-	if(-d $iodir) {
-		my($IODIR);
-		if(opendir($IODIR,$iodir)) {
-			my($entry);
-			while($entry=readdir($IODIR)) {
-				# No hidden element, please!
-				next  if($entry eq '.' || $entry eq '..');
-
-				my($ionode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,$iotagname);
-				$ionode->setAttribute('name',$entry);
-				$parent->appendChild($ionode);
-			}
-			closedir($IODIR);
+	if(-f $iofile) {
+		my($handler)=EnactionStatusSAX->new($outputDoc,$parent,$iotagname);
+		my($parser)=XML::LibXML->new(Handler=>$handler);
+		eval {
+			$parser->parse_file($iofile);
+		};
+		if($@) {
+			print STDERR "PARTIAL ERROR with $iofile: $@";
 		}
 	}
 }
@@ -56,11 +51,11 @@ sub appendIO($$$$) {
 sub processStep($$$) {
 	my($basedir,$outputDoc,$es)=@_;
 	
-	my($inputsdir)=$basedir . '/Inputs';
-	my($outputsdir)=$basedir . '/Outputs';
+	my($inputsfile)=$basedir . '/Inputs.xml';
+	my($outputsfile)=$basedir . '/Outputs.xml';
 	my($resultsdir)=$basedir . '/Results';
-	appendInputs($inputsdir,$outputDoc,$es);
-	appendOutputs($outputsdir,$outputDoc,$es);
+	appendInputs($inputsfile,$outputDoc,$es);
+	appendOutputs($outputsfile,$outputDoc,$es);
 	appendResults($resultsdir,$outputDoc,$es);
 }
 
@@ -97,8 +92,8 @@ sub appendResults($$$) {
 				$step->setAttribute('state',$state);
 				
 				if(defined($includeSubs)) {
-					appendInputs($jobdir . '/Inputs',$outputDoc,$step);
-					appendOutputs($jobdir . '/Outputs',$outputDoc,$step);
+					appendInputs($jobdir . '/Inputs.xml',$outputDoc,$step);
+					appendOutputs($jobdir . '/Outputs.xml',$outputDoc,$step);
 					
 					my($iteratedir)=$jobdir . '/Iterations';
 					if(-d $iteratedir) {
@@ -444,3 +439,46 @@ print $query->header(-type=>'text/xml',-charset=>'UTF-8',-cache=>'no-cache, no-s
 $outputDoc->toFH(\*STDOUT);
 
 exit 0;
+
+
+package EnactionStatusSAX;
+
+use strict;
+use XML::SAX::Base;
+use XML::SAX::Exception;
+use lib "$FindBin::Bin";
+use WorkflowCommon;
+
+###############
+# Constructor #
+###############
+sub new($$$) {
+	my($proto)=shift;
+	my($class)=ref($proto) || $proto;
+	my($outputDoc,$parent,$iotagname)=@_;
+	
+	my($self)=$proto->SUPER::new();
+	
+	$self->{outputDoc}=$outputDoc;
+	$self->{parent}=$parent;
+	$self->{iotagname}=$iotagname;
+	
+	return bless($self,$class);
+}
+
+########################
+# SAX instance methods #
+########################
+sub start_element {
+	my($self,$elem)=@_;
+	
+	my($elname)=$elem->{Name};
+
+	if($elname eq 'dataThing') {
+		my($ionode)=$self->{outputDoc}->createElementNS($WorkflowCommon::WFD_NS,$self->{iotagname});
+		$ionode->setAttribute('name',$elem->{Attributes}{'{}key'}{Value});
+		$self->{parent}->appendChild($ionode);
+	}
+}
+
+1;
