@@ -147,7 +147,7 @@ sub getFreshEnactionReport($) {
 }
 
 sub getStoredEnactionReport($) {
-	my($dir);
+	my($dir)=@_;
 	
 	my($ER);
 	my($rep)='';
@@ -322,7 +322,7 @@ foreach my $jobId (@jobIdList) {
 							$catdoc->toFile($catfile);
 
 							# And let's add it to the report
-							$es->appendNode($outputDoc->importNode($snapnode));
+							$es->appendChild($outputDoc->importNode($snapnode));
 						}
 					};
 
@@ -408,8 +408,8 @@ foreach my $jobId (@jobIdList) {
 					my($repnode)=$parser->parse_string(decode('UTF-8', $enactionReport));
 					# And let's add it to the report
 					my($er)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReport');
-					$er->appendNode($outputDoc->importNode($repnode));
-					$es->appendNode($er);
+					$er->appendChild($outputDoc->importNode($repnode));
+					$es->appendChild($er);
 				};
 
 				$enactionReportError=$@  if($@);
@@ -418,7 +418,7 @@ foreach my $jobId (@jobIdList) {
 			if(defined($enactionReportError) && $enactionReportError ne '') {
 				my($er)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReportError');
 				$er->appendChild($outputDoc->createCDATASection($enactionReportError));
-				$es->appendNode($er);
+				$es->appendChild($er);
 			}
 			
 			# Now including subinformation...
