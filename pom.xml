@@ -134,7 +134,6 @@
 		</dependency>
 		
 		<!-- Other dependencies -->
-		
 		<dependency>
 			<groupId>xerces</groupId>
 			<artifactId>xercesImpl</artifactId>

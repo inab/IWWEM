@@ -36,9 +36,10 @@ function SVGtramp(LoadEvent) {
 		if(!('SVG_LENGTHTYPE_CM' in testLength)) {
 			throw 'Ill SVGLength implementation';
 		}
-		testLength.newValueSpecifiedUnits(testLength.SVG_LENGTHTYPE_CM,1.0);
-		testLength.convertToSpecifiedUnits(testLength.SVG_LENGTHTYPE_PX);
-		if(testLength.valueInSpecifiedUnits > 1.0) {
+		var baseVal=1000;
+		testLength.newValueSpecifiedUnits(testLength.SVG_LENGTHTYPE_PX,baseVal);
+		testLength.convertToSpecifiedUnits(testLength.SVG_LENGTHTYPE_MM);
+		if(testLength.valueInSpecifiedUnits != baseVal) {
 			this.fakeConvert=undefined;
 		}
 	} catch(e) {
@@ -300,7 +301,7 @@ SVGtramp.prototype = {
 		
 		var susId = this.suspendRedraw();
 		
-		this.setScale(sw,sh);
+		//this.setScale(sw,sh);
 		this.SVGroot.setAttribute("height", hLength.valueAsString);
 		this.height = hLength.valueAsString;
 		this.SVGroot.setAttribute("width", wLength.valueAsString);
@@ -309,7 +310,7 @@ SVGtramp.prototype = {
 		this.unsuspendRedraw(susId);
 	},
 	
-	setBestScaleFromConstraintDimensions: function (w,h,isWorst) {
+	setBestScaleFromConstraintDimensions: function (w,h,/*optional*/ isWorst) {
 		var wLength=this.createTypedLength(w);
 		var hLength=this.createTypedLength(h);
 		
@@ -329,7 +330,7 @@ SVGtramp.prototype = {
 		
 		var susId = this.suspendRedraw();
 		
-		this.setScale(sw,sh);
+		//this.setScale(sw,sh);
 		this.SVGroot.setAttribute("height", hLength.valueAsString);
 		this.height = hLength.valueAsString;
 		this.SVGroot.setAttribute("width", wLength.valueAsString);
