@@ -474,9 +474,9 @@ sub new($$$) {
 sub start_element {
 	my($self,$elem)=@_;
 	
-	my($elname)=$elem->{Name};
+	my($elname)=$elem->{LocalName};
 
-	if($elname eq 'dataThing') {
+	if($elem->{NamespaceURI} eq $WorkflowCommon::BACLAVA_NS && $elname eq 'dataThing') {
 		my($ionode)=$self->{outputDoc}->createElementNS($WorkflowCommon::WFD_NS,$self->{iotagname});
 		$ionode->setAttribute('name',$elem->{Attributes}{'{}key'}{Value});
 		$self->{parent}->appendChild($ionode);
