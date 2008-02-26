@@ -9,41 +9,39 @@
 /*
 	Self-contained SVG Zooming functions
 */
-function SVGzoom(doc,gElem,/* optional */scale) {
-	var zoomW=150;
-	var zoomH=150;
-	var xPos=0;
-	var yPos=0;
+function SVGzoom(doc,gElem,/*optional*/ scaleX, scaleY) {
+	this.zoomW=150;
+	this.zoomH=150;
+	
+	this.scaleX=(typeof scaleX != 'number')?3:scaleX;
+	this.scaleY=(typeof scaleY != 'number')?this.scaleX:scaleY;
+	this.pageScaleX=this.pageScaleY=1;
 	
 	var gId=gElem.getAttribute('id');
 	if(!gId) {
 		gId='GPoint';
 		gElem.setAttribute('id',gId);
 	}
-	var clipId='ZOOMclip';
-	if(!scale) {
-		scale=3;
-	}
 	var SVGNS='http://www.w3.org/2000/svg';
 	
 	var backClip=doc.createElementNS(SVGNS,"rect");
 	//backClip.setAttribute('id','backclip');
-	backClip.setAttribute('width',zoomW+'px');
-	backClip.setAttribute('height',zoomH+'px');
+	backClip.setAttribute('width',this.zoomW+'px');
+	backClip.setAttribute('height',this.zoomH+'px');
 	backClip.setAttribute('style',"fill:white;stroke:black;");
 	
 	var forthClip=doc.createElementNS(SVGNS,"rect");
-	forthClip.setAttribute('width',zoomW+'px');
-	forthClip.setAttribute('height',zoomH+'px');
+	forthClip.setAttribute('width',this.zoomW+'px');
+	forthClip.setAttribute('height',this.zoomH+'px');
 	forthClip.setAttribute('style',"stroke:black;fill:none");
 	
 	var useElem=doc.createElementNS(SVGNS,"use");
 	useElem.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+gId);
-	useElem.setAttribute('transform','scale('+scale+') translate(0 0)');
+	useElem.setAttribute('transform','scale('+this.scaleX+' '+this.scaleY+') translate(0 0)');
 	
 	var svgG=doc.createElementNS(SVGNS,"svg");
-	svgG.setAttribute('width',zoomW+'px');
-	svgG.setAttribute('height',zoomH+'px');
+	svgG.setAttribute('width',this.zoomW+'px');
+	svgG.setAttribute('height',this.zoomH+'px');
 	svgG.appendChild(backClip);
 	svgG.appendChild(useElem);
 	svgG.appendChild(forthClip);
@@ -66,6 +64,9 @@ function SVGzoom(doc,gElem,/* optional */scale) {
 	doc.documentElement.appendChild(zoomText);
 	
 	// Inverse matriz needed to apply coordinate transformations
+	var thiszoom=this;
+	var xPos=0;
+	var yPos=0;
 	var gVis=undefined;
 	var canEnter=true;
 	var realZoom=function(evt) {
@@ -93,12 +94,15 @@ function SVGzoom(doc,gElem,/* optional */scale) {
 				yPos=0;
 			}
 			
-			var x = xPos;
-			var y = yPos;
-			x -= zoomW/(2.0*scale);
-			y -= zoomH/(2.0*scale);
-			conG.setAttribute('transform','translate('+(xPos-zoomW/2.0)+' '+(yPos-zoomH/2.0)+')');
-			useElem.setAttribute('transform','scale('+scale+') translate('+(-x)+' '+(-y)+')');
+			var xPosTrans=xPos*thiszoom.pageScaleX;
+			var yPosTrans=yPos*thiszoom.pageScaleY;
+			
+			var x = xPosTrans;
+			var y = yPosTrans;
+			x -= thiszoom.zoomW*thiszoom.pageScaleX/(2.0*thiszoom.scaleX);
+			y -= thiszoom.zoomH*thiszoom.pageScaleY/(2.0*thiszoom.scaleY);
+			conG.setAttribute('transform','translate('+(xPosTrans-thiszoom.zoomW*thiszoom.pageScaleX/2.0)+' '+(yPosTrans-thiszoom.zoomH*thiszoom.pageScaleY/2.0)+')');
+			useElem.setAttribute('transform','scale('+(thiszoom.scaleX/thiszoom.pageScaleX)+' '+(thiszoom.scaleY/thiszoom.pageScaleY)+') translate('+(-x)+' '+(-y)+')');
 			canEnter=true;
 		}
 	};
@@ -137,3 +141,13 @@ function SVGzoom(doc,gElem,/* optional */scale) {
 	},false);
 	*/
 }
+
+SVGzoom.prototype = {
+	rescale: function (sw,/*optional*/ sh) {
+		if(typeof sh != 'number') {
+			sh=sw;
+		}
+		this.pageScaleX=sw;
+		this.pageScaleY=sh;
+	}
+};

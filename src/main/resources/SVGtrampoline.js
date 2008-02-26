@@ -120,8 +120,9 @@ function SVGtramp(LoadEvent) {
 	}
 	
 	// And the zoom
+	this.zoom=undefined;
 	try {
-		SVGzoom(this.SVGDoc,this.g_element);
+		this.zoom=new SVGzoom(this.SVGDoc,this.g_element);
 	} catch(e) {
 		// IgnoreIT!(R)
 	}
@@ -302,6 +303,7 @@ SVGtramp.prototype = {
 		var susId = this.suspendRedraw();
 		
 		//this.setScale(sw,sh);
+		this.zoom.rescale(sw,sh);
 		this.SVGroot.setAttribute("height", hLength.valueAsString);
 		this.height = hLength.valueAsString;
 		this.SVGroot.setAttribute("width", wLength.valueAsString);
@@ -331,6 +333,7 @@ SVGtramp.prototype = {
 		var susId = this.suspendRedraw();
 		
 		//this.setScale(sw,sh);
+		this.zoom.rescale(sw,sh);
 		this.SVGroot.setAttribute("height", hLength.valueAsString);
 		this.height = hLength.valueAsString;
 		this.SVGroot.setAttribute("width", wLength.valueAsString);
