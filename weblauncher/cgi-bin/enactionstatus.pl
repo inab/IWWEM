@@ -449,6 +449,8 @@ use XML::SAX::Exception;
 use lib "$FindBin::Bin";
 use WorkflowCommon;
 
+use base qw(XML::SAX::Base);
+
 ###############
 # Constructor #
 ###############
