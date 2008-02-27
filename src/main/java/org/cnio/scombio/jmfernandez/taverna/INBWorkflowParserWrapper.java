@@ -870,11 +870,14 @@ public class INBWorkflowParserWrapper {
 					}
 
 					// Then, we can fetch it!
-					StringBuilder trampcode=new StringBuilder();
+					Node originalFirstChild = SVGroot.getFirstChild();
+					
 					int bufferSize=16384;
 					char[] buffer=new char[bufferSize];
 					String[] trampres = {SVG_TOOLTIP,SVG_ZOOM,SVG_TRAMPOLINE};
 					for(String svgres:trampres) {
+						StringBuilder trampcode=new StringBuilder();
+						
 						InputStream SVGResHandler=cl.getResourceAsStream(svgres);
 						if(SVGResHandler==null) {
 							throw new IOException("Unable to find/fetch SVG ECMAscript trampoline code stored at "+svgres);
@@ -891,22 +894,21 @@ public class INBWorkflowParserWrapper {
 						while((readBytes=SVGResReader.read(buffer,0,bufferSize))!=-1) {
 							trampcode.append(buffer,0,readBytes);
 						}
+						
+						// Now we have the content of the trampoline, let's create a CDATA with it!
+						CDATASection cdata=svg.createCDATASection(trampcode.toString());
+						// Freeing up some resources
+						
+						// The trampoline content lives inside a script tag
+						Element script=svg.createElementNS(SVGroot.getNamespaceURI(),"script");
+						script.setAttribute("type","text/ecmascript");
+						script.insertBefore(cdata,null);
+
+						// Injecting the script inside the root
+						SVGroot.insertBefore(script,originalFirstChild);
 					}
-
-					// Now we have the content of the trampoline, let's create a CDATA with it!
-					CDATASection cdata=svg.createCDATASection(trampcode.toString());
-					// Freeing up some resources
-					trampcode=null;
+					
 					buffer=null;
-
-					// The trampoline content lives inside a script tag
-					Element script=svg.createElementNS(SVGroot.getNamespaceURI(),"script");
-					script.setAttribute("type","text/ecmascript");
-					script.insertBefore(cdata,null);
-
-					// Injecting the script inside the root
-					SVGroot.insertBefore(script,SVGroot.getFirstChild());
-
 					// Last, setting up the initialization hook
 					SVGroot.setAttribute("onload",SVG_JSINIT);
 

@@ -94,8 +94,8 @@ function SVGzoom(doc,gElem,/*optional*/ scaleX, scaleY) {
 				yPos=0;
 			}
 			
-			var xPosTrans=xPos*thiszoom.pageScaleX;
-			var yPosTrans=yPos*thiszoom.pageScaleY;
+			var xPosTrans=xPos/thiszoom.pageScaleX;
+			var yPosTrans=yPos/thiszoom.pageScaleY;
 			
 			var x = xPosTrans;
 			var y = yPosTrans;

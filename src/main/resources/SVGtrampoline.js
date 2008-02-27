@@ -552,25 +552,63 @@ SVGtramp.prototype = {
 			var coord=points.split(/[ ,]/);
 			// Only when points are there
 			if(coord.length > 5) {
-				var leftX=coord[0];
-				var rightX=coord[4];
-				var meanY=(parseFloat(coord[1])+parseFloat(coord[3]))/2;
-
+				var leftX=parseFloat(coord[0]);
+				var rightX=parseFloat(coord[4]);
+				var topY=parseFloat(coord[1]);
+				var bottomY=parseFloat(coord[3]);
+				var avgY=(bottomY+topY)/2.0;
+				var meanY=(topY-bottomY);
+				var meanY2 = meanY/2.0;
+				
+				// Getting the reference element
+				var refElem=null;
+				var txts=g.getElementsByTagName("text");
+				if(txts.length>0) {
+					refElem=txts[0];
+				}
+				
 				// Now, time to create the bulbs!
-				var left=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
-				var right=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
 
 				var shortR=4;
-				var longR=10;
-				var longR2=longR*2;
-				left.setAttribute('d',"M"+leftX+","+(meanY-longR)+" v"+longR2+" a"+shortR+","+longR+" 0 0,0 0,-"+longR2+" z");
-				left.setAttribute('fill',bulbcolor);
-				right.setAttribute('d',"M"+rightX+","+(meanY+longR)+" v-"+longR2+" a"+shortR+","+longR+" 0 0,0 0,"+longR2+" z");
-				right.setAttribute('fill',bulbcolor);
-
-				// And let's append them!
-				g.appendChild(left);
-				g.appendChild(right);
+				var longR2=meanY/3.0;
+				var longR=longR2/2.0;
+				
+				var corner=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
+				corner.setAttribute('d',"M"+leftX+","+bottomY+" h"+(longR2)+" l"+(-longR2)+","+(longR2)+" z");
+				corner.setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
+				g.insertBefore(corner,refElem);
+				/*
+				var left=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
+				left.setAttribute('d',"M"+leftX+","+(avgY-longR)+" v"+longR2+" a"+shortR+","+longR+" 0 0,0 0,"+(-longR2)+" z");
+				left.setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
+				g.insertBefore(left,refElem);
+				
+				var right=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
+				right.setAttribute('d',"M"+rightX+","+(avgY+longR)+" v-"+longR2+" a"+shortR+","+longR+" 0 0,0 0,"+longR2+" z");
+				right.setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
+				g.insertBefore(right,refElem);
+				
+				var center;
+				center=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
+				center.setAttribute('d',"M"+leftX+","+(topY-longR)+" a"+longR+","+longR+" 0 0,0 "+longR2+",0 a"+longR+","+longR+" 0 0,0 "+(-longR2)+",0 z");
+				center.setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
+				g.insertBefore(center,refElem);
+				
+				center=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
+				center.setAttribute('d',"M"+leftX+","+(bottomY+longR)+" a"+longR+","+longR+" 0 0,0 "+longR2+",0 a"+longR+","+longR+" 0 0,0 "+(-longR2)+",0 z");
+				center.setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
+				g.insertBefore(center,refElem);
+				
+				center=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
+				center.setAttribute('d',"M"+rightX+","+(topY-longR)+" a"+longR+","+longR+" 0 0,0 "+(-longR2)+",0 a"+longR+","+longR+" 0 0,0 "+longR2+",0 z");
+				center.setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
+				g.insertBefore(center,refElem);
+				
+				center=this.SVGDoc.createElementNS(SVGtramp.SVGNS,"path");
+				center.setAttribute('d',"M"+rightX+","+(bottomY+longR)+" a"+longR+","+longR+" 0 0,0 "+(-longR2)+",0 a"+longR+","+longR+" 0 0,0 "+longR2+",0 z");
+				center.setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
+				g.insertBefore(center,refElem);
+				*/
 			}
 		}
 	},
@@ -583,7 +621,7 @@ SVGtramp.prototype = {
 			if(theNode) {
 				var paths=theNode.getElementsByTagName("path");
 				for(var i=0;i<paths.length;i++) {
-					paths[i].setAttribute('fill',bulbcolor);
+					paths[i].setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
 					retval=true;
 				}
 			}
