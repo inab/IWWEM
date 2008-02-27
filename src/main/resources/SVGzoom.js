@@ -52,7 +52,7 @@ function SVGzoom(doc,gElem,/*optional*/ scaleX, scaleY) {
 	conG.setAttribute('transform','translate(0 0)');
 	conG.appendChild(svgG);
 	
-	var zoomTextNode = doc.createTextNode("To switch zoom function click graph and then press Ctrl or Z");
+	var zoomTextNode = doc.createTextNode("To use embedded zoom function press Z or Ctrl+click");
 	var zoomText=doc.createElementNS(SVGNS,"text");
 	zoomText.setAttribute("x","2");
 	zoomText.setAttribute("y","12");
@@ -109,8 +109,21 @@ function SVGzoom(doc,gElem,/*optional*/ scaleX, scaleY) {
 	
 	doc.documentElement.addEventListener('mousemove',realZoom,false);
 	
+	doc.documentElement.addEventListener('mousedown',function(evt) {
+		if(evt.ctrlKey) {
+			gVis=true;
+			realZoom(evt);
+			conG.setAttribute('display','inherit');
+		}
+	},false);
+	
+	doc.documentElement.addEventListener('mouseup',function(evt) {
+		conG.setAttribute('display','none');
+		gVis=undefined;
+	},false);
+	
 	doc.documentElement.addEventListener('keydown',function(evt) {
-		if(evt.keyCode == 17 || evt.keyCode==90) {
+		if(evt.keyCode==90) {
 			//scale *= 1.5;
 			if(gVis) {
 				conG.setAttribute('display','none');
