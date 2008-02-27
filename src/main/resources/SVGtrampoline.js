@@ -112,9 +112,17 @@ function SVGtramp(LoadEvent) {
 		}
 	}
 	
+	// The MapApp, used by the code
+	this.myMapApp=undefined;
+	try {
+		this.myMapApp=new SVGmapApp();
+	} catch(e) {
+		// IgnoreIT!(R)
+	}
+	
 	// The tooltips
 	try {
-	        new Title(this.SVGDoc, 12);
+	        new Title(this.SVGDoc, this.myMapApp, 12);
 	} catch(e) {
 		// IgnoreIT!(R)
 	}
@@ -122,7 +130,7 @@ function SVGtramp(LoadEvent) {
 	// And the zoom
 	this.zoom=undefined;
 	try {
-		this.zoom=new SVGzoom(this.SVGDoc,this.g_element);
+		this.zoom=new SVGzoom(this.SVGDoc,this.g_element,this.myMapApp);
 	} catch(e) {
 		// IgnoreIT!(R)
 	}
@@ -303,7 +311,6 @@ SVGtramp.prototype = {
 		var susId = this.suspendRedraw();
 		
 		//this.setScale(sw,sh);
-		this.zoom.rescale(sw,sh);
 		this.SVGroot.setAttribute("height", hLength.valueAsString);
 		this.height = hLength.valueAsString;
 		this.SVGroot.setAttribute("width", wLength.valueAsString);
@@ -333,7 +340,6 @@ SVGtramp.prototype = {
 		var susId = this.suspendRedraw();
 		
 		//this.setScale(sw,sh);
-		this.zoom.rescale(sw,sh);
 		this.SVGroot.setAttribute("height", hLength.valueAsString);
 		this.height = hLength.valueAsString;
 		this.SVGroot.setAttribute("width", wLength.valueAsString);

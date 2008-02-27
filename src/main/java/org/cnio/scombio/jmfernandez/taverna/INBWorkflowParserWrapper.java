@@ -849,6 +849,7 @@ public class INBWorkflowParserWrapper {
 				
 				// And this patch is needed by SVG zoom code
 				Element SVGroot=svg.getDocumentElement();
+				/*
 				Pattern sizepat = Pattern.compile("([0-9]+\\.?[0-9]*)[a-z]*");
 				Matcher mval;
 				
@@ -858,6 +859,7 @@ public class INBWorkflowParserWrapper {
 				SVGroot.setAttribute("height",mval.replaceAll("$1px"));
 				sizepat=null;
 				mval=null;
+				*/
 				
 				if(SVGFile!=null) {
 					// Adding the ECMAscript trampoline needed to
@@ -874,7 +876,7 @@ public class INBWorkflowParserWrapper {
 					
 					int bufferSize=16384;
 					char[] buffer=new char[bufferSize];
-					String[] trampres = {SVG_TOOLTIP,SVG_ZOOM,SVG_TRAMPOLINE};
+					String[] trampres = {"SVGmapApp.js",SVG_TOOLTIP,SVG_ZOOM,SVG_TRAMPOLINE};
 					for(String svgres:trampres) {
 						StringBuilder trampcode=new StringBuilder();
 						

@@ -12,7 +12,7 @@
 	Original Credits:
  == Title.js -- Copyright (C) Stefan Goessner ========================
 */
-function Title(doc, sz) {
+function Title(doc, myMapApp, sz) {
 	this.element = null;  // element to show title of ..
 	this.size = sz;      // text size ..
 	this.scl = doc.documentElement.currentScale;	  // scaling modified by zooming ..
@@ -34,6 +34,8 @@ function Title(doc, sz) {
 	this.activate = function (evt) {
 		with(svgTitle) {
 			if (element == null) {
+				var coords = myMapApp.calcCoord(evt,doc.documentElement);
+				/*
 				var  x,y;
 				if(evt.pageX) {
 					x = (evt.pageX - off.x)/scl +  0.25*size;
@@ -45,6 +47,9 @@ function Title(doc, sz) {
 				
 				var yRect=parseFloat(rec.getAttribute('height'));
 				if(y<yRect)  y=yRect;
+				*/
+				var x = coords.x+0.25*size;
+				var y = coords.y-size;
 				
 				var evtelement = evt.currentTarget;
 				var strtext = Title.TextOf(Title.ElementOf(evtelement)).toString();
@@ -89,7 +94,7 @@ function Title(doc, sz) {
 	
 	this.create(doc);
 	this.addEvents(doc.documentElement);
-	doc.documentElement.addEventListener("zoom", zoom, false);
+	//doc.documentElement.addEventListener("zoom", zoom, false);
 }
 
 Title.SVGNS='http://www.w3.org/2000/svg';

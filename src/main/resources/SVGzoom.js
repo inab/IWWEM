@@ -9,7 +9,7 @@
 /*
 	Self-contained SVG Zooming functions
 */
-function SVGzoom(doc,gElem,/*optional*/ scaleX, scaleY) {
+function SVGzoom(doc,gElem,myMapApp,/*optional*/ scaleX, scaleY) {
 	this.zoomW=150;
 	this.zoomH=150;
 	
@@ -59,9 +59,10 @@ function SVGzoom(doc,gElem,/*optional*/ scaleX, scaleY) {
 	zoomText.setAttribute("text-anchor","start");
 	zoomText.setAttribute("style", "font-family:Arial; font-size:8px;fill:red;");
 	zoomText.appendChild(zoomTextNode);
-
-	doc.documentElement.appendChild(conG);
-	doc.documentElement.appendChild(zoomText);
+	
+	var docEl=doc.documentElement;
+	docEl.appendChild(conG);
+	docEl.appendChild(zoomText);
 	
 	// Inverse matriz needed to apply coordinate transformations
 	var thiszoom=this;
@@ -94,22 +95,26 @@ function SVGzoom(doc,gElem,/*optional*/ scaleX, scaleY) {
 				yPos=0;
 			}
 			
-			var xPosTrans=xPos/thiszoom.pageScaleX;
-			var yPosTrans=yPos/thiszoom.pageScaleY;
+			var point=docEl.createSVGPoint();
+			point.x=xPos;
+			point.y=yPos;
+			point = myMapApp.calcPointCoord(point,docEl);
+			var xPosTrans=point.x;
+			var yPosTrans=point.y;
 			
 			var x = xPosTrans;
 			var y = yPosTrans;
-			x -= thiszoom.zoomW*thiszoom.pageScaleX/(2.0*thiszoom.scaleX);
-			y -= thiszoom.zoomH*thiszoom.pageScaleY/(2.0*thiszoom.scaleY);
-			conG.setAttribute('transform','translate('+(xPosTrans-thiszoom.zoomW*thiszoom.pageScaleX/2.0)+' '+(yPosTrans-thiszoom.zoomH*thiszoom.pageScaleY/2.0)+')');
-			useElem.setAttribute('transform','scale('+(thiszoom.scaleX/thiszoom.pageScaleX)+' '+(thiszoom.scaleY/thiszoom.pageScaleY)+') translate('+(-x)+' '+(-y)+')');
+			x -= thiszoom.zoomW/(2.0*thiszoom.scaleX);
+			y -= thiszoom.zoomH/(2.0*thiszoom.scaleY);
+			conG.setAttribute('transform','translate('+(xPosTrans-thiszoom.zoomW/2.0)+' '+(yPosTrans-thiszoom.zoomH/2.0)+')');
+			useElem.setAttribute('transform','scale('+(thiszoom.scaleX)+' '+(thiszoom.scaleY)+') translate('+(-x)+' '+(-y)+')');
 			canEnter=true;
 		}
 	};
 	
-	doc.documentElement.addEventListener('mousemove',realZoom,false);
+	docEl.addEventListener('mousemove',realZoom,false);
 	
-	doc.documentElement.addEventListener('mousedown',function(evt) {
+	docEl.addEventListener('mousedown',function(evt) {
 		if(evt.ctrlKey) {
 			gVis=true;
 			realZoom(evt);
@@ -117,12 +122,12 @@ function SVGzoom(doc,gElem,/*optional*/ scaleX, scaleY) {
 		}
 	},false);
 	
-	doc.documentElement.addEventListener('mouseup',function(evt) {
+	docEl.addEventListener('mouseup',function(evt) {
 		conG.setAttribute('display','none');
 		gVis=undefined;
 	},false);
 	
-	doc.documentElement.addEventListener('keydown',function(evt) {
+	docEl.addEventListener('keydown',function(evt) {
 		if(evt.keyCode==90) {
 			//scale *= 1.5;
 			if(gVis) {
@@ -137,7 +142,7 @@ function SVGzoom(doc,gElem,/*optional*/ scaleX, scaleY) {
 	},false);
 	
 	/*
-	doc.documentElement.addEventListener('keydown',function(evt) {
+	docEl.addEventListener('keydown',function(evt) {
 		if(evt.keyCode == 17) {
 			//scale *= 1.5;
 			conG.setAttribute('display','inherit');
@@ -145,7 +150,7 @@ function SVGzoom(doc,gElem,/*optional*/ scaleX, scaleY) {
 		}
 	},false);
 	
-	doc.documentElement.addEventListener('keyup',function(evt) {
+	docEl.addEventListener('keyup',function(evt) {
 		if(evt.keyCode == 17) {
 			//scale /= 1.5;
 			conG.setAttribute('display','none');
