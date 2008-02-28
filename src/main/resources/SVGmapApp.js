@@ -108,24 +108,25 @@ somewhere in the source-code-comment or the "about" of your project and give cre
 //this mapApp object helps to convert clientX/clientY coordinates to the coordinates of the group where the element is within
 //normally one can just use .getScreenCTM(), but ASV3 does not implement it, 95% of the code in this function is for ASV3!!!
 //credits: Kevin Lindsey for his example at http://www.kevlindev.com/gui/utilities/viewbox/ViewBox.js
-function SVGmapApp(adjustVBonWindowResize,resizeCallbackFunction) {
+function SVGmapApp(/*optional*/thedoc,adjustVBonWindowResize,resizeCallbackFunction) {
+	if(!thedoc) thedoc=document;
+	this.thedoc=thedoc;
 	this.adjustVBonWindowResize = adjustVBonWindowResize;
 	this.resizeCallbackFunction = resizeCallbackFunction;
 	this.initialized = false;
-	if (!document.documentElement.getScreenCTM) {
+	if (!thedoc.documentElement.getScreenCTM) {
 		//add zoom and pan event event to document element
 		//this part is only required for viewers not supporting document.documentElement.getScreenCTM() (e.g. ASV3)
-		document.documentElement.addEventListener("SVGScroll",this,false);
-		document.documentElement.addEventListener("SVGZoom",this,false);
+		thedoc.documentElement.addEventListener("SVGScroll",this,false);
+		thedoc.documentElement.addEventListener("SVGZoom",this,false);
 	}
 	//add SVGResize event, note that because FF does not yet support the SVGResize event, there is a workaround
  	try {
   		//browsers with native SVG support
-  		window.addEventListener("resize",this,false);
- 	}
-	catch(er) {
+  		top.addEventListener("resize",this,false);
+ 	} catch(er) {
 		//SVG UAs, like Batik and ASV/Iex
-		document.documentElement.addEventListener("SVGResize",this,false);
+		thedoc.documentElement.addEventListener("SVGResize",this,false);
 	}
 	//determine the browser main version
 	this.navigator = "Batik";
@@ -541,8 +542,9 @@ SVGmapApp.Helpers = {
 	 * @param {String} statusText	the text message to be displayed
 	 * @version 1.0 (2007-04-30)
 	 */
-	statusChange: function (statusText) {
-		document.getElementById("statusText").firstChild.nodeValue = "Statusbar: " + statusText;
+	statusChange: function (statusText,/*optional*/thedoc) {
+		if(!thedoc)  thedoc=document;
+		thedoc.getElementById("statusText").firstChild.nodeValue = "Statusbar: " + statusText;
 	},
 
 	/**
@@ -570,16 +572,17 @@ SVGmapApp.Helpers = {
 	 * @credits <a href="http://www.kevlindev.com/tutorials/basics/transformations/toUserSpace/index.htm">Kevin Lindsey (toUserSpace)</a>
 	 * @see #getTransformToElement
 	 */
-	getTransformToRootElement: function (node) {
+	getTransformToRootElement: function (node,/*optional*/thedoc) {
+		if(!thedoc)  thedoc=document;
 		try {
 			//this part is for fully conformant players (like Opera, Batik, Firefox, Safari ...)
-			var CTM = node.getTransformToElement(document.documentElement);
+			var CTM = node.getTransformToElement(thedoc.documentElement);
 		} catch (ex) {
 			//this part is for ASV3 or other non-conformant players
 			// Initialize our CTM the node's Current Transformation Matrix
 			var CTM = node.getCTM();
 			// Work our way through the ancestor nodes stopping at the SVG Document
-			while ( ( node = node.parentNode ) != document ) {
+			while ( ( node = node.parentNode ) != thedoc ) {
 				// Multiply the new CTM to the one with what we have accumulated so far
 				CTM = node.getCTM().multiply(CTM);
 			}
@@ -764,8 +767,9 @@ SVGmapApp.Helpers = {
 	 */
 	//starts an animtion with the given id
 	//this function is useful in combination with window.setTimeout()
-	startAnimation: function (id) {
-		document.getElementById(id).beginElement();
+	startAnimation: function (id,/*optional*/ thedoc) {
+		if(!thedoc)  thedoc=document;
+		thedoc.getElementById(id).beginElement();
 	}
 };
 
@@ -803,8 +807,10 @@ SVGmapApp.GetData.prototype = {
 	/**
 	 * triggers the network request defined in the constructor
 	 */
-	getData: function() {
+	getData: function(/*optional*/thedoc) {
 		//call getURL() if available
+		if(!thedoc)  thedoc=document;
+		this.thedoc=thedoc;
 		if (window.getURL) {
 			if (this.method == "get") {
 				getURL(this.url,this);
@@ -860,7 +866,7 @@ SVGmapApp.GetData.prototype = {
 			//parse content of the XML format to the variable "node"
 			if (this.returnFormat == "xml") {
 				//convert the text information to an XML node and get the first child
-				var node = parseXML(data.content,document);
+				var node = parseXML(data.content,this.thedoc);
 				//distinguish between a callback function and an object
 				if (typeof(this.callBackFunction) == "function") {
 					this.callBackFunction(node.firstChild,this.additionalParams);
@@ -891,7 +897,7 @@ SVGmapApp.GetData.prototype = {
 		if (this.xmlRequest.readyState == 4) {
 			if (this.returnFormat == "xml") {
 				//we need to import the XML node first
-				var importedNode = document.importNode(this.xmlRequest.responseXML.documentElement,true);
+				var importedNode = this.thedoc.importNode(this.xmlRequest.responseXML.documentElement,true);
 				if (typeof(this.callBackFunction) == "function") {
 					this.callBackFunction(importedNode,this.additionalParams);
 				}
@@ -926,10 +932,12 @@ SVGmapApp.GetData.prototype = {
 *   constructor
 *
 *****/
-SVGmapApp.ViewBox = function (svgNode) {
-    if ( arguments.length > 0 ) {
-        this.init(svgNode);
-    }
+SVGmapApp.ViewBox = function (svgNode,/*optional*/ thedoc) {
+	if(!thedoc)  thedoc=document;
+	this.thedoc=thedoc;
+	if ( arguments.length > 0 ) {
+		this.init(svgNode);
+	}
 };
 
 SVGmapApp.ViewBox.VERSION = "1.0";
@@ -969,21 +977,21 @@ SVGmapApp.ViewBox.prototype = {
 	*
 	*****/
 	getTM: function() {
-		var svgRoot      = document.documentElement;
-		var matrix       = document.documentElement.createSVGMatrix();
+		var svgRoot      = this.thedoc.documentElement;
+		var matrix       = svgRoot.createSVGMatrix();
 		//case width/height contains percent
 		this.windowWidth = svgRoot.getAttributeNS(null,"width");
 		if (this.windowWidth.match(/%/) || this.windowWidth == null) {
 			if (this.windowWidth == null) {
-				if (window.innerWidth) {
-					this.windowWidth = window.innerWidth;
+				if (top.innerWidth) {
+					this.windowWidth = top.innerWidth;
 				} else {
 					this.windowWidth = svgRoot.viewport.width;
 				}
 			} else {
 				var factor = parseFloat(this.windowWidth.replace(/%/,""))/100;
-				if (window.innerWidth) {
-					this.windowWidth = window.innerWidth * factor;
+				if (top.innerWidth) {
+					this.windowWidth = top.innerWidth * factor;
 				} else {
 					this.windowWidth = svgRoot.viewport.width * factor;
 				}
@@ -994,15 +1002,15 @@ SVGmapApp.ViewBox.prototype = {
 		this.windowHeight = svgRoot.getAttributeNS(null,"height");
 		if (this.windowHeight.match(/%/) || this.windowHeight == null) {
 			if (this.windowHeight == null) {
-				if (window.innerHeight) {
-					this.windowHeight = window.innerHeight;
+				if (top.innerHeight) {
+					this.windowHeight = top.innerHeight;
 				} else {
 					this.windowHeight = svgRoot.viewport.height;
 				}
 			} else {
 				var factor = parseFloat(this.windowHeight.replace(/%/,""))/100;
-				if (window.innerHeight) {
-					this.windowHeight = window.innerHeight * factor;
+				if (top.innerHeight) {
+					this.windowHeight = top.innerHeight * factor;
 				} else {
 					this.windowHeight = svgRoot.viewport.height * factor;
 				}
@@ -1112,11 +1120,11 @@ SVGmapApp.prototype = {
 
 	resetFactors: function() {
 		//set inner width and height
-		if (window.innerWidth) {
-			this.innerWidth = window.innerWidth;
-			this.innerHeight = window.innerHeight;
+		if (top.innerWidth) {
+			this.innerWidth = top.innerWidth;
+			this.innerHeight = top.innerHeight;
 		} else {
-			var viewPort = document.documentElement.viewport;
+			var viewPort = this.thedoc.documentElement.viewport;
 			this.innerWidth = viewPort.width;
 			this.innerHeight = viewPort.height;
 		}
@@ -1124,8 +1132,8 @@ SVGmapApp.prototype = {
 			this.adjustViewBox();
 		}
 		//this code is for ASV3
-		if (!document.documentElement.getScreenCTM) {
-			var svgroot = document.documentElement;
+		if (!this.thedoc.documentElement.getScreenCTM) {
+			var svgroot = this.thedoc.documentElement;
 			this.viewBox = new SVGmapApp.ViewBox(svgroot);
 			var trans = svgroot.currentTranslate;
 			var scale = svgroot.currentScale;
@@ -1144,11 +1152,11 @@ SVGmapApp.prototype = {
 
 	//set viewBox of document.documentElement to innerWidth and innerHeight
 	adjustViewBox: function() {
-		document.documentElement.setAttributeNS(null,"viewBox","0 0 "+this.innerWidth+" "+this.innerHeight);
+		this.thedoc.documentElement.setAttributeNS(null,"viewBox","0 0 "+this.innerWidth+" "+this.innerHeight);
 	},
 
 	calcCoord: function(evt,ctmNode) {
-		var svgPoint = document.documentElement.createSVGPoint();
+		var svgPoint = this.thedoc.documentElement.createSVGPoint();
 		//svgPoint.x = evt.clientX;
 		//svgPoint.y = evt.clientY;
 		try {
@@ -1173,9 +1181,9 @@ SVGmapApp.prototype = {
 	},
 	
 	calcPointCoord: function(svgPoint,ctmNode) {
-		if (!document.documentElement.getScreenCTM) {
+		if (!this.thedoc.documentElement.getScreenCTM) {
 			//undo the effect of transformations
-			var matrix = SVGmapApp.Helpers.getTransformToRootElement(ctmNode);
+			var matrix = SVGmapApp.Helpers.getTransformToRootElement(ctmNode,this.thedoc);
   			svgPoint = svgPoint.matrixTransform(matrix.inverse().multiply(this.m));
 		} else {
 			//case getScreenCTM is available
@@ -1187,10 +1195,10 @@ SVGmapApp.prototype = {
 	},
 
 	calcInvCoord: function(svgPoint) {
-		if (!document.documentElement.getScreenCTM) {
-			var matrix = SVGmapApp.Helpers.getTransformToRootElement(document.documentElement);
+		if (!this.thedoc.documentElement.getScreenCTM) {
+			var matrix = SVGmapApp.Helpers.getTransformToRootElement(this.thedoc.documentElement,this.thedoc);
 		} else {
-			var matrix = document.documentElement.getScreenCTM();
+			var matrix = this.thedoc.documentElement.getScreenCTM();
 		}
 		svgPoint = svgPoint.matrixTransform(matrix);
 		return svgPoint;
@@ -1200,7 +1208,7 @@ SVGmapApp.prototype = {
 	initTooltips: function(groupId,tooltipTextAttribs,tooltipRectAttribs,xOffset,yOffset,padding) {
 		var nrArguments = 6;
 		if (arguments.length == nrArguments) {
-			this.toolTipGroup = document.getElementById(groupId);
+			this.toolTipGroup = this.thedoc.getElementById(groupId);
 			this.tooltipTextAttribs = tooltipTextAttribs;
 			if (!this.tooltipTextAttribs["font-size"]) {
 				this.tooltipTextAttribs["font-size"] = 12;
@@ -1217,7 +1225,7 @@ SVGmapApp.prototype = {
 				this.toolTipGroup.setAttributeNS(null,"pointer-events","none");
 				this.tooltipsEnabled = true;
 				//create tooltip text element
-				this.tooltipText = document.createElementNS(SVGmapApp.svgNS,"text");
+				this.tooltipText = this.thedoc.createElementNS(SVGmapApp.svgNS,"text");
 				for (var attrib in this.tooltipTextAttribs) {
 					value = this.tooltipTextAttribs[attrib];
 					if (attrib == "font-size") {
@@ -1226,11 +1234,11 @@ SVGmapApp.prototype = {
 					this.tooltipText.setAttributeNS(null,attrib,value);
 				}
 				//create textnode
-				var textNode = document.createTextNode("Tooltip");
+				var textNode = this.thedoc.createTextNode("Tooltip");
 				this.tooltipText.appendChild(textNode);
 				this.toolTipGroup.appendChild(this.tooltipText);
 				var bbox = this.tooltipText.getBBox();
-				this.tooltipRect = document.createElementNS(SVGmapApp.svgNS,"rect");
+				this.tooltipRect = this.thedoc.createElementNS(SVGmapApp.svgNS,"rect");
 				this.tooltipRect.setAttributeNS(null,"x",bbox.x-this.padding);
 				this.tooltipRect.setAttributeNS(null,"y",bbox.y-this.padding);
 				this.tooltipRect.setAttributeNS(null,"width",bbox.width+this.padding*2);
@@ -1250,7 +1258,7 @@ SVGmapApp.prototype = {
 		if (arguments.length == nrArguments) {
 			//get reference
 			if (typeof(tooltipNode) == "string") {
-				tooltipNode = document.getElementById(tooltipNode);
+				tooltipNode = this.thedoc.getElementById(tooltipNode);
 			}
 			//check if tooltip attribute present or create one
 			if (!tooltipNode.hasAttributeNS(SVGmapApp.attribNS,"tooltip")) {
@@ -1323,14 +1331,14 @@ SVGmapApp.prototype = {
 				this.tooltipText.removeChild(this.tooltipText.lastChild);
 			}
 			for (var i=0;i<textArray.length;i++) {
-				var tspanEl = document.createElementNS(SVGmapApp.svgNS,"tspan");
+				var tspanEl = this.thedoc.createElementNS(SVGmapApp.svgNS,"tspan");
 				tspanEl.setAttributeNS(null,"x",0);
 				var dy = this.tooltipTextAttribs["font-size"];
 				if (i == 0) {
 					var dy = 0;
 				}
 				tspanEl.setAttributeNS(null,"dy",dy);
-				var textNode = document.createTextNode(textArray[i]);
+				var textNode = this.thedoc.createTextNode(textArray[i]);
 				tspanEl.appendChild(textNode);
 				this.tooltipText.appendChild(tspanEl);
 			}

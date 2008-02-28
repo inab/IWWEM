@@ -49,14 +49,14 @@ function SVGtramp(LoadEvent) {
 	}
 	
 	// SVG must enumerate itself...
-	var nodes = this.SVGDoc.getElementsByTagName("g");
+	var nodes = this.SVGDoc.getElementsByTagNameNS(SVGtramp.SVGNS,"g");
 	var titleToNode=new Object();
 	var nodeToTitle=new Object();
 	for(var i=0; i<nodes.length ; i++) {
 		var node=nodes.item(i);
 		if(node.getAttribute("class") == 'node') {
 			var nodeId=node.getAttribute("id");
-			var titles=node.getElementsByTagName('title');
+			var titles=node.getElementsByTagNameNS(SVGtramp.SVGNS,'title');
 			
 			if(titles.length>0) {
 				var textContent=SVGtramp.getTextContent(titles.item(0));
@@ -115,7 +115,7 @@ function SVGtramp(LoadEvent) {
 	// The MapApp, used by the code
 	this.myMapApp=undefined;
 	try {
-		this.myMapApp=new SVGmapApp();
+		this.myMapApp=new SVGmapApp(this.SVGDoc);
 	} catch(e) {
 		// IgnoreIT!(R)
 	}
@@ -404,7 +404,7 @@ SVGtramp.prototype = {
 		if(node) {
 			var theNode=this.SVGDoc.getElementById(node);
 			if(theNode) {
-				var polygons=theNode.getElementsByTagName("polygon");
+				var polygons=theNode.getElementsByTagNameNS(SVGtramp.SVGNS,"polygon");
 				if(polygons.length>0) {
 					this.setCSSProp(polygons.item(0),"fill",color);
 					this.setCSSProp(polygons.item(0),"fill-opacity",opacity);
@@ -432,7 +432,7 @@ SVGtramp.prototype = {
 		if(node) {
 			var theNode=this.SVGDoc.getElementById(node);
 			if(theNode) {
-				var polygons=theNode.getElementsByTagName("polygon");
+				var polygons=theNode.getElementsByTagNameNS(SVGtramp.SVGNS,"polygon");
 				if(polygons.length>0) {
 					this.setCSSProp(polygons.item(0),"fill-opacity",opacity);
 
@@ -549,7 +549,7 @@ SVGtramp.prototype = {
 	},
 	
 	addBulbs: function (g,/* optional */ bulbcolor) {
-		var polygons=g.getElementsByTagName("polygon");
+		var polygons=g.getElementsByTagNameNS(SVGtramp.SVGNS,"polygon");
 		if(polygons.length>0) {
 			if(!bulbcolor)  bulbcolor='none';
 			var poly=polygons.item(0);
@@ -568,7 +568,7 @@ SVGtramp.prototype = {
 				
 				// Getting the reference element
 				var refElem=null;
-				var txts=g.getElementsByTagName("text");
+				var txts=g.getElementsByTagNameNS(SVGtramp.SVGNS,"text");
 				if(txts.length>0) {
 					refElem=txts[0];
 				}
@@ -625,7 +625,7 @@ SVGtramp.prototype = {
 		if(nodeId) {
 			var theNode=this.SVGDoc.getElementById(nodeId);
 			if(theNode) {
-				var paths=theNode.getElementsByTagName("path");
+				var paths=theNode.getElementsByTagNameNS(SVGtramp.SVGNS,"path");
 				for(var i=0;i<paths.length;i++) {
 					paths[i].setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
 					retval=true;
