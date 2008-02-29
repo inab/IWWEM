@@ -17,6 +17,9 @@
 	<script type="text/javascript" src="js/dynamicSVGhandling.js"></script>
 	<script type="text/javascript" src="js/IWWEM-common.js"></script>
 	<script type="text/javascript" src="js/base64.js"></script>
+	<script type="text/javascript" src="js/baclavahandling.js"></script>
+	<script type="text/javascript" src="js/databrowser.js"></script>
+	<script type="text/javascript" src="js/datamatcher.js"></script>
 	<script type="text/javascript" src="js/enactionviewer.js"></script>
 </head>
 <body onload="InitIWWEM(EnactionViewerCustomInit)" onunload="DisposeIWWEM(EnactionViewerCustomDispose)">
@@ -46,19 +49,30 @@
 				</form>
 			</div>
 		</td><td style="width:230px;vertical-align:top;text-align:center">
-			<div id="dataviewer" class="scroll"></div>
+			<div id="databrowser" class="scroll"></div>
 		</td></tr><tr><td class="buttons">
 			<div align="center">
 				<table><tr><td>
-					<div class="button" onclick="genview.enactview.reloadStatus()">Update <img src="style/reload.png"></div>
+					<div id="reloadButton" class="button">	
+						<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+							<span id="updateTextSpan">Update</span> <img src="style/reload.png">
+						</td></tr></table>
+					</div>
 				</td><td>
-					<div class="button" onclick="genview.enactview.openOtherEnactionFrame()">Open enaction<img src="style/blueplus.png"></div>
+					<div class="button" onclick="genview.enactview.openOtherEnactionFrame()">
+						<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+							Open enaction<img src="style/blueplus.png">
+						</td></tr></table>
+					</div>
 				</td></tr></table>
 			</div>
 		</td><td class="buttons">
 			<div align="center">
-				<div class="button" onclick="genview.enactview.openSnapshotFrame()">Snapshot <img
-				src="style/snapshot.png"></img></div>
+				<div id="snapButton" class="button">
+					<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+						Snapshot <img src="style/snapshot.png"></img>
+					</td></tr></table>
+				</div>
 			</div>
 		</td><td class="buttons">
 			<table align="center" style="margin:0px;padding:0px"><tr valign="middle"><td colspan="2" align="center">
@@ -67,9 +81,17 @@
 				-->
 				<span id="confirm" class='checkboxred checkbox right'>Confirm</span>
 			</td></tr><tr><td>
-				<div class="button" onclick="genview.enactview.disposeEnaction()">Kill Job <img src="style/skull.png"></img></div>
+				<div id="killButton" class="button">
+					<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+						Kill Job <img src="style/skull.png"></img>
+					</td></tr></table>
+				</div>
 			</td><td>
-				<div class="button" onclick="genview.enactview.disposeEnaction(1)">Dispose <img src="style/recycle.png"></img></div>
+				<div class="button" onclick="genview.enactview.disposeEnaction(1)">
+					<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
+						Dispose <img src="style/recycle.png"></img>
+					</td></tr></table>
+				</div>
 			</td></tr></table>
 		</td></tr>
 	</table>

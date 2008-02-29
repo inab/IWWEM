@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    targetNamespace="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend/patterns"
+    elementFormDefault="qualified"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:pat="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend/patterns"
+>
+    <xsd:annotation>
+        <xsd:documentation><![CDATA[
+    This schema is used to hold the information about the usable
+recognition patterns. These patterns can be either RE (for raw text)
+or XPath expressions (for XML).
+]]></xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType name="patternType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Type used by expression and extractionStep]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:choice minOccurs="1" maxOccurs="1">
+            <xsd:element name="reExpression" type="xsd:string" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[A regular expression pattern]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="xpath" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[An XPath expression, which needs]]></xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence minOccurs="1" maxOccurs="1">
+                        <xsd:element name="nsMapping" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The namespace prefix declaration]]></xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:attribute name="ns" type="xsd:anyURI" use="required"/>
+                                <xsd:attribute name="prefix" type="xsd:string" use="required"/>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                    <xsd:attribute name="expression" type="xsd:string" use="required"/>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:choice>
+<!--        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="namespace" use="required">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[
+    A pattern namespace, which can be either 're' or 'xpath'
+]]></xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:simpleType>
+                        <xsd:restriction base="xsd:string">
+                            <xsd:enumeration value="re"/>
+                            <xsd:enumeration value="xpath"/>
+                        </xsd:restriction>
+                    </xsd:simpleType>
+                </xsd:attribute>
+                
+            </xsd:extension>
+        </xsd:simpleContent>
+-->    </xsd:complexType>
+    
+    <xsd:complexType name="MIMEComplexType">
+        <xsd:attribute name="type" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[A MIME type]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:element name="IWWEMpatterns">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+    The element whose children are the usable recognition patterns.
+They are very useful when you are analyzing any (intermediate) result
+of an enaction, because they help extracting and labeling embedded
+information.
+]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element name="detectionPattern" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[
+    A recognition/detection/extraction pattern. It is applied in two steps.
+First one, at least one of the input MIME types must match with at least one
+of the detectable MIME types.
+Second one, the detection pattern must match the content.
+Once these two steps are fulfilled, the extraction patterns are
+applied on the patterned subsets.
+]]></xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:sequence minOccurs="1" maxOccurs="1">
+                            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[
+    Textual description of what this detection pattern recognizes
+and what it is obtained/extracted.
+]]></xsd:documentation>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element name="applyToMIME" type="pat:MIMEComplexType" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[
+    The detection can be done only on these MIME types.
+]]></xsd:documentation>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element name="expression" type="pat:patternType" minOccurs="1" maxOccurs="1">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[A detection pattern expression]]></xsd:documentation>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element name="extractionStep" minOccurs="1" maxOccurs="unbounded">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[
+A extraction pattern expression, which is applied over the occurrences
+got from the detection pattern]]></xsd:documentation>
+                                </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:complexContent>
+                                        <xsd:extension base="pat:patternType">
+                                            <xsd:attribute name="encoding">
+                                                <xsd:annotation>
+                                                    <xsd:documentation><![CDATA[
+    The encoding of the extracted content, so if it is base64 encoded, it can
+be decoded later.
+]]></xsd:documentation>
+                                                </xsd:annotation>
+                                                <xsd:simpleType>
+                                                    <xsd:restriction base="xsd:string">
+                                                        <xsd:enumeration value="raw"/>
+                                                        <xsd:enumeration value="base64"/>
+                                                    </xsd:restriction>
+                                                </xsd:simpleType>
+                                            </xsd:attribute>
+                                        </xsd:extension>
+                                    </xsd:complexContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="assignMIME" type="pat:MIMEComplexType" minOccurs="1" maxOccurs="unbounded">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[These MIME types will be attached to the extracted information]]></xsd:documentation>
+                                </xsd:annotation>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="name" use="required" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[Symbolic detection name]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:unique name="detectionPatternNameUnique">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+    There should not be two detection patterns with the same
+symbolic name.
+]]></xsd:documentation>
+            </xsd:annotation>
+            <xsd:selector xpath="detectionPattern"></xsd:selector>
+            <xsd:field xpath="@name"></xsd:field>
+        </xsd:unique>
+    </xsd:element>
+</xsd:schema>

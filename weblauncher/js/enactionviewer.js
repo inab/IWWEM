@@ -1,7 +1,7 @@
 /*
 	enactionviewer.js
 	from INB Web Workflow Enactor & Manager (IWWE&M)
-	Author: José María Fernández González (C) 2007
+	Author: José María Fernández González (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
@@ -16,106 +16,6 @@ function EnactionViewerCustomDispose() {
 		this.enactview.svg.clearSVG();
 	}
 }
-
-function Baclava(dataThing) {
-	this.name=dataThing.getAttribute('key');
-	for(var child=dataThing.firstChild;child;child=child.nextSibling) {
-		if(child.nodeType==1 && GeneralView.getLocalName(child)=='myGridDataDocument') {
-			this.syntacticType=child.getAttribute('syntactictype');
-			for(var myData=child.firstChild;myData;myData=myData.nextSibling) {
-				if(myData.nodeType==1) {
-					switch(GeneralView.getLocalName(myData)) {
-						case 'metadata':
-							this.setMetadata(myData);
-							break;
-						case 'partialOrder':
-						case 'dataElement':
-							this.data=Baclava.Data(myData);
-							break;
-					}
-				}
-			}
-			break;
-		}
-	}
-}
-
-Baclava.BACLAVA_NS='http://org.embl.ebi.escience/baclava/0.1alpha';
-
-Baclava.prototype = {
-	// Stores the assigned metadata
-	setMetadata: function(metadata) {
-		var mime=new Array();
-		var mimeNodes = GeneralView.getElementsByTagNameNS(metadata,GeneralView.XSCUFL_NS,'mimeType');
-		if(mimeNodes.length>0) {
-			for(var i=0;i<mimeNodes.length;i++) {
-				var mim=mimeNodes.item(i);
-				mime.push(WidgetCommon.getTextContent(mim));
-			}
-		} else {
-			mime.push('text/plain');
-		}
-		this.mime=mime;
-	}
-};
-
-/* A Baclava XML parser */
-Baclava.Parser = function(baclavaXML,thehash,themessagediv) {
-	if(baclavaXML && baclavaXML.documentElement && GeneralView.getLocalName(baclavaXML.documentElement)=='dataThingMap') {
-		for(var dataThing = baclavaXML.documentElement.firstChild; dataThing; dataThing=dataThing.nextSibling) {
-			if(dataThing.nodeType==1 && GeneralView.getLocalName(dataThing)=='dataThing') {
-				var bacla=new Baclava(dataThing);
-				thehash[bacla.name]=bacla;
-			}
-		}
-	}
-	// We should notify here in some way, like this one
-	thehash[WorkflowStep.GOT]=1;
-};
-
-Baclava.Data = function(partial) {
-	var data=undefined;
-	switch(GeneralView.getLocalName(partial)) {
-		case 'partialOrder':
-			var processRelations=undefined;
-			switch(partial.getAttribute('type')) {
-				case 'list':
-					data={};
-				case 'set':
-					processRelations=1;
-					break;
-			}
-			for(var list=partial.firstChild; list; list=list.nextSibling) {
-				if(list.nodeType==1) {
-					switch(GeneralView.getLocalName(list)) {
-						case 'relationList':
-							if(processRelations) {
-								// Even Taverna core does nothing at this step!!!
-							}
-							break;
-						case 'itemList':
-							for(var item=list.firstChild;item;item=item.nextSibling) {
-								if(item.nodeType==1) {
-									var idx = item.getAttribute('index');
-									data[idx] = Baclava.Data(item);
-								}
-							}
-							break;
-					}
-				}
-			}
-			break;
-		case 'dataElement':
-			var ndata = GeneralView.getElementsByTagNameNS(partial,Baclava.BACLAVA_NS,'dataElementData');
-			if(ndata && ndata.length>0) {
-				//data=Base64.decode(WidgetCommon.getTextContent(ndata.item(0)));
-				data=WidgetCommon.getTextContent(ndata.item(0));
-			}
-			break;
-	}
-	
-	return data;
-};
 
 function WorkflowStep(stepDOM, /* optional */ parentStep) {
 	this.name=stepDOM.getAttribute('name') || stepDOM.getAttribute('jobId');
@@ -155,26 +55,25 @@ function WorkflowStep(stepDOM, /* optional */ parentStep) {
 	}
 }
 
-WorkflowStep.GOT='----GOT----';
-
 WorkflowStep.prototype = {
-	fetchBaclavaObject: function(theurl,thehash,themessagediv,/* optional */ thenotify, istep) {
+	fetchBaclavaObject: function(theurl,thehash,enactview,/* optional */ thenotify, istep) {
 		var request;
 		try {
 			request=new XMLHttpRequest();
 			request.onreadystatechange=function() {
-				//themessagediv.innerHTML += request.readyState + '<br>';
+				//enactview.addMessage(request.readyState + '<br>');
 				if(request.readyState==4) {
 					try {
 						if('status' in request) {
 							if(request.status == 200 || request.status == 304) {
 								if(request.parseError && request.parseError.errorCode!=0) {
-									themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR ('+
+									enactview.addMessage('<blink><h1 style="color:red">FATAL ERROR ('+
 										request.parseError.errorCode+
 										") while parsing list at ("+
 										request.parseError.line+
 										","+request.parseError.linePos+
-										"):</h1></blink><pre>"+request.parseError.reason+"</pre>";
+										"):</h1></blink><pre>"+request.parseError.reason+"</pre>"
+									);
 								} else {
 									var response = request.responseXML;
 									if(!response) {
@@ -183,11 +82,15 @@ WorkflowStep.prototype = {
 											response = parser.parseFromString(request.responseText,'application/xml');
 										} else {
 											// Backend error.
-											themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR B: (with '+theurl+') Please notify it to INB Web Workflow Manager developer</h1></blink>';
+											enactview.addMessage(
+												'<blink><h1 style="color:red">FATAL ERROR B: (with '+
+												theurl+
+												') Please notify it to INB Web Workflow Manager developer</h1></blink>'
+											);
 										}
 									}
 									// Only parse when an answer is available
-									Baclava.Parser(response,thehash,themessagediv);
+									Baclava.Parser(response,thehash,enactview);
 									try {
 										if(thenotify)  thenotify(istep);
 									} catch(noti) {
@@ -202,14 +105,31 @@ WorkflowStep.prototype = {
 								if(('statusText' in request) && request.statusText) {
 									statusText=request.statusText;
 								}
-								themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR while fetching '+theurl+': '+
-									request.status+' '+statusText+'</h1></blink>';
+								enactview.addMessage(
+									'<blink><h1 style="color:red">FATAL ERROR while fetching '+
+									theurl+
+									': '+
+									request.status+
+									' '+
+									statusText+
+									'</h1></blink>'
+								);
 							}
 						} else {
-							themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR F: (with '+theurl+') Please notify it to INB Web Workflow Manager developer</h1></blink>';
+							enactview.addMessage(
+								'<blink><h1 style="color:red">FATAL ERROR F: (with '+
+								theurl+
+								') Please notify it to INB Web Workflow Manager developer</h1></blink>'
+							);
 						}
 					} catch(e) {
-						themessagediv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to complete '+theurl+' reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
+						enactview.addMessage(
+							'<blink><h1 style="color:red">FATAL ERROR: Unable to complete '+
+							theurl+
+							' reload!</h1></blink><pre>'+
+							WidgetCommon.DebugError(e)+
+							'</pre>'
+						);
 					} finally {
 						request.onreadystatechange=new Function();
 					}
@@ -220,23 +140,29 @@ WorkflowStep.prototype = {
 			request.open('GET',theurl,true);
 			request.send(null);
 		} catch(e) {
-			themessagediv.innerHTML+='<blink><h1 style="color:red">FATAL ERROR: Unable to start '+theurl+' reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
+			enactview.addMessage(
+				'<blink><h1 style="color:red">FATAL ERROR: Unable to start '+
+				theurl+
+				' reload!</h1></blink><pre>'+
+				WidgetCommon.DebugError(e)+
+				'</pre>'
+			);
 			request=undefined;
 		}
 		
 		return request;
 	},
 	
-	fetchBaclava: function(baseJob,themessagediv,gotInputHandler,gotOutputHandler,/* optional */ istep) {
+	fetchBaclava: function(baseJob,enactview,gotInputHandler,gotOutputHandler,/* optional */ istep) {
 		var relpath=baseJob+'/'+EnactionView.getJobDir(this.name)+'/';
 		
 		// Determining whether 
-		if(this.hasInputs && !(this.input[WorkflowStep.GOT]) && !this.bacInput) {
-			this.bacInput=this.fetchBaclavaObject(relpath+'Inputs.xml',this.input,themessagediv,gotInputHandler,istep);
+		if(this.hasInputs && !(this.input[Baclava.GOT]) && !this.bacInput) {
+			this.bacInput=this.fetchBaclavaObject(relpath+'Inputs.xml',this.input,enactview,gotInputHandler,istep);
 		}
 		
-		if(this.hasOutputs && !(this.output[WorkflowStep.GOT]) && !this.bacOutput) {
-			this.bacOutput=this.fetchBaclavaObject(relpath+'Outputs.xml',this.output,themessagediv,gotOutputHandler,istep);
+		if(this.hasOutputs && !(this.output[Baclava.GOT]) && !this.bacOutput) {
+			this.bacOutput=this.fetchBaclavaObject(relpath+'Outputs.xml',this.output,enactview,gotOutputHandler,istep);
 		}
 		
 		// Now, the iterations
@@ -244,300 +170,7 @@ WorkflowStep.prototype = {
 			var iti = this.iterations;
 			var itil = iti.length;
 			for(var i=0; i<itil ; i++) {
-				iti[i].fetchBaclava(relpath+'Iterations',themessagediv,gotInputHandler,gotOutputHandler,i);
-			}
-		}
-	}
-};
-
-function JMolAlert(appname,info,addi) {
-	if(info=='Script completed' && JMolAlert.runme) {
-		//var d=new Date();
-		//alert('alerta '+d.getTime()+' '+appname+' '+info+' '+addi);
-		// This alert avoids a Java plugin deadlock
-		setTimeout(JMolAlert.runme,100);
-	}
-}
-
-JMolAlert.runme=undefined;
-
-/* Data viewer, the must-be royal crown */
-function DataViewer(dataviewerId,genview) {
-	this.genview=genview;
-	
-	this.dataviewerDiv=genview.getElementById(dataviewerId);
-	this.mimeSelect=genview.getElementById('mimeSelect');
-	this.data=undefined;
-	this.base64data=undefined;
-	this.mimeList=undefined;
-	
-	jmolInitialize('js/jmol');
-	jmolSetDocument(false);
-	jmolSetCallback('messageCallback','JMolAlert');
-	
-	var dataview=this;
-	// Changed due Internet Explorer
-	this.mimeChangeFunc=function(event) {
-		if(!event)  event=window.event;
-		var target=(event.currentTarget)?event.currentTarget:event.srcElement;
-		if(target.selectedIndex!=-1) {
-			dataview.applyView(target.options[target.selectedIndex].value);
-		}
-	};
-}
-
-DataViewer.prototype={
-	openProcessFrame: function () {
-		this.genview.openFrame('preprocessData',1);
-	},
-	
-	closeProcessFrame: function() {
-		this.genview.closeFrame();
-	},
-	
-	clearView: function () {
-		WidgetCommon.removeEventListener(this.mimeSelect,'change',this.mimeChangeFunc,false);
-		this.data=undefined;
-		this.base64data=undefined;
-		this.mimeList=undefined;
-		GeneralView.freeContainer(this.dataviewerDiv);
-		GeneralView.freeSelect(this.mimeSelect);
-	},
-		
-	show: function(data,mimeList) {
-		this.clearView();
-		
-		// First, fill in mime type
-		if(mimeList) {
-			if(mimeList.length==0) {
-				mimeList.push('text/plain');
-			}
-			this.mimeList=mimeList;
-
-			for(var i=0;i<mimeList.length;i++) {
-				var iterM=this.genview.createElement('option');
-				iterM.text=iterM.value=mimeList[i];
-				try {
-					this.mimeSelect.add(iterM,null);
-				} catch(e) {
-					this.mimeSelect.add(iterM);
-				}
-			}
-
-			// Second, set the data
-			// which it is in base64
-			this.openProcessFrame();
-			var dataview=this;
-			this.base64data=data;
-			// Base64.streamDecode(data,function(decdata) {
-			Base64.streamFromBase64ToUTF8(data,function(decdata) {
-				dataview.data=decdata;
-				
-				dataview.closeProcessFrame();
-				// Third, apply best view!
-				dataview.applyView();
-				
-				// Fourth, assign handler
-				WidgetCommon.addEventListener(dataview.mimeSelect,'change',dataview.mimeChangeFunc,false);
-			});
-		} else {
-			// Default case, no view
-			var iterM=this.genview.createElement('option');
-			iterM.text=iterM.value='NO ONE';
-			try {
-				this.mimeSelect.add(iterM,null);
-			} catch(e) {
-				this.mimeSelect.add(iterM);
-			}
-			this.mimeList=undefined;
-			this.data=undefined;
-		}
-	},
-	
-	applyView: function (mime) {
-		// Choose the best view
-		if(!mime) {
-			if(this.mimeList) {
-				// Default case
-				mime=undefined;
-				var bestIndex=-1;
-				var tpIndex=-1;
-				for(var i=0;i<this.mimeList.length;i++) {
-					if(bestIndex==-1 && this.mimeList[i]!='text/plain' && this.mimeList[i]!='application/octet-stream') {
-						bestIndex=i;
-					}
-					if(this.mimeList[i]=='text/plain' || (tpIndex==-1 && this.mimeList[i]=='application/octet-stream')) {
-						tpIndex=i;
-					}
-				}
-				
-				if(bestIndex==-1) {
-					if(tpIndex==-1) {
-						tpIndex=0;
-					}
-					bestIndex=tpIndex;
-				}
-				mime=this.mimeList[bestIndex];
-				
-				this.mimeSelect.selectedIndex=bestIndex;
-			} else {
-				// No data :-(
-				this.dataviewerDiv.innerHTML='<i>NO DATA</i>';
-				return;
-			}
-		}
-		
-		
-		// Now, time to apply view
-		if(this.data) {
-			GeneralView.freeContainer(this.dataviewerDiv);
-			switch(mime) {
-				case 'application/octet-stream':
-					this.dataviewerDiv.innerHTML='Sorry, unable to show binary-labeled data (yet)!';
-					break;
-				case 'image/*':
-				case 'image/png':
-				case 'image/jpeg':
-				case 'image/gif':
-					// This works with any browser but explorer, nuts!
-					var img=new Image();
-					img.src='data:'+mime+';base64,'+this.base64data;
-					this.dataviewerDiv.appendChild(img);
-					break;
-				case 'image/svg+xml':
-					var objres=undefined;
-					if(BrowserDetect.browser!='Explorer') {
-						objres=this.genview.createElement('object');
-						objres.setAttribute("data",url);
-					} else {
-						objres=this.genview.createElement('embed');
-						objres.setAttribute("pluginspage","http://www.adobe.com/svg/viewer/install/");
-						objres.setAttribute("src",url);
-					}
-					objres.setAttribute("type","image/svg+xml");
-					objres.setAttribute("wmode","transparent");
-					objres.setAttribute("width",'100%');
-					objres.setAttribute("height",'100%');
-					this.dataviewerDiv.appendChild(objres);
-					break;
-				case 'chemical/x-alchemy':
-				case 'chemical/x-cif':
-				case 'chemical/x-gaussian-cube':
-				case 'chemical/x-mdl-molfile':
-				case 'chemical/x-mdl-sdfile':
-				case 'chemical/x-mmcif':
-				case 'chemical/x-mol2':
-				case 'chemical/x-mopac-out':
-				case 'chemical/x-pdb':
-				case 'chemical/x-xyz':
-					/*
-					this.dataviewerDiv.innerHTML=jmolAppletInline([300,450],
-						this.data,
-						'cartoon on;color cartoons structure',
-						'jmol'
-					);
-					*/
-					//jmolSetCallback('loadStructCallback',);
-					switch(BrowserDetect.browser) {
-						case 'Explorer':
-						case 'Safari':
-						case 'Opera':
-							this.dataviewerDiv.innerHTML=jmolAppletInline([300,450],
-								this.data,
-								'select all ; wireframe off ; spacefill off ; cartoon on ; color cartoons structure',
-								'jmol'
-							);
-						default:
-							var dataview=this;
-							JMolAlert.runme=function() {
-								jmolLoadInlineScript(dataview.data,
-									'select all ; wireframe off ; spacefill off ; cartoon on ; color cartoons structure',
-									'jmol');
-								JMolAlert.runme=undefined;
-							};
-							this.dataviewerDiv.innerHTML=jmolApplet([300,450],'echo','jmol');
-							break;
-						/*
-						default:
-							var applet = this.genview.createElement('applet');
-							var param = this.genview.createElement("param");
-							param.setAttribute("name","progressbar");
-							param.setAttribute("value","true");
-							applet.appendChild(param);
-							applet.name="jmol";
-							applet.setAttribute("archive","JmolApplet0.jar");
-							applet.setAttribute("codebase","js/jmol");
-							applet.setAttribute("mayscript","true");
-							applet.setAttribute("style","width:300;height:450");
-							applet.setAttribute("code","JmolApplet");
-
-							this.dataviewerDiv.appendChild(applet);
-
-							var dataview=this;
-
-							var loadme = function() {
-								try {
-									if(applet.isActive() && applet.loadInline) {
-										//alert(applet.loadInline);
-										setTimeout(function() {
-											applet.loadInline(
-												dataview.data,
-												'select all ; wireframe off ; spacefill off ; cartoon on ; color cartoons structure'
-	//											'define ~myset (*.N?);select ~myset;color green;select *;color cartoons structure;color rockets chain;color backbone blue'
-											);
-										},500);
-									} else {
-										setTimeout(loadme,100);
-									}
-								} catch(e) {
-									setTimeout(loadme,100);
-								}
-							};
-							loadme();
-							break;
-						*/
-					}
-					break;
-				case 'text/html':
-					// A bit risky, isn't it?
-					// Better an iframe, but not know
-					//this.dataviewerDiv.innerHTML=this.data;
-					var ifraId='_ifra_';
-					this.dataviewerDiv.innerHTML="<iframe id='"+ifraId+"' name='"+ifraId+"' frameborder='0' style='margin: 0px; padding: 0px; overflow: auto; height:100%; width: 100%;'></iframe>";
-					var ifra=WidgetCommon.getIFrameDocumentFromId(ifraId);
-					ifra.open('text/html');
-					ifra.write(this.data);
-					ifra.close();
-					ifra=null;
-					break;
-				case 'text/x-taverna-web-url':
-					var a=this.genview.createElement('a');
-					a.href=this.data;
-					a.target='_blank';
-					a.innerHTML=this.data;
-					this.dataviewerDiv.appendChild(a);
-					break;
-				case 'text/xml':
-				case 'text/plain':
-				//case 'chemical/x-fasta':
-				default:
-					// Use the prettyfier!
-					var dataCont = this.genview.createElement('pre');
-					dataCont.className='prettyprint noborder';
-					var tnode = this.genview.thedoc.createTextNode(this.data);
-					dataCont.appendChild(tnode);
-					this.dataviewerDiv.appendChild(dataCont);
-					
-					// Now, prettyPrint!!!!
-					if(/^\s*</.test(this.data) && />\s*$/.test(this.data)) {
-						var htmldata=this.data.toString();
-						htmldata=htmldata.replace(/&/g,'&amp;');
-						htmldata=htmldata.replace(/</g,'&lt;');
-						htmldata=htmldata.replace(/>/g,'&gt;');
-						htmldata=htmldata.replace(/"/g,'&quot;');
-						dataCont.innerHTML=prettyPrintOne(htmldata);
-					}
-					break;
+				iti[i].fetchBaclava(relpath+'Iterations',enactview,gotInputHandler,gotOutputHandler,i);
 			}
 		}
 	}
@@ -553,6 +186,25 @@ function EnactionView(genview) {
 	this.stageSpan=genview.getElementById('stageSpan');
 	this.statusSpan=genview.getElementById('statusSpan');
 	
+	this.updateTextSpan=genview.getElementById('updateTextSpan');
+	
+	var enactview = this;
+	
+	this.reloadButton=genview.getElementById('reloadButton');
+	WidgetCommon.addEventListener(this.reloadButton,'click',function() {
+		enactview.reloadStatus();
+	},false);
+	
+	this.snapButton=genview.getElementById('snapButton');
+	WidgetCommon.addEventListener(this.snapButton,'click',function() {
+		enactview.openSnapshotFrame();
+	},false);
+	
+	this.killButton=genview.getElementById('killButton');
+	WidgetCommon.addEventListener(this.killButton,'click',function() {
+		enactview.disposeEnaction();
+	},false);
+	
 	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg');
 	
 	this.iterationSelect=genview.getElementById('iterationSelect');
@@ -563,9 +215,11 @@ function EnactionView(genview) {
 	
 	this.IOTypeSpan=genview.getElementById('IOTypeSpan');
 	this.IONameSpan=genview.getElementById('IONameSpan');
-	this.dataviewer=new DataViewer('dataviewer',genview);
+	this.databrowser=new DataBrowser('databrowser',genview);
 	
-	var enactview=this;
+	this.frameViewId=undefined;
+	this.frameOtherId=undefined;
+	this.frameSnapId=undefined;
 	
 	var check = this.check=new GeneralView.Check(genview.getElementById('confirm'));
 	this.check.addEventListener('click', function() {
@@ -588,6 +242,12 @@ function EnactionView(genview) {
 	// formSnapshotEnaction is not needed at this level
 	// snapshotDesc is dynamic, so it is not caught here
 	this.snapshotDescContainer=genview.getElementById('snapshotDescContainer');
+	
+	this.matcher = new DataMatcher(this,'EVpatterns.xml');
+	
+	// Important update facets
+	this.enactQueryReq=undefined;
+	this.updateTimer=undefined;
 	
 	// Now, time to initialize all!
 
@@ -630,11 +290,11 @@ EnactionView.BaseHREF = window.location.pathname.substring(0,window.location.pat
 	
 EnactionView.prototype = {
 	openReloadFrame: function () {
-		this.genview.openFrame('reloadEnaction',1);
+		this.frameViewId=this.genview.openFrame('reloadEnaction',1);
 	},
 	
 	closeReloadFrame: function() {
-		this.genview.closeFrame();
+		this.genview.closeFrame(this.frameViewId);
 	},
 	
 	clearView: function () {
@@ -648,7 +308,7 @@ EnactionView.prototype = {
 		this.istep=undefined;
 		this.setStep();
 		
-		this.dataviewer.clearView();
+		this.databrowser.clearView();
 		GeneralView.freeContainer(this.dateSpan);
 		GeneralView.freeContainer(this.generalStatusSpan);
 		GeneralView.freeContainer(this.stageSpan);
@@ -673,10 +333,14 @@ EnactionView.prototype = {
 			WidgetCommon.removeEventListener(this.iterationSelect,'change',this.iterSelectHandler,false);
 			this.iterationSelect=undefined;
 		}
+		this.state='unknown';
+		this.reloadButton.className='button';
+		this.snapButton.className='button';
+		this.killButton.className='button';
 		// TODO?
 	},
 	
-	fillEnactionStatus: function(enactDOM) {
+	fillEnactionStatus: function(enactDOM,/*optional*/ callbackFill) {
 		// First, get the jobs rel uri
 		var statusL=GeneralView.getElementsByTagNameNS(enactDOM,GeneralView.IWWEM_NS,'enactionstatus');
 		
@@ -691,7 +355,7 @@ EnactionView.prototype = {
 				
 				this.dateSpan.innerHTML=enStatus.getAttribute('time');
 				
-				var state=enStatus.getAttribute('state');
+				var state = enStatus.getAttribute('state');
 				
 				// First run
 				if(state!='unknown' && state!='queued' && !this.initializedSVG) {
@@ -705,10 +369,10 @@ EnactionView.prototype = {
 						'120mm',
 						function() {
 							enactview.waitingSVG=undefined;
-							enactview.refreshEnactionStatus(state);
+							enactview.refreshEnactionStatus(state,callbackFill);
 						});
 				} else {
-					this.refreshEnactionStatus(state);
+					this.refreshEnactionStatus(state,callbackFill);
 				}
 				
 				// Found, so no more iterations
@@ -742,8 +406,29 @@ EnactionView.prototype = {
 		return gstate;
 	},
 	
-	refreshEnactionStatus: function(state) {
+	refreshEnactionStatus: function(state,callbackFill) {
 		if(!state)  state='undefined';
+		
+		this.state = state;
+		
+		if(
+			state=='frozen' ||
+			state=='dead' ||
+			state=='error' ||
+			state=='killed' ||
+			state=='finished'
+		) {
+			this.reloadButton.className='buttondisabled';
+			this.killButton.className='buttondisabled';
+		} else {
+			this.reloadButton.className='button';
+			this.killButton.className='button';
+		}
+		if(state=='frozen') {
+			this.snapButton.className='buttondisabled';
+		} else {
+			this.snapButton.className='button';
+		}
 		
 		if(state!='unknown' && state!='queued' && state!='undefined') {
 			// Updating the step cache for the meta-step
@@ -785,6 +470,9 @@ EnactionView.prototype = {
 			this.generalStatusSpan.innerHTML=gstate;
 			this.svg.removeSVG();
 		}
+		if(typeof callbackFill == 'function') {
+			callbackFill();
+		}
 	},
 	
 	updateStepView: function(step) {
@@ -794,16 +482,20 @@ EnactionView.prototype = {
 			// Setting the fill
 			switch(step.state) {
 				case 'queued':
-					tramp.changeNodeFill(step.name,'violet');
+					//tramp.changeNodeFill(step.name,'violet');
+					tramp.setNodeBulbColor(step.name,'violet');
 					break;
 				case 'running':
-					tramp.changeNodeFill(step.name,'yellow');
+					//tramp.changeNodeFill(step.name,'yellow');
+					tramp.setNodeBulbColor(step.name,'yellow');
 					break;
 				case 'finished':
-					tramp.changeNodeFill(step.name,'green');
+					//tramp.changeNodeFill(step.name,'green');
+					tramp.setNodeBulbColor(step.name,'green');
 					break;
 				case 'error':
-					tramp.changeNodeFill(step.name,'red');
+					//tramp.changeNodeFill(step.name,'red');
+					tramp.setNodeBulbColor(step.name,'red');
 					break;
 			}
 			
@@ -907,7 +599,7 @@ EnactionView.prototype = {
 			// Filling iterations
 			var iterO=this.genview.createElement('option');
 			iterO.value=-1;
-			iterO.text=(((step.input[WorkflowStep.GOT]) && (step.output[WorkflowStep.GOT]))?'':'* ')+'Whole';
+			iterO.text=(((step.input[Baclava.GOT]) && (step.output[Baclava.GOT]))?'':'* ')+'Whole';
 			try {
 				this.iterationSelect.add(iterO,null);
 			} catch(e) {
@@ -930,7 +622,7 @@ EnactionView.prototype = {
 					var ministep=giter[i];
 					iterO=this.genview.createElement('option');
 					iterO.value=i;
-					iterO.text=(((ministep.input[WorkflowStep.GOT]) && (ministep.output[WorkflowStep.GOT]))?'':'* ')+ministep.name;
+					iterO.text=(((ministep.input[Baclava.GOT]) && (ministep.output[Baclava.GOT]))?'':'* ')+ministep.name;
 					try {
 						this.iterationSelect.add(iterO,null);
 					} catch(e) {
@@ -959,7 +651,7 @@ EnactionView.prototype = {
 			var outputSignaler = function(istep) {
 				enactview.tryUpdateIOStatus(gstep,istep,'output',enactview.outputsSpan,enactview.outContainer,'hasOutputs');
 			};
-			gstep.fetchBaclava(EnactionView.BaseHREF+'/'+this.JobsBase+((step.name!=this.jobId)?('/'+this.jobDir+'/Results'):''),this.messageDiv,inputSignaler,outputSignaler);
+			gstep.fetchBaclava(EnactionView.BaseHREF+'/'+this.JobsBase+((step.name!=this.jobId)?('/'+this.jobDir+'/Results'):''),this,inputSignaler,outputSignaler);
 			
 			
 			// For this concrete (sub)step
@@ -1009,7 +701,8 @@ EnactionView.prototype = {
 		try {
 			for(var tit in titleToNode) {
 				if(tit.indexOf('WORKFLOWINTERNALSINK')==0) {
-					tramp.changeNodeFill(tit,(stateName=='frozen')?'blue':'red');
+					//tramp.changeNodeFill(tit,(stateName=='frozen')?'blue':'red');
+					tramp.setNodeBulbColor(tit,(stateName=='frozen')?'blue':'red');
 				}
 			}
 		} finally {
@@ -1034,12 +727,12 @@ EnactionView.prototype = {
 	
 	updateIOStatus: function(stepIO,IOSpan,IOContainer,hasIO) {
 		GeneralView.freeContainer(IOContainer);
-		var loaded=stepIO[WorkflowStep.GOT];
+		var loaded=stepIO[Baclava.GOT];
 		IOSpan.className=(!hasIO || loaded)?'IOStat':'IOStatLoading';
 		if(loaded) {
 			for(var IO in stepIO) {
-				if(IO==WorkflowStep.GOT)  continue;
-				this.generateIO(IO,(loaded)?stepIO[IO].data:undefined,(loaded)?stepIO[IO].mime:undefined,IOContainer);
+				if(IO==Baclava.GOT)  continue;
+				this.generateIO(IO,(loaded)?stepIO:undefined,(loaded)?stepIO[IO].mime:undefined,IOContainer);
 			}
 		}
 	},
@@ -1066,22 +759,35 @@ EnactionView.prototype = {
 	},
 	
 	// Tree-like structure
-	generateIO: function(thekey,theval,mime,parentContainer) {
-		if(typeof theval != 'object') {
+	generateIO: function(thekey,thehash,mime,parentContainer) {
+		var data;
+		if(thehash && thehash[thekey] instanceof Baclava) {
+			data = thehash[thekey].data;
+		} else {
+			data = thehash[thekey];
+		}
+		if(data instanceof DataObject) {
 			// A leaf
 			var span = this.genview.createElement('div');
 			span.innerHTML=thekey;
-			if(theval) {
+			if(data.hasData()) {
+				var beMatched = data.canBeMatched(this.matcher,mime);
+
 				span.className='leaf';
-				var dataviewer=this.dataviewer;
+				// TODO new CSS class *and* JS code
+				if(beMatched==true) {
+				} else if(beMatched=='maybe') {
+				}
+
+				var databrowser=this.databrowser;
 				// Event to show the information
 				WidgetCommon.addEventListener(span,'click',function () {
-					dataviewer.show(theval,mime);
+					databrowser.show(data,mime);
 				},false);
 			} else {
 				span.className='deadleaf';
 			}
-			
+
 			//parentContainer.appendChild(this.genview.createElement('br'));
 			parentContainer.appendChild(span);
 		} else {
@@ -1103,15 +809,45 @@ EnactionView.prototype = {
 					target.parentNode.className='branch';
 				}
 			},false);
-			
+
 			// Now the children
-			for(var facet in theval) {
-				this.generateIO(facet,theval[facet],mime,div);
+			for(var facet in data) {
+				this.generateIO(facet,data,mime,div);
 			}
 		}
 	},
 	
+	setMessage: function(message) {
+		this.messageDiv.innerHTML=message;
+	},
+	
+	addMessage: function(message) {
+		this.messageDiv.innerHTML+=message;
+	},
+	
+	clearMessage: function() {
+		GeneralView.freeContainer(this.messageDiv);
+	},
+	
 	reloadStatus: function(/* optional */ jobId,isFullReload,snapshotName,snapshotDesc,isKill) {
+		// Final states
+		if(
+			this.state=='frozen' ||
+			this.state=='dead' ||
+			this.state=='error' ||
+			this.state=='killed' ||
+			this.state=='finished'
+		)  return;
+		
+		// In progress request
+		if(this.enactQueryReq)  return;
+		
+		// Kill pending timer!
+		if(this.updateTimer) {
+			clearTimeout(this.updateTimer);
+			this.updateTimer=undefined;
+		}
+		
 		// Getting the enaction information
 		if(!jobId)  jobId=this.jobId;
 		var qsParm = {};
@@ -1127,26 +863,31 @@ EnactionView.prototype = {
 		}
 		var enactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionstatus");
 		var enactQueryReq = this.enactQueryReq = new XMLHttpRequest();
-		enactQueryReq.enactview=this;
+		var enactview=this;
 		// Cleaning up obsolete resources
 		if(isFullReload) {
 			this.internalDispose();
 		}
 		this.jobId=jobId;
-		GeneralView.freeContainer(this.messageDiv);
+		this.clearMessage();
 		try {
 			enactQueryReq.onreadystatechange = function() {
 				if(enactQueryReq.readyState==4) {
+					enactview.closeReloadFrame();
 					try {
 						if('status' in enactQueryReq) {
 							if(enactQueryReq.status==200) {
 								if(enactQueryReq.parseError && enactQueryReq.parseError.errorCode!=0) {
-									enactQueryReq.enactview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR ('+
+									enactview.setMessage(
+										'<blink><h1 style="color:red">FATAL ERROR ('+
 										enactQueryReq.parseError.errorCode+
 										") while parsing list at ("+
 										enactQueryReq.parseError.line+
 										","+enactQueryReq.parseError.linePos+
-										"):</h1></blink><pre>"+enactQueryReq.parseError.reason+"</pre>";
+										"):</h1></blink><pre>"+
+										enactQueryReq.parseError.reason+
+										"</pre>"
+									);
 								} else {
 									var response = enactQueryReq.responseXML;
 									if(!response) {
@@ -1155,11 +896,43 @@ EnactionView.prototype = {
 											response = parser.parseFromString(enactQueryReq.responseText,'application/xml');
 										} else {
 											// TODO
-											enactQueryReq.enactview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>';
+											enactview.setMessage(
+												'<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>'
+											);
 											// Backend error.
 										}
 									}
-									enactQueryReq.enactview.fillEnactionStatus(response);
+									enactview.fillEnactionStatus(response,function() {
+										var state=enactview.state;
+										// Only run timer when 
+										if(
+											state!='frozen' &&
+											state!='dead' &&
+											state!='error' &&
+											state!='killed' &&
+											state!='finished'
+										) {
+											var timeout=11;
+											var timeoutFunc=undefined;
+											timeoutFunc=function() {
+												timeout--;
+												if(timeout>0) {
+													enactview.updateTextSpan.innerHTML='Update in '+timeout;
+													enactview.updateTimer=setTimeout(timeoutFunc,1000);
+												} else {
+													enactview.updateTextSpan.innerHTML='Update';
+													enactview.reloadStatus();
+													enactview=undefined;
+													timeoutFunc=undefined;
+												}
+											};
+											timeoutFunc();
+										} else {
+											enactview.updateTextSpan.innerHTML='Update';
+										}
+										// Removing 'Loading...' frame
+										enactview.closeReloadFrame();
+									});
 								}
 							} else {
 								// Communications error.
@@ -1167,33 +940,49 @@ EnactionView.prototype = {
 								if(('statusText' in enactQueryReq) && enactQueryReq['statusText']) {
 									statusText=enactQueryReq.statusText;
 								}
-								enactQueryReq.enactview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR while collecting enaction status: '+
-									enactQueryReq.status+' '+statusText+'</h1></blink>';
+								enactview.setMessage(
+									'<blink><h1 style="color:red">FATAL ERROR while collecting enaction status: '+
+									enactQueryReq.status+' '+statusText+'</h1></blink>'
+								);
 							}
 						} else {
-							enactQueryReq.enactview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>';
+							enactview.setMessage(
+								'<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>'
+							);
 						}
 					} catch(e) {
-						enactQueryReq.enactview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
+						enactview.setMessage(
+							'<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+
+							WidgetCommon.DebugError(e)+'</pre>'
+						);
 					} finally {
-						// Removing 'Loading...' frame
-						enactQueryReq.enactview.closeReloadFrame();
-						enactQueryReq.enactview.enactQueryReq=undefined;
+						enactview.enactQueryReq=undefined;
 						enactQueryReq.onreadystatechange = new Function();
 						enactQueryReq=undefined;
 					}
 				}
 			};
-			this.openReloadFrame();
+			this.reloadButton.className='buttondisabled';
+			this.updateTextSpan.innerHTML='Updating <img src="style/ajaxLoader.gif">';
 			enactQueryReq.open('GET',enactQuery,true);
 			enactQueryReq.send(null);
 		} catch(e) {
-			this.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to start reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
+			this.setMessage(
+				'<blink><h1 style="color:red">FATAL ERROR: Unable to start reload!</h1></blink><pre>'+
+				WidgetCommon.DebugError(e)+'</pre>'
+			);
 		}
 	},
 	
 	disposeEnaction: function(isDispose) {
-		if(this.check.checked) {
+		if(
+			this.check.checked &&
+			this.state!='frozen' &&
+			this.state!='dead' &&
+			this.state!='error' &&
+			this.state!='killed' &&
+			this.state!='finished'
+		) {
 			var sureDispose=confirm('Are you REALLY sure you want to '+(isDispose?'dispose (and kill)':'kill (but not dispose)')+' this enaction?');
 			this.check.doUncheck();
 			if(sureDispose) {
@@ -1214,20 +1003,20 @@ EnactionView.prototype = {
 					dispo.open('GET',disposeQuery);
 					dispo.send(null);
 					this.internalDispose();
-					this.genview.openFrame('viewOtherEnaction',1);
+					this.frameOtherId=this.genview.openFrame('viewOtherEnaction',1);
 				} else {
 					this.reloadStatus(undefined,undefined,undefined,undefined,1);
 				}
 			}
 		} else {
-			this.genview.openFrame('viewOtherEnaction',1);
+			this.frameOtherId=this.genview.openFrame('viewOtherEnaction',1);
 		}
 	},
 	
 	viewEnaction: function() {
 		if(this.jobIdField.value && this.jobIdField.value.length>0) {
 			// Let's submit the query
-			this.genview.closeFrame();
+			this.genview.closeFrame(this.frameOtherId);
 			this.reloadStatus(this.jobIdField.value);
 		} else {
 			alert('You must enter an enaction Id\nbefore watching its evolution.');
@@ -1236,13 +1025,16 @@ EnactionView.prototype = {
 	
 	closeOtherEnactionFrame: function() {
 		if(this.jobId) {
-			this.genview.closeFrame();
+			this.genview.closeFrame(this.frameOtherId);
 		} else {
 			alert('You must enter an enaction Id\nbecause there is no previous known enaction.');
 		}
 	},
 	
 	openSnapshotFrame: function() {
+		// No snapshots over already taken snapshots
+		if(this.state=='frozen')  return;
+		
 		if(FCKeditor_IsCompatibleBrowser()) {
 			// Rich-Text Editor
 			var snapshotDesc=new FCKeditor('snapshotDesc',undefined,'250','IWWEM');
@@ -1258,7 +1050,7 @@ EnactionView.prototype = {
 			snapshotDesc.name='snapshotDesc';
 			this.snapshotDescContainer.appendChild(snapshotDesc);
 		}
-		this.genview.openFrame('snapshotEnaction',1);
+		this.frameSnapId=this.genview.openFrame('snapshotEnaction',1);
 	},
 	
 	takeSnapshot: function() {
@@ -1282,7 +1074,7 @@ EnactionView.prototype = {
 	},
 	
 	closeSnapshotFrame: function() {
-		this.genview.closeFrame();
+		this.genview.closeFrame(this.frameSnapId);
 		GeneralView.freeContainer(this.snapshotDescContainer);
 	}
 };
