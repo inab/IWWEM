@@ -122,7 +122,7 @@ function SVGtramp(LoadEvent) {
 	
 	// The tooltips
 	try {
-	        new Title(this.SVGDoc, this.myMapApp, 12);
+	        new Title(this.SVGDoc, this.myMapApp, 14);
 	} catch(e) {
 		// IgnoreIT!(R)
 	}
