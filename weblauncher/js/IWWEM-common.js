@@ -12,6 +12,8 @@ function GeneralView(customInit, /* optional */thedoc) {
 	this.thedoc = (thedoc)?thedoc:document;
 	this.outer=this.getElementById('outerAbsDiv');
 	this.shimmer=this.getElementById('shimmer');
+	this.frameIds=new Array();
+	this.frameCounter=0;
 	
 	this.visibleId=undefined;
 	this.usingShimmer=undefined;
@@ -338,9 +340,9 @@ GeneralView.Select.prototype = {
 	},
 	
 	clear: function () {
+		this.setIndex(-1);
 		GeneralView.freeContainer(this.context);
 		this.options=new Array();
-		this.selectedIndex=-1;
 		this.multiple=false;
 		this.type='select-one';
 	}
@@ -420,41 +422,75 @@ GeneralView.preProcess = function (thedesc) {
 
 /* Now, the instance methods */
 GeneralView.prototype = {
-	openFrame: function (divId, /* optional */ useShimmer) {
+	openFrame: function (/* optional */ divId, useShimmer) {
 		if(this.visibleId) {
-			this.closeFrame();
+			this.suspendFrame();
 		}
-
-		this.visibleId=divId;
-		if(useShimmer || BrowserDetect.browser=='Explorer' || BrowserDetect.browser=='Safari') {
-			this.shimmer.className='shimmer';
-			this.usingShimmer=1;
+		var framePos=undefined;
+		if(divId) {
+			framePos=this.frameCounter;
+			this.frameIds.push([divId,useShimmer,framePos]);
+			this.frameCounter++;
+		} else if(this.frameIds.length>0) {
+			divId=this.frameIds[0][0];
+			useShimmer=this.frameIds[0][1];
 		}
-		this.outer.className='outerAbsDiv';
-		var elem=this.getElementById(divId);
-		elem.className='transAbsDiv';
-		/* This is to take some times
 		
-		var d=new Date();
-		this.from=d.getTime();
-		*/
+		if(divId) {
+			this.visibleId=divId;
+			if(useShimmer || BrowserDetect.browser=='Explorer' || BrowserDetect.browser=='Safari') {
+				this.shimmer.className='shimmer';
+				this.usingShimmer=1;
+			}
+			this.outer.className='outerAbsDiv';
+			var elem=this.getElementById(divId);
+			elem.className='transAbsDiv';
+			/* This is to take some times
+
+			var d=new Date();
+			this.from=d.getTime();
+			*/
+		}
+		
+		return framePos;
 	},
 	
-	closeFrame: function () {
-		var d=new Date();
-		var to=d.getTime();
-		var elem=this.getElementById(this.visibleId);
-		this.visibleId=undefined;
+	suspendFrame: function() {
+		if(this.visibleId) {
+			var elem=this.getElementById(this.visibleId);
 
-		elem.className='hidden';
-		this.outer.className='hidden';
-		if(this.usingShimmer) {
-			this.shimmer.className='hidden';
+			elem.className='hidden';
+			this.outer.className='hidden';
+			if(this.usingShimmer) {
+				this.shimmer.className='hidden';
+			}
+			this.usingShimmer=undefined;
+
+			this.visibleId=undefined;
 		}
-		/* This is to take some times
-		
-		alert('Spent '+((to-this.from)/1000)+' seconds');
-		*/
+	},
+	
+	closeFrame: function (framePos) {
+		if(typeof framePos == 'number') {
+			var framei;
+			for(framei=0;framei<this.frameIds.length;framei++) {
+				if(this.frameIds[framei][2]==framePos) {
+					this.frameIds.splice(framei,1);
+					if(framei==0) {
+						/*
+						var d=new Date();
+						var to=d.getTime();
+						*/
+						this.openFrame();
+						/* This is to take some times
+
+						alert('Spent '+((to-this.from)/1000)+' seconds');
+						*/
+					}
+					break;
+				}
+			}
+		}
 	},
 	
 	/*
