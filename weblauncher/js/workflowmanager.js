@@ -186,6 +186,14 @@ function ManagerView(genview) {
 	this.outContainer=genview.getElementById('outputs');
 	this.snapContainer=genview.getElementById('snapshots');
 
+	this.reloadButton=genview.getElementById('reloadButton');
+	this.updateTextSpan=genview.getElementById('updateTextSpan');
+
+	this.launchButton=genview.getElementById('launchButton');
+	this.deleteButton=genview.getElementById('deleteButton');
+	this.launchButton.className='buttondisabled';
+	this.deleteButton.className='buttondisabled';
+	
 	// this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown.svg','75mm','90mm');
 	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg');
 	
@@ -209,10 +217,26 @@ function ManagerView(genview) {
 	// To update on automatic changes of the selection box
 	this.wfselect.addEventListener('change',function () {
 		manview.updateView();
-		if(manview.wfselect.selectedIndex==-1 && manview.check.checked) {
-			manview.check.setCheck(false);
+		if(manview.wfselect.selectedIndex==-1) {
+			manview.launchButton.className='buttondisabled';
+			manview.deleteButton.className='buttondisabled';
+			if(manview.check.checked) {
+				manview.check.setCheck(false);
+			}
+		} else {
+			manview.launchButton.className='button';
+			manview.deleteButton.className='button';
 		}
 	},false);
+	
+	WidgetCommon.addEventListener(this.deleteButton,'click',function() {
+		manview.deleteWorkflow();
+	},false);
+	
+	WidgetCommon.addEventListener(this.reloadButton,'click',function() {
+		manview.reloadList();
+	},false);
+	
 
 	/*
 	WidgetCommon.addEventListener(this.wfselect,'change',function () {
@@ -223,16 +247,17 @@ function ManagerView(genview) {
 	},false);
 	*/
 	
+	this.frameReloadId=undefined;
 }
 
 
 ManagerView.prototype = {
 	openReloadFrame: function () {
-		this.genview.openFrame('reloadWorkflows');
+		this.frameReloadId=this.genview.openFrame('reloadWorkflows');
 	},
 	
 	closeReloadFrame: function() {
-		this.genview.closeFrame();
+		this.genview.closeFrame(this.frameReloadId);
 	},
 	
 	clearView: function () {
@@ -377,6 +402,9 @@ ManagerView.prototype = {
 	},
 	
 	reloadList: function (/* optional */ wfToErase) {
+		// In progress request
+		if(this.listRequest)  return;
+
 		// First, uncheck the beast!
 		this.check.setCheck(false);
 		
@@ -391,6 +419,7 @@ ManagerView.prototype = {
 		try {
 			listRequest.onreadystatechange = function() {
 				if(listRequest.readyState==4) {
+					listRequest.manview.openReloadFrame();
 					try {
 						if('status' in listRequest) {
 							if(listRequest.status==200) {
@@ -432,13 +461,16 @@ ManagerView.prototype = {
 					} finally {
 						// Removing 'Loading...' frame
 						listRequest.manview.closeReloadFrame();
+						listRequest.manview.reloadButton.className='button';
+						listRequest.manview.updateTextSpan.innerHTML='Update';
 						listRequest.manview.listRequest=undefined;
 						listRequest.onreadystatechange=new Function();
 						listRequest=undefined;
 					}
 				}
 			};
-			this.openReloadFrame();
+			this.reloadButton.className="buttondisabled";
+			this.updateTextSpan.innerHTML='Updating <img src="style/ajaxLoader.gif">';
 			listRequest.open('GET',listQuery,true);
 			listRequest.send(null);
 		} catch(e) {
@@ -513,6 +545,7 @@ function NewWorkflowView(genview) {
 		var dataIsland = genview.createHiddenInput(GeneralView.dataIslandMarker,"2");
 		this.newWFForm.appendChild(dataIsland);
 	}
+	this.frameNewId=undefined;
 }
 
 NewWorkflowView.prototype = {
@@ -522,7 +555,7 @@ NewWorkflowView.prototype = {
 		this.generateSubworkflowSpan();
 		this.newWFUploading.style.visibility='hidden';
 		
-		this.genview.openFrame('newWorkflow');
+		this.frameNewId=this.genview.openFrame('newWorkflow');
 	},
 	
 	clearView: function () {
@@ -564,7 +597,7 @@ NewWorkflowView.prototype = {
 	
 	closeNewWorkflowFrame: function() {
 		if(!this.uploading) {
-			this.genview.closeFrame();
+			this.genview.closeFrame(this.frameNewId);
 			this.clearView();
 			GeneralView.freeContainer(this.newSubWFContainer);
 		}
@@ -664,11 +697,20 @@ function NewEnactionView(genview) {
 	this.newEnactUploading = genview.getElementById('newEnactUploading');
 	this.submittedList = genview.getElementById('submittedList');
 	
+	var newenactview = this;
+	
+	WidgetCommon.addEventListener(this.manview.launchButton,'click',function() {
+		newenactview.openNewEnactionFrame();
+	},false);
+
+	
 	this.enactSVG = new TavernaSVG();
 	this.inputs=new Array();
 	
 	this.workflow=undefined;
 	this.WFBase=undefined;
+	
+	this.frameEnactId=undefined;
 	
 	// Setting up data island request
 	if(BrowserDetect.browser=='Konqueror') {
@@ -819,9 +861,11 @@ NewEnactionView.prototype = {
 			this.setSaveExampleMode(false);
 			
 			// And at last, open frame
-			this.genview.openFrame('newEnaction');
+			this.frameEnactId=this.genview.openFrame('newEnaction');
+		/*
 		} else {
 			alert('Please, first select a workflow before trying to enact one');
+		*/
 		}
 	},
 	
@@ -1051,7 +1095,7 @@ NewEnactionView.prototype = {
 	},
 	
 	closeNewEnactionFrame: function() {
-		this.genview.closeFrame();
+		this.genview.closeFrame(this.frameEnactId);
 		
 		this.clearView();
 		this.workflow=undefined;

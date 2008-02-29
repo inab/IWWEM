@@ -28,6 +28,7 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish
 	this.queue = new Array();
 	this.current = undefined;
 	this.SVGtramp = undefined;
+	this.noloaded = 0;
 	
 	if(nodeid && url) {
 		this.defaultid = nodeid;
@@ -149,12 +150,12 @@ TavernaSVG.prototype = {
 			bestScaleH=load[3];
 			callOnFinish=load[4];
 			thedoc=load[5];
+			load=undefined;
 		}
 		while((load = this.queue.shift())) {
-			if(nodeid==load[0] && url==load[1]) {
+			if(this.noloaded > 1 && nodeid==load[0] && url==load[1]) {
 				continue;
 			}
-			this.current=load;
 			nodeid=load[0];
 			url=load[1];
 			bestScaleW=load[2];
@@ -164,6 +165,7 @@ TavernaSVG.prototype = {
 			
 			if(!thedoc)  thedoc=document;
 			this.clearSVG(thedoc);
+			this.current=load;
 			
 			/*
 			if(!bestScaleW)  bestScaleW='400pt';
@@ -182,20 +184,20 @@ TavernaSVG.prototype = {
 				this.svglink=ahref;
 				
 				gensvgid = WidgetCommon.getRandomUUID();
-				var objres;
+				var objres = undefined;
 
 				if(BrowserDetect.browser!='Explorer') {
 					objres=thedoc.createElement('object');
+					objres.id=gensvgid;
 					objres.setAttribute("type","image/svg+xml");
 					objres.setAttribute("wmode","transparent");
 					//objres.setAttribute("style","overflow: hidden; border: 1px dotted #000;width:0;height:0");
 					if(BrowserDetect.browser!='Konqueror') {
-						objres.setAttribute("style","overflow: hidden; width:0;height:0");
+						objres.setAttribute("style","overflow: hidden; width:0;height:0;");
 					} else {
 						objres.setAttribute("style","overflow: auto;");
 					}
 					objres.setAttribute("data",url);
-					objres.id=gensvgid;
 
 					/* This one has been commented out because it was injecting two SVG loads in Firefox!
 
@@ -241,6 +243,7 @@ TavernaSVG.prototype = {
 									callOnFinish();
 								}
 							} finally {
+								thissvg.noloaded++;
 								thissvg.loadQueuedSVG();
 							}
 						}

@@ -3,7 +3,7 @@
 /* Some changes have been made to meet Internet Explorer impairness */
 /* about handling multiple classes restriction */
 
-.button {
+.button , .buttondisabled {
 	/* Black IE magic */
 	behavior:url(hover.htc);
 	
@@ -12,10 +12,8 @@
 	height: 45px;
 	padding: 0px;
 	
-	background-image: url(button3-inactive.png);
 	background-position: center center;
 	background-repeat: no-repeat;
-	cursor: pointer;
 	
 	/*
 	display: table-cell;
@@ -32,7 +30,17 @@
 	*/
 }
 
-.button img {
+.button {
+	background-image: url(button3-inactive.png);
+	cursor: pointer;
+}
+
+/* Button disabled .buttondisabled */
+.buttondisabled {
+	background-image: url(button3-disabled.png);
+}
+
+.button img , .buttondisabled img {
 	vertical-align: middle;
 }
 
