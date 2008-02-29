@@ -1,6 +1,13 @@
 /*
+	base64.js
+	from INB Web Workflow Enactor & Manager (IWWE&M)
+	Author: José María Fernández González (C) 2007-2008
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+	
 	This code is a slightly variant from Base64 class
-	from webtoolkit, prepared for slice processing
+	from webtoolkit, prepared for sliced processing
 */
 /**
 *
@@ -399,6 +406,7 @@ var Base64 = {
 			if(!base64text)  base64text="";
 		}
 		
+		var _keyStr = this._keyStr;
 		var nlength = n + 8192;
 		var ulength = utftext.length;
 		if(nlength > ulength)  nlength=ulength;

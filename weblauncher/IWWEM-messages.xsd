@@ -367,7 +367,7 @@ this element is included to tell that it was done properly.
                     <xsd:complexType>
                         <xsd:sequence minOccurs="1" maxOccurs="1">
                             <xsd:choice minOccurs="0" maxOccurs="1">
-                                <xsd:element name="enactorReport" minOccurs="1" maxOccurs="1">
+                                <xsd:element name="enactionReport" minOccurs="1" maxOccurs="1">
                                     <xsd:annotation>
                                         <xsd:documentation><![CDATA[The XML report given by the enactor]]></xsd:documentation>
                                     </xsd:annotation>
@@ -396,6 +396,52 @@ this element is included to tell that it was done properly.
                                     <xsd:complexContent>
                                         <xsd:extension base="iwwem:IORepType">
                                             <xsd:sequence minOccurs="1" maxOccurs="1">
+                                                <xsd:element name="extraStepInfo" minOccurs="0" maxOccurs="1">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation><![CDATA[Extra step information, provided by Taverna]]></xsd:documentation>
+                                                    </xsd:annotation>
+                                                    <xsd:complexType>
+                                                        <xsd:sequence minOccurs="1" maxOccurs="1">
+                                                            <xsd:element name="stepError" minOccurs="0" maxOccurs="unbounded">
+                                                                <xsd:annotation>
+                                                                    <xsd:documentation><![CDATA[Detailed step error report]]></xsd:documentation>
+                                                                </xsd:annotation>
+                                                                <xsd:complexType>
+                                                                    <xsd:simpleContent>
+                                                                        <xsd:extension base="xsd:string">
+                                                                            <xsd:attribute name="header" type="xsd:string" use="required"/>
+                                                                        </xsd:extension>
+                                                                    </xsd:simpleContent>
+                                                                </xsd:complexType>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                        <xsd:attribute name="sched" type="xsd:dateTime" use="required">
+                                                            <xsd:annotation>
+                                                                <xsd:documentation><![CDATA[When the step was scheduled]]></xsd:documentation>
+                                                            </xsd:annotation>
+                                                        </xsd:attribute>
+                                                        <xsd:attribute name="start" type="xsd:dateTime" use="optional">
+                                                            <xsd:annotation>
+                                                                <xsd:documentation><![CDATA[When the step started to run]]></xsd:documentation>
+                                                            </xsd:annotation>
+                                                        </xsd:attribute>
+                                                        <xsd:attribute name="stop" type="xsd:dateTime" use="optional">
+                                                            <xsd:annotation>
+                                                                <xsd:documentation><![CDATA[When the step stopped, either by an error or successfully]]></xsd:documentation>
+                                                            </xsd:annotation>
+                                                        </xsd:attribute>
+                                                        <xsd:attribute name="iterNumber">
+                                                            <xsd:annotation>
+                                                                <xsd:documentation><![CDATA[Current iteration number]]></xsd:documentation>
+                                                            </xsd:annotation>
+                                                        </xsd:attribute>
+                                                        <xsd:attribute name="iterMax">
+                                                            <xsd:annotation>
+                                                                <xsd:documentation><![CDATA[Max iteration number]]></xsd:documentation>
+                                                            </xsd:annotation>
+                                                        </xsd:attribute>
+                                                    </xsd:complexType>
+                                                </xsd:element>
                                                 <xsd:element ref="iwwem:input" minOccurs="0" maxOccurs="unbounded"/>
                                                 <xsd:element ref="iwwem:output" minOccurs="0" maxOccurs="unbounded"/>
                                                 <xsd:element name="iterations" minOccurs="0" maxOccurs="1">

@@ -2,6 +2,7 @@
 
 use strict;
 
+use Date::Parse;
 use Encode;
 use FindBin;
 use CGI;
@@ -19,10 +20,11 @@ use LockNLog;
 sub appendInputs($$$);
 sub appendOutputs($$$);
 sub appendIO($$$$);
-sub appendResults($$$);
-sub processStep($$$);
-sub getFreshEnactionReport($);
-sub getStoredEnactionReport($);
+sub appendResults($$$;$);
+sub processStep($$$;$);
+sub getFreshEnactionReport($$);
+sub getStoredEnactionReport($$);
+sub parseEnactionReport($$;$);
 
 # Methods declarations
 sub appendInputs($$$) {
@@ -48,24 +50,111 @@ sub appendIO($$$$) {
 	}
 }
 
-sub processStep($$$) {
-	my($basedir,$outputDoc,$es)=@_;
+sub processStep($$$;$) {
+	my($basedir,$outputDoc,$es,$enactionReport)=@_;
 	
 	my($inputsfile)=$basedir . '/Inputs.xml';
 	my($outputsfile)=$basedir . '/Outputs.xml';
 	my($resultsdir)=$basedir . '/Results';
 	appendInputs($inputsfile,$outputDoc,$es);
 	appendOutputs($outputsfile,$outputDoc,$es);
-	appendResults($resultsdir,$outputDoc,$es);
+	appendResults($resultsdir,$outputDoc,$es,$enactionReport);
 }
 
-sub appendResults($$$) {
-	my($resultsdir,$outputDoc,$parent)=@_;
+sub appendResults($$$;$) {
+	my($resultsdir,$outputDoc,$parent,$enactionReport)=@_;
 	
 	if(-d $resultsdir) {
 		my($RDIR);
-		if(opendir($RDIR,$resultsdir)) {
+		my($context)=undef;
+
+		if(defined($enactionReport)) {
+			my($context)=XML::LibXML::XPathContext->new();
+			foreach my $erentry ($context->findnodes(".//processor",$enactionReport)) {
+				my($entry)=$erentry->getAttribute('name');
+				
+				my($step)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'step');
+				$step->setAttribute('name',$entry);
+				
+				my($state)=undef;
+				my($includeSubs)=1;
+				
+				# Additional info, provided by the report
+				my($sched)=undef;
+				my($run)=undef;
+				my($runnumber)=undef;
+				my($runmax)=undef;
+				my($stop)=undef;
+				my(@errreport)=();
+
+				foreach my $child ($erentry->childNodes) {
+					if($child->nodeType==XML::LibXML::XML_ELEMENT_NODE) {
+						my($name)=$child->localName();
+						if($name eq 'ProcessScheduled') {
+							$sched=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
+						} elsif($name eq 'Invoking') {
+							$run=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
+						} elsif($name eq 'InvokingWithIteration') {
+							$run=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
+							$runnumber=$child->getAttribute('IterationNumber');
+							$runmax=$child->getAttribute('IterationTotal');
+						} elsif($name eq 'ProcessComplete') {
+							$stop=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
+							$state='finished';
+						} elsif($name eq 'ServiceFailure') {
+							$stop=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
+							$state='error';
+						} elsif($name eq 'ServiceError') {
+							push(@errreport,[$child->getAttribute('Message'),$child->textContent()]);
+						}
+					}
+				}
+				unless(defined($state)) {
+					if(defined($run)) {
+						$state='running';
+					} else {
+						$state='queued';
+						$includeSubs=undef;
+					}
+				}
+
+				$step->setAttribute('state',$state);
+				
+				# Adding the extra info
+				my($extra)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'extraStepInfo');
+				$extra->setAttribute('sched',$sched)  if(defined($sched));
+				$extra->setAttribute('start',$run)  if(defined($run));
+				$extra->setAttribute('stop',$stop)  if(defined($stop));
+				$extra->setAttribute('iterNumber',$runnumber)  if(defined($runnumber));
+				$extra->setAttribute('iterMax',$runmax)  if(defined($runmax));
+				foreach my $errmsg (@errreport) {
+					my($err)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'stepError');
+					$err->setAttribute('header',$errmsg->[0]);
+					$err->appendChild($outputDoc->createCDATASection($errmsg->[1]));
+					$extra->appendChild($err);
+				}
+
+				$step->appendChild($extra);
+				
+				if(defined($includeSubs)) {
+					my($jobdir)=$resultsdir .'/'. $entry;
+					appendInputs($jobdir . '/Inputs.xml',$outputDoc,$step);
+					appendOutputs($jobdir . '/Outputs.xml',$outputDoc,$step);
+					
+					my($iteratedir)=$jobdir . '/Iterations';
+					if(-d $iteratedir) {
+						my($iternode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'iterations');
+						$step->appendChild($iternode);
+						appendResults($iteratedir,$outputDoc,$iternode);
+					}
+				}
+				
+				$parent->appendChild($step);
+			}
+		} elsif(opendir($RDIR,$resultsdir)) {
 			my($entry);
+			my($context)=undef;
+			
 			while($entry=readdir($RDIR)) {
 				# No hidden element, please!
 				my($jobdir)=$resultsdir .'/'. $entry;
@@ -73,16 +162,15 @@ sub appendResults($$$) {
 				
 				my($step)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'step');
 				$step->setAttribute('name',$entry);
-				
-				# Now we have a pid, we can check for the enaction job
 				my($state)=undef;
 				my($includeSubs)=1;
+				
 				if( -f $jobdir . '/FINISH') {
 					$state = 'finished';
 				} elsif( -f $jobdir . '/FAILED.txt') {
 					$state = 'error';
 				} elsif( -f $jobdir . '/START') {
-						$state = 'running';
+					$state = 'running';
 				} else {
 					# So it could be queued
 					$state = 'queued';
@@ -110,45 +198,50 @@ sub appendResults($$$) {
 	}
 }
 
-sub getFreshEnactionReport($) {
-	my($portfile)=@_;
+sub getFreshEnactionReport($$) {
+	my($outputDoc,$portfile)=@_;
 	
-	my($PORTFILE);
-	die "FATAL ERROR: Unable to read portfile $ARGV[0]\n"  unless(open($PORTFILE,'<',$portfile));
+	my($buffer)=undef;
+	eval {
+		my($PORTFILE);
+		die "FATAL ERROR: Unable to read portfile $ARGV[0]\n"  unless(open($PORTFILE,'<',$portfile));
 
-	my($line)=undef;
-	while($line=<$PORTFILE>) {
-		last;
-	}
-	die "ERROR: Unable to read $portfile contents!\n"  unless(defined($line));
-	close($PORTFILE);
-	chomp($line);
+		my($line)=undef;
+		while($line=<$PORTFILE>) {
+			last;
+		}
+		die "ERROR: Unable to read $portfile contents!\n"  unless(defined($line));
+		close($PORTFILE);
+		chomp($line);
 
-	my($host,$port)=split(/:/,$line,2);
-	die "ERROR: Line '$line' from $portfile is invalid!\n"
-	unless(defined($port) && int($port) eq $port && $port > 0);
+		my($host,$port)=split(/:/,$line,2);
+		die "ERROR: Line '$line' from $portfile is invalid!\n"
+		unless(defined($port) && int($port) eq $port && $port > 0);
 
-	my($proto)= (getprotobyname('tcp'))[2];
+		my($proto)= (getprotobyname('tcp'))[2];
 
-	# get the port address
-	my($iaddr) = inet_aton($host);
-	my($paddr) = pack_sockaddr_in($port, $iaddr);
-	# create the socket, connect to the port
-	my($SOCKET);
-	socket($SOCKET, PF_INET, SOCK_STREAM, $proto) or die "SOCKET ERROR: $!";
-	connect($SOCKET, $paddr) or die "CONNECT SOCKET ERROR: $!";
+		# get the port address
+		my($iaddr) = inet_aton($host);
+		my($paddr) = pack_sockaddr_in($port, $iaddr);
+		# create the socket, connect to the port
+		my($SOCKET);
+		socket($SOCKET, PF_INET, SOCK_STREAM, $proto) or die "SOCKET ERROR: $!";
+		connect($SOCKET, $paddr) or die "CONNECT SOCKET ERROR: $!";
 
-	my($buffer)='';
-	while ($line = <$SOCKET>) {
-		$buffer.=$line;
-	}
-	close($SOCKET) or die "CLOSE SOCKET ERROR: $!"; 
+		$buffer='';
+		while ($line = <$SOCKET>) {
+			$buffer.=$line;
+		}
+		close($SOCKET) or die "CLOSE SOCKET ERROR: $!"; 
+	};
 	
-	return $buffer;
+	my($enactionReportError)=($@)?$@:undef;
+	
+	return parseEnactionReport($outputDoc,$buffer,$enactionReportError);
 }
 
-sub getStoredEnactionReport($) {
-	my($dir)=@_;
+sub getStoredEnactionReport($$) {
+	my($outputDoc,$dir)=@_;
 	
 	my($ER);
 	my($rep)='';
@@ -161,7 +254,39 @@ sub getStoredEnactionReport($) {
 		close($ER);
 	}
 	
-	return $rep;
+	return parseEnactionReport($outputDoc,$rep);
+}
+
+sub parseEnactionReport($$;$) {
+	my($outputDoc,$enactionReport,$enactionReportError)=@_;
+	
+	my($er)=undef;
+	my($parser)=XML::LibXML->new();
+	my($repnode)=undef;
+	
+	if(!defined($enactionReportError) && defined($enactionReport)) {
+		eval {
+			my($er)=$parser->parse_string(decode('UTF-8', $enactionReport));
+			$repnode=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReport');
+			$repnode->appendChild($outputDoc->importNode($er->documentElement));
+		};
+
+		if($@) {
+			$enactionReportError=$@
+		}
+	}
+	
+	unless(defined($repnode) || defined($enactionReportError)) {
+		$enactionReportError='Undefined error, please contact IWWE&M developer';
+	}
+	
+	if(defined($enactionReportError)) {
+		$repnode=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReportError');
+		$enactionReportError .= "\n\nOffending content:\n\n$enactionReport"  if(defined($enactionReport));
+		$repnode->appendChild($outputDoc->createCDATASection($enactionReportError));
+	}
+	
+	return $repnode;
 }
 
 my($query)=CGI->new();
@@ -337,7 +462,6 @@ foreach my $jobId (@jobIdList) {
 			my($includeSubs)=1;
 			my($PPID);
 			my($enactionReport)=undef;
-			my($enactionReportError)=undef;
 			if(-f $jobdir . '/FATAL' || ! -f $ppidfile) {
 				$state='dead';
 			} elsif(!defined($wfsnap) && open($PPID,'<',$ppidfile)) {
@@ -348,7 +472,7 @@ foreach my $jobId (@jobIdList) {
 				my($PID);
 				unless(-f $pidfile) {
 					# So it could be queued
-					$enactionReport=getStoredEnactionReport($jobdir);
+					$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
 					$state = 'queued';
 					$includeSubs=undef;
 				} elsif(open($PID,'<',$pidfile)) {
@@ -358,20 +482,16 @@ foreach my $jobId (@jobIdList) {
 					# Now we have a pid, we can check for the enaction job
 					if( -f $jobdir . '/FINISH') {
 						$state = 'finished';
-						$enactionReport=getStoredEnactionReport($jobdir);
+						$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
 					} elsif( -f $jobdir . '/FAILED.txt') {
 						$state = 'error';
-						$enactionReport=getStoredEnactionReport($jobdir);
+						$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
 					} elsif(kill(0,$pid) > 0) {
 						# It could be still running...
 						unless(defined($dispose)) {
 							if( -f $jobdir . '/START') {
 								# So, let's fetch the state
-								eval {
-									$enactionReport=getFreshEnactionReport($jobdir . '/socket');
-								};
-								
-								$enactionReportError=$@  if($@);
+								$enactionReport=getFreshEnactionReport($outputDoc,$jobdir . '/socket');
 								
 								$state = 'running';
 							} else {
@@ -390,11 +510,15 @@ foreach my $jobId (@jobIdList) {
 						}
 					} else {
 						$state = 'dead';
-						$enactionReport=getStoredEnactionReport($jobdir);
+						$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
 					}
 				} else {
 					$state = 'fatal';
 					$includeSubs=undef;
+				}
+				
+				if($state ne 'fatal' && defined($enactionReport) && $enactionReport->localname eq 'enactionReportError') {
+					$state='fatal';
 				}
 			} elsif(defined($wfsnap)) {
 				$state = 'frozen';
@@ -403,29 +527,13 @@ foreach my $jobId (@jobIdList) {
 				$includeSubs=undef;
 			}
 			
-			if(defined($enactionReport) && $enactionReport ne '') {
-				eval {
-					my($parser)=XML::LibXML->new();
-
-					my($repnode)=$parser->parse_string(decode('UTF-8', $enactionReport));
-					# And let's add it to the report
-					my($er)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReport');
-					$er->appendChild($outputDoc->importNode($repnode->documentElement));
-					$es->appendChild($er);
-				};
-
-				$enactionReportError=$@  if($@);
-			}
-			
-			if(defined($enactionReportError) && $enactionReportError ne '') {
-				my($er)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReportError');
-				$er->appendChild($outputDoc->createCDATASection($enactionReportError));
-				$es->appendChild($er);
+			if(defined($enactionReport)) {
+				$es->appendChild($enactionReport);
 			}
 			
 			# Now including subinformation...
 			if(defined($includeSubs)) {
-				processStep($jobdir,$outputDoc,$es);
+				processStep($jobdir,$outputDoc,$es,(defined($enactionReport) && $enactionReport->localname eq 'enactionReport')?$enactionReport:undef);
 			}
 		}
 	}
