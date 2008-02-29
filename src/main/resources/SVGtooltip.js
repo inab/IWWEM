@@ -64,8 +64,9 @@ function Title(doc, myMapApp, sz) {
 				element.addEventListener("mouseout", passivate, false);
 
 				//str.nodeValue=''+x + ' '+y+' trafalgar';
-				var xRect = txt.getBBox().width + 0.5*size;
-				//var xRect = txt.getComputedTextLength() + 0.5*size;
+				var twidth=txt.getComputedTextLength();
+				if(!twidth)  twidth = txt.getBBox().width;
+				var xRect = twidth + 0.5*size;
 				var gWidth=parseFloat(doc.documentElement.getAttribute('width'));
 				if(x+xRect > gWidth) x=gWidth-xRect;
 				rec.setAttribute("width", xRect+'px');
