@@ -98,7 +98,6 @@ td.middle {
 	vertical-align: top;
 	empty-cells: show;
 	display: block;
-	width:80mm;
 	height:120mm;
 	overflow: auto;
 	text-align: left;
@@ -109,6 +108,17 @@ td.middle {
 	empty-cells: show;
 	display: block;
 	width:80mm;
+	height:120mm;
+	overflow: auto;
+	text-align: left;
+	border: 1px solid #dfd8c8;
+	background-color: #f5ede9;
+}
+
+.scrolldatawide {
+	vertical-align: top;
+	empty-cells: show;
+	display: block;
 	height:120mm;
 	overflow: auto;
 	text-align: left;
@@ -234,24 +244,49 @@ div.fakefile input {
 	visibility: visible;
 }
 
-.branch > .branch , .branch > .leaf , .branch > .deadleaf , .branch > br {
+.hiddenbranch {
 	display: none;
 }
 
-.branch.open > .branch , .branch.open > .leaf , .branch.open > .deadleaf , .branch.open > br {
+.scrollbranch > .branchcontainer ,
+.branch > .branchcontainer
+{
+	display: none;
+}
+
+.scrollbranch.open > .branchcontainer ,
+.branch.open > .branchcontainer
+{
 	display: block;
 }
 
-.branchlabel, .leaf, .deadleaf, .seed, .fruit {
+.branchlabel, .scrollswitch, .leaf, .deadleaf, .seed, .fruit {
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 10px;
+}
+
+.branchlabel, .leaf, .deadleaf, .seed, .fruit {
 	background-repeat: no-repeat;
 	background-position: center left;
 	padding-left: 12px;
 }
 
-.branch, .leaf, .deadleaf {
-	margin-left: 20px;
+.branchlabel:focus {
+	background-color:blue;
+}
+
+.branch, .scrollbranch, .leaf, .deadleaf {
+	margin-left: 15px;
+}
+
+.branchcontainer {
+	margin-left: 0px;
+}
+
+.scrollbranch > .branchcontainer {
+	height: 60px;
+	overflow: auto;
+	border: 1px solid brown;
 }
 
 .seed, .fruit  {
@@ -266,15 +301,19 @@ div.fakefile input {
 	background-image: url(twisty-fruit.png);
 }
 
-.branch > .branchlabel {
+.scrollswitch {
+	color: blue;
+}
+
+.branch > .branchlabel , .scrollbranch > .branchlabel {
 	background-image: url(twisty-clsd.png);
 }
 
-.branch.open > .branchlabel{
+.branch.open > .branchlabel , .scrollbranch.open > .branchlabel {
 	background-image: url(twisty-open.png);
 }
 
-.branch, .leaf {
+.branch, .scrollbranch, .leaf {
 	cursor: pointer;
 }
 

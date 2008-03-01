@@ -26,29 +26,34 @@
 <div align="center"><b>INB Web Workflow Enaction Viewer</b></div>
 	<table style="width:100%">
 		<tr><td class="middle">
-			<u>Date</u>: <span id="dateSpan"></span><br>
+			<u>Report date</u>: <span id="dateSpan"></span><br>
 			<u>General status</u>: <span id="generalStatusSpan"></span>
 		</td><td class="data">
-			<u>Step</u>: <span id="stageSpan"></span>
+			<u>Step</u>: <span id="stageSpan"></span><br>
+			<u>State</u>: <span id="stageStateSpan"></span>
 		</td><td style="width:230px;vertical-align:top">
 			<form style="padding:0px;margin:0px">
-				<u>Status</u>: <span id="statusSpan"></span> <u>MIME</u> <select id="mimeSelect"></select><br>
+				<u>MIME</u> <select id="mimeSelect"></select><br>
 				<span id="IOTypeSpan"></span> <span id="IONameSpan"></span><br>
 			</form>
 		</td></tr><tr><td class="middle">
 			<div align="center" id="svgdiv"></div>
 			<!--<select name="workflow" id="workflow" style="width:230px;" size="20"></select>-->
-		</td><td class="data">
-			<div class="scrolldata">
+		</td><td class="data" width="50%">
+			<div class="scrolldatawide">
 				<form>
-					<b>Iteration </b><select id="iterationSelect"></select><br>
-					<br><span id="inputsSpan" class="IOStat">Inputs&nbsp;<img src="style/ajaxLoader.gif"></img></span>
+					<div id="iterDiv" style="display:none"><b>Iteration </b><select id="iterationSelect"></select></div>
+					<div id="schedStampDiv" style="display:none"><b>Scheduled: </b><span id="schedStampSpan">&nbsp;</span></div>
+					<div id="startStampDiv" style="display:none"><b>Started: </b><span id="startStampSpan">&nbsp;</span></div>
+					<div id="stopStampDiv" style="display:none"><b>Stopped: </b><span id="stopStampSpan">&nbsp;</span></div>
+					<div id="errStepDiv">&nbsp;</div>
+					<span id="inputsSpan" class="IOStat">Inputs&nbsp;<img src="style/ajaxLoader.gif"></img></span>
 					<div id="inputs">&nbsp;</div>
 					<br><span id="outputsSpan" class="IOStat">Outputs&nbsp;<img src="style/ajaxLoader.gif"></img></span>
 					<div id="outputs">&nbsp;</div>
 				</form>
 			</div>
-		</td><td style="width:230px;vertical-align:top;text-align:center">
+		</td><td width="50%" align="center" valign="top">
 			<div id="databrowser" class="scroll"></div>
 		</td></tr><tr><td class="buttons">
 			<div align="center">

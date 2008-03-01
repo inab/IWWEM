@@ -27,9 +27,44 @@ function WorkflowStep(stepDOM, /* optional */ parentStep) {
 	this.output={};
 	this.hasOutputs=undefined;
 	this.bacOutput=undefined;
+	
+	this.schedStamp=undefined;
+	this.startStamp=undefined;
+	this.stopStamp=undefined;
+	this.iterNumber=undefined;
+	this.iterMax=undefined;
+	this.stepError=undefined;
 	for(var child = stepDOM.firstChild; child; child = child.nextSibling) {
 		if(child.nodeType==1) {
 			switch(GeneralView.getLocalName(child)) {
+				case 'extraStepInfo':
+					if(child.hasAttribute('sched')) {
+						this.schedStamp=child.getAttribute('sched');
+					}
+					if(child.hasAttribute('start')) {
+						this.startStamp=child.getAttribute('start');
+					}
+					if(child.hasAttribute('stop')) {
+						this.stopStamp=child.getAttribute('stop');
+					}
+					if(child.hasAttribute('iterNumber')) {
+						this.iterNumber=child.getAttribute('iterNumber');
+					}
+					if(child.hasAttribute('iterMax')) {
+						this.iterMax=child.getAttribute('iterMax');
+					}
+					var stepError=new Array();
+					for(var stepErr=child.firstChild;stepErr;stepErr=stepErr.nextSibling) {
+						if(stepErr.nodeType==1 && GeneralView.getLocalName(stepErr)=='stepError') {
+							stepError.push({
+								header:  stepErr.getAttribute('header'),
+								message: WidgetCommon.getTextContent(stepErr)
+							});
+						}
+					}
+					// To finish
+					if(stepError.length>0)  this.stepError=stepError;
+					break;
 				case 'iterations':
 					var iterations=new Array();
 					for(var iter=child.firstChild;iter;iter=iter.nextSibling) {
@@ -184,8 +219,19 @@ function EnactionView(genview) {
 	this.dateSpan=genview.getElementById('dateSpan');
 	this.generalStatusSpan=genview.getElementById('generalStatusSpan');
 	this.stageSpan=genview.getElementById('stageSpan');
-	this.statusSpan=genview.getElementById('statusSpan');
+	this.stageStateSpan=genview.getElementById('stageStateSpan');
 	
+	// Detailed info about a step
+	this.schedStampDiv=genview.getElementById('schedStampDiv');
+	this.schedStampSpan=genview.getElementById('schedStampSpan');
+	this.startStampDiv=genview.getElementById('startStampDiv');
+	this.startStampSpan=genview.getElementById('startStampSpan');
+	this.stopStampDiv=genview.getElementById('stopStampDiv');
+	this.stopStampSpan=genview.getElementById('stopStampSpan');
+	this.errStepDiv=genview.getElementById('errStepDiv');
+	this.iterDiv=genview.getElementById('iterDiv');
+	
+	// Update button text
 	this.updateTextSpan=genview.getElementById('updateTextSpan');
 	
 	var enactview = this;
@@ -287,6 +333,29 @@ EnactionView.getJobDir = function(jobId) {
 };
 
 EnactionView.BaseHREF = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
+
+EnactionView.BranchClick = function (event) {
+	if(!event)  event=window.event;
+	var target=(event.currentTarget)?event.currentTarget:event.srcElement;
+	if(target.parentNode.className=='branch' || target.parentNode.className=='scrollbranch') {
+		target.parentNode.className+=' open';
+	} else {
+		target.parentNode.className=(target.parentNode.className.indexOf('scroll')!=-1)?'scrollbranch':'branch';
+	}
+};
+	
+EnactionView.ScrollClick = function (event) {
+	if(!event)  event=window.event;
+	var target=(event.currentTarget)?event.currentTarget:event.srcElement;
+	var parentOpen=(target.parentNode.className.indexOf(' open')!=-1)?' open':'';
+	if(target.parentNode.className.indexOf('scroll')!=-1) {
+		target.innerHTML=' [=]';
+		target.parentNode.className='branch'+parentOpen;
+	} else {
+		target.innerHTML=' [\u2212]';
+		target.parentNode.className='scrollbranch'+parentOpen;
+	}
+};
 	
 EnactionView.prototype = {
 	openReloadFrame: function () {
@@ -312,9 +381,13 @@ EnactionView.prototype = {
 		GeneralView.freeContainer(this.dateSpan);
 		GeneralView.freeContainer(this.generalStatusSpan);
 		GeneralView.freeContainer(this.stageSpan);
-		GeneralView.freeContainer(this.statusSpan);
+		GeneralView.freeContainer(this.stageStateSpan);
 		GeneralView.freeContainer(this.IOTypeSpan);
 		GeneralView.freeContainer(this.IONameSpan);
+		GeneralView.freeContainer(this.errStepDiv);
+		this.schedStampDiv.style.display='none';
+		this.startStampDiv.style.display='none';
+		this.stopStampDiv.style.display='none';
 	},
 	
 	internalDispose: function() {
@@ -389,18 +462,20 @@ EnactionView.prototype = {
 				gstate="<tt>queued</tt>";
 				break;
 			case 'frozen':
-				gstate="<span style='color:blue'><b>"+gstate+"</b></span>";
+				gstate="<span style='color:blue; font-weight: bold;'>"+gstate+"</span>";
 				break;
 			case 'dead':
 			case 'error':
 			case 'killed':
-				gstate="<span style='color:red'><b>"+gstate+"</b></span>";
+				gstate="<span style='color:red;font-weight: bold;'>"+gstate+"</span>";
 				break;
 			case 'unknown':
 				gstate='<b>'+gstate+'</b>';
 			case 'running':
-				gstate='<i>'+gstate+'</i>';
+				gstate="<span style='color:yellow; font-style: italic;'>"+gstate+"</span>"
 				break;
+			case 'finished':
+				gstate="<span style='color:green; font-weight: bold;'>"+gstate+"</span>";
 		}
 
 		return gstate;
@@ -571,7 +646,7 @@ EnactionView.prototype = {
 		this.setStep(step);
 	},
 	
-	setStep: function (step,iteration) {
+	setStep: function (step,/*optional*/ iteration) {
 		// To finish
 		if(!step) {
 			step=this.step;
@@ -591,10 +666,43 @@ EnactionView.prototype = {
 			}
 			if(!this.step || this.step.name!=step.name || this.step!=step) {
 				this.stageSpan.innerHTML=step.name;
-				this.statusSpan.innerHTML=this.genGraphicalState(step.state);
+				this.stageStateSpan.innerHTML=this.genGraphicalState(step.state);
 			}
 			this.step=step;
 			this.istep=iteration;
+			
+			// Filling step information
+			if(step.schedStamp && iteration==-1) {
+				this.schedStampDiv.style.display='block';
+				this.schedStampSpan.innerHTML=step.schedStamp;
+			} else {
+				this.schedStampDiv.style.display='none';
+			}
+
+			if(step.startStamp && iteration==-1) {
+				this.startStampDiv.style.display='block';
+				this.startStampSpan.innerHTML=step.startStamp;
+			} else {
+				this.startStampDiv.style.display='none';
+			}
+
+			if(step.stopStamp && iteration==-1) {
+				this.stopStampDiv.style.display='block';
+				this.stopStampSpan.innerHTML=step.stopStamp;
+			} else {
+				this.stopStampDiv.style.display='none';
+			}
+			
+			GeneralView.freeContainer(this.errStepDiv);
+			if(step.stepError && iteration==-1) {
+				var errHTML='<span style="color:red;font-weight:bold;">Processing Errors</span><br>';
+				for(var ierr=0;ierr<step.stepError.length;ierr++) {
+					var therr=step.stepError[ierr];
+					var lierr=this.genview.createElement('ul');
+					errHTML += '<u>'+therr.header+'</u><br><pre>'+therr.message+'</pre><br>';
+				}
+				this.errStepDiv.innerHTML=errHTML;
+			}
 
 			// Filling iterations
 			var iterO=this.genview.createElement('option');
@@ -616,6 +724,7 @@ EnactionView.prototype = {
 			};
 
 			if(step.iterations) {
+				this.iterDiv.style.display='block';
 				var giter=gstep.iterations;
 				var giterl = giter.length;
 				for(var i=0;i<giterl;i++) {
@@ -646,6 +755,8 @@ EnactionView.prototype = {
 					}
 				};
 				WidgetCommon.addEventListener(this.iterationSelect,'change',this.iterSelectHandler,false);
+			} else {
+				this.iterDiv.style.display='none';
 			}
 			// Fetching data after, not BEFORE creating the select
 			var outputSignaler = function(istep) {
@@ -665,9 +776,11 @@ EnactionView.prototype = {
 			GeneralView.freeContainer(this.inContainer);
 			GeneralView.freeContainer(this.outContainer);
 			this.stageSpan.innerHTML='NONE';
-			this.statusSpan.innerHTML='NONE'
+			this.stageStateSpan.innerHTML='NONE'
 			this.inContainer.innerHTML='<i>(None)</i>';
 			this.outContainer.innerHTML='<i>(None)</i>';
+			this.iterDiv.style.display='none';
+			/*
 			var iterO=this.genview.createElement('option');
 			iterO.value='NONE';
 			iterO.text='NONE';
@@ -676,6 +789,7 @@ EnactionView.prototype = {
 			} catch(e) {
 				this.iterationSelect.add(iterO);
 			}
+			*/
 		}
 	},
 	
@@ -741,13 +855,11 @@ EnactionView.prototype = {
 		if(this.step==gstep) {
 			// Update the selection text
 			var tstep;
-			if(!istep) {
+			if(istep==undefined) {
 				istep=-1;
-				tstep='Whole';
-			} else {
-				istep=parseInt(istep);
-				tstep=istep+1;
 			}
+			istep=parseInt(istep);
+			tstep=(istep!=-1)?istep:'Whole';
 			
 			this.iterationSelect.options[istep+1].text=tstep;
 			
@@ -766,8 +878,10 @@ EnactionView.prototype = {
 		} else {
 			data = thehash[thekey];
 		}
+		var retval;
 		if(data instanceof DataObject) {
 			// A leaf
+			var retval;
 			var span = this.genview.createElement('div');
 			span.innerHTML=thekey;
 			if(data.hasData()) {
@@ -776,9 +890,13 @@ EnactionView.prototype = {
 				span.className='leaf';
 				// TODO new CSS class *and* JS code
 				if(beMatched==true) {
+					retval=2;
 				} else if(beMatched=='maybe') {
+					retval=1;
+				} else {
+					retval=0;
 				}
-
+				
 				var databrowser=this.databrowser;
 				// Event to show the information
 				WidgetCommon.addEventListener(span,'click',function () {
@@ -786,6 +904,7 @@ EnactionView.prototype = {
 				},false);
 			} else {
 				span.className='deadleaf';
+				retval=-1;
 			}
 
 			//parentContainer.appendChild(this.genview.createElement('br'));
@@ -796,25 +915,58 @@ EnactionView.prototype = {
 			div.className='branch';
 			var span = this.genview.createElement('span');
 			span.className='branchlabel';
-			span.innerHTML=thekey;
 			div.appendChild(span);
-			parentContainer.appendChild(div);
-			// Event to show the contents
-			WidgetCommon.addEventListener(span,'click',function (event) {
-				if(!event)  event=window.event;
-				var target=(event.currentTarget)?event.currentTarget:event.srcElement;
-				if(target.parentNode.className=='branch') {
-					target.parentNode.className+=' open';
-				} else {
-					target.parentNode.className='branch';
-				}
-			},false);
+			var condiv = this.genview.createElement('div');
+			condiv.className='branchcontainer';
 
 			// Now the children
+			var isscroll=true;
+			var isdead=true;
+			var citem=0;
+			var aitem=0;
 			for(var facet in data) {
-				this.generateIO(facet,data,mime,div);
+				citem++;
+				var geval=this.generateIO(facet,data,mime,condiv);
+				if(geval>0)  isscroll=undefined;
+				if(geval>=0) {
+					isdead=undefined;
+					aitem++;
+				}
 			}
+			var spai = thekey+' <i>('+citem+' item'+((citem!=1)?'s':'');
+			if(citem!=aitem)  spai+=', '+aitem+'alive';
+			spai += ')</i>';
+			span.innerHTML=spai;
+			
+			if(isscroll && aitem<8)  isscroll=undefined;
+			
+			if(isdead) {
+				div.className += ' hiddenbranch';
+				retval=-2;
+			} else {
+				var expandContent;
+				if(isscroll) {
+					div.className='scrollbranch';
+					expandContent=' [\u2212]';
+				} else {
+					expandContent=' [=]';
+				}
+				var expandSpan = this.genview.createElement('span');
+				expandSpan.className='scrollswitch';
+				expandSpan.innerHTML=expandContent;
+				div.appendChild(expandSpan);
+				
+				// Event to expand/collapse
+				WidgetCommon.addEventListener(expandSpan,'click',EnactionView.ScrollClick,false);
+				// Event to show the contents
+				WidgetCommon.addEventListener(span,'click',EnactionView.BranchClick,false);
+				retval=3;
+			}
+			div.appendChild(condiv);
+			parentContainer.appendChild(div);
 		}
+		
+		return retval;
 	},
 	
 	setMessage: function(message) {
