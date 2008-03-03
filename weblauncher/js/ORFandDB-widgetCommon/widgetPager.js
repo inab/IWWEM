@@ -42,7 +42,7 @@ WidgetPager = function (theuri,theparamid,theparamns,theparamhtml,/* optional */
 	//this.qsParm = new Array();
 	
 	// widget message namespace
-	this.NSprefix = new Array();
+	this.NSprefix = {};
 	this.NSprefix['msg'] = 'http://www.cnio.es/scombio/jmfernandez/widgetMessage/0.6';
 	
 	// Prefetching infrastructure

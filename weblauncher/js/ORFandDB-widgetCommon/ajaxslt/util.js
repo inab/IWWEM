@@ -10,6 +10,8 @@ function xpathLog(msg) {};
 function xsltLog(msg) {};
 function xsltLogXml(msg) {};
 
+var ajaxsltIsIE6 = navigator.appVersion.match(/MSIE 6.0/);
+
 // Throws an exception if false.
 function assert(b) {
   if (!b) {
@@ -214,10 +216,31 @@ function removeFromArray(array, value, opt_notype) {
   return shift;
 }
 
-// Shallow-copies an array.
+// Shallow-copies an array to the end of another array
+// Basically Array.concat, but works with other non-array collections
 function copyArray(dst, src) {
-  for (var i = 0; i < src.length; ++i) {
-    dst.push(src[i]);
+  if (!src) return;
+  var dstLength = dst.length;
+  for (var i = src.length - 1; i >= 0; --i) {
+    dst[i+dstLength] = src[i];
+  }
+}
+
+/**
+ * This is an optimization for copying attribute lists in IE. IE includes many
+ * extraneous properties in its DOM attribute lists, which take require
+ * significant extra processing when evaluating attribute steps. With this
+ * function, we ignore any such attributes that has an empty string value.
+ */
+function copyArrayIgnoringAttributesWithoutValue(dst, src)
+{
+  if (!src) return;
+  for (var i = src.length - 1; i >= 0; --i) {
+    // this test will pass so long as the attribute has a non-empty string
+    // value, even if that value is "false", "0", "undefined", etc.
+    if (src[i].nodeValue) {
+      dst.push(src[i]);
+    }
   }
 }
 
@@ -231,10 +254,15 @@ function xmlValue(node) {
 
   var ret = '';
   if (node.nodeType == DOM_TEXT_NODE ||
-      node.nodeType == DOM_CDATA_SECTION_NODE ||
-      node.nodeType == DOM_ATTRIBUTE_NODE) {
+      node.nodeType == DOM_CDATA_SECTION_NODE) {
     ret += node.nodeValue;
 
+  } else if (node.nodeType == DOM_ATTRIBUTE_NODE) {
+    if (ajaxsltIsIE6) {
+      ret += xmlValueIE6Hack(node);
+    } else {
+      ret += node.nodeValue;
+    }
   } else if (node.nodeType == DOM_ELEMENT_NODE ||
              node.nodeType == DOM_DOCUMENT_NODE ||
              node.nodeType == DOM_DOCUMENT_FRAGMENT_NODE) {
@@ -243,6 +271,16 @@ function xmlValue(node) {
     }
   }
   return ret;
+}
+
+function xmlValueIE6Hack(node) {
+    // Issue 19, IE6 mangles href attribute when it's a javascript: url
+    var nodeName = node.nodeName;
+    var nodeValue = node.nodeValue;
+    if (nodeName.length != 4) return nodeValue;
+    if (!/^href$/i.test(nodeName)) return nodeValue;
+    if (!/^javascript:/.test(nodeValue)) return nodeValue;
+    return unescape(nodeValue);
 }
 
 // Returns the representation of a node as XML text.
@@ -409,3 +447,24 @@ function windowSetInterval(win, fun, time) {
 function windowClearInterval(win, id) {
   return win.clearInterval(id);
 }
+
+/**
+ * Escape the special regular expression characters when the regular expression
+ * is specified as a string.
+ *
+ * Based on: http://simonwillison.net/2006/Jan/20/escape/
+ */
+RegExp.escape = (function() {
+  var specials = [
+    '/', '.', '*', '+', '?', '|', '^', '$',
+    '(', ')', '[', ']', '{', '}', '\\'
+  ];
+    
+  var sRE = new RegExp(
+    '(\\' + specials.join('|\\') + ')', 'g'
+  );
+    
+  return function(text) {
+    return text.replace(sRE, '\\$1');
+  }
+})();

@@ -402,7 +402,7 @@ WidgetCommon.setIFrameAutoResizeFromId = function (ifraname,/* optional */ perce
 /*****************/
 /* This is a sort of lazy evaluation */
 WidgetCommon.xpathEvaluate = function (thexpath,thecontext,theObjResolver) {
-	WidgetCommon.xpathEvaluate = (BrowserDetect.browser=='Konqueror' || BrowserDetect.browser=='Safari') ?
+	WidgetCommon.xpathEvaluate = (BrowserDetect.browser=='Konqueror') ?
 		function (thexpath,thecontext,theObjResolver) {
 			var expcon=new ExprContext(thecontext);
 			var tagname=thecontext.documentElement.tagName;
@@ -704,10 +704,10 @@ WidgetCommon.getTextContent = function (oNode) {
 		try {
 			if(BrowserDetect.browser=='Explorer') {
 				retval=oNode.text;
-			} else if(BrowserDetect.browser=='Safari'){
-				retval=WidgetCommon.nodeGetText(oNode,true);
-			} else {
+			} else if(oNode.textContent!=undefined){
 				retval=oNode.textContent;
+			} else {
+				retval=WidgetCommon.nodeGetText(oNode,true);
 			}
 		} catch(e) {
 			retval=WidgetCommon.nodeGetText(oNode,true);

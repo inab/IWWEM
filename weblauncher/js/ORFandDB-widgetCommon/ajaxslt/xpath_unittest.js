@@ -6,11 +6,20 @@
 // Author: Steffen Meschkat <mesch@google.com>
 //         Junji Takagi <jtakagi@google.com>
 
+//********************************************
+// DGF BEWARE!  You MUST update this function if you add tests!
+//********************************************
+function exposeTestFunctionNames() {
+    return ['testParse', 'testEval', 'testAxes', 'testAttributeAsterisk', 'testEvalDom', 'testEvalDomJapanese'];
+}
+
 var expr = [
     "@*",
     "@*|node()",
     "/descendant-or-self::div",
+    "/div",
     "//div",
+    "/descendant-or-self::node()/child::para",
     "substring('12345', 0, 3)",
     "//title | //link",
     "$x//title",
@@ -118,6 +127,11 @@ var expr = [
     "child::\u7ae0[child::\u30bf\u30a4\u30c8\u30eb]",
     "child::*[self::\u7ae0 or self::\u4ed8\u9332]",
     "child::*[self::\u7ae0 or self::\u4ed8\u9332][position()=last()]",
+
+    //Selenium bugs
+    "id('nested1')/div[1]//input[2]",
+    "id('foo')//div[contains(@id, 'useful')]//input",
+    "(//table[@class='stylee'])//th[text()='theHeaderText']/../td",
 
     // The following are all expressions that used to occur in google
     // maps XSLT templates.
@@ -324,6 +338,20 @@ var numExpr = [
     [ "'Hello World!'", 'Hello World!' ],
     [ "substring('12345', 1.5, 2.6)", "234" ],
     [ "substring('12345', 0, 3)", "12" ],
+    [ "ends-with('foo', '')", true ],
+    [ "ends-with('', 'foo')", false ],
+    [ "ends-with('foo', 'foo')", true ],
+    [ "ends-with('bar', 'foo')", false ],
+    [ "ends-with('foobar', 'foo')", false ],
+    [ "ends-with('barfoo', 'foo')", true ],
+    [ "ends-with('foo\\$+', '\\$+')", true ],
+    [ "matches('ajaxslt', 'xsl')", true ],
+    [ "matches('ajaxslt', 'lt$')", true ],
+    [ "matches('ajaxslt', '[pqr]')", false ],
+    [ "matches('ajaxslt', '^AJAX')", false ],
+    [ "matches('ajaxslt', '^AJAX', 'i')", true ],
+    [ "matches('ajaxslt', 'a', 'z')", 'Invalid regular expression syntax: z' ],
+    [ "matches('ajaxslt', '?')", 'Invalid matches argument: ?' ],
     /* string expressions (Japanese) */
     [ "substring('\u3042\u3044\u3046\u3048\u304a', -42, 1 div 0)",
       "\u3042\u3044\u3046\u3048\u304a" ],
@@ -339,6 +367,8 @@ var numExpr = [
       "\uff12\uff13\uff14" ],
     [ "substring('\uff11\uff12\uff13\uff14\uff15', 0, 3)",
       "\uff11\uff12" ],
+    /* selenium bug SEL-347, AJAXSLT issue 19 */
+    [ "count(//a[@href=\"javascript:doFoo('a', 'b')\"])", 1 ],
     /* variables */
     [ "$foo", 'bar', { foo: 'bar' } ],
     [ "$foo", 100, { foo: 100 } ],
@@ -379,8 +409,14 @@ function testEval() {
         }
       }
     }
-
-    var result = xpathParse(e[0]).evaluate(ctx);
+    // allow exceptions to be caught and asserted upon
+    try {
+      var result = xpathParse(e[0]).evaluate(ctx);
+    }
+    catch (ex) {
+      assertEquals(ex, ex, e[1]);
+      continue;
+    }
     if (typeof e[1] == 'number') {
       assertEquals(e[0], e[1], result.numberValue());
     } else if (typeof e[1] == 'string') {
@@ -495,7 +531,13 @@ function doTestEvalDom(xml, page, location, lat, latValue, lon, lonValue) {
   var slashPageLocationAtLon = '/' + page + '/' + location + '/@' + lon;
 
   var ctx = new ExprContext(xmlParse(xml));
-  var ctx1 = new ExprContext((new DOMParser).parseFromString(xml, 'text/xml'));
+  // DGF if we have access to an official DOMParser, compare output with that also
+  var ctx1;
+  if (typeof(DOMParser) != 'undefined') {
+    ctx1 = new ExprContext((new DOMParser).parseFromString(xml, 'text/xml'));
+  } else {
+    ctx1 = ctx;
+  }
 
   var ns = evalNodeSet(page, ctx);
   assertEquals(page, ns.length, 1);
