@@ -70,7 +70,7 @@ WidgetCommon.dhtmlDelayedLoadScript = function (urls,/* optional */ basehref,the
 	
 	var delayed=null;
 	if(navigator.vendor) {
-		if(navigator.vendor.indexOf('KDE')!=-1 || navigator.vendor.indexOf('Apple')!=-1) {
+		if(navigator.vendor.indexOf('KDE')!=-1) {
 			delayed=1;
 		}
 	/*
@@ -115,43 +115,39 @@ WidgetCommon.dhtmlDelayedLoadScript = function (urls,/* optional */ basehref,the
 			}
 		}, 100);
 	} else {
-		WidgetCommon.dhtmlBulkLoadScript(urls,basehref,thedoc);
-		WidgetCommon._loaded=1;
+		WidgetCommon.dhtmlBulkLoadScript(urls,basehref,thedoc,function() {WidgetCommon._loaded=1;});
 	}
 };
 
-WidgetCommon.dhtmlBulkLoadScript = function (urls,/* optional */ basehref,thedoc)
+WidgetCommon.dhtmlBulkLoadScript = function (urls,/* optional */ basehref,thedoc,thelastscript,urlsi)
 {
 	if(!thedoc) {
 		thedoc=document;
 	}
 	var head=thedoc.getElementsByTagName("head")[0];
+	
+	if(urlsi==undefined)  urlsi=0;
 	// Browser detection
 	if(!basehref) {
 		basehref='';
 	}
-	/*
-	if(navigator.vendor.indexOf('KDE')!=-1 || navigator.vendor.indexOf('Apple')!=-1) {
-		var towrite='';
-		for(var uri in urls) {
-			towrite+="<script src='"+basehref+urls[uri]+"' type='text/javascript'></script>\n";
-		}
-		head=thedoc.createElement('head');
-		head.innerHTML = towrite;
-		thedoc.appendChild(head);
-		//thedoc.write(towrite);
-		alert(towrite);
-	} else {
-	*/
-		for(var uri in urls) {
-			var e = thedoc.createElement("script");
-			e.type="text/javascript";
-			e.src = basehref+urls[uri];
-			head.appendChild(e);
-		}
-	/*
+	if(urlsi<urls.length) {
+		var e = thedoc.createElement("script");
+		e.type="text/javascript";
+		var helper=function() {
+			alert('haha');
+			WidgetCommon.dhtmlBulkLoadScript(urls,basehref,thedoc,thelastscript,urlsi+1);
+		};
+		e.onreadystatechange = function() {
+			alert('haha');
+			if(this.readyState == 'loaded' || this.readyState == 'complete')  helper();
+		};
+		e.onload=helper;
+		e.src = basehref+urls[urlsi];
+		head.appendChild(e);
+	} else if(thelastscript instanceof Function) {
+		thelastscript();
 	}
-	*/
 };
 
 WidgetCommon.dhtmlLoadCSS = function (url,/* optional */ basehref,thedoc)
