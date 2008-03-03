@@ -985,6 +985,8 @@ SVGmapApp.ViewBox.prototype = {
 			if (this.windowWidth == null) {
 				if (top.innerWidth) {
 					this.windowWidth = top.innerWidth;
+				} else if (window.innerWidth) {
+					this.windowWidth = window.innerWidth;
 				} else {
 					this.windowWidth = svgRoot.viewport.width;
 				}
@@ -992,6 +994,8 @@ SVGmapApp.ViewBox.prototype = {
 				var factor = parseFloat(this.windowWidth.replace(/%/,""))/100;
 				if (top.innerWidth) {
 					this.windowWidth = top.innerWidth * factor;
+				} else if(window.innerWidth) {
+					this.windowWidth = window.innerWidth * factor;
 				} else {
 					this.windowWidth = svgRoot.viewport.width * factor;
 				}
@@ -1004,6 +1008,8 @@ SVGmapApp.ViewBox.prototype = {
 			if (this.windowHeight == null) {
 				if (top.innerHeight) {
 					this.windowHeight = top.innerHeight;
+				} else if (window.innerHeight) {
+					this.windowHeight = window.innerHeight;
 				} else {
 					this.windowHeight = svgRoot.viewport.height;
 				}
@@ -1011,6 +1017,8 @@ SVGmapApp.ViewBox.prototype = {
 				var factor = parseFloat(this.windowHeight.replace(/%/,""))/100;
 				if (top.innerHeight) {
 					this.windowHeight = top.innerHeight * factor;
+				} else if (window.innerHeight) {
+					this.windowHeight = window.innerHeight * factor;
 				} else {
 					this.windowHeight = svgRoot.viewport.height * factor;
 				}
@@ -1123,6 +1131,9 @@ SVGmapApp.prototype = {
 		if (top.innerWidth) {
 			this.innerWidth = top.innerWidth;
 			this.innerHeight = top.innerHeight;
+		} else if (window.innerWidth) {
+			this.innerWidth = window.innerWidth;
+			this.innerHeight = window.innerHeight;
 		} else {
 			var viewPort = this.thedoc.documentElement.viewport;
 			this.innerWidth = viewPort.width;

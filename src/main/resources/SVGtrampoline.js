@@ -880,8 +880,8 @@ SVGtramp.callHashHandler = function(theid,eventType) {
 };
 
 SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
-	if(!top || (navigator.appName && navigator.appName.indexOf('Adobe')!=-1)) {
-		// Adobe & KDE aberrations
+	if(!top) {
+		// KDE aberrations
 		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 			try {
 				if(eventType && object && listener) {
@@ -898,8 +898,8 @@ SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 				// IgnoreIt!(R)
 			}
 		};
-	} else if(top.addEventListener) {
-		// W3C DOM compatible browsers
+	} else if(top.addEventListener || (navigator.appName && navigator.appName.indexOf('Adobe')!=-1)) {
+		// Adobe and W3C DOM compatible browsers
 		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
 			try {
