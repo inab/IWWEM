@@ -15,6 +15,10 @@ use WorkflowCommon;
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
 
+# Function prototypes
+sub parseExpression($);
+sub applyExpression($$;$);
+
 # Web applications do need this!
 $|=1;
 	
@@ -93,7 +97,10 @@ if(defined($asMime) && defined($jobId)) {
 						@path=split(/\//,$IOPath);
 					}
 					if(scalar(@path)>0) {
-						$withName=join('_',@path)  if(defined($withName));
+						unless(defined($withName)) {
+							$withName=join('_',@path);
+							$withName =~ s/\[([^\]]+)\]/-$1/g;
+						}
 						$facet=shift(@path);
 						
 						# Now, the physical path
@@ -109,7 +116,7 @@ if(defined($asMime) && defined($jobId)) {
 						if(index($step,'/')==-1 && -d $stepdir && -r $stepdir) {
 							my($iterdir)=$stepdir;
 							if(defined($iteration) && length($iteration)>0) {
-								$iterdir .= '/Iterations/'.$step;
+								$iterdir .= '/Iterations/'.$iteration;
 							} else {
 								$iteration='';
 							}
@@ -165,6 +172,7 @@ if($retval ne '0' || $query->cgi_error()) {
 my($retmesg)=undef;
 
 # Now it is time to work!
+my($pathi)=undef;
 unless(defined($bundle64)) {
 	eval {
 		my($context)=XML::LibXML::XPathContext->new();
@@ -173,13 +181,19 @@ unless(defined($bundle64)) {
 		my($xpathfetch)="/b:dataThingMap/b:dataThing[\@key='$facet']/b:myGridDataDocument/";
 
 		my($pathlength)=scalar(@path);
-		if($pathlength>0) {
+		for($pathi=$pathlength-1;$pathi>=0;$pathi--) {
+			if(index($path[$pathi],'#')==0) {
+				last;
+			}
+		}
+		my($effpathlength)=($pathi>=0)?$pathi:$pathlength;
+		if($effpathlength>0) {
 			$xpathfetch .= 'b:partialOrder/b:itemList/';
-			$pathlength--;
-			for(my $pathidx=0; $pathidx<$pathlength; $pathidx++) {
+			$effpathlength--;
+			for(my $pathidx=0; $pathidx<$effpathlength; $pathidx++) {
 				$xpathfetch .= "b:partialOrder[\@index='$path[$pathidx]']/b:itemList/";
 			}
-			$xpathfetch .= "b:dataElement[\@index='$path[$pathlength]']";
+			$xpathfetch .= "b:dataElement[\@index='$path[$effpathlength]']";
 		} else {
 			$xpathfetch .= 'b:dataElement';
 		}
@@ -187,7 +201,7 @@ unless(defined($bundle64)) {
 		# Last step
 		$xpathfetch .= '/b:dataElementData';
 		my(@datanodes)=$context->findnodes($xpathfetch,$bacio);
-
+		
 		if(scalar(@datanodes)!=0) {
 			$bundle64=$datanodes[0]->textContent();
 		} else {
@@ -214,6 +228,69 @@ if(defined($retmesg)) {
 
 # And now, decoding
 my($dec)=decode_base64($bundle64);
+
+# Do we have to do further processing?
+if($pathi!=-1) {
+	# We are going to parse!
+	my($parser)=XML::LibXML->new();
+	my($context)=XML::LibXML::XPathContext->new();
+	$context->registerNs('pat',$WorkflowCommon::WFD_NS);
+	#$context->registerNs('s',$WorkflowCommon::SCUFL_NS);
+	
+	my($docpat);
+	eval {
+		$docpat=$parser->parse_file($WorkflowCommon::PATTERNSFILE);
+	};
+	unless($@) {
+		my($pathlength)=scalar(@path);
+		for(;$pathi<$pathlength;$pathi++) {
+			if($path[$pathi] =~ /^#([^\[\]]+)\[([0-9]+)\]$/) {
+				my($patternName)=$1;
+				my($match)=$2;
+				
+				unless(ref($dec)) {
+					eval {
+						$dec=$parser->parse_string($dec);
+					};
+					
+					if($@) {
+						last;
+						$dec=undef;
+					}
+				}
+				
+				my(@patnodes)=$context->findnodes("//pat:detectionPattern[\@name='$patternName']",$dec);
+				last  if(scalar(@patnodes)!=1);
+				
+				my($expression)=undef;
+				my($extractStep)=undef;
+				
+				foreach my $expr ($patnodes[0]->childNodes()) {
+					if($expr->nodeType==XML::LibXML::XML_ELEMENT_NODE) {
+						my($tagname)=$expr->localName();
+						if($tagname eq 'expression') {
+							$expression=parseExpression($expr);
+						} elsif($tagname eq 'expression') {
+							$extractStep=parseExpression($expr);
+						}
+					}
+				}
+				
+				last  unless(defined($expression) && defined($extractStep));
+				my($matched)=applyExpression($expression,$dec,$match);
+				$dec=applyExpression($extractStep,$matched);
+				last  unless(defined($dec));
+			} else {
+				last;
+			}
+		}
+		
+		$dec=$dec->textContent()  if(ref($dec));
+	}
+}
+
+$dec=''  unless(defined($dec));
+
 my(@headerPars)=(-type=>$asMime);
 
 # Guessing the extension
@@ -232,3 +309,89 @@ if(defined($withName)) {
 print $query->header(@headerPars);
 
 print $dec;
+
+exit 0;
+# Function bodies
+
+sub parseExpression($) {
+	my($theDOM)=@_;
+	my(%expression)=();
+	
+	if($theDOM->hasAttribute('encoding') && $theDOM->getAttribute('encoding') eq 'base64') {
+		$expression{'base64'}=undef;
+	}
+	
+	if($theDOM->hasAttribute('dontExtract') && $theDOM->getAttribute('dontExtract') eq 'true') {
+		$expression{'dontExtract'} = undef;
+	}
+	
+	foreach my $child ($theDOM->childNodes()) {
+		if($child->nodeType==XML::LibXML::XML_ELEMENT_NODE) {
+			my($exptype)=$child->localName();
+			if($exptype eq 'xpath') {
+				$expression{'xpath'}=$child->getAttribute('expression');
+				my($nsMapping)={};
+				foreach my $ns ($child->childNodes()) {
+					if($ns->nodeType==XML::LibXML::XML_ELEMENT_NODE && $ns->localName() eq 'nsMapping') {
+						$nsMapping->{$ns->getAttribute('prefix')}=$ns->getAttribute('ns');
+					}
+				}
+				$expression{'nsMapping'}=$nsMapping;
+			} elsif($exptype eq 'reExpression') {
+				my($pa)=$child->textContent();
+				$expression{'RE'} = (!defined($pa))?'':$pa;
+			}
+		}
+	}
+	
+	return \%expression;
+}
+
+sub applyExpression($$;$) {
+	my($expression,$data,$numres)=@_;
+	
+	$numres=0  unless(defined($numres));
+	
+	my(@res)=();
+	my($retval)=undef;
+	
+	if(defined($data)) {
+		if(exists($expression->{'RE'})) {
+			if(defined($expression->{'RE'})  && $expression->{'RE'} ne '') {
+				$data=$data->textContent()  if(ref($data));
+				@res = $data =~ /$expression->{'RE'}/g;
+			} else {
+				push(@res,$data);
+			}
+		} else {
+			my($context)=XML::LibXML::XPathContext->new();
+			my($prefix,$ns);
+			while(($prefix,$ns)=each(%{$expression->{'nsMapping'}})) {
+				$context->registerNs($prefix,$ns);
+			}
+			unless(ref($data)) {
+				my($parser)=XML::LibXML->new();
+				eval {
+					$data=$parser->parse_string($data);
+				};
+				if($@) {
+					$data=undef;
+				}
+			}
+			
+			if(defined($data)) {
+				@res=$context->findnodes($expression->{'xpath'},$data);
+			}
+		}
+	}
+	
+	if($numres<scalar(@res)) {
+		$retval=exists($expression->{'dontExtract'})?$data:$res[$numres];
+		if(exists($expression->{'base64'})) {
+			$retval=$retval->textContent()  if(ref($retval));
+			$retval=decode_base64($retval);
+		}
+	}
+	
+	return $retval;
+}

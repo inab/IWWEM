@@ -22,7 +22,7 @@ function DataObject(base64Input,nativeInput,/* optional */ params,mimeList) {
 
 DataObject.prototype = {
 	hasData: function() {
-		return this.data[0] || this.data[1];
+		return (this.data[0]!=undefined) || (this.data[1]!=undefined);
 	},
 	
 	genCallParams: function(mime) {
@@ -53,15 +53,31 @@ DataObject.prototype = {
 		return this.matcherStatus;
 	},
 	
-	doMatching: function() {
+	doMatching: function(callbackRes) {
+		var dao=this;
+		if(this.data[1]==undefined) {
+			Base64.streamFromBase64ToUTF8(this.data[0],function(decData) {
+				dao.data[1]=decData;
+				dao.doMatching(callbackRes);
+			});
+			return;
+		}
+
 		// Run this only once
 		if(this.matcherStatus=='maybe') {
-			// Applying
-			this.dataMatches = this.matcher.getMatches(this.data[1],this.candidateMatchers);
-			
-			this.matcherStatus=dataMatches.length!=0;
-			this.matcher=undefined;
-			this.candidateMatchers=undefined;
+			this.matcher.getMatches(this.data[1],this.candidateMatchers,function(dataMatches) {
+				// Applying
+				dao.dataMatches=dataMatches;
+				
+				dao.matcherStatus=dataMatches.length!=0;
+				dao.matcher=undefined;
+				dao.candidateMatchers=undefined;
+				if(callbackRes instanceof Function) {
+					callbackRes(dataMatches);
+				}
+			});
+		} else if(callbackRes instanceof Function) {
+			callbackRes(this.dataMatches);
 		}
 	}
 };

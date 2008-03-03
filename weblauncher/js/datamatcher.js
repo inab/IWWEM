@@ -9,7 +9,6 @@
 
 /* Data matcher, the heart beating for the royal crown */
 function DataMatcher(enactview,matcherURL) {
-	this.patterns=new Array();
 	this.hashMIME={};
 	this.hashMIME['*']=new Array();
 	this.addMatchers([matcherURL],enactview);
@@ -50,7 +49,7 @@ DataMatcher.prototype = {
 												);
 											}
 										}
-										thismatcher.matcherParser(response);
+										thismatcher.matcherParser(response.documentElement);
 									}
 								} else {
 									// Communications error.
@@ -101,7 +100,6 @@ DataMatcher.prototype = {
 		for(var child=matcherDOM.firstChild;child;child=child.nextSibling) {
 			if(child.nodeType==1 && GeneralView.getLocalName(child)=='detectionPattern') {
 				var decpat=new DataMatcher.DetectionPattern(child);
-				patterns.push(decpat);
 				// Now, let's build the fast hash
 				with(decpat) {
 					if(targetMIME.length==0) {
@@ -124,7 +122,7 @@ DataMatcher.prototype = {
 	
 	getCandidateMatchers: function(mimeList) {
 		var candidateMatchers = new Array();
-		if(!mimeList || !mimeList instanceof Array || mimeList.length==0) {
+		if(!mimeList || !(mimeList instanceof Array) || mimeList.length==0) {
 			// Default MIME list matchers
 			mimeList = [ 'text/plain', 'text/xml', 'application/xml' ];
 		}
@@ -134,24 +132,33 @@ DataMatcher.prototype = {
 			var themime=mimeList[mimi];
 			if(themime in this.hashMIME) {
 				var hasiarr=this.hashMIME[themime];
-				for(var hasi=0;hasi<hasiarr.length;hasi++) {
-					candidateMatchers.push(hasiarr[hasi]);
-				}
+				candidateMatchers=candidateMatchers.concat(hasiarr);
 			}
 		}
 		
 		return candidateMatchers;
 	},
 	
-	getMatches: function(data,candidateMatchers) {
-		var matches = new Array();
+	getMatches: function(data,candidateMatchers,callbackRes,/*optional*/matches) {
+		if(matches==undefined)  matches=new Array();
 		
-		for(var candi=0;candi<candidateMatchers.length;candi++) {
-			// TODO, test matchers and generate objects
+		if(candidateMatchers.length>0) {
+			var candMatch=candidateMatchers.shift();
+			var matcher = this;
+			candMatch.match(data,function(partialMatches) {
+				matches = matches.concat(partialMatches);
+				matcher.getMatches(data,candidateMatchers,callbackRes,matches);
+			});
+		} else if(callbackRes instanceof Function) {
+			callbackRes(matches);
 		}
-		
-		return matches;
 	}
+};
+
+DataMatcher.Match = function(data,pattern,numMatch) {
+	this.data=data;
+	this.pattern=pattern;
+	this.numMatch=numMatch;
 };
 
 DataMatcher.DetectionPattern = function(patternDOM) {
@@ -160,6 +167,7 @@ DataMatcher.DetectionPattern = function(patternDOM) {
 	this.expression=undefined;
 	this.targetMIME=new Array();
 	this.assignMIME=new Array();
+	this.extractionStep=new Array();
 	for(var child=patternDOM.firstChild;child;child=child.nextSibling) {
 		if(child.nodeType==1) {
 			switch(GeneralView.getLocalName(child)) {
@@ -173,7 +181,9 @@ DataMatcher.DetectionPattern = function(patternDOM) {
 					this.expression = new DataMatcher.Expression(child);
 					break;
 				case 'extractionStep':
-					this.extractionStep.push(new DataMatcher.Expression(child));
+					var ext = new DataMatcher.Expression(child);
+					this.extractionStep.push(ext);
+					//if(ext.encoding!='raw')  this.paramBASE64=1;
 					break;
 				case 'assignMIME':
 					this.assignMIME.push(child.getAttribute('type'));
@@ -183,11 +193,72 @@ DataMatcher.DetectionPattern = function(patternDOM) {
 	}
 };
 
+DataMatcher.DetectionPattern.prototype = {
+	match: function(data,callbackRes,/*optional*/candidates) {
+		if(candidates==undefined) {
+			candidates = this.expression.match(data);
+			
+			if(candidates!=undefined && candidates.length>0 && this.expression.encoding!='raw') {
+				candienc=candidates;
+				candidates=new Array();
+				var decpat=this;
+				var candtransi=0;
+				var loopDecFunc=function(decData) {
+					candidates.push(decData);
+					candtransi++;
+					if(candtransi<candienc.length) {
+						Base64.streamFromBase64ToUTF8(candienc[candtransi],loopDecFunc);
+					} else {
+						decpat.match(undefined,callbackRes,candidates);
+					}
+				};
+				Base64.streamFromBase64ToUTF8(candienc[0],loopDecFunc);
+				
+				return;
+			}
+		}
+		
+		var results=new Array();
+		if(candidates!=undefined) {
+			var candi;
+			var fextStep=this.extractionStep[0];
+			for(var candi=0; candi<candidates.length ;candi++) {
+				var candres = candidates[candi];
+				var farrRet=fextStep.match(candres);
+				if(farrRet!=undefined && farrRet.length>0) {
+					farrRet=farrRet[0];
+					var paramArray=new Array();
+					for(var extStepi=1;extStepi<this.extractionStep.length;extStepi++) {
+						var extStep=this.extractionStep[extStepi];
+						var arrRet=extStep.match(candres);
+						arrRet = (arrRet!=undefined && arrRet.length>0)?arrRet[0]:undefined;
+						var pmatch=new DataObject((extStep.encoding!='raw')?arrRet:undefined,(extStep.encoding=='raw')?arrRet:undefined);
+						paramArray.push(pmatch);
+					}
+					var datamatch = new DataObject((fextStep.encoding!='raw')?farrRet:undefined,(fextStep.encoding=='raw')?farrRet:undefined,paramArray,this.assignMIME);
+					var match=new DataMatcher.Match(datamatch,this.name,candi);
+					results.push(match);
+				}
+			}
+		}
+
+		if(callbackRes instanceof Function) {
+			callbackRes(results);
+		}
+	}
+};
+
 DataMatcher.Expression = function(theDOM) {
-	if(GeneralView.getLocalName(theDOM)=='extractionStep' && theDOM.hasAttribute('encoding')) {
-		this.encoding = this.getAttribute('encoding');
+	if(theDOM.hasAttribute('encoding')) {
+		this.encoding = theDOM.getAttribute('encoding');
 	} else {
 		this.encoding = 'raw';
+	}
+	
+	if(theDOM.hasAttribute('dontExtract')) {
+		this.dontExtract = theDOM.getAttribute('dontExtract')=='true';
+	} else {
+		this.dontExtract = false;
 	}
 	
 	for(var child=theDOM.firstChild;child;child=child.nextSibling) {
@@ -204,9 +275,56 @@ DataMatcher.Expression = function(theDOM) {
 					}
 					break;
 				case 'reExpression':
-					this.RE = new RegExp(WidgetCommon.getTextContent(child));
+					var pa=WidgetCommon.getTextContent(child);
+					this.RE = (pa==undefined || pa==null || pa=='')?'':new RegExp(pa,'g');
 					break;
 			}
 		}
+	}
+};
+
+DataMatcher.Expression.prototype = {
+	match: function(data) {
+		var matchRes=undefined;
+		if(data!=undefined) {
+			if(this.RE!=undefined) {
+				var redata;
+				if(data instanceof Node) {
+					redata=WidgetCommon.getTextContent(data);
+				} else {
+					redata=data;
+				}
+				if(this.RE instanceof RegExp) {
+					matchRes = redata.match(this.RE);
+					if(this.dontExtract && matchRes && matchRes.length>0) {
+						matchRes=new Array();
+						matchRes.push(redata);
+					}
+				} else {
+					matchRes=new Array();
+					matchRes.push(redata);
+				}
+			} else {
+				try {
+					var xmldata;
+					if(data instanceof Node) {
+						xmldata=data;
+					} else {
+						var parser = new DOMParser();
+						xmldata = parser.parseFromString(data,'application/xml');
+					}
+					matchRes=WidgetCommon.xpathEvaluate(this.xpath,xmldata,this.nsMapping);
+					if(this.dontExtract && matchRes && matchRes.length>0) {
+						matchRes=new Array();
+						matchRes.push(xmldata);
+					}
+				} catch(e) {
+					//IgnoreIT(R)
+				}
+			}
+		}
+		if(matchRes==undefined)  matchRes=new Array();
+
+		return matchRes;
 	}
 };

@@ -260,22 +260,24 @@ div.fakefile input {
 	display: block;
 }
 
-.branchlabel, .scrollswitch, .leaf, .deadleaf, .seed, .fruit {
+.branchlabel, .leaflabel , .scrollswitch, .leaf, .deadleaf, .seed, .fruit {
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 10px;
 }
 
-.branchlabel, .leaf, .deadleaf, .seed, .fruit {
+.branchlabel, .leaflabel {
 	background-repeat: no-repeat;
 	background-position: center left;
 	padding-left: 12px;
 }
 
+/*
 .branchlabel:focus {
 	background-color:blue;
 }
+*/
 
-.branch, .scrollbranch, .leaf, .deadleaf {
+.branch, .scrollbranch, .leaf, .deadleaf , .fruit , .seed {
 	margin-left: 15px;
 }
 
@@ -289,15 +291,11 @@ div.fakefile input {
 	border: 1px solid brown;
 }
 
-.seed, .fruit  {
-	margin-left: 0px;
-}
-
-.seed {
+.seed > .leaflabel {
 	background-image: url(twisty-question.png);
 }
 
-.fruit {
+.fruit > .leaflabel {
 	background-image: url(twisty-fruit.png);
 }
 
@@ -313,15 +311,15 @@ div.fakefile input {
 	background-image: url(twisty-open.png);
 }
 
-.branch, .scrollbranch, .leaf {
+.branch, .scrollbranch, .leaf, .fruit, .seed {
 	cursor: pointer;
 }
 
-.leaf , .deadleaf {
+.leaf > .leaflabel {
 	background-image: url(branch.png);
 }
 
-.leaf {
+.leaflabel {
 	font-style: italic;
 	color: green;
 }

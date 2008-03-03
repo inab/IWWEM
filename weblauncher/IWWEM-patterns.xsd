@@ -43,7 +43,21 @@ or XPath expressions (for XML).
                 </xsd:complexType>
             </xsd:element>
         </xsd:choice>
-<!--        <xsd:simpleContent>
+        <xsd:attribute name="encoding" use="optional" default="raw">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+    The encoding of the extracted content, so if it is base64 encoded, it can
+be decoded later.
+]]></xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="raw"/>
+                    <xsd:enumeration value="base64"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:attribute>
+        <!--        <xsd:simpleContent>
             <xsd:extension base="xsd:string">
                 <xsd:attribute name="namespace" use="required">
                     <xsd:annotation>
@@ -110,37 +124,28 @@ and what it is obtained/extracted.
 ]]></xsd:documentation>
                                 </xsd:annotation>
                             </xsd:element>
-                            <xsd:element name="expression" type="pat:patternType" minOccurs="1" maxOccurs="1">
+                            <xsd:element name="expression" minOccurs="1" maxOccurs="1">
                                 <xsd:annotation>
                                     <xsd:documentation><![CDATA[A detection pattern expression]]></xsd:documentation>
                                 </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:complexContent>
+                                        <xsd:extension base="pat:patternType">
+                                            <xsd:attribute name="dontExtract" type="xsd:boolean" use="optional" default="false">
+                                                <xsd:annotation>
+                                                    <xsd:documentation><![CDATA[If match happens, do we use the whole information or only the matched one?]]></xsd:documentation>
+                                                </xsd:annotation>
+                                            </xsd:attribute>
+                                        </xsd:extension>
+                                    </xsd:complexContent>
+                                </xsd:complexType>
                             </xsd:element>
-                            <xsd:element name="extractionStep" minOccurs="1" maxOccurs="unbounded">
+                            <xsd:element name="extractionStep" minOccurs="1" maxOccurs="unbounded" type="pat:patternType">
                                 <xsd:annotation>
                                     <xsd:documentation><![CDATA[
 A extraction pattern expression, which is applied over the occurrences
 got from the detection pattern]]></xsd:documentation>
                                 </xsd:annotation>
-                                <xsd:complexType>
-                                    <xsd:complexContent>
-                                        <xsd:extension base="pat:patternType">
-                                            <xsd:attribute name="encoding">
-                                                <xsd:annotation>
-                                                    <xsd:documentation><![CDATA[
-    The encoding of the extracted content, so if it is base64 encoded, it can
-be decoded later.
-]]></xsd:documentation>
-                                                </xsd:annotation>
-                                                <xsd:simpleType>
-                                                    <xsd:restriction base="xsd:string">
-                                                        <xsd:enumeration value="raw"/>
-                                                        <xsd:enumeration value="base64"/>
-                                                    </xsd:restriction>
-                                                </xsd:simpleType>
-                                            </xsd:attribute>
-                                        </xsd:extension>
-                                    </xsd:complexContent>
-                                </xsd:complexType>
                             </xsd:element>
                             <xsd:element name="assignMIME" type="pat:MIMEComplexType" minOccurs="1" maxOccurs="unbounded">
                                 <xsd:annotation>

@@ -12,6 +12,8 @@ use vars qw($WORKFLOWFILE $SVGFILE $PNGFILE $PDFFILE $DEPDIR $EXAMPLESDIR $SNAPS
 
 use vars qw($WORKFLOWRELDIR $WORKFLOWDIR $JOBRELDIR $JOBDIR $MAXJOBS $JOBCHECKDELAY $LAUNCHERDIR $MAVENDIR);
 
+use vars qw($PATTERNSFILE);
+
 use vars qw($BACLAVAPARAM $PARAMISLAND $PARAMPREFIX $SNAPSHOTPREFIX $WFD_NS $XSCUFL_NS $BACLAVA_NS);
 
 use vars qw($PARAMSAVEEX $PARAMSAVEEXDESC $CATALOGFILE);
@@ -42,6 +44,8 @@ $WORKFLOWDIR = $FindBin::Bin. '/../' . $WORKFLOWRELDIR;
 # Base directory for jobs
 $JOBRELDIR = 'jobs';
 $JOBDIR = $FindBin::Bin . '/../' .$JOBRELDIR;
+# Patterns file
+$PATTERNSFILE = $FindBin::Bin . '/../EVpatterns.xml';
 # Number of concurrent jobs
 $MAXJOBS = 2;
 # When a pending job is waiting for a slot,

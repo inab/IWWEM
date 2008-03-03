@@ -259,8 +259,6 @@ function EnactionView(genview) {
 	this.inputsSpan=genview.getElementById('inputsSpan');
 	this.outputsSpan=genview.getElementById('outputsSpan');
 	
-	this.IOTypeSpan=genview.getElementById('IOTypeSpan');
-	this.IONameSpan=genview.getElementById('IONameSpan');
 	this.databrowser=new DataBrowser('databrowser',genview);
 	
 	this.frameViewId=undefined;
@@ -382,8 +380,6 @@ EnactionView.prototype = {
 		GeneralView.freeContainer(this.generalStatusSpan);
 		GeneralView.freeContainer(this.stageSpan);
 		GeneralView.freeContainer(this.stageStateSpan);
-		GeneralView.freeContainer(this.IOTypeSpan);
-		GeneralView.freeContainer(this.IONameSpan);
 		GeneralView.freeContainer(this.errStepDiv);
 		this.schedStampDiv.style.display='none';
 		this.startStampDiv.style.display='none';
@@ -472,7 +468,7 @@ EnactionView.prototype = {
 			case 'unknown':
 				gstate='<b>'+gstate+'</b>';
 			case 'running':
-				gstate="<span style='color:yellow; font-style: italic;'>"+gstate+"</span>"
+				gstate="<span style='color:orange; font-style: italic;'>"+gstate+"</span>"
 				break;
 			case 'finished':
 				gstate="<span style='color:green; font-weight: bold;'>"+gstate+"</span>";
@@ -662,7 +658,7 @@ EnactionView.prototype = {
 			if(!iteration) {
 				iteration=-1;
 			} else {
-				iteration=parseInt(iteration);
+				iteration=parseInt(iteration,10);
 			}
 			if(!this.step || this.step.name!=step.name || this.step!=step) {
 				this.stageSpan.innerHTML=step.name;
@@ -722,7 +718,7 @@ EnactionView.prototype = {
 			var inputSignaler = function(istep) {
 				enactview.tryUpdateIOStatus(gstep,istep,'input',enactview.inputsSpan,enactview.inContainer,'hasInputs');
 			};
-
+			
 			if(step.iterations) {
 				this.iterDiv.style.display='block';
 				var giter=gstep.iterations;
@@ -730,8 +726,8 @@ EnactionView.prototype = {
 				for(var i=0;i<giterl;i++) {
 					var ministep=giter[i];
 					iterO=this.genview.createElement('option');
-					iterO.value=i;
 					iterO.text=(((ministep.input[Baclava.GOT]) && (ministep.output[Baclava.GOT]))?'':'* ')+ministep.name;
+					iterO.value=i;
 					try {
 						this.iterationSelect.add(iterO,null);
 					} catch(e) {
@@ -767,10 +763,10 @@ EnactionView.prototype = {
 			
 			// For this concrete (sub)step
 			// Inputs
-			this.updateIOStatus(step.input,this.inputsSpan,this.inContainer,step.hasInputs);
+			this.updateIOStatus(step.input,this.inputsSpan,this.inContainer,step.hasInputs,new DataBrowser.LocatedData(this.jobId,gstep.name,(iteration!=-1)?step.name:undefined,'I'));
 
 			// Outputs
-			this.updateIOStatus(step.output,this.outputsSpan,this.outContainer,step.hasOutputs);
+			this.updateIOStatus(step.output,this.outputsSpan,this.outContainer,step.hasOutputs,new DataBrowser.LocatedData(this.jobId,gstep.name,(iteration!=-1)?step.name:undefined,'O'));
 		} else {
 			// Clearing view
 			GeneralView.freeContainer(this.inContainer);
@@ -839,39 +835,40 @@ EnactionView.prototype = {
 		}
 	},
 	
-	updateIOStatus: function(stepIO,IOSpan,IOContainer,hasIO) {
+	tryUpdateIOStatus: function(gstep,istep,stepIOFacet,IOSpan,IOContainer,hasIOFacet) {
+		if(this.step==gstep) {
+			// Update the selection text
+			var tstep;
+			var s_istep=istep;
+			if(istep==undefined) {
+				s_istep=istep=-1;
+			}
+			istep=parseInt(istep,10);
+			tstep=(istep!=-1)?s_istep:'Whole';
+			
+			this.iterationSelect.options[istep+1].text=tstep;
+			
+			// And perhaps the generated tree!
+			if(this.istep==istep) {
+				this.updateIOStatus(gstep[stepIOFacet],IOSpan,IOContainer,gstep[hasIOFacet],new DataBrowser.LocatedData(this.jobId,gstep.name,s_istep,(stepIOFacet=='input')?'I':'O'));
+			}
+		}
+	},
+	
+	updateIOStatus: function(stepIO,IOSpan,IOContainer,hasIO,locObject) {
 		GeneralView.freeContainer(IOContainer);
 		var loaded=stepIO[Baclava.GOT];
 		IOSpan.className=(!hasIO || loaded)?'IOStat':'IOStatLoading';
 		if(loaded) {
 			for(var IO in stepIO) {
 				if(IO==Baclava.GOT)  continue;
-				this.generateIO(IO,(loaded)?stepIO:undefined,(loaded)?stepIO[IO].mime:undefined,IOContainer);
-			}
-		}
-	},
-	
-	tryUpdateIOStatus: function(gstep,istep,stepIOFacet,IOSpan,IOContainer,hasIOFacet) {
-		if(this.step==gstep) {
-			// Update the selection text
-			var tstep;
-			if(istep==undefined) {
-				istep=-1;
-			}
-			istep=parseInt(istep);
-			tstep=(istep!=-1)?istep:'Whole';
-			
-			this.iterationSelect.options[istep+1].text=tstep;
-			
-			// And perhaps the generated tree!
-			if(this.istep==istep) {
-				this.updateIOStatus(gstep[stepIOFacet],IOSpan,IOContainer,gstep[hasIOFacet]);
+				this.generateIO(IO,(loaded)?stepIO:undefined,(loaded)?stepIO[IO].mime:undefined,IOContainer,locObject.newChild(IO));
 			}
 		}
 	},
 	
 	// Tree-like structure
-	generateIO: function(thekey,thehash,mime,parentContainer) {
+	generateIO: function(thekey,thehash,mime,parentContainer,locObject) {
 		var data;
 		if(thehash && thehash[thekey] instanceof Baclava) {
 			data = thehash[thekey].data;
@@ -883,24 +880,74 @@ EnactionView.prototype = {
 			// A leaf
 			var retval;
 			var span = this.genview.createElement('div');
-			span.innerHTML=thekey;
+			var spanlabel = this.genview.createElement('span');
+			spanlabel.className='leaflabel';
+			spanlabel.innerHTML=thekey;
+			span.appendChild(spanlabel);
 			if(data.hasData()) {
-				var beMatched = data.canBeMatched(this.matcher,mime);
+				mime=mime.concat();
+				var beMatched = (data.matcherStatus==undefined)?data.canBeMatched(this.matcher,mime):data.matcherStatus;
 
 				span.className='leaf';
-				// TODO new CSS class *and* JS code
+				locObject.setDataObject(data);
+				var enactview=this;
 				if(beMatched==true) {
+					var fruit=this.genview.createElement('img');
+					fruit.src='style/twisty-fruit.png';
+					span.appendChild(fruit);
+					
+					var conspan=this.genview.createElement('div');
+					conspan.className='branchcontainer';
+					var virhash={};
+					for(var matchi=0;matchi<data.dataMatches.length;matchi++) {
+						var match=data.dataMatches[matchi];
+						var virfacet='#'+match.pattern+'['+match.numMatch+']';
+						virhash[virfacet]=match.data;
+						this.generateIO(virfacet,virhash,match.data.mimeList,conspan,locObject.newChild(virfacet));
+					}
+
+					span.appendChild(conspan);
 					retval=2;
 				} else if(beMatched=='maybe') {
+					var seed=this.genview.createElement('img');
+					seed.src='style/twisty-question.png';
+					
+					var seedgrow = function (event) {
+						var frameId=enactview.genview.openFrame('extractData',1);
+
+						data.doMatching(function(dataMatches) {
+							if(dataMatches.length>0) {
+								seed.src='style/twisty-fruit.png';
+								// Call generateIO to follow the party!
+								var conspan=enactview.genview.createElement('div');
+								conspan.className='branchcontainer';
+								var virhash={};
+								for(var matchi=0;matchi<dataMatches.length;matchi++) {
+									var match=dataMatches[matchi];
+									var virfacet='#'+match.pattern+'['+match.numMatch+']';
+									virhash[virfacet]=match.data;
+									enactview.generateIO(virfacet,virhash,match.data.mimeList,conspan,locObject.newChild(virfacet));
+								}
+
+								span.appendChild(conspan);
+							} else {
+								// Last, updating the class...
+								span.removeChild(seed);
+							}
+							enactview.genview.closeFrame(frameId);
+						});
+						WidgetCommon.removeEventListener(seed,'click',seedgrow,false);
+					};
+					WidgetCommon.addEventListener(seed,'click',seedgrow,false);
+					span.appendChild(seed);
 					retval=1;
 				} else {
 					retval=0;
 				}
 				
-				var databrowser=this.databrowser;
 				// Event to show the information
-				WidgetCommon.addEventListener(span,'click',function () {
-					databrowser.show(data,mime);
+				WidgetCommon.addEventListener(spanlabel,'click',function () {
+					enactview.databrowser.show(locObject,mime);
 				},false);
 			} else {
 				span.className='deadleaf';
@@ -926,7 +973,7 @@ EnactionView.prototype = {
 			var aitem=0;
 			for(var facet in data) {
 				citem++;
-				var geval=this.generateIO(facet,data,mime,condiv);
+				var geval=this.generateIO(facet,data,mime,condiv,locObject.newChild(facet));
 				if(geval>0)  isscroll=undefined;
 				if(geval>=0) {
 					isdead=undefined;
@@ -934,7 +981,7 @@ EnactionView.prototype = {
 				}
 			}
 			var spai = thekey+' <i>('+citem+' item'+((citem!=1)?'s':'');
-			if(citem!=aitem)  spai+=', '+aitem+'alive';
+			if(citem!=aitem)  spai+=', '+aitem+' alive';
 			spai += ')</i>';
 			span.innerHTML=spai;
 			

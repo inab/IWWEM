@@ -13,6 +13,8 @@ function DataBrowser(databrowserId,genview) {
 	
 	this.databrowserDiv=genview.getElementById(databrowserId);
 	this.mimeSelect=genview.getElementById('mimeSelect');
+	this.IOStepSpan=genview.getElementById('IOStepSpan');
+	this.IOPathSpan=genview.getElementById('IOPathSpan');
 	this.dataObject=undefined;
 	this.mimeList=undefined;
 	this.setCallback=undefined;
@@ -53,6 +55,31 @@ DataBrowser.addViewer = function (viewerProto) {
 	}
 };
 
+DataBrowser.LocatedData = function(jobId,stepName,iteration,IOMode,/*optional*/IOPath) {
+	this.jobId=jobId;
+	this.stepName=stepName;
+	this.iteration=(iteration==-1)?undefined:iteration;
+	this.IOMode=IOMode;
+	this.IOPath=IOPath;
+	this.dataObject=undefined;
+};
+
+DataBrowser.LocatedData.prototype = {
+	newChild: function(newIOPathStep) {
+		return new DataBrowser.LocatedData(this.jobId,this.stepName,this.iteration,this.IOMode,(this.IOPath!=undefined)?(this.IOPath+'/'+newIOPathStep):newIOPathStep);
+	},
+	
+	setDataObject: function(dataObject) {
+		this.dataObject = dataObject;
+	},
+
+	genDownloadURL: function(mime) {
+		var qsParm={jobId: this.jobId , step: this.stepName , IOMode: this.IOMode , IOPath: this.IOPath , asMime: mime};
+		if(this.iteration!=undefined)  qsParm['iteration']=this.iteration;
+		return WidgetCommon.generateQS(qsParm,"cgi-bin/enactproxy");
+	}
+};
+
 DataBrowser.prototype={
 	openProcessFrame: function () {
 		this.frameId=this.genview.openFrame('preprocessData',1);
@@ -64,14 +91,17 @@ DataBrowser.prototype={
 	
 	clearView: function () {
 		WidgetCommon.removeEventListener(this.mimeSelect,'change',this.mimeChangeFunc,false);
+		this.locObject=undefined;
 		this.dataObject=undefined;
 		this.mimeList=undefined;
 		this.setCallback=undefined;
 		GeneralView.freeContainer(this.databrowserDiv);
+		GeneralView.freeContainer(this.IOStepSpan);
+		GeneralView.freeContainer(this.IOPathSpan);
 		GeneralView.freeSelect(this.mimeSelect);
 	},
 	
-	show: function(dataObject,mimeList) {
+	show: function(locObject,mimeList) {
 		this.clearView();
 		
 		// First, fill in mime type
@@ -80,7 +110,12 @@ DataBrowser.prototype={
 				mimeList.push('text/plain');
 			}
 			this.mimeList=mimeList;
+			
+			// Filling data origins
+			this.IOStepSpan.innerHTML=locObject.stepName+((locObject.iteration!=undefined)?('['+locObject.iteration+']'):'')+'('+((locObject.IOMode=='I')?'Input)':'Output)');
+			//this.IOPathSpan.innerHTML='<a href="'+locObject.genDownloadURL()+'" target="_blank">'+locObject.IOPath+'</a>';
 
+			// Filling MIME type selector
 			for(var i=0;i<mimeList.length;i++) {
 				var iterM=this.genview.createElement('option');
 				iterM.text=iterM.value=mimeList[i];
@@ -90,8 +125,9 @@ DataBrowser.prototype={
 					this.mimeSelect.add(iterM);
 				}
 			}
-
-			this.dataObject=dataObject;
+			
+			this.locObject=locObject;
+			this.dataObject=locObject.dataObject;
 			this.setCallback=undefined;
 			// base64 processing is delayed to the last momment
 			this.applyView();
@@ -105,6 +141,7 @@ DataBrowser.prototype={
 				this.mimeSelect.add(iterM);
 			}
 			this.mimeList=undefined;
+			this.locObject=undefined;
 			this.dataObject=undefined;
 		}
 	},
@@ -149,7 +186,9 @@ DataBrowser.prototype={
 		if(!(selmime in DataBrowser.Viewers)) {
 			selmime = '*';
 		}
-
+		
+		var downloadURL=this.locObject.genDownloadURL(selmime);
+		this.IOPathSpan.innerHTML='<a href="'+downloadURL+'" target="_blank">'+this.locObject.IOPath+'</a>';
 		var viewers= DataBrowser.Viewers[selmime];
 		if(viewers instanceof Array) {
 			var databrowser=this;
@@ -166,7 +205,8 @@ DataBrowser.prototype={
 						if(viewer.dataSource==DataBrowser.Inline) {
 							dataValue = dataObject.data[(viewer.dataFormat == DataBrowser.Native)?1:0];
 						} else {
-							// Left enactproxy integration
+							dataValue=downloadURL;
+							// Left enactproxy base64 case integration
 						}
 
 						// Last, applying view
@@ -193,8 +233,11 @@ DataBrowser.prototype={
 								doTranslate=viewer.dataFormat;
 								break;
 							}
+						/*
 						} else {
+							// enactproxy does not have this problem
 							// Left enactproxy integration
+						*/
 						}
 					}
 				}
@@ -371,15 +414,6 @@ DataBrowser.MolViewer = {
 	
 	jmolId:	'jmol',
 	
-	JMolAlert: function (appname,info,addi) {
-		if(info=='Script completed' && DataBrowser.MolViewer.jmolRunme) {
-			//var d=new Date();
-			//alert('alerta '+d.getTime()+' '+appname+' '+info+' '+addi);
-			// This alert avoids a Java plugin deadlock
-			setTimeout(DataBrowser.MolViewer.jmolRunme,100);
-		}
-	},
-	
 	jmolRunme:	undefined,
 	
 	applyView: function (data,paramArray,databrowserDiv,genview) {
@@ -403,7 +437,7 @@ DataBrowser.MolViewer = {
 			case 'Explorer':
 			case 'Safari':
 			case 'Opera':
-				databrowserDiv.innerHTML=jmolAppletInline([300,450],
+				databrowserDiv.innerHTML=jmolAppletInline(['100%','100%'],
 					data,
 					jmolParams,
 					DataBrowser.MolViewer.jmolId
@@ -415,7 +449,7 @@ DataBrowser.MolViewer = {
 						DataBrowser.MolViewer.jmolId);
 					DataBrowser.MolViewer.jmolRunme = undefined;
 				};
-				databrowserDiv.innerHTML=jmolApplet([300,450],'echo',DataBrowser.MolViewer.jmolId);
+				databrowserDiv.innerHTML=jmolApplet(['100%','100%'],'echo',DataBrowser.MolViewer.jmolId);
 				break;
 			/*
 			default:
@@ -458,7 +492,17 @@ DataBrowser.MolViewer = {
 	}
 };
 // JMol intialization
+function JMolAlert(appname,info,addi) {
+	if(info=='Script completed' && DataBrowser.MolViewer.jmolRunme) {
+		//var d=new Date();
+		//alert('alerta '+d.getTime()+' '+appname+' '+info+' '+addi);
+		// This alert avoids a Java plugin deadlock
+		setTimeout(DataBrowser.MolViewer.jmolRunme,100);
+	}
+};
+	
+
 jmolInitialize('js/jmol');
 jmolSetDocument(false);
-jmolSetCallback('messageCallback','DataBrowser.MolViewer.JMolAlert');
+jmolSetCallback('messageCallback','JMolAlert');
 DataBrowser.addViewer(DataBrowser.MolViewer);
