@@ -30,6 +30,12 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish
 	this.SVGtramp = undefined;
 	this.noloaded = 0;
 	
+	var me = this;
+	this.timeoutLoad = function() {
+		me.loading=true;
+		me.loadQueuedSVG();
+	};
+	
 	if(nodeid && url) {
 		this.defaultid = nodeid;
 		this.defaultsvg = url;
@@ -37,8 +43,6 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish
 		this.defaultbestScaleH = bestScaleH;
 		this.defaultCallOnFinish = callOnFinish;
 		this.defaultthedoc = thedoc;
-		
-		this.removeSVG();
 	}
 }
 
@@ -72,10 +76,12 @@ TavernaSVG.prototype = {
 				clearInterval(this._svgloadtimer);
 				this._svgloadtimer=undefined;
 			}
+			/*
 			window.SVGtrampoline=undefined;
 			if(BrowserDetect.browser!='Explorer' && BrowserDetect.browser!='Konqueror') {
 				delete window['SVGtrampoline'];
 			}
+			*/
 			// Second, remove trampoline
 			this.SVGtramp=undefined;
 			// Third, remove previous SVG
@@ -97,12 +103,37 @@ TavernaSVG.prototype = {
 		}
 	},
 
-	removeSVG: function (/* optional */ thedoc) {
+	removeSVG: function (/* optional */callbackFunc, thedoc) {
 		// Before any creation, clear SVG trampoline and SVG object traces!
-		if(this.defaultsvg) {
-			this.loadSVG(this.defaultid,this.defaultsvg,this.defaultbestScaleW,this.defaultbestScaleH,this.defaultCallOnFinish,this.defaultthedoc);
+		if(this.defaultsvg!=undefined) {
+			var defCall;
+			if(typeof callbackFunc=='function') {
+				if(typeof this.defaultCallOnFinish=='function') {
+					var defaultCall=this.defaultCallOnFinish;
+					defCall=function() {
+						try {
+							defaultCall();
+						} catch(e) {
+							// DoNothing(R)
+						}
+						callbackFunc();
+					};
+				} else {
+					defCall=callbackFunc;
+				}
+			} else {
+				defCall=this.defaultCallOnFinish;
+			}
+			this.loadSVG(this.defaultid,this.defaultsvg,this.defaultbestScaleW,this.defaultbestScaleH,defCall,this.defaultthedoc);
 		} else {
 			this.clearSVG(thedoc);
+			if(typeof callbackFunc=='function') {
+				try {
+					callbackFunc();
+				} catch(e) {
+					// DoNothing(R)
+				}
+			}
 		}
 	},
 
@@ -129,12 +160,12 @@ TavernaSVG.prototype = {
 	loadSVG: function (nodeid,url,/* optional */ bestScaleW, bestScaleH, callOnFinish, thedoc) {
 		this.queue.push(new Array(nodeid,url,bestScaleW, bestScaleH, callOnFinish, thedoc));
 		if(!this.loading) {
-			this.loading=true;
-			this.loadQueuedSVG();
+			this.loading=setTimeout(this.timeoutLoad,100);
 		}
 	},
 	
 	loadQueuedSVG: function() {
+		// Now it is time to generate a new SVG object
 		var nodeid=undefined;
 		var url=undefined;
 		var bestScaleW=undefined;
@@ -142,6 +173,7 @@ TavernaSVG.prototype = {
 		var callOnFinish=undefined;
 		var thedoc=undefined;
 		var load;
+		var node;
 		if(this.current) {
 			load = this.current;
 			nodeid=load[0];
@@ -152,106 +184,148 @@ TavernaSVG.prototype = {
 			thedoc=load[5];
 			load=undefined;
 		}
-		while((load = this.queue.shift())) {
-			if(this.noloaded > 1 && nodeid==load[0] && url==load[1]) {
-				continue;
-			}
-			nodeid=load[0];
-			url=load[1];
-			bestScaleW=load[2];
-			bestScaleH=load[3];
-			callOnFinish=load[4];
-			thedoc=load[5];
-			
-			if(!thedoc)  thedoc=document;
-			this.clearSVG(thedoc);
-			this.current=load;
-			
-			/*
-			if(!bestScaleW)  bestScaleW='400pt';
-			if(!bestScaleH)  bestScaleH=bestScaleW;
-			*/
-			// Now it is time to generate a new SVG object
-			var node=thedoc.getElementById(nodeid);
-			var gensvgid;
-
-			if(node) {
-				var ahref = thedoc.createElement('a');
-				ahref.href=url;
-				ahref.target='_blank';
-				ahref.innerHTML='Open the graph<br>';
-				node.appendChild(ahref);
-				this.svglink=ahref;
-				
-				gensvgid = WidgetCommon.getRandomUUID();
-				var objres = undefined;
-
-				if(BrowserDetect.browser!='Explorer') {
-					objres=thedoc.createElement('object');
-					objres.id=gensvgid;
-					objres.setAttribute("type","image/svg+xml");
-					objres.setAttribute("wmode","transparent");
-					//objres.setAttribute("style","overflow: hidden; border: 1px dotted #000;width:0;height:0");
-					if(BrowserDetect.browser!='Konqueror') {
-						objres.setAttribute("style","overflow: hidden; width:0;height:0;");
-					} else {
-						objres.setAttribute("style","overflow: auto;");
-					}
-					objres.setAttribute("data",url);
-
-					/* This one has been commented out because it was injecting two SVG loads in Firefox!
-
-					var paramres=document.createElement('param');
-					paramres.setAttribute("name","src");
-					paramres.setAttribute("value",url);
-					paramres.setAttribute("wmode","transparent");
-					paramres.setAttribute("type","image/svg+xml");
-
-					objres.appendChild(paramres);
+		var none=true;
+		if(this.noloaded < this.queue.length) {
+			load=this.queue[this.noloaded];
+			this.noloaded++;
+			//if(this.noloaded <= 2 || nodeid!=load[0] || url!=load[1]) {
+			if(nodeid!=load[0] || url!=load[1]) {
+				var tmpdoc=load[5];
+				if(!tmpdoc)  tmpdoc=document;
+				node=tmpdoc.getElementById(load[0]);
+				if(node) {
+					none=false;
+					nodeid=load[0];
+					url=load[1];
+					bestScaleW=load[2];
+					bestScaleH=load[3];
+					callOnFinish=load[4];
+					thedoc=tmpdoc;
+					
+					this.clearSVG(thedoc);
+					this.current=load;
+					/*
+					if(!bestScaleW)  bestScaleW='400pt';
+					if(!bestScaleH)  bestScaleH=bestScaleW;
 					*/
-					this.asEmbed=undefined;
-				} else {
-
-					objres=thedoc.createElement('embed');
-					objres.setAttribute("type","image/svg+xml");
-					objres.setAttribute("pluginspage","http://www.adobe.com/svg/viewer/install/");
-					objres.setAttribute("style","overflow: auto;");
-					objres.setAttribute("src",url);
-					this.asEmbed=true;
-					// This line was killing IE and WebKit js
-					// objres.innerHTML="This browser is not able to show SVG: <a href='http://getfirefox.com'>http://getfirefox.com</a> is free and does it! If you use Internet Explorer, you can also get a plugin: <a href='http://www.adobe.com/svg/viewer/install/main.html'>http://www.adobe.com/svg/viewer/install/main.html</a>";
-				}
-
-				node.appendChild(objres);
-				this.svgobj = objres;
-
-				var thissvg=this;
-				if(BrowserDetect.browser!='Konqueror') {
-					this._svgloadtimer=setInterval(function() {
-						// Transferring the trampoline!
-						if ('SVGtrampoline' in window && window.SVGtrampoline) {
-							clearInterval(thissvg._svgloadtimer);
-							thissvg.SVGtramp=window.SVGtrampoline;
-							window.SVGtrampoline=undefined;
-							if(BrowserDetect.browser!='Explorer' && BrowserDetect.browser!='Konqueror') {
-								delete window['SVGtrampoline'];
-							}
-							thissvg.SVGrescale(bestScaleW,bestScaleH);
-							thissvg._svgloadtimer=undefined;
-							try {
-								if(callOnFinish) {
-									callOnFinish();
-								}
-							} finally {
-								thissvg.noloaded++;
-								thissvg.loadQueuedSVG();
-							}
-						}
-					},100);
-					return;
 				}
 			}
+		} else {
+			this.loading=undefined;
+			return;
 		}
-		this.loading=false;
+		
+		// Call the callback func even when nothing has been loaded...
+		if(none) {
+			callOnFinish=this.queue[this.noloaded-1][4];
+			if(typeof callOnFinish=='function') {
+				try {
+					callOnFinish();
+				} catch(e) {
+					// DoNothing(R)
+				}
+			}
+			
+			this.loading=setTimeout(this.timeoutLoad,100);
+			return;
+		}
+		
+		// Let's create!
+		var ahref = thedoc.createElement('a');
+		ahref.href=url;
+		ahref.target='_blank';
+		ahref.innerHTML='Open the graph<br>';
+		node.appendChild(ahref);
+		this.svglink=ahref;
+
+		var gensvgid = WidgetCommon.getRandomUUID();
+		var objres = undefined;
+		
+		var thissvg=this;
+		if(BrowserDetect.browser!='Explorer') {
+			var finishfunc = function(evt) {
+				((evt.currentTarget)?evt.currentTarget:evt.srcElement).onload=function() {};
+				// Transferring the trampoline!
+				if ('SVGtrampoline' in window && window.SVGtrampoline) {
+					thissvg.SVGtramp=window.SVGtrampoline;
+					/*
+					window.SVGtrampoline=undefined;
+					if(BrowserDetect.browser!='Explorer' && BrowserDetect.browser!='Konqueror') {
+						delete window['SVGtrampoline'];
+					}
+					*/
+					thissvg.SVGrescale(bestScaleW,bestScaleH);
+				}
+				try {
+					if(typeof callOnFinish=='function') {
+						callOnFinish();
+					}
+				} catch(e) {
+					// DoNothing(R)
+				} finally {
+					thissvg.loading=setTimeout(thissvg.timeoutLoad,100);
+				}
+			};
+
+			this.svgobj = objres=thedoc.createElement('object');
+			objres.id=gensvgid;
+			objres.setAttribute("type","image/svg+xml");
+			objres.setAttribute("wmode","transparent");
+			//objres.setAttribute("style","overflow: hidden; border: 1px dotted #000;width:0;height:0");
+			if(BrowserDetect.browser!='Konqueror') {
+				objres.setAttribute("style","overflow: hidden; width:0;height:0;");
+			} else {
+				objres.setAttribute("style","overflow: auto;");
+			}
+			objres.onload=finishfunc;
+			/*
+			if(BrowserDetect.browser=='Explorer') {
+				objres.setAttribute('codebase', 'http://www.adobe.com/svg/viewer/install/');
+				objres.setAttribute('classid', 'clsid:78156a80-c6a1-4bbf-8e6a-3cd390eeb4e2');
+			}
+			*/
+			this.asEmbed=undefined;
+			objres.setAttribute("data",url);
+		} else {
+			this.svgobj = objres=thedoc.createElement('embed');
+			objres.setAttribute("type","image/svg+xml");
+			objres.setAttribute("pluginspage","http://www.adobe.com/svg/viewer/install/");
+			objres.setAttribute("style","overflow: auto;");
+			this.asEmbed=true;
+			// This line was killing IE and WebKit js
+			// objres.innerHTML="This browser is not able to show SVG: <a href='http://getfirefox.com'>http://getfirefox.com</a> is free and does it! If you use Internet Explorer, you can also get a plugin: <a href='http://www.adobe.com/svg/viewer/install/main.html'>http://www.adobe.com/svg/viewer/install/main.html</a>";
+
+			objres.setAttribute("src",url);
+			var finishfuncIE = function(evt) {
+				// Transferring the trampoline!
+				if(objres.readyState=='loaded' || objres.readyState=='complete') {
+					clearTimeout(thissvg._svgloadtimer);
+					thissvg._svgloadtimer=undefined;
+					// Transferring the trampoline!
+					if ('SVGtrampoline' in window && window.SVGtrampoline) {
+						thissvg.SVGtramp=window.SVGtrampoline;
+						//window.SVGtrampoline=undefined;
+						thissvg.SVGrescale(bestScaleW,bestScaleH);
+					}
+					try {
+						if(typeof callOnFinish=='function') {
+							callOnFinish();
+						}
+					} catch(c) {
+						// DoNothing(R)
+					} finally {
+						thissvg.loading=setTimeout(thissvg.timeoutLoad,100);
+					}
+				} else {
+					thissvg._svgloadtimer=setTimeout(finishfuncIE,100);
+				}
+			};
+			//objres.onload=finishfuncIE;
+
+			this._svgloadtimer=setTimeout(finishfuncIE,100);
+		}
+
+		// All starts here!
+		node.appendChild(objres);
 	}
 }

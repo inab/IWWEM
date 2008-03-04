@@ -9,6 +9,7 @@
 
 function EnactionViewerCustomInit() {
 	this.enactview=new EnactionView(this);
+	this.enactview.init();
 }
 
 function EnactionViewerCustomDispose() {
@@ -38,20 +39,25 @@ function WorkflowStep(stepDOM, /* optional */ parentStep) {
 		if(child.nodeType==1) {
 			switch(GeneralView.getLocalName(child)) {
 				case 'extraStepInfo':
-					if(child.hasAttribute('sched')) {
-						this.schedStamp=child.getAttribute('sched');
+					var schedStamp=child.getAttribute('sched');
+					if(schedStamp!=undefined && schedStamp!=null && schedStamp!='') {
+						this.schedStamp=schedStamp;
 					}
-					if(child.hasAttribute('start')) {
-						this.startStamp=child.getAttribute('start');
+					var startStamp=child.getAttribute('start');
+					if(startStamp!=undefined && startStamp!=null && startStamp!='') {
+						this.startStamp=startStamp;
 					}
-					if(child.hasAttribute('stop')) {
-						this.stopStamp=child.getAttribute('stop');
+					var stopStamp=child.getAttribute('stop');
+					if(stopStamp!=undefined && stopStamp!=null && stopStamp!='') {
+						this.stopStamp=stopStamp;
 					}
-					if(child.hasAttribute('iterNumber')) {
-						this.iterNumber=child.getAttribute('iterNumber');
+					var iterNumber=child.getAttribute('iterNumber');
+					if(iterNumber!=undefined && iterNumber!=null && iterNumber!='') {
+						this.iterNumber=iterNumber;
 					}
-					if(child.hasAttribute('iterMax')) {
-						this.iterMax=child.getAttribute('iterMax');
+					var iterMax=child.getAttribute('iterMax');
+					if(iterMax!=undefined && iterMax!=null && iterMax!='') {
+						this.iterMax=iterMax;
 					}
 					var stepError=new Array();
 					for(var stepErr=child.firstChild;stepErr;stepErr=stepErr.nextSibling) {
@@ -166,7 +172,7 @@ WorkflowStep.prototype = {
 							'</pre>'
 						);
 					} finally {
-						request.onreadystatechange=new Function();
+						request.onreadystatechange=function() {};
 					}
 				}
 			};
@@ -251,7 +257,7 @@ function EnactionView(genview) {
 		enactview.disposeEnaction();
 	},false);
 	
-	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg');
+	//this.svg=new TavernaSVG();
 	
 	this.iterationSelect=genview.getElementById('iterationSelect');
 	this.inContainer=genview.getElementById('inputs');
@@ -287,7 +293,7 @@ function EnactionView(genview) {
 	// snapshotDesc is dynamic, so it is not caught here
 	this.snapshotDescContainer=genview.getElementById('snapshotDescContainer');
 	
-	this.matcher = new DataMatcher(this,'EVpatterns.xml');
+	this.matcher = new DataMatcher();
 	
 	// Important update facets
 	this.enactQueryReq=undefined;
@@ -298,7 +304,6 @@ function EnactionView(genview) {
 	//this.JobsBase=undefined;
 	//
 	//this.domStatus=undefined;
-	this.internalDispose();
 	
 	this.stepClickHandler = function (theid) {
 		enactview.showStepFromId(this.getAttribute?this.getAttribute("id"):theid);
@@ -309,14 +314,7 @@ function EnactionView(genview) {
 	};
 	
 	// At last, getting the enaction id
-	var qsParm={};
-	WidgetCommon.parseQS(qsParm);
-	if(('jobId' in qsParm) && qsParm['jobId'] && qsParm['jobId'].length > 0) {
-		var jobId=qsParm['jobId'];
-		this.reloadStatus(jobId,true);
-	} else {
-		this.openOtherEnactionFrame();
-	}
+	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg');
 }
 
 EnactionView.getJobDir = function(jobId) {
@@ -356,6 +354,24 @@ EnactionView.ScrollClick = function (event) {
 };
 	
 EnactionView.prototype = {
+	init: function() {
+		var enactview=this;
+		this.svg.removeSVG(function() {
+			enactview.matcher.addMatchers(['EVpatterns.xml'],this,function() {
+				enactview.internalDispose(function() {
+					var qsParm={};
+					WidgetCommon.parseQS(qsParm);
+					if(('jobId' in qsParm) && qsParm['jobId'] && qsParm['jobId'].length > 0) {
+						var jobId=qsParm['jobId'];
+						enactview.reloadStatus(jobId,true);
+					} else {
+						enactview.openOtherEnactionFrame();
+					}
+				});
+			});
+		});
+	},
+	
 	openReloadFrame: function () {
 		this.frameViewId=this.genview.openFrame('reloadEnaction',1);
 	},
@@ -365,8 +381,13 @@ EnactionView.prototype = {
 	},
 	
 	clearView: function () {
-		this.svg.removeSVG();
-		
+		var enactview=this;
+		this.svg.removeSVG(function() {
+			enactview.clearViewInternal();
+		});
+	},
+	
+	clearViewInternal: function () {
 		// TODO
 		// Some free containers will be here
 		GeneralView.freeSelect(this.mimeSelect);
@@ -386,12 +407,21 @@ EnactionView.prototype = {
 		this.stopStampDiv.style.display='none';
 	},
 	
-	internalDispose: function() {
+	internalDispose: function(/*optional*/callbackFunc) {
+		var enactview=this;
+		this.svg.removeSVG(function() {
+			enactview.internalDisposeInternal();
+			if(typeof callbackFunc=='function') {
+				callbackFunc();
+			}
+		});
+	},
+	
+	internalDisposeInternal: function() {
 		this.jobId=undefined;
 		this.JobsBase=undefined;
 		this.jobDir=undefined;
 		this.domStatus=undefined;
-		this.svg.removeSVG();
 		this.initializedSVG=undefined;
 		this.waitingSVG=undefined;
 		this.stepCache={};
@@ -536,13 +566,13 @@ EnactionView.prototype = {
 					}
 				}
 			}
+			if(typeof callbackFill == 'function') {
+				callbackFill();
+			}
 		} else {
 			var gstate=this.genGraphicalState(state);
 			this.generalStatusSpan.innerHTML=gstate;
-			this.svg.removeSVG();
-		}
-		if(typeof callbackFill == 'function') {
-			callbackFill();
+			this.svg.removeSVG(callbackFill);
 		}
 	},
 	
@@ -580,6 +610,8 @@ EnactionView.prototype = {
 					tramp.setNodeHandler(step.name,this.stepClickHandler,'click');
 					break;
 			}
+		} catch(e) {
+			// DoNothing(R)
 		} finally {
 			tramp.unsuspendRedraw(susId);
 		}
@@ -624,6 +656,8 @@ EnactionView.prototype = {
 					}
 					break;
 			}
+		} catch(e) {
+			// DoNothing(R)
 		} finally {
 			tramp.unsuspendRedraw(susId);
 		}
@@ -799,6 +833,8 @@ EnactionView.prototype = {
 					tramp.changeNodeFillOpacity(tit,'0.0');
 				}
 			}
+		} catch(e) {
+			// DoNothing(R)
 		} finally {
 			tramp.unsuspendRedraw(susId);
 		}
@@ -815,6 +851,8 @@ EnactionView.prototype = {
 					tramp.setNodeBulbColor(tit,(stateName=='frozen')?'blue':'red');
 				}
 			}
+		} catch(e) {
+			// DoNothing(R)
 		} finally {
 			tramp.unsuspendRedraw(susId);
 		}
@@ -830,6 +868,8 @@ EnactionView.prototype = {
 					tramp.changeNodeFillOpacity(tit,'1.0');
 				}
 			}
+		} catch(e) {
+			// DoNothing(R)
 		} finally {
 			tramp.unsuspendRedraw(susId);
 		}
@@ -914,7 +954,6 @@ EnactionView.prototype = {
 					
 					var seedgrow = function (event) {
 						var frameId=enactview.genview.openFrame('extractData',1);
-
 						data.doMatching(function(dataMatches) {
 							if(dataMatches.length>0) {
 								seed.src='style/twisty-fruit.png';
@@ -1061,18 +1100,23 @@ EnactionView.prototype = {
 			qsParm['dispose']='0';
 		}
 		var enactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionstatus");
-		var enactQueryReq = this.enactQueryReq = new XMLHttpRequest();
-		var enactview=this;
+		this.clearMessage();
+		
 		// Cleaning up obsolete resources
 		if(isFullReload) {
-			this.internalDispose();
+			this.internalDisposeInternal();
 		}
+		this.reloadStatusInternal(jobId,enactQuery);
+	},
+	
+	reloadStatusInternal: function(jobId,enactQuery) {		
 		this.jobId=jobId;
-		this.clearMessage();
+		var enactQueryReq = this.enactQueryReq = new XMLHttpRequest();
+		var enactview=this;
 		try {
 			enactQueryReq.onreadystatechange = function() {
 				if(enactQueryReq.readyState==4) {
-					enactview.closeReloadFrame();
+					//enactview.closeReloadFrame();
 					try {
 						if('status' in enactQueryReq) {
 							if(enactQueryReq.status==200) {
@@ -1130,7 +1174,6 @@ EnactionView.prototype = {
 											enactview.updateTextSpan.innerHTML='Update';
 										}
 										// Removing 'Loading...' frame
-										enactview.closeReloadFrame();
 									});
 								}
 							} else {
@@ -1156,7 +1199,7 @@ EnactionView.prototype = {
 						);
 					} finally {
 						enactview.enactQueryReq=undefined;
-						enactQueryReq.onreadystatechange = new Function();
+						enactQueryReq.onreadystatechange = function() {};
 						enactQueryReq=undefined;
 					}
 				}
@@ -1201,8 +1244,10 @@ EnactionView.prototype = {
 					var disposeQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionstatus");
 					dispo.open('GET',disposeQuery);
 					dispo.send(null);
-					this.internalDispose();
-					this.frameOtherId=this.genview.openFrame('viewOtherEnaction',1);
+					var enactview=this;
+					this.internalDispose(function() {
+						enactview.frameOtherId=enactview.genview.openFrame('viewOtherEnaction',1);
+					});
 				} else {
 					this.reloadStatus(undefined,undefined,undefined,undefined,1);
 				}

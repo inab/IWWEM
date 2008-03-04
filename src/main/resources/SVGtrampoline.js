@@ -944,8 +944,8 @@ SVGtramp.addEventListenerToId = function (objectId, eventType, listener, useCapt
 };
 
 SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
-	if(!top || (navigator.appName && navigator.appName.indexOf('Adobe')!=-1)) {
-		// Adobe & KDE aberrations
+	if(!top) {
+		// KDE aberrations
 		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
 			try {
 				if(eventType && object && listener) {
@@ -971,8 +971,8 @@ SVGtramp.removeEventListener = function (object, eventType, listener, useCapture
 				// IgnoreIt!(R)
 			}
 		};
-	} else if(top.removeEventListener) {
-		// W3C DOM compatible browsers
+	} else if(top.removeEventListener || (navigator.appName && navigator.appName.indexOf('Adobe')!=-1)) {
+		// Adobe & W3C DOM compatible browsers
 		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
 			try {

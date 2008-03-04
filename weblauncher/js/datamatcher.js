@@ -8,15 +8,15 @@
 */
 
 /* Data matcher, the heart beating for the royal crown */
-function DataMatcher(enactview,matcherURL) {
+function DataMatcher() {
 	this.hashMIME={};
 	this.hashMIME['*']=new Array();
-	this.addMatchers([matcherURL],enactview);
 }
 
 DataMatcher.prototype = {
-	addMatchers: function(matcherURLArray,enactview) {
-		if(matcherURLArray.length>0) {
+	addMatchers: function(matcherURLArray,enactview,callbackFunc,/*optional*/mI) {
+		if(mI==undefined)  mI=0;
+		if(mI<matcherURLArray.length) {
 			var matcherRequest = new XMLHttpRequest();
 			var thismatcher=this;
 			try {
@@ -75,17 +75,16 @@ DataMatcher.prototype = {
 						} finally {
 							// Removing 'Loading...' frame
 							//enactview.closeReloadFrame();
-							matcherRequest.onreadystatechange=new Function();
+							matcherRequest.onreadystatechange=function() {};
 							matcherRequest=undefined;
 							
 							// And calling next step
-							matcherURLArray.shift();
-							thismatcher.addMatchers(matcherURLArray,enactview);
+							thismatcher.addMatchers(matcherURLArray,enactview,callbackFunc,mI+1);
 						}
 					}
 				};
 				//enactview.openReloadFrame();
-				matcherRequest.open('GET',matcherURLArray[0],true);
+				matcherRequest.open('GET',matcherURLArray[mI],true);
 				matcherRequest.send(null);
 			} catch(e) {
 				enactview.addMessage(
@@ -93,6 +92,8 @@ DataMatcher.prototype = {
 					WidgetCommon.DebugError(e)+'</pre>'
 				);
 			}
+		} else if(typeof callbackFunc=='function') {
+			callbackFunc();
 		}
 	},
 	
@@ -149,7 +150,7 @@ DataMatcher.prototype = {
 				matches = matches.concat(partialMatches);
 				matcher.getMatches(data,candidateMatchers,callbackRes,matches);
 			});
-		} else if(callbackRes instanceof Function) {
+		} else if(typeof callbackRes == 'function') {
 			callbackRes(matches);
 		}
 	}
@@ -242,21 +243,21 @@ DataMatcher.DetectionPattern.prototype = {
 			}
 		}
 
-		if(callbackRes instanceof Function) {
+		if(typeof callbackRes == 'function') {
 			callbackRes(results);
 		}
 	}
 };
 
 DataMatcher.Expression = function(theDOM) {
-	if(theDOM.hasAttribute('encoding')) {
-		this.encoding = theDOM.getAttribute('encoding');
-	} else {
-		this.encoding = 'raw';
+	this.encoding=theDOM.getAttribute('encoding');
+	if(!this.encoding) {
+		this.encoding='raw';
 	}
 	
-	if(theDOM.hasAttribute('dontExtract')) {
-		this.dontExtract = theDOM.getAttribute('dontExtract')=='true';
+	var dontExtract = theDOM.getAttribute('dontExtract');
+	if(dontExtract!=undefined && dontExtract!=null && dontExtract!='') {
+		this.dontExtract = dontExtract=='true';
 	} else {
 		this.dontExtract = false;
 	}
@@ -289,10 +290,10 @@ DataMatcher.Expression.prototype = {
 		if(data!=undefined) {
 			if(this.RE!=undefined) {
 				var redata;
-				if(data instanceof Node) {
-					redata=WidgetCommon.getTextContent(data);
-				} else {
+				if(typeof data == 'string') {
 					redata=data;
+				} else {
+					redata=WidgetCommon.getTextContent(data);
 				}
 				if(this.RE instanceof RegExp) {
 					matchRes = redata.match(this.RE);
@@ -307,11 +308,11 @@ DataMatcher.Expression.prototype = {
 			} else {
 				try {
 					var xmldata;
-					if(data instanceof Node) {
-						xmldata=data;
-					} else {
+					if(typeof data == 'string') {
 						var parser = new DOMParser();
 						xmldata = parser.parseFromString(data,'application/xml');
+					} else {
+						xmldata=data;
 					}
 					matchRes=WidgetCommon.xpathEvaluate(this.xpath,xmldata,this.nsMapping);
 					if(this.dontExtract && matchRes && matchRes.length>0) {

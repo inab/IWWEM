@@ -170,10 +170,10 @@ GeneralView.Option.prototype = {
 		} else if(selContext) {
 			this.optContext = newel = this.genview.createElement('div');
 			this.baseClassName = newel.className = 'selOption';
-			if(this.text instanceof Node) {
-				newel.appendChild(this.text);
-			} else {
+			if(typeof this.text=='string') {
 				newel.innerHTML = this.text;
+			} else {
+				newel.appendChild(this.text);
 			}
 			
 			var context = selContext.context;
@@ -255,7 +255,7 @@ GeneralView.Select = function(genview,name,context) {
 
 GeneralView.Select.prototype = {
 	add: function (anOption,/* Optional */ beforeIdx) {
-		if(beforeIdx && beforeIdx<this.options.length) {
+		if(beforeIdx!=undefined && beforeIdx<this.options.length) {
 			anOption.appendOrInsertBeforeOrUpdateOption(this,beforeIdx);
 			if(!this.multiple && this.selectedIndex!=-1 && beforeIdx>=this.selectedIndex) {
 				this.selectedIndex++;
@@ -644,7 +644,9 @@ function DisposeIWWEM(customDispose) {
 	// Killing a remaining timer
 	if(GeneralView._loadtimer)  clearInterval(GeneralView._loadtimer);
 	// Disposing from inside
-	genview.dispose(customDispose);
-	// Freeing resources
-	genview=undefined;
+	if(genview!=undefined) {
+		genview.dispose(customDispose);
+		// Freeing resources
+		genview=undefined;
+	}
 }

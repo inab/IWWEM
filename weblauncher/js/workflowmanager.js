@@ -8,10 +8,13 @@
 */
 
 function WorkflowManagerCustomInit() {
-	this.manview=new ManagerView(this);
+	var manview = this.manview=new ManagerView(this);
 	this.newwfview=new NewWorkflowView(this);
 	this.newenactview=new NewEnactionView(this);
-	this.manview.reloadList();
+	
+	manview.svg.removeSVG(function() {
+		manview.reloadList();
+	});
 }
 
 function WorkflowManagerCustomDispose() {
@@ -216,17 +219,18 @@ function ManagerView(genview) {
 	
 	// To update on automatic changes of the selection box
 	this.wfselect.addEventListener('change',function () {
-		manview.updateView();
-		if(manview.wfselect.selectedIndex==-1) {
-			manview.launchButton.className='buttondisabled';
-			manview.deleteButton.className='buttondisabled';
-			if(manview.check.checked) {
-				manview.check.setCheck(false);
+		manview.updateView(function() {
+			if(manview.wfselect.selectedIndex==-1) {
+				manview.launchButton.className='buttondisabled';
+				manview.deleteButton.className='buttondisabled';
+				if(manview.check.checked) {
+					manview.check.setCheck(false);
+				}
+			} else {
+				manview.launchButton.className='button';
+				manview.deleteButton.className='button';
 			}
-		} else {
-			manview.launchButton.className='button';
-			manview.deleteButton.className='button';
-		}
+		});
 	},false);
 	
 	WidgetCommon.addEventListener(this.deleteButton,'click',function() {
@@ -240,10 +244,11 @@ function ManagerView(genview) {
 
 	/*
 	WidgetCommon.addEventListener(this.wfselect,'change',function () {
-		manview.updateView();
-		if(manview.wfselect.selectedIndex==-1 && manview.check.checked) {
-			manview.check.setCheck(false);
-		}
+		manview.updateView(function() {
+			if(manview.wfselect.selectedIndex==-1 && manview.check.checked) {
+				manview.check.setCheck(false);
+			}
+		});
 	},false);
 	*/
 	
@@ -260,9 +265,17 @@ ManagerView.prototype = {
 		this.genview.closeFrame(this.frameReloadId);
 	},
 	
-	clearView: function () {
-		this.svg.removeSVG();
-		
+	clearView: function (/*optional*/callbackFunc) {
+		var manview=this;
+		this.svg.removeSVG(function() {
+			manview.clearViewInternal();
+			if(typeof callbackFunc=='function') {
+				callbackFunc();
+			}
+		});
+	},
+	
+	clearViewInternal: function() {
 		GeneralView.freeContainer(this.titleContainer);
 		GeneralView.freeContainer(this.lsidContainer);
 		GeneralView.freeContainer(this.authorContainer);
@@ -283,121 +296,133 @@ ManagerView.prototype = {
 	},
 	
 	/* This method updates the information shown about the focused workflow */
-	updateView: function () {
+	updateView: function (/*optional*/callbackFunc) {
 		var workflow = this.getCurrentWorkflow();
 		if(workflow) {
 			// SVG graph
 			//this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
-			this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'120mm','120mm');
-			
-			// Basic information
-			this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
-			this.lsidContainer.innerHTML = workflow.lsid;
-			this.authorContainer.innerHTML = (workflow.author && workflow.author.length>0)?GeneralView.preProcess(workflow.author):'<i>(anonymous)</i>';
-			
-			// Naive detection of rich description
-			if(workflow.description && workflow.description.length>0) {
-				this.descContainer.innerHTML = GeneralView.preProcess(workflow.description);
-			} else {
-				this.descContainer.innerHTML = '<i>(None)</i>';
-			}
-			
-			var br;
-			var alink;
-			
-			// This is needed to append links to the description itself
-			var thep = this.genview.createElement('p');
-			alink = this.genview.createElement('a');
-			alink.href = this.WFBase+'/'+workflow.path;
-			alink.target = '_blank';
-			alink.innerHTML = '<i>Download Workflow</i>';
-			thep.appendChild(alink);
-			
-			// Possible dependencies
-			if(workflow.depends.length>0) {
-				thep.appendChild(this.genview.createElement('br'));
-				var thei = this.genview.createElement('i');
-				thei.innerHTML = '(This workflow depends on '+workflow.depends.length+' subworkflow'+((workflow.depends.length>1)?'s':'')+')';
-				thep.appendChild(thei);
-			}
-			this.descContainer.appendChild(thep);
-			
-			thep = this.genview.createElement('p');
-			for(var gmime in workflow.graph) {
-				alink = this.genview.createElement('a');
-				alink.href = this.WFBase+'/'+workflow.graph[gmime];
-				alink.target = '_blank';
-				alink.innerHTML = '<i>Get Workflow Graph ('+gmime+')</i>';
-				thep.appendChild(alink);
-				thep.appendChild(this.genview.createElement('br'));
-			}
-			this.descContainer.appendChild(thep);
-			
-			// Now, inputs and outputs
-			this.attachIOReport(workflow.inputs,this.inContainer);
-			this.attachIOReport(workflow.outputs,this.outContainer);
-			
-			// And at last, snapshots
-			this.attachIOReport(workflow.snapshots,this.snapContainer,function(snap) {
-				return '<i><a href="enactionviewer.html?jobId='+snap.uuid+'">'+snap.name+'</a> ('+snap.date+')</i>';
+			var me=this;
+			this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'120mm','120mm',function() {
+				me.updateViewInternal(workflow);
+				if(typeof callbackFunc=='function') {
+					callbackFunc();
+				}
 			});
 		} else {
-			this.clearView();
+			this.clearView(callbackFunc);
 		}
 	},
 	
+	updateViewInternal: function(workflow) {
+		// Basic information
+		this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
+		this.lsidContainer.innerHTML = workflow.lsid;
+		this.authorContainer.innerHTML = (workflow.author && workflow.author.length>0)?GeneralView.preProcess(workflow.author):'<i>(anonymous)</i>';
+
+		// Naive detection of rich description
+		if(workflow.description && workflow.description.length>0) {
+			this.descContainer.innerHTML = GeneralView.preProcess(workflow.description);
+		} else {
+			this.descContainer.innerHTML = '<i>(None)</i>';
+		}
+
+		var br;
+		var alink;
+
+		// This is needed to append links to the description itself
+		var thep = this.genview.createElement('p');
+		alink = this.genview.createElement('a');
+		alink.href = this.WFBase+'/'+workflow.path;
+		alink.target = '_blank';
+		alink.innerHTML = '<i>Download Workflow</i>';
+		thep.appendChild(alink);
+
+		// Possible dependencies
+		if(workflow.depends.length>0) {
+			thep.appendChild(this.genview.createElement('br'));
+			var thei = this.genview.createElement('i');
+			thei.innerHTML = '(This workflow depends on '+workflow.depends.length+' subworkflow'+((workflow.depends.length>1)?'s':'')+')';
+			thep.appendChild(thei);
+		}
+		this.descContainer.appendChild(thep);
+
+		thep = this.genview.createElement('p');
+		for(var gmime in workflow.graph) {
+			alink = this.genview.createElement('a');
+			alink.href = this.WFBase+'/'+workflow.graph[gmime];
+			alink.target = '_blank';
+			alink.innerHTML = '<i>Get Workflow Graph ('+gmime+')</i>';
+			thep.appendChild(alink);
+			thep.appendChild(this.genview.createElement('br'));
+		}
+		this.descContainer.appendChild(thep);
+
+		// Now, inputs and outputs
+		this.attachIOReport(workflow.inputs,this.inContainer);
+		this.attachIOReport(workflow.outputs,this.outContainer);
+
+		// And at last, snapshots
+		this.attachIOReport(workflow.snapshots,this.snapContainer,function(snap) {
+			return '<i><a href="enactionviewer.html?jobId='+snap.uuid+'">'+snap.name+'</a> ('+snap.date+')</i>';
+		});
+	},
+	
 	/* This method fills in the known information about the workflow */
-	fillWorkflowList: function (listDOM) {
+	fillWorkflowList: function (listDOM,/*optional*/callbackFunc) {
 		if(listDOM) {
 			// First, remove its graphical traces
-			this.clearView();
+			var me=this;
+			this.clearView(function() {
+				me.fillWorkflowListInternal(listDOM);
+				if(typeof callbackFunc=='function') {
+					callbackFunc();
+				}
+			});
+		}
+	},
 			
-			// Second, remove its content
-			this.wfA={};
-			//GeneralView.freeSelect(this.wfselect);
-			this.wfselect.clear();
-			
-			// Third, populate it!
-			/*
-			var docFacet = 'documentElement';
-			if((docFacet in listDOM) &&
-				('tagName' in listDOM[docFacet]) &&
-				(listDOM[docFacet]['tagName']=='workflowlist')
-			) {
-			*/
-			if(listDOM.documentElement &&
-				listDOM.documentElement.tagName &&
-				GeneralView.getLocalName(listDOM.documentElement)=='workflowlist'
-			) {
-				this.WFBase = listDOM.documentElement.getAttribute('relURI');
-				for(var child=listDOM.documentElement.firstChild ; child ; child=child.nextSibling) {
-					if(child.nodeType==1) {
-						 switch(GeneralView.getLocalName(child)) {
-						 	case 'workflow':
-								var workflow=new WorkflowDesc(child);
-								this.wfA[workflow.uuid]=workflow;
+	fillWorkflowListInternal: function (listDOM) {
+		// Second, remove its content
+		this.wfA={};
+		//GeneralView.freeSelect(this.wfselect);
+		this.wfselect.clear();
 
-								var wfO = workflow.generateOption(this.genview);
+		// Third, populate it!
+		/*
+		var docFacet = 'documentElement';
+		if((docFacet in listDOM) &&
+			('tagName' in listDOM[docFacet]) &&
+			(listDOM[docFacet]['tagName']=='workflowlist')
+		) {
+		*/
+		if(listDOM.documentElement &&
+			listDOM.documentElement.tagName &&
+			GeneralView.getLocalName(listDOM.documentElement)=='workflowlist'
+		) {
+			this.WFBase = listDOM.documentElement.getAttribute('relURI');
+			for(var child=listDOM.documentElement.firstChild ; child ; child=child.nextSibling) {
+				if(child.nodeType==1) {
+					 switch(GeneralView.getLocalName(child)) {
+						case 'workflow':
+							var workflow=new WorkflowDesc(child);
+							this.wfA[workflow.uuid]=workflow;
 
-								// Last: save selection!
-								try {
-									this.wfselect.add(wfO,null);
-								} catch(e) {
-									this.wfselect.add(wfO);
-								}
-								break;
-							case 'message':
-								var mtext=WidgetCommon.getTextContent(child);
-								if(!mtext)  mtext='';
-								this.messageDiv.innerHTML += '<p><u>Return Value:</u> '+child.getAttribute('retval')+'</p><pre>'+mtext+'</pre>';
-								break;
-						}
+							var wfO = workflow.generateOption(this.genview);
+
+							// Last: save selection!
+							this.wfselect.add(wfO);
+							break;
+						case 'message':
+							var mtext=WidgetCommon.getTextContent(child);
+							if(!mtext)  mtext='';
+							this.messageDiv.innerHTML += '<p><u>Return Value:</u> '+child.getAttribute('retval')+'</p><pre>'+mtext+'</pre>';
+							break;
 					}
 				}
-			} else {
-				this.WFBase='.';
-				this.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to fetch the workflow repository listing!</h1></blink>';
 			}
+		} else {
+			this.WFBase='.';
+			this.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to fetch the workflow repository listing!</h1></blink>';
 		}
 	},
 	
@@ -414,18 +439,19 @@ ManagerView.prototype = {
 		}
 		var listQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/workflowmanager");
 		var listRequest = this.listRequest = new XMLHttpRequest();
-		listRequest.manview=this;
+		var manview=this;
 		GeneralView.freeContainer(this.messageDiv);
 		try {
 			listRequest.onreadystatechange = function() {
 				if(listRequest.readyState==4) {
-					listRequest.manview.openReloadFrame();
+					manview.openReloadFrame();
+					var doClose=1;
 					try {
 						if('status' in listRequest) {
 							if(listRequest.status==200) {
 								// Beware parsing errors in Explorer
 								if(listRequest.parseError && listRequest.parseError.errorCode!=0) {
-									listRequest.manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR ('+
+									manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR ('+
 										listRequest.parseError.errorCode+
 										") while parsing list at ("+
 										listRequest.parseError.line+
@@ -439,10 +465,16 @@ ManagerView.prototype = {
 											response = parser.parseFromString(listRequest.responseText,'application/xml');
 										} else {
 											// Backend error.
-											listRequest.manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>';
+											manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>';
 										}
 									}
-									listRequest.manview.fillWorkflowList(response);
+									manview.fillWorkflowList(response,function() {
+										manview.closeReloadFrame();
+										manview.reloadButton.className='button';
+										manview.updateTextSpan.innerHTML='Update';
+										manview.listRequest=undefined;
+									});
+									doClose=undefined;
 								}
 							} else {
 								// Communications error.
@@ -450,21 +482,23 @@ ManagerView.prototype = {
 								if(('statusText' in listRequest) && listRequest['statusText']) {
 									statusText=listRequest.statusText;
 								}
-								listRequest.manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR while fetching list: '+
+								manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR while fetching list: '+
 									listRequest.status+' '+statusText+'</h1></blink>';
 							}
 						} else {
-							listRequest.manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>';
+							manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>';
 						}
 					} catch(e) {
-						listRequest.manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
+						manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
 					} finally {
 						// Removing 'Loading...' frame
-						listRequest.manview.closeReloadFrame();
-						listRequest.manview.reloadButton.className='button';
-						listRequest.manview.updateTextSpan.innerHTML='Update';
-						listRequest.manview.listRequest=undefined;
-						listRequest.onreadystatechange=new Function();
+						if(doClose) {
+							manview.closeReloadFrame();
+							manview.reloadButton.className='button';
+							manview.updateTextSpan.innerHTML='Update';
+							manview.listRequest=undefined;
+						}
+						listRequest.onreadystatechange=function() {};
 						listRequest=undefined;
 					}
 				}
@@ -654,21 +688,22 @@ NewWorkflowView.prototype = {
 						}
 					}
 					
-					newwfview.genview.manview.fillWorkflowList(xdoc);
-					// Now, cleaning up iframe traces!
-					newwfview.uploading=false;
-					newwfview.closeNewWorkflowFrame();
-					/*
-						Dynamic IFRAME handling
-						which not works in IE :-(
-					
-					newwfview.newWFUploading.removeChild(iframe);
-					*/
-					WidgetCommon.removeEventListener(iframe,'load',onUpload,false);
-					newwfview.newWFForm.target = undefined;
-					// Avoiding post messages on page reload
-					iframe.src="about:blank";
-					iframe = undefined;
+					newwfview.genview.manview.fillWorkflowList(xdoc,function() {
+						// Now, cleaning up iframe traces!
+						newwfview.uploading=false;
+						newwfview.closeNewWorkflowFrame();
+						/*
+							Dynamic IFRAME handling
+							which not works in IE :-(
+
+						newwfview.newWFUploading.removeChild(iframe);
+						*/
+						WidgetCommon.removeEventListener(iframe,'load',onUpload,false);
+						newwfview.newWFForm.target = undefined;
+						// Avoiding post messages on page reload
+						iframe.src="about:blank";
+						iframe = undefined;
+					});
 				};
 				
 				WidgetCommon.addEventListener(iframe,'load',onUpload,false);
@@ -1089,9 +1124,11 @@ NewEnactionView.prototype = {
 	
 	clearView: function() {
 		// Removing all the content from the containers
-		this.enactSVG.removeSVG();
-		this.disposeContainers();
-		this.setInputMode(undefined);
+		var me=this;
+		this.enactSVG.removeSVG(function() {
+			me.disposeContainers();
+			me.setInputMode(undefined);
+		});
 	},
 	
 	closeNewEnactionFrame: function() {

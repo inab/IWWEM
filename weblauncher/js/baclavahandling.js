@@ -72,11 +72,11 @@ DataObject.prototype = {
 				dao.matcherStatus=dataMatches.length!=0;
 				dao.matcher=undefined;
 				dao.candidateMatchers=undefined;
-				if(callbackRes instanceof Function) {
+				if(typeof callbackRes=='function') {
 					callbackRes(dataMatches);
 				}
 			});
-		} else if(callbackRes instanceof Function) {
+		} else if(typeof callbackRes=='function') {
 			callbackRes(this.dataMatches);
 		}
 	}

@@ -397,7 +397,10 @@ DataBrowser.ImageViewer = {
 DataBrowser.addViewer(DataBrowser.ImageViewer);
 
 DataBrowser.MolViewer = {
+	/*
 	dataSource:	DataBrowser.Inline,
+	*/
+	dataSource:	DataBrowser.Link,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	[
 		'chemical/x-alchemy',
@@ -433,6 +436,11 @@ DataBrowser.MolViewer = {
 		if(!jmolParams) {
 			jmolParams='select all ; wireframe off ; spacefill off ; cartoon on ; color cartoons structure';
 		}
+		databrowserDiv.innerHTML=jmolApplet(['100%','100%'],
+			'load '+data+' ; '+jmolParams,
+			DataBrowser.MolViewer.jmolId
+		);
+		/*
 		switch(BrowserDetect.browser) {
 			case 'Explorer':
 			case 'Safari':
@@ -442,7 +450,9 @@ DataBrowser.MolViewer = {
 					jmolParams,
 					DataBrowser.MolViewer.jmolId
 				);
+				break;
 			default:
+			/*
 				DataBrowser.MolViewer.jmolRunme = function () {
 					jmolLoadInlineScript(data,
 						jmolParams,
@@ -487,8 +497,8 @@ DataBrowser.MolViewer = {
 				};
 				loadme();
 				break;
-			*/
 		}
+		*/
 	}
 };
 // JMol intialization
