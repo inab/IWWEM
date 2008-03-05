@@ -570,7 +570,7 @@ SVGtramp.prototype = {
 				var refElem=null;
 				var txts=g.getElementsByTagNameNS(SVGtramp.SVGNS,"text");
 				if(txts.length>0) {
-					refElem=txts[0];
+					refElem=txts.item(0);
 				}
 				
 				// Now, time to create the bulbs!
@@ -627,7 +627,7 @@ SVGtramp.prototype = {
 			if(theNode) {
 				var paths=theNode.getElementsByTagNameNS(SVGtramp.SVGNS,"path");
 				for(var i=0;i<paths.length;i++) {
-					paths[i].setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
+					paths.item(i).setAttribute('style','fill:'+bulbcolor+';fill-opacity:0.75;');
 					retval=true;
 				}
 			}

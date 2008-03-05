@@ -395,12 +395,12 @@ ManagerView.prototype = {
 			(listDOM[docFacet]['tagName']=='workflowlist')
 		) {
 		*/
-		if(listDOM.documentElement &&
-			listDOM.documentElement.tagName &&
-			GeneralView.getLocalName(listDOM.documentElement)=='workflowlist'
+		if(listDOM &&
+			listDOM.tagName &&
+			GeneralView.getLocalName(listDOM)=='workflowlist'
 		) {
-			this.WFBase = listDOM.documentElement.getAttribute('relURI');
-			for(var child=listDOM.documentElement.firstChild ; child ; child=child.nextSibling) {
+			this.WFBase = listDOM.getAttribute('relURI');
+			for(var child=listDOM.firstChild ; child ; child=child.nextSibling) {
 				if(child.nodeType==1) {
 					 switch(GeneralView.getLocalName(child)) {
 						case 'workflow':
@@ -468,7 +468,7 @@ ManagerView.prototype = {
 											manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>';
 										}
 									}
-									manview.fillWorkflowList(response,function() {
+									manview.fillWorkflowList(response.documentElement.cloneNode(true),function() {
 										manview.closeReloadFrame();
 										manview.reloadButton.className='button';
 										manview.updateTextSpan.innerHTML='Update';

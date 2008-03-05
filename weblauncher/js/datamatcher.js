@@ -49,7 +49,7 @@ DataMatcher.prototype = {
 												);
 											}
 										}
-										thismatcher.matcherParser(response.documentElement);
+										thismatcher.matcherParser(response.documentElement.cloneNode(true));
 									}
 								} else {
 									// Communications error.
@@ -150,7 +150,7 @@ DataMatcher.prototype = {
 				matches = matches.concat(partialMatches);
 				matcher.getMatches(data,candidateMatchers,callbackRes,matches);
 			});
-		} else if(typeof callbackRes == 'function') {
+		} else if(typeof callbackRes=='function') {
 			callbackRes(matches);
 		}
 	}

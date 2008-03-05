@@ -131,7 +131,7 @@ WorkflowStep.prototype = {
 										}
 									}
 									// Only parse when an answer is available
-									Baclava.Parser(response,thehash,enactview);
+									Baclava.Parser(response.documentElement.cloneNode(true),thehash,enactview);
 									try {
 										if(thenotify)  thenotify(istep);
 									} catch(noti) {
@@ -171,9 +171,8 @@ WorkflowStep.prototype = {
 							WidgetCommon.DebugError(e)+
 							'</pre>'
 						);
-					} finally {
-						request.onreadystatechange=function() {};
 					}
+					request.onreadystatechange=function() {};
 				}
 			};
 			
@@ -443,7 +442,7 @@ EnactionView.prototype = {
 		// First, get the jobs rel uri
 		var statusL=GeneralView.getElementsByTagNameNS(enactDOM,GeneralView.IWWEM_NS,'enactionstatus');
 		
-		// Second, get the relevant information 
+		// Second, get the relevant information
 		for(var i=0;i< statusL.length;i++) {
 			var enStatus=statusL.item(i);
 			if(enStatus.getAttribute('jobId')==this.jobId) {
@@ -612,9 +611,8 @@ EnactionView.prototype = {
 			}
 		} catch(e) {
 			// DoNothing(R)
-		} finally {
-			tramp.unsuspendRedraw(susId);
 		}
+		tramp.unsuspendRedraw(susId);
 	},
 	
 	updateJobView: function(step) {
@@ -658,9 +656,8 @@ EnactionView.prototype = {
 			}
 		} catch(e) {
 			// DoNothing(R)
-		} finally {
-			tramp.unsuspendRedraw(susId);
 		}
+		tramp.unsuspendRedraw(susId);
 	},
 	
 	showStepFromId: function (theid) {
@@ -835,9 +832,8 @@ EnactionView.prototype = {
 			}
 		} catch(e) {
 			// DoNothing(R)
-		} finally {
-			tramp.unsuspendRedraw(susId);
 		}
+		tramp.unsuspendRedraw(susId);
 	},
 	
 	errorJobNodes: function(stateName) {
@@ -853,9 +849,8 @@ EnactionView.prototype = {
 			}
 		} catch(e) {
 			// DoNothing(R)
-		} finally {
-			tramp.unsuspendRedraw(susId);
 		}
+		tramp.unsuspendRedraw(susId);
 	},
 	
 	finishedJobNodes: function() {
@@ -870,9 +865,8 @@ EnactionView.prototype = {
 			}
 		} catch(e) {
 			// DoNothing(R)
-		} finally {
-			tramp.unsuspendRedraw(susId);
 		}
+		tramp.unsuspendRedraw(susId);
 	},
 	
 	tryUpdateIOStatus: function(gstep,istep,stepIOFacet,IOSpan,IOContainer,hasIOFacet) {
@@ -1145,8 +1139,9 @@ EnactionView.prototype = {
 											// Backend error.
 										}
 									}
-									enactview.fillEnactionStatus(response,function() {
-										var state=enactview.state;
+									var me=enactview;
+									me.fillEnactionStatus(response.documentElement.cloneNode(true),function() {
+										var state=me.state;
 										// Only run timer when 
 										if(
 											state!='frozen' &&
@@ -1160,18 +1155,18 @@ EnactionView.prototype = {
 											timeoutFunc=function() {
 												timeout--;
 												if(timeout>0) {
-													enactview.updateTextSpan.innerHTML='Update in '+timeout;
-													enactview.updateTimer=setTimeout(timeoutFunc,1000);
+													me.updateTextSpan.innerHTML='Update in '+timeout;
+													me.updateTimer=setTimeout(timeoutFunc,1000);
 												} else {
-													enactview.updateTextSpan.innerHTML='Update';
-													enactview.reloadStatus();
-													enactview=undefined;
+													me.updateTextSpan.innerHTML='Update';
+													me.reloadStatus();
+													me=undefined;
 													timeoutFunc=undefined;
 												}
 											};
 											timeoutFunc();
 										} else {
-											enactview.updateTextSpan.innerHTML='Update';
+											me.updateTextSpan.innerHTML='Update';
 										}
 										// Removing 'Loading...' frame
 									});
@@ -1197,11 +1192,10 @@ EnactionView.prototype = {
 							'<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+
 							WidgetCommon.DebugError(e)+'</pre>'
 						);
-					} finally {
-						enactview.enactQueryReq=undefined;
-						enactQueryReq.onreadystatechange = function() {};
-						enactQueryReq=undefined;
 					}
+					enactview.enactQueryReq=undefined;
+					enactQueryReq.onreadystatechange = function() {};
+					enactQueryReq=undefined;
 				}
 			};
 			this.reloadButton.className='buttondisabled';

@@ -127,8 +127,8 @@ Baclava.prototype = {
 
 /* A Baclava XML parser */
 Baclava.Parser = function(baclavaXML,thehash,themessagediv) {
-	if(baclavaXML && baclavaXML.documentElement && GeneralView.getLocalName(baclavaXML.documentElement)=='dataThingMap') {
-		for(var dataThing = baclavaXML.documentElement.firstChild; dataThing; dataThing=dataThing.nextSibling) {
+	if(baclavaXML && GeneralView.getLocalName(baclavaXML)=='dataThingMap') {
+		for(var dataThing = baclavaXML.firstChild; dataThing; dataThing=dataThing.nextSibling) {
 			if(dataThing.nodeType==1 && GeneralView.getLocalName(dataThing)=='dataThing') {
 				var bacla=new Baclava(dataThing);
 				thehash[bacla.name]=bacla;

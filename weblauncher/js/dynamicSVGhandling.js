@@ -33,6 +33,7 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish
 	var me = this;
 	this.timeoutLoad = function() {
 		me.loading=true;
+		//debugger;
 		me.loadQueuedSVG();
 	};
 	
@@ -160,7 +161,7 @@ TavernaSVG.prototype = {
 	loadSVG: function (nodeid,url,/* optional */ bestScaleW, bestScaleH, callOnFinish, thedoc) {
 		this.queue.push(new Array(nodeid,url,bestScaleW, bestScaleH, callOnFinish, thedoc));
 		if(!this.loading) {
-			this.loading=setTimeout(this.timeoutLoad,100);
+			this.loading=setTimeout(this.timeoutLoad,163);
 		}
 	},
 	
@@ -226,7 +227,7 @@ TavernaSVG.prototype = {
 				}
 			}
 			
-			this.loading=setTimeout(this.timeoutLoad,100);
+			this.loading=setTimeout(this.timeoutLoad,163);
 			return;
 		}
 		
@@ -248,12 +249,10 @@ TavernaSVG.prototype = {
 				// Transferring the trampoline!
 				if ('SVGtrampoline' in window && window.SVGtrampoline) {
 					thissvg.SVGtramp=window.SVGtrampoline;
-					/*
 					window.SVGtrampoline=undefined;
-					if(BrowserDetect.browser!='Explorer' && BrowserDetect.browser!='Konqueror') {
+					if(BrowserDetect.browser!='Konqueror') {
 						delete window['SVGtrampoline'];
 					}
-					*/
 					thissvg.SVGrescale(bestScaleW,bestScaleH);
 				}
 				try {
@@ -262,9 +261,8 @@ TavernaSVG.prototype = {
 					}
 				} catch(e) {
 					// DoNothing(R)
-				} finally {
-					thissvg.loading=setTimeout(thissvg.timeoutLoad,100);
 				}
+				thissvg.loading=setTimeout(thissvg.timeoutLoad,163);
 			};
 
 			this.svgobj = objres=thedoc.createElement('object');
@@ -298,31 +296,29 @@ TavernaSVG.prototype = {
 			objres.setAttribute("src",url);
 			var finishfuncIE = function(evt) {
 				// Transferring the trampoline!
-				if(objres.readyState=='loaded' || objres.readyState=='complete') {
+				if((objres.readyState=='loaded' || objres.readyState=='complete') && window.SVGtrampoline) {
+							//debugger;
 					clearTimeout(thissvg._svgloadtimer);
 					thissvg._svgloadtimer=undefined;
 					// Transferring the trampoline!
-					if ('SVGtrampoline' in window && window.SVGtrampoline) {
-						thissvg.SVGtramp=window.SVGtrampoline;
-						//window.SVGtrampoline=undefined;
-						thissvg.SVGrescale(bestScaleW,bestScaleH);
-					}
+					thissvg.SVGtramp=window.SVGtrampoline;
+					thissvg.SVGrescale(bestScaleW,bestScaleH);
+					window.SVGtrampoline=undefined;
 					try {
 						if(typeof callOnFinish=='function') {
 							callOnFinish();
 						}
 					} catch(c) {
 						// DoNothing(R)
-					} finally {
-						thissvg.loading=setTimeout(thissvg.timeoutLoad,100);
 					}
+					thissvg.loading=setTimeout(thissvg.timeoutLoad,163);
 				} else {
-					thissvg._svgloadtimer=setTimeout(finishfuncIE,100);
+					thissvg._svgloadtimer=setTimeout(finishfuncIE,199);
 				}
 			};
 			//objres.onload=finishfuncIE;
 
-			this._svgloadtimer=setTimeout(finishfuncIE,100);
+			this._svgloadtimer=setTimeout(finishfuncIE,199);
 		}
 
 		// All starts here!
