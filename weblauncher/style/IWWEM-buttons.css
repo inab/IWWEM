@@ -4,9 +4,6 @@
 /* about handling multiple classes restriction */
 
 .button , .buttondisabled {
-	/* Black IE magic */
-	behavior:url(hover.htc);
-	
 	/* Standard classes */
 	width: 135px;
 	height: 45px;
@@ -31,6 +28,9 @@
 }
 
 .button {
+	/* Black IE magic */
+	behavior:url(hover.htc);
+	
 	background-image: url(button3-inactive.png);
 	cursor: pointer;
 }
