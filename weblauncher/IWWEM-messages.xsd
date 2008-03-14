@@ -6,7 +6,9 @@
     xmlns:iwwem="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend"
 >
     <xsd:annotation>
-        <xsd:documentation><![CDATA[This schema was designed to model
+        <xsd:documentation><![CDATA[$Id$
+	
+This schema was designed to model
 the messages between frontend modules and AJAX layer of
 INB Web Workflow Launcher.
 

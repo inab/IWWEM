@@ -1,4 +1,5 @@
 /*
+	$Id$
 	workflowmanager.js
 	from INB Web Workflow Enactor & Manager (IWWE&M)
 	Author: José María Fernández González (C) 2007-2008

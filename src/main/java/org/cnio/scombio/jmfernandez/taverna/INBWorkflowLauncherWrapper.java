@@ -1,3 +1,12 @@
+/*
+	$Id$
+	INBWorkflowLauncherWrapper.java
+	from INB Web Workflow Enactor & Manager (IWWE&M)
+	Author: José María Fernández González (C) 2008
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+*/
 package org.cnio.scombio.jmfernandez.taverna;
 
 import java.io.BufferedOutputStream;

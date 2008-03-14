@@ -1,3 +1,12 @@
+/*
+	$Id$
+	SVGmapApp.js
+	from INB Web Workflow Enactor & Manager (IWWE&M)
+	Author: José María Fernández González (C) 2008
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+*/
 /* This code is based on two original files */
 /**
  * @fileoverview

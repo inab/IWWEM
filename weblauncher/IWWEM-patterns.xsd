@@ -6,11 +6,23 @@
     xmlns:pat="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend/patterns"
 >
     <xsd:annotation>
-        <xsd:documentation><![CDATA[
+        <xsd:documentation><![CDATA[$Id$
+
     This schema is used to hold the information about the usable
 recognition patterns. These patterns can be either RE (for raw text)
 or XPath expressions (for XML).
-]]></xsd:documentation>
+
+INB Web Workflow Launcher has been created by
+José María Fernández González, 2007-2008, for
+INB (http://www.inab.org/).
+
+Java backend modules have been made in Java and use Taverna core
+libraries. The initial seed of that code came from Taverna example
+called "workflowlauncher".
+
+Perl frontend modules have been made in Perl. They use various standard
+Perl libraries and LockNLog library, created in the context of iHOP
+web services by José María Fernández González, 2007.]]></xsd:documentation>
     </xsd:annotation>
 
     <xsd:complexType name="patternType">
