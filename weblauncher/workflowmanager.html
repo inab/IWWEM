@@ -27,18 +27,18 @@
 <body onload="InitIWWEM(WorkflowManagerCustomInit)" onunload="DisposeIWWEM(WorkflowManagerCustomDispose)">
 <div align="center"><b>INB Web Workflow Enactor &amp; Manager v0.5</b></div>
 <form id="formManager" method="post" enctype="multipart/form-data">
-	<table style="width:100%">
-		<tr><td class="data">
-			<div class="scrolldata" id="workflow">
+	<table style="width:100%;table-layout:fixed;">
+		<tr><td class="data" style="width:30%">
+			<div class="scrolldatawide" id="workflow">
 			</div>
 			<!--
 			<select name="workflow" id="workflow" class="scrolldataselect" size="20"></select>
 			-->
 			<!--<select name="workflow" id="workflow" style="width:230px;" size="20"></select>-->
-		</td><td class="middle">
+		</td><td class="middle" style="width:40%;">
 			<div align="center" id="svgdiv"></div>
-		</td><td align="right" valign="top">
-			<div class="scrolldata">
+		</td><td align="right" valign="top" style="width:30%">
+			<div class="scrolldatawide">
 				<b>Title:</b>&nbsp;<span id="title"></span>
 				<p><b>LSID:</b>&nbsp;<span id="lsid"></span></p>
 				<p><b>Author:</b>&nbsp;<span id="author"></span></p>
@@ -53,25 +53,13 @@
 			</div>
 		</td></tr><tr><td class="buttons">
 			<table align="left" style="margin:0px;padding:0px"><tr valign="middle"><td align="center">
-				<div id="reloadButton" class="button">
-					<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
-						<span id="updateTextSpan">Update</span> <img src="style/reload.png">
-					</td></tr></table>
-				</div>
+				<div id="reloadButton" class="button"><span id="updateTextSpan">Update</span> <img src="style/reload.png"></div>
 			</td><td align="center">
-				<div class="button" onclick="genview.newwfview.openNewWorkflowFrame()">
-					<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
-						Add new <img src="style/blueplus.png">
-					</td></tr></table>
-				</div>
+				<div class="button" onclick="genview.newwfview.openNewWorkflowFrame()">Add new <img src="style/blueplus.png"></div>
 			</td></tr></table>
 		</td><td class="buttons">
 			<div align="center">
-				<div id="launchButton" class="button">
-					<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
-						Launch!<img src="style/greenball.png"></img>
-					</td></tr></table>
-				</div>
+				<div id="launchButton" class="button">Launch!<img src="style/greenball.png"></img></div>
 			</div>
 		</td><td class="buttons">
 			<div align="right" style="vertical-align: bottom;">
@@ -79,11 +67,7 @@
 				<!--
 				<label>Confirm<input type="checkbox" name="confirm" id="confirm"></input></label><br>
 				-->
-				<div id="deleteButton" class="button">
-					<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
-						Delete <img src="style/recycle.png"></img>
-					</td></tr></table>
-				</div>
+				<div id="deleteButton" class="button">Delete <img src="style/recycle.png"></img></div>
 			</div>
 		</td></tr>
 	</table>
@@ -139,13 +123,8 @@
 				</td><td width="100%">
 					<div class="scrolldatalarge">
 						<div style="margin: 5px 5px 5px 5px">
-							<span class="borderedOption">
-							<span id="noneExampleSpan" class="radio right">Use inputs</span>
-							<span id="saveAsExampleSpan" class="checkboxgreen checkbox right">Save as example</span>
-							</span>
-							<span class="borderedOption">
-							<span id="useExampleSpan" class="radio right">Use example</span>
-							</span>
+							<span class="borderedOption"><span id="noneExampleSpan" class="radio right">Use inputs</span>&nbsp;<span id="saveAsExampleSpan" class="checkboxgreen checkbox right">Save as example</span></span>
+							<span class="borderedOption"><span id="useExampleSpan" class="radio right">Use example</span></span>
 							<div id="saveExampleDiv"></div>
 						</div>
 						<div id="newInputs"></div>

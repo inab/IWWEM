@@ -34,8 +34,9 @@
 	</target>
 	
 	<target depends="init" description="Checking of Perl frontend modules" name="perl-check">
-		<apply executable="perl" dir="${weblauncher.src}" failonerror="true">
+		<apply executable="perl" dir="${weblauncher.src}/cgi-bin" failonerror="true">
 			<arg value="-c"/>
+			<arg value="-I${weblauncher.src}/cgi-bin/LockNLog"/>
 			<fileset dir="${weblauncher.src}/cgi-bin" followsymlinks="false">
 				<include name="**/*.pl" />
 				<include name="**/*.pm" />

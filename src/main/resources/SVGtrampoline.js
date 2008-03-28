@@ -15,19 +15,27 @@
 function SVGtramp(LoadEvent) {
 	this.SVGDoc    = LoadEvent.target.ownerDocument;
 	this.SVGroot   = this.SVGDoc.documentElement;
+	// Setting up SVGNS to the value associated to the document
+	if(this.SVGroot.namespaceURI)
+		SVGtramp.SVGNS=this.SVGroot.namespaceURI;
 	
 	// First, let's detect the accuracy of convertToSpecifiedUnits!
 	// Bad implementation :-(
-	this.mmPerPixel = 1e-4;
+	var DPI=72;
+	if(screen && screen.logicalXDPI) {
+		DPI=screen.logicalXDPI;
+	}
+	var defaultmmPerPixel=25.4/DPI;
+	this.mmPerPixel = defaultmmPerPixel;
 	try {
 		if(this.SVGroot.pixelUnitToMillimeterX && this.SVGroot.pixelUnitToMillimeterY) {
 			this.mmPerPixel = (this.SVGroot.pixelUnitToMillimeterX > this.SVGroot.pixelUnitToMillimeterY)?this.SVGroot.pixelUnitToMillimeterX:this.SVGroot.pixelUnitToMillimeterY;
 		}
 	} catch(e) {
-		this.mmPerPixel = 1e-4;
+		this.mmPerPixel = defaultmmPerPixel;
 	}
 	if(this.mmPerPixel<=0.0) {
-		this.mmPerPixel = 1e-4;
+		this.mmPerPixel = defaultmmPerPixel;
 	}
 
 	this.fakeConvert=true;
@@ -142,6 +150,8 @@ function SVGtramp(LoadEvent) {
 	}
 }
 
+SVGtramp.SVGNS='http://www.w3.org/2000/svg';
+
 SVGtramp.getTextContent = function (oNode) {
 	var retval;
 	if(oNode) {
@@ -177,8 +187,6 @@ SVGtramp.nodeGetText = function (oNode,deep) {
 	}
 	return s;
 };
-
-SVGtramp.SVGNS='http://www.w3.org/2000/svg';
 
 SVGtramp.prototype = {
 	/*
@@ -904,11 +912,7 @@ SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
 			try {
-				if(object.addEventListener) {
-					object.addEventListener(eventType,listener,useCapture);
-				} else {
-					object["on"+eventType]=listener;
-				}
+				object.addEventListener(eventType,listener,useCapture);
 			} catch(e) {
 				// IgnoreIt!(R)
 			}
@@ -977,11 +981,7 @@ SVGtramp.removeEventListener = function (object, eventType, listener, useCapture
 		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
 			try {
-				if(object.removeEventListener) {
-					object.removeEventListener(eventType,listener,useCapture);
-				} else if(object["on"+eventType] && object["on"+eventType]==listener) {
-					object["on"+eventType]=undefined;
-				}
+				object.removeEventListener(eventType,listener,useCapture);
 			} catch(e) {
 				// IgnoreIt!(R)
 			}

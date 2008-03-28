@@ -119,6 +119,11 @@ somewhere in the source-code-comment or the "about" of your project and give cre
 //credits: Kevin Lindsey for his example at http://www.kevlindev.com/gui/utilities/viewbox/ViewBox.js
 function SVGmapApp(/*optional*/thedoc,adjustVBonWindowResize,resizeCallbackFunction) {
 	if(!thedoc) thedoc=document;
+	
+	// Setting up SVGNS to the value associated to the document
+	if(thedoc.documentElement.namespaceURI)
+		SVGmapApp.svgNS=thedoc.documentElement.namespaceURI;
+	
 	this.thedoc=thedoc;
 	this.adjustVBonWindowResize = adjustVBonWindowResize;
 	this.resizeCallbackFunction = resizeCallbackFunction;
@@ -132,6 +137,7 @@ function SVGmapApp(/*optional*/thedoc,adjustVBonWindowResize,resizeCallbackFunct
 	//add SVGResize event, note that because FF does not yet support the SVGResize event, there is a workaround
  	try {
   		//browsers with native SVG support
+  		window.addEventListener("resize",this,false);
   		top.addEventListener("resize",this,false);
  	} catch(er) {
 		//SVG UAs, like Batik and ASV/Iex
@@ -992,7 +998,7 @@ SVGmapApp.ViewBox.prototype = {
 		this.windowWidth = svgRoot.getAttributeNS(null,"width");
 		if (this.windowWidth.match(/%/) || this.windowWidth == null) {
 			if (this.windowWidth == null) {
-				if (top.innerWidth) {
+				if (top && top.innerWidth) {
 					this.windowWidth = top.innerWidth;
 				} else if (window.innerWidth) {
 					this.windowWidth = window.innerWidth;
@@ -1001,7 +1007,7 @@ SVGmapApp.ViewBox.prototype = {
 				}
 			} else {
 				var factor = parseFloat(this.windowWidth.replace(/%/,""))/100;
-				if (top.innerWidth) {
+				if (top && top.innerWidth) {
 					this.windowWidth = top.innerWidth * factor;
 				} else if(window.innerWidth) {
 					this.windowWidth = window.innerWidth * factor;
@@ -1015,7 +1021,7 @@ SVGmapApp.ViewBox.prototype = {
 		this.windowHeight = svgRoot.getAttributeNS(null,"height");
 		if (this.windowHeight.match(/%/) || this.windowHeight == null) {
 			if (this.windowHeight == null) {
-				if (top.innerHeight) {
+				if (top && top.innerHeight) {
 					this.windowHeight = top.innerHeight;
 				} else if (window.innerHeight) {
 					this.windowHeight = window.innerHeight;
@@ -1024,7 +1030,7 @@ SVGmapApp.ViewBox.prototype = {
 				}
 			} else {
 				var factor = parseFloat(this.windowHeight.replace(/%/,""))/100;
-				if (top.innerHeight) {
+				if (top && top.innerHeight) {
 					this.windowHeight = top.innerHeight * factor;
 				} else if (window.innerHeight) {
 					this.windowHeight = window.innerHeight * factor;
@@ -1137,7 +1143,7 @@ SVGmapApp.prototype = {
 
 	resetFactors: function() {
 		//set inner width and height
-		if (top.innerWidth) {
+		if (top && top.innerWidth) {
 			this.innerWidth = top.innerWidth;
 			this.innerHeight = top.innerHeight;
 		} else if (window.innerWidth) {

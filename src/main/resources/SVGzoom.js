@@ -23,7 +23,7 @@ function SVGzoom(doc,gElem,myMapApp,/*optional*/ scaleX, scaleY) {
 		gId='GPoint';
 		gElem.setAttribute('id',gId);
 	}
-	var SVGNS='http://www.w3.org/2000/svg';
+	var SVGNS=(doc.documentElement.namespaceURI)?doc.documentElement.namespaceURI:'http://www.w3.org/2000/svg';
 	
 	var backClip=doc.createElementNS(SVGNS,"rect");
 	//backClip.setAttribute('id','backclip');

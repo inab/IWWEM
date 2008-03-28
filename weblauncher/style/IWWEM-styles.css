@@ -89,14 +89,14 @@
 	vertical-align: middle;
 }
 
-td.data {
+TD.data {
 	vertical-align: top;
 	empty-cells: show;
 	display: table-cell;
 	overflow: auto;
 }
 
-td.middle {
+TD.middle {
 	vertical-align: top;
 	empty-cells: show;
 	display: table-cell;
@@ -150,17 +150,18 @@ td.middle {
 	background-color: #f5ede9;
 }
 
-td.buttons {
+TD.buttons {
 	vertical-align: bottom;
 }
 
 .borderedInput {
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 12px;
-	padding: 3px;
+	padding: 4px;
 	border: 1px solid #cbb945;
 	background-color: #fffadb;
-	margin: 5px 5px 5px 5px;
+	margin: 6px;
+	white-space: nowrap;
 }
 
 .borderedOption {
@@ -169,16 +170,16 @@ td.buttons {
 	/*
 	padding: 5px 1px 4px 1px;
 	*/
-	margin: 1px 1px 1px 1px;
-	padding: 2px 2px 2px 2px;
+	margin: 3px 3px 3px 3px;
+	padding: 1px 3px 1px 3px;
 	border:1px solid #36c;
 	vertical-align: center;
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 10px;
 	/*
 	display: -moz-inline-block;
-	display: inline-block;
 	*/
+	display: inline-block;
 }
 
 textarea, input, select {
@@ -205,18 +206,18 @@ textarea, input, select {
 
 /* Styled file inputs (to be approved) */
 
-div.fileinputs {
+DIV.fileinputs {
 	position: relative;
 	height: 30px;
 	width: 300px;
 }
 
-input.file {
+INPUT.file {
 	width: 300px;
 	margin: 0;
 }
 
-input.file.hidden {
+INPUT.file.hidden {
 	position: relative;
 	text-align: right;
 	-moz-opacity:0 ;
@@ -225,7 +226,7 @@ input.file.hidden {
 	z-index: 202;
 }
 
-div.fakefile {
+DIV.fakefile {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -236,7 +237,7 @@ div.fakefile {
 	line-height: 90%;
 }
 
-div.fakefile input {
+DIV.fakefile input {
 	margin-bottom: 5px;
 	margin-left: 0;
 }
@@ -257,74 +258,93 @@ div.fakefile input {
 	display: none;
 }
 
-.scrollbranch > .branchcontainer ,
-.branch > .branchcontainer
-{
-	display: none;
+SPAN.scrollswitch , SPAN.noscrollswitch {
+	color: blue;
+	cursor: pointer;
+	-moz-user-select: none;
 }
 
-.scrollbranch.open > .branchcontainer ,
-.branch.open > .branchcontainer
+DIV.branchcontainer {
+	margin: 0px;
+	height: auto;
+	overflow: visible;
+	border: none;
+}
+
+DIV.scrollbranchcontainer {
+	height: 60px;
+	overflow: auto;
+	border: 1px solid brown;
+}
+
+/*
+SPAN.scrollswitch ~ DIV.branchcontainer {
+	height: 60px;
+	overflow: auto;
+	border: 1px solid brown;
+}
+*/
+
+DIV.scrollbranchopen DIV.branchcontainer ,
+DIV.branchopen DIV.branchcontainer
 {
 	display: block;
 }
 
-.branchlabel, .leaflabel , .scrollswitch, .leaf, .deadleaf, .seed, .fruit {
+DIV.scrollbranch DIV.branchcontainer ,
+DIV.branch DIV.branchcontainer
+{
+	display: none;
+}
+
+SPAN.branchlabel, SPAN.branchlabelopen, .leaflabel , .scrollswitch, .noscrollswitch, .leaf, .deadleaf, .seed, .fruit {
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 10px;
 }
 
-.branchlabel, .leaflabel {
+SPAN.branchlabel, SPAN.branchlabelopen, .leaflabel {
 	background-repeat: no-repeat;
 	background-position: center left;
 	padding-left: 12px;
 }
 
 /*
-.branchlabel:focus {
+span.branchlabel:focus {
 	background-color:blue;
 }
 */
 
-.branch, .scrollbranch, .leaf, .deadleaf , .fruit , .seed {
+DIV.branch, DIV.branchopen , DIV.scrollbranch, DIV.scrollbranchopen , .leaf, .deadleaf , .fruit , .seed {
 	margin-left: 15px;
 }
 
-.branchcontainer {
+DIV.branch DIV.branchcontainer , DIV.leaf DIV.branchcontainer {
 	margin-left: 0px;
 }
 
-.scrollbranch > .branchcontainer {
-	height: 60px;
-	overflow: auto;
-	border: 1px solid brown;
-}
-
 .seed > .leaflabel {
-	background-image: url(twisty-question.png);
+	background-image: url(seed-small.png);
 }
 
 .fruit > .leaflabel {
 	background-image: url(twisty-fruit.png);
 }
 
-.scrollswitch {
-	color: blue;
-}
-
-.branch > .branchlabel , .scrollbranch > .branchlabel {
+SPAN.branchlabel {
 	background-image: url(twisty-clsd.png);
 }
 
-.branch.open > .branchlabel , .scrollbranch.open > .branchlabel {
+SPAN.branchlabelopen {
 	background-image: url(twisty-open.png);
 }
 
-.branch, .scrollbranch, .leaf, .fruit, .seed {
+SPAN.branchlabel, SPAN.leaflabel, .fruit, .seed {
 	cursor: pointer;
+	-moz-user-select: none;
 }
 
-.leaf > .leaflabel {
+/* .leaf > .leaflabel { */
+.leaflabel {
 	background-image: url(branch.png);
 }
 
@@ -337,7 +357,7 @@ div.fakefile input {
 	color: gray;
 }
 
-.branchlabel {
+SPAN.branchlabel , SPAN.branchlabelopen {
 	font-weight: bold;
 	color: brown;
 }

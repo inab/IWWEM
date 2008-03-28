@@ -303,7 +303,9 @@ ManagerView.prototype = {
 			// SVG graph
 			//this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
 			var me=this;
-			this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'120mm','120mm',function() {
+			var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
+			var maxwidth=(parentno.clientWidth-32)+'px';
+			this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,maxwidth,'120mm',function() {
 				me.updateViewInternal(workflow);
 				if(typeof callbackFunc=='function') {
 					callbackFunc();
@@ -919,6 +921,7 @@ NewEnactionView.prototype = {
 		divdesc.className = 'scrolldatamin';
 		
 		// And last!!!!
+		this.inputsContainer.align='center';
 		this.inputsContainer.innerHTML='Example ';
 		this.inputsContainer.appendChild(exSelect);
 		this.inputsContainer.appendChild(divdesc);
@@ -933,7 +936,7 @@ NewEnactionView.prototype = {
 				var output='<b>Example name:</b> '+example.name;
 				output += '<p>UUID:</b>&nbsp;'+example.uuid+'</p>';
 				output += '<p><b>Date:</b> '+example.date+'</p>';
-				output += '<p><i><a href="'+WFBase+'/'+example.path+'">Download link</a></i></p>';
+				output += '<p><i><a href="'+WFBase+'/'+example.path+'">Download example in Baclava format</a></i></p>';
 				output += '<b>Description</b><br>';
 				if(example.description && example.description.length>0) {
 					output += GeneralView.preProcess(example.description);
@@ -1121,6 +1124,7 @@ NewEnactionView.prototype = {
 	
 	disposeContainers: function() {
 		GeneralView.freeContainer(this.inputsContainer);
+		this.inputsContainer.align='left';
 	},
 	
 	clearView: function() {

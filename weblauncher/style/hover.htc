@@ -1,0 +1,73 @@
+<PUBLIC:COMPONENT>
+<PUBLIC:ATTACH event="onmouseout" handler="doMouseDefault" />
+<PUBLIC:ATTACH event="onmouseup" handler="doMouseDefault" />
+<PUBLIC:ATTACH event="onmousedown" handler="doMouseDown" />
+<PUBLIC:ATTACH event="onmouseover" handler="doMouseOver" />
+<PUBLIC:ATTACH event="onmouseup" handler="doMouseOver" />
+<PUBLIC:ATTACH event="onselectstart" handler="doNoSelect" />
+
+<SCRIPT LANGUAGE="JScript">
+/*
+	$Id$
+	hover.htc
+	from INB Web Workflow Enactor & Manager (IWWE&M)
+	Author: José María Fernández González (C) 2007-2008
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+*/
+var classDefault = element.className;
+var classDefaultBase;
+if(classDefault.indexOf(" ")!=-1) {
+	classDefaultBase = classDefault.substr(0,classDefault.indexOf(" "));
+} else {
+	classDefaultBase = classDefault;
+}
+var classDefaultBaseActive=classDefaultBase+'active';
+var classDefaultBaseHover=classDefaultBase+'hover';
+var classDefaultBaseChecked=classDefaultBase+'checked';
+var isButton=classDefault.indexOf('button')!=-1;
+var isRadio=classDefault.indexOf('radio')!=-1;
+
+function doEffect() {
+	switch (event.type) {
+		case "mousedown":
+			element.className = classDefault + " "+ classDefaultBaseActive;
+			break;
+		case "mouseup":
+		case "mouseover":
+			element.className = classDefault + " " + classDefaultBaseHover;
+			break;
+		default:
+			element.className = classDefault;
+			break;
+	}
+}
+
+function doMouseDown() {
+	var target = event.srcElement;
+	if(isButton && target.className.indexOf(classDefaultBase)!=-1) {
+		target.className = classDefault + " "+ classDefaultBaseActive;
+	}
+}
+
+function doMouseOver() {
+	var target = event.srcElement;
+	if(target.className.indexOf(classDefaultBase)!=-1 && (isButton || target.className.indexOf(classDefaultBaseChecked)==-1)) {
+		target.className = classDefault + " " + classDefaultBaseHover;
+	}
+}
+
+function doMouseDefault() {
+	var target = event.srcElement;
+	if(target.className.indexOf(classDefaultBase)!=-1 && (isButton || target.className.indexOf(classDefaultBaseChecked)==-1)) {
+		target.className = classDefault;
+	}
+}
+
+function doNoSelect() {
+	return false;
+}
+
+</SCRIPT>
+</PUBLIC:COMPONENT>

@@ -305,12 +305,40 @@ function EnactionView(genview) {
 	//
 	//this.domStatus=undefined;
 	
-	this.stepClickHandler = function (theid) {
-		enactview.showStepFromId(this.getAttribute?this.getAttribute("id"):theid);
+	this.stepClickHandler = function (event) {
+		var theid;
+		if(typeof event == 'string') {
+			theid=event;
+		} else {
+			var target;
+			if(this.getAttribute) {
+				target=this;
+			} else {
+				if(!event)  event=window.event;
+				target=(event.currentTarget)?event.currentTarget:event.srcElement;
+			}
+			theid=target.getAttribute("id");
+		}
+		
+		enactview.showStepFromId(theid);
 	};
 	
-	this.jobClickHandler = function (theid) {
-		enactview.showWorkflowJobFromId(this.getAttribute?this.getAttribute("id"):theid);
+	this.jobClickHandler = function (event) {
+		var theid;
+		if(typeof event == 'string') {
+			theid=event;
+		} else {
+			var target;
+			if(this.getAttribute) {
+				target=this;
+			} else {
+				if(!event)  event=window.event;
+				target=(event.currentTarget)?event.currentTarget:event.srcElement;
+			}
+			theid=target.getAttribute("id");
+		}
+		
+		enactview.showWorkflowJobFromId(theid);
 	};
 	
 	// At last, getting the enaction id
@@ -334,8 +362,10 @@ EnactionView.BranchClick = function (event) {
 	if(!event)  event=window.event;
 	var target=(event.currentTarget)?event.currentTarget:event.srcElement;
 	if(target.parentNode.className=='branch' || target.parentNode.className=='scrollbranch') {
-		target.parentNode.className+=' open';
+		target.className+='open';
+		target.parentNode.className+='open';
 	} else {
+		target.className='branchlabel';
 		target.parentNode.className=(target.parentNode.className.indexOf('scroll')!=-1)?'scrollbranch':'branch';
 	}
 };
@@ -343,14 +373,20 @@ EnactionView.BranchClick = function (event) {
 EnactionView.ScrollClick = function (event) {
 	if(!event)  event=window.event;
 	var target=(event.currentTarget)?event.currentTarget:event.srcElement;
-	var parentOpen=(target.parentNode.className.indexOf(' open')!=-1)?' open':'';
-	if(target.parentNode.className.indexOf('scroll')!=-1) {
-		target.innerHTML=' [=]';
-		target.parentNode.className='branch'+parentOpen;
-	} else {
+	var next=target.nextSibling;
+	if(target.className.indexOf('no')!=-1) {
 		target.innerHTML=' [\u2212]';
-		target.parentNode.className='scrollbranch'+parentOpen;
+		target.className='scrollswitch';
+		next.className+=' scrollbranchcontainer';
+	} else {
+		target.innerHTML=' [=]';
+		target.className='noscrollswitch';
+		next.className='branchcontainer';
 	}
+};
+
+EnactionView.NoSelect = function (event) {
+	return false;
 };
 	
 EnactionView.prototype = {
@@ -461,10 +497,13 @@ EnactionView.prototype = {
 					this.initializedSVG=1;
 					var enactview=this;
 					this.waitingSVG=1;
+					var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
+					var maxwidth=(parentno.clientWidth-32)+'px';
 					this.svg.loadSVG(GeneralView.SVGDivId,
 						this.JobsBase+'/'+this.jobDir+'/workflow.svg',
 //						'100mm',
-						'120mm',
+//						'120mm',
+						maxwidth,
 						'120mm',
 						function() {
 							enactview.waitingSVG=undefined;
@@ -945,7 +984,8 @@ EnactionView.prototype = {
 					retval=2;
 				} else if(beMatched=='maybe') {
 					var seed=this.genview.createElement('img');
-					seed.src='style/twisty-question.png';
+					seed.src='style/seed-small.png';
+					seed.setAttribute('style','margin-left:5px; cursor:pointer;');
 					
 					var seedgrow = function (event) {
 						var frameId=enactview.genview.openFrame('extractData',1);
@@ -1000,6 +1040,12 @@ EnactionView.prototype = {
 			var condiv = this.genview.createElement('div');
 			condiv.className='branchcontainer';
 
+			// Event to show the contents
+			WidgetCommon.addEventListener(span,'click',EnactionView.BranchClick,false);
+			
+			div.appendChild(condiv);
+			parentContainer.appendChild(div);
+			
 			// Now the children
 			var isscroll=true;
 			var isdead=true;
@@ -1026,25 +1072,26 @@ EnactionView.prototype = {
 				retval=-2;
 			} else {
 				var expandContent;
+				var expandClass;
+				div.className='branch';
 				if(isscroll) {
-					div.className='scrollbranch';
 					expandContent=' [\u2212]';
+					expandClass='scrollswitch';
+					condiv.className+=' scrollbranchcontainer'
 				} else {
 					expandContent=' [=]';
+					expandClass='noscrollswitch';
 				}
 				var expandSpan = this.genview.createElement('span');
-				expandSpan.className='scrollswitch';
+				expandSpan.className=expandClass;
 				expandSpan.innerHTML=expandContent;
-				div.appendChild(expandSpan);
-				
 				// Event to expand/collapse
 				WidgetCommon.addEventListener(expandSpan,'click',EnactionView.ScrollClick,false);
-				// Event to show the contents
-				WidgetCommon.addEventListener(span,'click',EnactionView.BranchClick,false);
+				WidgetCommon.addEventListener(expandSpan,'selectstart',EnactionView.NoSelect,false);
+				div.insertBefore(expandSpan,condiv);
+				
 				retval=3;
 			}
-			div.appendChild(condiv);
-			parentContainer.appendChild(div);
 		}
 		
 		return retval;

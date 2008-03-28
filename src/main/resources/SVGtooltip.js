@@ -14,6 +14,10 @@
  == Title.js -- Copyright (C) Stefan Goessner ========================
 */
 function Title(doc, myMapApp, sz) {
+	// Setting up SVGNS to the value associated to the document
+	if(doc.documentElement.namespaceURI)
+		Title.SVGNS=doc.documentElement.namespaceURI;
+	
 	this.element = null;  // element to show title of ..
 	this.size = sz;      // text size ..
 	this.scl = doc.documentElement.currentScale;	  // scaling modified by zooming ..

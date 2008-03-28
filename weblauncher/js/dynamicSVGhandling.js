@@ -273,6 +273,7 @@ TavernaSVG.prototype = {
 			//objres.setAttribute("style","overflow: hidden; border: 1px dotted #000;width:0;height:0");
 			if(BrowserDetect.browser!='Konqueror') {
 				objres.setAttribute("style","overflow: hidden; width:0;height:0;");
+				//objres.setAttribute("style","overflow: auto; width:0;height:0;");
 			} else {
 				objres.setAttribute("style","overflow: auto;");
 			}
@@ -286,7 +287,7 @@ TavernaSVG.prototype = {
 			this.asEmbed=undefined;
 			objres.setAttribute("data",url);
 		} else {
-			this.svgobj = objres=thedoc.createElement('embed');
+			this.svgobj = objres = thedoc.createElement('embed');
 			objres.setAttribute("type","image/svg+xml");
 			objres.setAttribute("pluginspage","http://www.adobe.com/svg/viewer/install/");
 			objres.setAttribute("style","overflow: auto;");
