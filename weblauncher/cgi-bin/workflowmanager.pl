@@ -568,7 +568,7 @@ foreach my $wf (@workflowlist) {
 	}
 }
 
-print $query->header(-type=>(defined($dataisland)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store');
+print $query->header(-type=>(defined($dataisland)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store',-expires=>'-1');
 
 if(defined($dataisland)) {
 	print "<html><body><$dataislandTag id='".$WorkflowCommon::PARAMISLAND."'>\n";

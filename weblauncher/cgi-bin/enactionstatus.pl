@@ -552,7 +552,7 @@ foreach my $jobId (@jobIdList) {
 	$root->appendChild($es);
 }
 
-print $query->header(-type=>'text/xml',-charset=>'UTF-8',-cache=>'no-cache, no-store');
+print $query->header(-type=>'text/xml',-charset=>'UTF-8',-cache=>'no-cache, no-store',-expires=>'-1');
 
 $outputDoc->toFH(\*STDOUT);
 

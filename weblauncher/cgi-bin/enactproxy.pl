@@ -299,7 +299,8 @@ if($pathi!=-1) {
 
 $dec=''  unless(defined($dec));
 
-my(@headerPars)=(-type=>$asMime);
+my(@headerPars)=(-type=>$asMime,-expires=>'+60s');
+
 
 # Guessing the extension
 if(defined($withName)) {

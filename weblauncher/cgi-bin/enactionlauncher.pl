@@ -316,7 +316,7 @@ unless(defined($cpid)) {
 	}
 	
 	# Now, reporting...
-	print $query->header(-type=>(defined($dataisland)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store');
+	print $query->header(-type=>(defined($dataisland)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store',-expires=>'-1');
 	my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
 	my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionlaunched');
 	$root->setAttribute('time',LockNLog::getPrintableNow());
