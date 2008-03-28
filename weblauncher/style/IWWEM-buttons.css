@@ -19,6 +19,7 @@
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 15px;
 	white-space: nowrap;
+	-moz-user-select: none;
 }
 
 .button , .buttondisabled {

@@ -117,7 +117,6 @@ DataMatcher.prototype = {
 						}
 					}
 				}
-				break;
 			}
 		}
 	},
@@ -141,18 +140,34 @@ DataMatcher.prototype = {
 		return candidateMatchers;
 	},
 	
-	getMatches: function(data,candidateMatchers,callbackRes,/*optional*/matches) {
-		if(matches==undefined)  matches=new Array();
+	getMatches: function(data,candidateMatchers,callbackRes,/*optional*/matches,candi) {
+		if(matches==undefined) {
+			matches=new Array();
+			candi=0;
+		}
 		
-		if(candidateMatchers.length>0) {
-			var candMatch=candidateMatchers.shift();
+		if(candi<candidateMatchers.length) {
+			var candMatch=candidateMatchers[candi];
 			var matcher = this;
 			candMatch.match(data,function(partialMatches) {
 				matches = matches.concat(partialMatches);
-				matcher.getMatches(data,candidateMatchers,callbackRes,matches);
+				candi++;
+				if(candi<candidateMatchers.length) {
+					matcher.getMatches(data,candidateMatchers,callbackRes,matches,candi);
+				} else if(typeof callbackRes=='function') {
+					try {
+						callbackRes(matches);
+					} catch(casi) {
+						// IgnoreIT!!!(R)
+					}
+				}
 			});
 		} else if(typeof callbackRes=='function') {
-			callbackRes(matches);
+			try {
+				callbackRes(matches);
+			} catch(casi) {
+				// IgnoreIT!!!(R)
+			}
 		}
 	}
 };
@@ -233,7 +248,14 @@ DataMatcher.DetectionPattern.prototype = {
 					for(var extStepi=1;extStepi<this.extractionStep.length;extStepi++) {
 						var extStep=this.extractionStep[extStepi];
 						var arrRet=extStep.match(candres);
-						arrRet = (arrRet!=undefined && arrRet.length>0)?arrRet[0]:undefined;
+						if(arrRet!=undefined && arrRet.length>0) {
+							arrRet=arrRet[0];
+							if(typeof arrRet == 'object') {
+								arrRet = WidgetCommon.getTextContent(arrRet);
+							}
+						} else {
+							arrRet=undefined;
+						}
 						var pmatch=new DataObject((extStep.encoding!='raw')?arrRet:undefined,(extStep.encoding=='raw')?arrRet:undefined);
 						paramArray.push(pmatch);
 					}

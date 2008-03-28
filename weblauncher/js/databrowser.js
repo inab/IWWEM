@@ -431,7 +431,7 @@ DataBrowser.MolViewer = {
 		//jmolSetCallback('loadStructCallback',);
 		var jmolParams=undefined;
 		if(paramArray.length>1) {
-			jmolParams=paramArray[1];
+			jmolParams=paramArray[1].data[1];
 		}
 		
 		if(!jmolParams) {

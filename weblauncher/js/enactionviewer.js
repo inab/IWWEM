@@ -102,6 +102,30 @@ WorkflowStep.prototype = {
 		var request;
 		try {
 			request=new XMLHttpRequest();
+			var onload = function() {
+				var response = request.responseXML;
+				if(!response) {
+					if(request.responseText) {
+						var parser = new DOMParser();
+						response = parser.parseFromString(request.responseText,'application/xml');
+					} else {
+						// Backend error.
+						enactview.addMessage(
+							'<blink><h1 style="color:red">FATAL ERROR B: (with '+
+							theurl+
+							') Please notify it to INB Web Workflow Manager developer</h1></blink>'
+						);
+					}
+				}
+				// Only parse when an answer is available
+				Baclava.Parser(response.documentElement.cloneNode(true),thehash,enactview);
+				try {
+					if(thenotify)  thenotify(istep);
+				} catch(noti) {
+					alert(WidgetCommon.DebugError(noti));
+					// IgnoreIT(R)
+				}
+			};
 			request.onreadystatechange=function() {
 				//enactview.addMessage(request.readyState + '<br>');
 				if(request.readyState==4) {

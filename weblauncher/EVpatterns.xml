@@ -17,17 +17,17 @@
         <description>Second pattern for IWWE&amp;M</description>
         <applyToMIME type="text/xml"/>
         <expression>
-            <xpath expression="//moby:PDB-Enriched">
+            <xpath expression="//moby:PDB_Enriched">
                 <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
             </xpath>
         </expression>
         <extractionStep encoding="raw">
-            <xpath expression="/moby:String[@articleName='content' or @moby:articleName='content']">
+            <xpath expression="./moby:String[@articleName='content' or @moby:articleName='content']">
                 <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
             </xpath>
         </extractionStep>
         <extractionStep encoding="raw">
-            <xpath expression="/moby:String[@articleName='JmolScript' or @moby:articleName='JmolScript']">
+            <xpath expression="./moby:String[@articleName='JmolScript' or @moby:articleName='JmolScript']">
                 <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
             </xpath>
         </extractionStep>
