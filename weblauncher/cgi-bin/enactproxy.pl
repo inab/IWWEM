@@ -242,7 +242,7 @@ if($pathi!=-1) {
 	# We are going to parse!
 	my($parser)=XML::LibXML->new();
 	my($context)=XML::LibXML::XPathContext->new();
-	$context->registerNs('pat',$WorkflowCommon::WFD_NS);
+	$context->registerNs('pat',$WorkflowCommon::PAT_NS);
 	#$context->registerNs('s',$WorkflowCommon::SCUFL_NS);
 	
 	my($docpat);
@@ -267,7 +267,7 @@ if($pathi!=-1) {
 					}
 				}
 				
-				my(@patnodes)=$context->findnodes("//pat:detectionPattern[\@name='$patternName']",$dec);
+				my(@patnodes)=$context->findnodes("//pat:detectionPattern[\@name='$patternName']",$docpat);
 				last  if(scalar(@patnodes)!=1);
 				
 				my($expression)=undef;
@@ -276,9 +276,9 @@ if($pathi!=-1) {
 				foreach my $expr ($patnodes[0]->childNodes()) {
 					if($expr->nodeType==XML::LibXML::XML_ELEMENT_NODE) {
 						my($tagname)=$expr->localName();
-						if($tagname eq 'expression') {
+						if(!defined($expression) && $tagname eq 'expression') {
 							$expression=parseExpression($expr);
-						} elsif($tagname eq 'expression') {
+						} elsif(!defined($extractStep) && $tagname eq 'extractionStep') {
 							$extractStep=parseExpression($expr);
 						}
 					}

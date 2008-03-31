@@ -22,7 +22,7 @@ use vars qw($WORKFLOWRELDIR $WORKFLOWDIR $JOBRELDIR $JOBDIR $MAXJOBS $JOBCHECKDE
 
 use vars qw($PATTERNSFILE);
 
-use vars qw($BACLAVAPARAM $PARAMISLAND $PARAMPREFIX $SNAPSHOTPREFIX $WFD_NS $XSCUFL_NS $BACLAVA_NS);
+use vars qw($BACLAVAPARAM $PARAMISLAND $PARAMPREFIX $SNAPSHOTPREFIX $WFD_NS $PAT_NS $XSCUFL_NS $BACLAVA_NS);
 
 use vars qw($PARAMSAVEEX $PARAMSAVEEXDESC $CATALOGFILE);
 
@@ -77,6 +77,7 @@ $SNAPSHOTPREFIX='snapshot:';
 $CATALOGFILE='catalog.xml';
 
 $WFD_NS = 'http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend';
+$PAT_NS = $WFD_NS . '/patterns';
 $XSCUFL_NS = 'http://org.embl.ebi.escience/xscufl/0.1alpha';
 $BACLAVA_NS = 'http://org.embl.ebi.escience/baclava/0.1alpha';
 
