@@ -691,7 +691,7 @@ NewWorkflowView.prototype = {
 						}
 					}
 					
-					newwfview.genview.manview.fillWorkflowList(xdoc,function() {
+					newwfview.genview.manview.fillWorkflowList(xdoc.documentElement,function() {
 						// Now, cleaning up iframe traces!
 						newwfview.uploading=false;
 						newwfview.closeNewWorkflowFrame();

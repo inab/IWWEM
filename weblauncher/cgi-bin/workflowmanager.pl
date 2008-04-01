@@ -36,6 +36,7 @@ my($dataisland)=undef;
 my($dataislandTag)=undef;
 my($hasInputWorkflow)=undef;
 my($hasInputWorkflowDeps)=undef;
+my($doFreezeWorkflowDeps)=undef;
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
@@ -65,6 +66,8 @@ foreach my $param ($query->param()) {
 		$hasInputWorkflow=1;
 	} elsif($param eq 'workflowDep') {
 		$hasInputWorkflowDeps=1;
+	} elsif($param eq 'freezeWorkflowDeps') {
+		$doFreezeWorkflowDeps=1;
 	}
 }
 
@@ -134,13 +137,14 @@ if(defined($hasInputWorkflow)) {
 				mkpath($depdir);
 				my(@unpatchedWF)=($randfilexml);
 				my(%WFhash)=($randfilexml=>[$WFmaindoc,$randfilexml,undef,undef]);
-				my(%WFunresolved)=();
 				
 				my($peta)=undef;
 				my($ua)=LWP::UserAgent->new();
 				# Getting the base uri for subworkflows
 				my($cgibaseuri)=WorkflowCommon::getCGIBaseURI($query);
 				$cgibaseuri =~ s/cgi-bin\/[^\/]+$//;
+				
+				# First pass...
 				foreach my $WFuri (@unpatchedWF) {
 					my($WFdoc)=$WFhash{$WFuri}[0];
 					
@@ -249,22 +253,16 @@ if(defined($hasInputWorkflow)) {
 
 										# Saving the subworkflow
 										$WFhash{$uritext}=[$newWFdoc,$newWFname,undef,$patchedURI];
+										push(@unpatchedWF,$uritext);
 									} else {
 										# There was a problem in the process
 										$peta=$@;
 										last;
 									}
 								}
-									
-								# Cleaning up the content of the dependency
-								foreach my $child ($dep->childNodes()) {
-									$dep->removeChild($child);
-								}
-
-								# So we can add new text node with no problem
-								$dep->appendChild($WFdoc->createTextNode($WFhash{$uritext}[3]));
-								# And mark it to save later because
-								# there are patched dependencies
+								
+								# Mark it to process and save it later because
+								# we must patch dependencies
 								$WFhash{$WFuri}[2]=1;
 							}
 						}
@@ -281,13 +279,44 @@ if(defined($hasInputWorkflow)) {
 					last;
 				}
 				
-				# Last step, save all the changed content
-				# Some workflows could have been patched,
-				# so they should be re-saved
-				foreach my $wfval (values(%WFhash)) {
-					next unless(defined($wfval->[2]));
-
-					$wfval->[0]->toFile($wfval->[1]);
+				# Second pass, workflow patching.
+				foreach my $WFuri (reverse(@unpatchedWF)) {
+					my($wfval)=$WFhash{$WFuri};
+					
+					if(defined($wfval->[2])) {
+						my($WFdoc)=$wfval->[0];
+						
+						# Really do we have deps? I doubt it...
+						my(@internalDeps)=$context->findnodes('//s:processor/s:workflow/s:xscufllocation',$WFdoc);
+						if(scalar(@internalDeps)>0) {
+							foreach my $dep (@internalDeps) {
+								my($uritext)=$dep->textContent();
+								if(defined($uritext) && length($uritext)>0) {
+									if(exists($WFhash{$uritext})) {
+										# Cleaning up the content of the dependency
+										foreach my $child ($dep->childNodes()) {
+											$dep->removeChild($child);
+										}
+										if(defined($doFreezeWorkflowDeps)) {
+											$dep->appendChild($WFdoc->importNode($WFhash{$uritext}[0]->documentElement));
+										} else {
+											# So we can add new text node with no problem
+											$dep->appendChild($WFdoc->createTextNode($WFhash{$uritext}[3]));
+											# And mark it to save it later because
+											# there are patched dependencies
+											$WFhash{$WFuri}[2]=1;
+										}
+									} else {
+										# FATAL ERROR!!!!!!!!!!!
+									}
+								}
+							}
+							# Last step, save all the changed content
+							# Some workflows could have been patched,
+							# so they should be re-saved
+							$WFdoc->toFile($wfval->[1]);
+						}
+					}
 				}
 				
 				# Now it is time to validate the whole mess!
