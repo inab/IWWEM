@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s:scufl xmlns:s="http://org.embl.ebi.escience/xscufl/0.1alpha" version="0.2" log="0">
+  <s:workflowdescription lsid="urn:lsid:net.sf.taverna:wfDefinition:10cca822-8b14-461c-9549-5d360f22501d" author="" title="embedded" />
+  <s:processor name="wf_iHOP_2_xml">
+    <s:description>blabla</s:description>
+    <s:workflow>
+      <s:xscufllocation>file:/home/jmfernandez/projects/INBWorkflowLauncher/tests/wf-iHOP-2.xml</s:xscufllocation>
+    </s:workflow>
+  </s:processor>
+  <s:link source="carajo" sink="wf_iHOP_2_xml:gene_input" />
+  <s:link source="wf_iHOP_2_xml:related PubMed" sink="salida" />
+  <s:source name="carajo">
+    <s:metadata>
+      <s:mimeTypes>
+        <s:mimeType>text/html</s:mimeType>
+      </s:mimeTypes>
+    </s:metadata>
+  </s:source>
+  <s:source name="conejo" />
+  <s:sink name="salida">
+    <s:metadata>
+      <s:mimeTypes>
+        <s:mimeType>text/xml</s:mimeType>
+      </s:mimeTypes>
+      <s:description>This is a neat description</s:description>
+    </s:metadata>
+  </s:sink>
+</s:scufl>
+

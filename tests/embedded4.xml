@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s:scufl xmlns:s="http://org.embl.ebi.escience/xscufl/0.1alpha" version="0.2" log="0">
+  <s:workflowdescription lsid="urn:lsid:net.sf.taverna:wfDefinition:7d7a4c21-c065-46b7-9aa0-1975d9b13872" author="" title="embedded4" />
+  <s:processor name="embedded_xml">
+    <s:workflow>
+      <s:xscufllocation>file:///home/jmfernandez/projects/INBWorkflowLauncher/tests/embedded.xml</s:xscufllocation>
+    </s:workflow>
+  </s:processor>
+  <s:processor name="embedded_xml1">
+    <s:workflow>
+      <s:xscufllocation>file:///home/jmfernandez/projects/INBWorkflowLauncher/tests/embedded.xml</s:xscufllocation>
+    </s:workflow>
+  </s:processor>
+  <s:link source="megacarajo" sink="embedded_xml1:carajo" />
+  <s:link source="megacarajo" sink="embedded_xml:carajo" />
+  <s:link source="embedded_xml1:salida" sink="Megasalida2" />
+  <s:link source="embedded_xml:salida" sink="Megasalida1" />
+  <s:source name="megacarajo" />
+  <s:sink name="Megasalida1" />
+  <s:sink name="Megasalida2" />
+</s:scufl>
+
