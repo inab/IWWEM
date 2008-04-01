@@ -1,0 +1,186 @@
+<html>
+<head>
+<title>INB IWWE&amp;M v0.5 frontends call parameters</title>
+</head>
+<style type="text/css">
+.frontend {
+	font-weight: bold;
+	font-family: "Lucida Console","Courier New", Courier;
+}
+
+.parameter {
+	color: green;
+	font-family: "Lucida Console","Courier New", Courier;
+}
+
+.value {
+	color: blue;
+	font-weight: bold;
+}
+</style>
+<body>
+<div align="center"><h1>INB IWWE&amp;M v0.5 frontends</h1></div>
+Currently, IWWE&amp;M has 4 frontends, used by AJAX GUIs:
+<ul>
+<li><tt><a href="#workflowmanager">workflowmanager</a></tt></li>
+<li><tt><a href="#enactionlauncher">enactionlauncher</a></tt></li>
+<li><tt><a href="#enactionstatus">enactionstatus</a></tt></li>
+<li><tt><a href="#enactproxy">enactproxy</a></tt></li>
+</ul>
+<hr>
+
+<a name="workflowmanager"><div align="center"><h2>INB IWWE&amp;M: <span class="frontend">workflowmanager</span> frontend documentation and call parameters</h2></div></a>
+
+<div align="justify">
+<p>The <span class="frontend">workflowmanager</span> frontend is responsible of all the workflow repository management tasks,
+like workflow uploading and validation, workflow repository description, and workflow deletion.
+Each time a workflow is uploaded, <span class="frontend">workflowmanager</span> tries resolving all its dependencies before
+validating it using INBWorkflowParserWrapper.</p>
+<p>The <span class="frontend">workflowmanager</span> frontend receives a set of optional input parameters, described below.
+Then, it answers the list of available workflows and an optional message about the success of the
+operation described by the optional input parameters, in XML. This XML content follows XML Schema
+defined at <a href="IWWEM-messages.xsd">IWWEM-messages.xsd</a>, which is described
+at <a href="IWWEM-messages.xsd.html">IWWEM-messages.xsd.html</a>.</p>
+</div>
+
+<h3>Call parameters</h3>
+
+When this frontend is called with no input parameter, it answers the detailed status of the workflow repository </i><a href="../cgi-bin/workflowmanager">(see live example)</a></i>. Additional
+parameters are used for the workflow repository maintenance:
+
+<ul>
+<li><u><span class="parameter">eraseWFId</span> <i>(optional, multiple)</i></u>:
+When this parameter is set with a workflow identifier, <span class="frontend">workflowmanager</span> frontend disposes all the resources associated
+to the workflow labeled with that identifier before returning the workflow repository status. This parameter can be set many times,
+doing all the workflow erasing operations at once.
+</li>
+<li><u><span class="parameter">workflow</span> and <span class="parameter">workflowDep</span> <i>(optional, multiple)</i></u>: These parameters were designed to upload new workflows to the workflow repository. So, the best enviroment to use them is in a POST transfer, in multipar/form-data style, optionally transferring them as files. <span class="parameter">workflow</span> parameters represent the workflows to be added, in <a href="http://www.mygrid.org.uk/usermanual1.7/scufl_language_wb_features.html">Taverna SCUFL format</a>. As any of the uploaded workflows can have locally referenced dependencies, <span class="parameter">workflowDep</span> parameters can be used to upload those local dependencies along with the workflows to upload. This step is not needed when there is no external dependency (i.e. the dependencies are already embedded in the workflows), or the dependencies are referenced with HTTP, HTTPS or FTP urls.
+</li>
+<li><u><span class="parameter">dataIsland</span> <i>(optional, either <span class="value">1</span> or <span class="value">2</span>)</i></u>:
+When this parameter is set to <span class="value">1</span> or <span class="value">2</span>, the workflow repository report is returned embedded in an <a href="http://www.devarticles.com/c/a/XML/The-Why-and-How-of-XML-Data-Islands/">XML data island</a>.
+This parameter was created because AJAX GUIs running on some browsers (like Konqueror or old Internet Explorer versions) cannot
+parse pure XML loaded in embedded FRAMEs or IFRAMEs due browser limitations. When the parameter is <span class="value">1</span>, the content is wrapped
+by an <tt>xml</tt> tag (for Internet Explorer), and when parameter is <span class="value">2</span>, the content is wrapped by a <tt>div</tt> tag
+(for Konqueror).
+</li>
+</ul>
+
+<hr>
+
+<a name="enactionlauncher"><div align="center"><h2>INB IWWE&amp;M: <span class="frontend">enactionlauncher</span> frontend documentation and call parameters</h2></div></a>
+
+<div align="justify">
+<p>The <span class="frontend">enactionlauncher</span> frontend module is used to start an enaction process over a given input workflow or a previously stored one. As any program based on <a href="http://taverna.sourceforge.net/">Taverna</a> core uses lots of resources for any enaction process, <span class="frontend">enactionlauncher</span> must restrict the number of concurrent enaction instances, queuing further queries until an enaction slot is available for each one.</p>
+<p>In any case, <span class="frontend">enactionlauncher</span> builds up the input parameters for INBWorkflowLauncherWrapper, and
+it also manages the creation and usage of example inputs. Also, <span class="frontend">enactionlauncher</span> must create both the
+job identifier returned and the infrastructure needed by <a href="#enactionstatus"><span class="frontend">enactionstatus</span></a>
+module and INBWorkflowLauncherWrapper backend program. This job identifier is returned in XML format, which follows
+the XML Schema defined at <a href="IWWEM-messages.xsd">IWWEM-messages.xsd</a> and described
+at <a href="IWWEM-messages.xsd.html">IWWEM-messages.xsd.html</a>.</p>
+</div>
+
+<h3>Call parameters</h3>
+
+<ul>
+<li><u><span class="parameter">dataIsland</span> <i>(optional, either <span class="value">1</span> or <span class="value">2</span>)</i></u>:
+When this parameter is set to <span class="value">1</span> or <span class="value">2</span>, the enaction launcher report is returned embedded in an <a href="http://www.devarticles.com/c/a/XML/The-Why-and-How-of-XML-Data-Islands/">XML data island</a>.
+This parameter was created because AJAX GUIs running on some browsers (like Konqueror or old Internet Explorer versions) cannot
+parse pure XML loaded in embedded FRAMEs or IFRAMEs due browser limitations. When the parameter is <span class="value">1</span>, the content is wrapped
+by an <tt>xml</tt> tag (for Internet Explorer), and when parameter is <span class="value">2</span>, the content is wrapped by a <tt>div</tt> tag
+(for Konqueror).
+</li>
+<li><u><span class="parameter">workflow</span> <i>(required, multiple)</i></u>: This parameter can be used in two different ways. When this parameter has been passed as a value, then its content is interpreted as a workflow Id associated to a workflow available in the workflow repository. When this parameter has been passed using a POST transfer in multipart/form-data style and it has been marked as a file, then its value is interpreted as the raw content of a workflow definition in Taverna SCUFL format.In any case, the workflow represented by this parameter is used for the enaction process to be started.
+</li>
+<li><u><span class="parameter">BACLAVA_FILE</span> <i>(optional, multiple)</i></u>: This parameter is used to set input values for the enaction process as a whole. As <tt>workflow</tt> parameter, this one can be used in two different ways: when this parameter has been passed as a value, then its content is interpreted as the identifier of an input example associated to the workflow identified by the <span class="parameter">workflow</span> parameter; when this parameter has been passed using a POST transfer in multipart/form-data style and it has been marked as a file, then its value is interpreted as the raw content of a Baclava-formatted file.
+</li>
+<li><u><span class="parameter">PARAM_</span> prefixed parameters <i>(optional, multiple)</i></u>: These parameters are used to set values for the inputs of the workflow to be enacted. The text after the <span class="parameter">PARAM_</span> prefix sets the name of the input to be assigned. As <span class="parameter">workflow</span> and <span class="parameter">BACLAVA_FILE</span> parameters, these parameters can be used in two different ways: when any of these parameters has been passed as a value, then its content is interpreted as the raw value; when this parameter has been passed using a POST transfer in multipart/form-data style and it has been marked as a file, then the content of this transferred file is interpreted as the raw content assigned to the parameter.
+</li>
+<li><u><span class="parameter">exampleName</span> and <span class="parameter">exampleDesc</span> <i>(optional)</i></u>: These parameters are used to save and describe the input to this workflow enaction as an input example associated to the original workflow. These parameters do not work with inline workflow definitions. <span class="parameter">exampleName</span> has no restrictions in its value, and at the moment it should be encoded in ISO-8859-1. <span class="parameter">exampleDesc</span> is the description of the input example which is being created, and it can be HTML content (also encoded in ISO-8859-1).
+</li>
+</ul>
+
+<hr>
+<a name="enactionstatus"><div align="center"><h2>INB IWWE&amp;M: <span class="frontend">enactionstatus</span> frontend documentation and call parameters</h2></div></a>
+
+<div align="justify">
+<p>The frontend module <span class="frontend">enactionstatus</span> reports the status of an in-course or finished enaction.
+It reports the available inputs and outputs for the whole enaction process and any of its steps, and it also
+reports the same information for any of the iterations of any workflow step. Additional information, like if
+an step has started, is iterating, has finished or has failed is also provided. All this information is described
+in an XML format which follows the XML Schema defined at
+<a href="IWWEM-messages.xsd">IWWEM-messages.xsd</a> and described
+at <a href="IWWEM-messages.xsd.html">IWWEM-messages.xsd.html</a>.</p>
+
+<p>This frontend module is also responsible of new enaction snapshots creation, the kill of in-course jobs and the disposal of
+enactions and enaction snapshots.</p>
+</div>
+
+<h3>Call parameters</h3>
+
+<ul>
+<li><u><span class="parameter">jobId</span> <i>(required)</i></u>:
+<span class="frontend">enactionstatus</span> frontend needs either an enaction job identifier or an snapshot identifier.
+</li>
+<li><u><span class="parameter">dispose</span> <i>(optional, either <span class="value">0</span> or <span class="value">1</span>)</i></u>:
+If this parameter is set to <span class="value">0</span>, the enaction process is killed (if it is still running).
+<br>If this parameter is set to <span class="value">1</span>, the server resources used by the job or snapshot identified
+with the <span class="parameter">jobId</span> parameter are reclaimed and freed.
+</li>
+<li><u><span class="parameter">snapshotName</span> and <span class="parameter">snapshotDesc</span> <i>(optional)</i></u>:
+These parameters are used to take, name and describe an snapshot. An snapshot of an snapshot <u>cannot</u>
+be taken. <span class="parameter">snapshotName</span> has no restrictions in its value, and at the moment it should be encoded in ISO-8859-1.
+<span class="parameter">snapshotDesc</span> is the description of the snapshot, and it can be HTML content (also encoded in ISO-8859-1).
+</li>
+</ul>
+
+<hr>
+<a name="enactproxy"><div align="center"><h2>INB IWWE&amp;M: <span class="frontend">enactproxy</span> frontend documentation and call parameters</h2></div></a>
+
+<div align="justify">
+<p>This frontend module was created to overcome some of the limitations of current browsers. Enaction process launched with <span class="frontend">enactionlauncher</span> save both inputs and ouputs of the whole process, intermediate steps and iterations in Baclava XML format. <a href="../enactionviewer.html">AJAX GUI Enaction Viewer</a> allows the end user to browse this information, but some data viewers it uses are only able to handle information coming from an URL. <span class="frontend">enactproxy</span> is responsible of decoding, extracting and streaming this information under demand.
+</div>
+
+<h3>Call parameters</h3>
+
+<ul>
+<li><u><span class="parameter">jobId</span> <i>(required)</i></u>:
+<span class="frontend">enactproxy</span> frontend needs either an enaction job identifier or an snapshot identifier in order to work and know where to find the information to decode, extract and stream.
+</li>
+<li><u><span class="parameter">asMime</span> <i>(required)</i></u>:
+The value of this parameter sets the MIME type used to label the streamed information, so HTTP clients (web browsers, GUIs) are able to select a viewer or a program to use based on it.
+</li>
+<li><u><span class="parameter">withName</span> <i>(optional)</i></u>:
+The value of this parameter sets the suggested name for the streamed content when it is going to be saved by a web browser. If this parameter is not set, the suggested name is derived from the input parameters.
+</li>
+<li><u><span class="parameter">bundle64</span> <i>(optional)</i></u>:
+When this parameter is set, then the information to decode, extract and stream comes from its value.
+</li>
+</ul>
+
+If <span class="parameter">bundle64</span> is not set, then information needed to fetch and decode is given by next parameters:
+
+<ul>
+<li><u><span class="parameter">step</span> <i>(required)</i></u>:
+The name of the workflow step which took this input or generated this output.
+</li>
+<li><u><span class="parameter">iteration</span> <i>(optional)</i></u>:
+If the workflow step iterated, the iteration number. Otherwise, the whole step is taken into account.
+</li>
+<li><u><span class="parameter">IOMode</span> <i>(required, either <span class="value">I</span> or <span class="value">O</span>)</i></u>:
+If this parameter is set to <span class="value">I</span>, then <span class="parameter">IOPath</span> is referring to an input. If this parameter is set to <span class="value">O</span>, then <span class="parameter">IOPath</span> is referring to an output.
+</li>
+<li><u><span class="parameter">IOPath</span> <i>(required)</i></u>:
+The virtual path to reach the value to return. These paths are similar to:
+<ul>
+<li><span class="value">gene_input</span>: An input (or output) with the name <span class="value">gene_input</span> and a single value</li>
+<li><span class="value">Genes/17/0</span>: An input (or output) with the name <span class="value">Genes</span> and a set of values. We are getting value <span class="value">0</span> from subset <span class="value">17</span> from <span class="value">Genes</span>. The number of nested subsets depend on the data structure</li>
+<li><span class="value">PDB_Enriched(structure)/#EnrichedPDB[0]</span>: An input (or output) with the name <span class="value">PDB_Enriched(structure)</span> and a single value, which has an interesting result identified and extracted by <span class="value">EnrichedPDB</span> pattern. The result 0 obtained when <span class="value">EnrichedPDB</span> pattern is applied to PDB_Enriched(structure) is returned.</li>
+</ul>
+</li>
+</ul>
+
+Patterns used in <span class="parameter">IOPath</span> parameter are stored in the IWWE&amp;M server in an XML, which follows the XML Schema <a href="IWWEM-patterns.xsd">IWWEM-patterns.xsd</a> (<a href="IWWEM-patterns.xsd.html">documentation</a>).
+<br>Currently defined patterns are available at <a href="../EVpatterns.xml">EVpatterns.xml</a>
+
+</body>
+</html>

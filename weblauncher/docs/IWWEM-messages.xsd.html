@@ -1,0 +1,3702 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <title>Documentation for IWWEM-messages - IWWEM-messages.xsd</title>
+      <meta http-equiv="Content-Type" content="text/xml; charset=UTF-8"/>
+      <style type="text/css">
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* More-configurable styles */
+
+/******** General ********/
+         
+/* Document body */
+body {
+   color: Black;
+   background-color: White;
+   font-family: Arial, sans-serif;
+   font-size: 10pt;
+}
+                  
+/* Horizontal rules */
+hr {
+   color: black;
+}
+/* Document title */
+h1 {
+   font-size: 18pt;
+   letter-spacing: 2px;
+   border-bottom: 1px #ccc solid;
+   padding-top: 5px;
+   padding-bottom: 5px;
+}
+/* Main section headers */
+h2 {
+   font-size: 14pt;
+   letter-spacing: 1px;
+}
+/* Sub-section headers */
+h3, h3 a, h3 span {
+   font-size: 12pt;
+   font-weight: bold;
+   color: black;
+}
+/* Table displaying the properties of the schema components or the
+   schema document itself */
+table.properties th, table.properties th a {
+   color: black;
+   background-color: #F99; /* Pink */
+}
+table.properties td {
+   background-color: #eee; /* Gray */
+}
+
+img{
+ border: 0;
+}         
+
+/********* Documentation style *************/
+p.documentation {
+   color:black;
+   font-style:italic;
+         background-color: #EEEEFF;
+         border: 1px solid #DDDDFF;
+         padding-top: 1px;
+         margin-right: 30px;
+         margin-top: 1px;
+}
+
+         
+/******** Table of Contents Section ********/
+
+/* Controls for switching between printing and viewing modes */
+div#printerControls {
+   color: #963; /* Orange-brown */
+}
+/* Controls that can collapse or expand all XML Instance
+   Representation and Schema Component Representation boxes */
+div#globalControls {
+   border: 2px solid #999;
+}
+
+
+/******** Schema Document Properties Section ********/
+
+/* Table displaying the namespaces declared in the schema */
+table.namespaces th {
+   background-color: #ccc;
+}
+table.namespaces td {
+   background-color: #eee;
+}
+/* Target namespace of the schema */
+span.targetNS {
+   color: #06C;
+   font-weight: bold;
+}
+
+
+/******** Schema Components' Sections ********/
+
+/* Name of schema component */
+.name {
+   color: #F93; /* Orange */
+}
+
+/* Hierarchy table */
+table.hierarchy {
+   border: 2px solid #999; /* Gray */
+}
+
+/* XML Instance Representation table */
+div.sample div.contents {
+   border: 1px dashed black;
+}
+
+
+/* Schema Component Representation table */
+div.schemaComponent div.contents {
+   border: 2px black solid;
+}
+
+
+/******** Glossary Section ********/
+
+/* Glossary Terms */
+.glossaryTerm {
+   color: #036; /* Blue */
+}
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* Printer-version styles */
+
+@media print {
+
+/* Ensures that controls are hidden when printing */
+div#printerControls {
+   visibility: hidden;
+}
+div#globalControls {
+   visibility: hidden;
+}
+#legend {
+   display: none;
+}
+#legendTOC {
+   display: none;
+}
+#glossary {
+   display: none;
+}
+#glossaryTOC {
+   display: none;
+}
+
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* Base styles */
+
+/******** General ********/
+
+/* Unordered lists */
+ul {
+   margin-left: 1.5em;
+   margin-bottom: 0em;
+}
+/* Tables */
+table {
+   margin-top: 10px;
+   margin-bottom: 10px;
+   margin-left: 2px;
+   margin-right: 2px;
+}
+table th, table td {
+   font-size: 10pt;
+   vertical-align: top;
+   padding-top: 3px;
+   padding-bottom: 3px;
+   padding-left: 10px;
+   padding-right: 10px;
+}
+table th {
+   font-weight: bold;
+   text-align: left;
+}
+/* Table displaying the properties of the schema components or the
+   schema document itself */
+table.properties {
+   width: 90%;
+}
+table.properties th {
+   width: 30%;
+}
+/* Boxes that can make its content appear and disappear*/
+div.box {
+   margin: 1em;
+}
+   /* Box caption */
+div.box span.caption {
+   font-weight: bold;
+}
+   /* Button to open and close the box */
+div.box input.control {
+   width: 1.4em;
+   height: 1.4em;
+   text-align: center;
+   vertical-align: middle;
+   font-size: 11pt;
+}
+   /* Box contents */
+div.box div.contents {
+   margin-top: 3px;
+}
+
+
+/******** Table of Contents Section ********/
+
+/* Controls for switching between printing and viewing modes */
+div#printerControls {
+   white-space: nowrap;
+   font-weight: bold;
+   padding: 5px;
+   margin: 5px;
+}
+/* Controls that can collapse or expand all XML Instance
+   Representation and Schema Component Representation boxes */
+div#globalControls {
+   padding: 10px;
+   margin: 5px;
+}
+
+
+/******** Schema Document Properties Section ********/
+
+/* Table displaying the namespaces declared in the schema */
+table.namespaces th {
+}
+table.namespaces td {
+}
+/* Target namespace of the schema */
+span.targetNS {
+}
+
+
+/******** Schema Components' Sections ********/
+
+/* Name of schema component */
+.name {
+}
+
+/* Hierarchy table */
+table.hierarchy {
+   width: 90%;
+}
+table.hierarchy th {
+   font-weight: normal;
+   font-style: italic;
+   width: 20%;
+}
+table.hierarchy th, table.hierarchy td {
+   padding: 5px;
+}
+
+/* XML Instance Representation table */
+div.sample {
+   width: 90%;
+}
+div.sample div.contents {
+   padding: 5px;
+   font-family: Courier New, sans-serif;
+   font-size: 10pt;
+}
+   /* Normal elements and attributes */
+div.sample div.contents, div.sample div.contents a {
+   color: black;
+}
+   /* Group Headers */
+div.sample div.contents .group, div.sample div.contents .group a {
+   color: #999; /* Light gray */
+}
+   /* Type Information */
+div.sample div.contents .type, div.sample div.contents .type a {
+   color: #999; /* Light gray */
+}
+   /* Occurrence Information */
+div.sample div.contents .occurs, div.sample div.contents .occurs a {
+   color: #999; /* Light gray */
+}
+   /* Fixed values */
+div.sample div.contents .fixed {
+   color: #063; /* Green */
+   font-weight: bold;
+}
+   /* Simple type constraints */
+div.sample div.contents .constraint, div.sample div.contents .constraint a {
+   color: #999; /* Light gray */
+}
+   /* Elements and attributes inherited from base type */
+div.sample div.contents .inherited, div.sample div.contents .inherited a {
+   color: #666; /* Dark gray */
+}
+   /* Elements and attributes added to or changed from base type */
+div.sample div.contents .newFields {
+   font-weight: bold;
+}
+   /* Other type of information */
+div.sample div.contents .other, div.sample div.contents .other a {
+   color: #369; /* Blue */
+   font-style: italic;
+}
+   /* Link to open up window displaying documentation */
+div.sample div.contents a.documentation {
+   text-decoration: none;
+   padding-left: 3px;
+   padding-right: 3px;
+   padding-top: 0px;
+   padding-bottom: 0px;
+   font-weight: bold;
+   font-size: 11pt;
+   background-color: #FFD;
+   color: #069;
+}
+   /* Invert colors when hovering over link to open up window 
+      displaying documentation */
+div.sample div.contents a.documentation:hover {
+   color: #FFD;
+   background-color: #069;
+}
+
+/* Schema Component Representation table */
+div.schemaComponent {
+   width: 90%;
+}
+div.schemaComponent div.contents {
+   font-family: Courier New, sans-serif;
+   font-size: 10pt;
+   padding: 5px;
+}
+   /* Syntax characters */
+div.schemaComponent div.contents {
+   color: #00f; /* blue */
+}
+   /* Element and attribute tags */
+div.schemaComponent div.contents .scTag {
+   color: #933; /* maroon */
+}
+   /* Element and attribute content */
+div.schemaComponent div.contents .scContent, div.schemaComponent div.contents .scContent a {
+   color: black;
+   font-weight: bold;
+}
+   /* Comments */
+div.schemaComponent div.contents .comment {
+   color: #999; /* Light gray */
+}
+
+/******** Legend Section ********/
+
+div#legend table, div#legend div {
+   margin-bottom: 3px;
+}
+div#legend div.hint {
+   color: #999; /* Light gray */
+   width: 90%;
+   margin-left: 1em;
+   margin-bottom: 2em;
+}
+
+
+/******** Glossary Section ********/
+
+/* Glossary Terms */
+.glossaryTerm {
+   font-weight: bold;
+}
+
+/********* Details *************/
+.detailsToc {
+  color: #666; /* Light gray */
+}
+
+.details {
+  color: #666; /* Light gray */
+  text-decoration:none;
+}
+
+/******** Footer ********/
+
+.footer {
+   font-size: 8pt;
+}
+</style>
+      <script type="text/javascript">
+<!--
+          /* IDs of XML Instance Representation boxes */
+var xiBoxes = new Array('h1245665552_xibox', 'h787032828_xibox', 'h-358993540_xibox', 'h-770931028_xibox', 'h1073158951_xibox', 'h1550451623_xibox', 'h-1091810772_xibox', 'h819360172_xibox', 'h1300956578_xibox', 'h-1961385328_xibox', 'h538347798_xibox', 'h-682470827_xibox', 'h-315118956_xibox', 'h-543288000_xibox', 'h886358932_xibox', 'h-598823737_xibox', 'h-1205312604_xibox', 'h1132667318_xibox');
+/* IDs of diagram boxes */
+var diagramBoxes = new Array('h1245665552_diagram', 'h787032828_diagram', 'h-358993540_diagram', 'h-770931028_diagram', 'h1073158951_diagram', 'h1550451623_diagram', 'h-1091810772_diagram', 'h819360172_diagram', 'h1300956578_diagram', 'h-1961385328_diagram', 'h538347798_diagram', 'h-682470827_diagram', 'h-315118956_diagram', 'h-543288000_diagram', 'h886358932_diagram', 'h-598823737_diagram', 'h-1205312604_diagram', 'h1132667318_diagram');
+/* IDs of logical diagram boxes */
+var logicalDiagramBoxes = new Array('h1073158951_logicalDiagram', 'h1550451623_logicalDiagram', 'h-1091810772_logicalDiagram', 'h819360172_logicalDiagram', 'h1300956578_logicalDiagram', 'h-543288000_logicalDiagram', 'h886358932_logicalDiagram', 'h-598823737_logicalDiagram', 'h-1205312604_logicalDiagram', 'h1132667318_logicalDiagram');
+/* IDs of Schema Component Representation boxes */
+var scBoxes = new Array('schema_scbox', 'h1245665552_scbox', 'h787032828_scbox', 'h-358993540_scbox', 'h-770931028_scbox', 'h1073158951_scbox', 'h1550451623_scbox', 'h-1091810772_scbox', 'h819360172_scbox', 'h1300956578_scbox', 'h-1961385328_scbox', 'h538347798_scbox', 'h-682470827_scbox', 'h-315118956_scbox', 'h-543288000_scbox', 'h886358932_scbox', 'h-598823737_scbox', 'h-1205312604_scbox', 'h1132667318_scbox');
+
+/**
+ * Can get the ID of the button controlling
+ * a collapseable box by concatenating
+ * this string onto the ID of the box itself.
+ */
+var B_SFIX = "_button";
+
+
+/**
+ * Returns an element in the current HTML document.
+ * 
+ * @param elementID Identifier of HTML element
+ * @return               HTML element object
+ */
+function getElementObject(elementID) {
+    var elemObj = null;
+    if (document.getElementById) {
+        elemObj = document.getElementById(elementID);
+    }
+    return elemObj;
+}             
+
+/**
+ * Closes a collapseable box.
+ * 
+ * @param boxObj       Collapseable box
+ * @param buttonObj Button controlling box
+ */
+function closeBox(boxObj, buttonObj) {
+  if (boxObj == null || buttonObj == null) {
+     // Box or button not found
+  } else {
+     // Change 'display' CSS property of box
+     boxObj.style.display="none";
+
+     // Change text of button 
+     if (boxObj.style.display=="none") {
+        buttonObj.value=" + ";
+     }
+  }
+}
+
+/**
+ * Opens a collapseable box.
+ * 
+ * @param boxObj       Collapseable box
+ * @param buttonObj Button controlling box
+ */
+function openBox(boxObj, buttonObj) {
+  if (boxObj == null || buttonObj == null) {
+     // Box or button not found
+  } else {
+     // Change 'display' CSS property of box
+     boxObj.style.display="block";
+
+     // Change text of button
+     if (boxObj.style.display=="block") {
+        buttonObj.value=" - ";
+     }
+  }
+}
+
+/**
+ * Sets the state of a collapseable box.
+ * 
+ * @param boxID Identifier of box
+ * @param open If true, box is "opened",
+ *             Otherwise, box is "closed".
+ */
+function setState(boxID, open) {
+  var boxObj = getElementObject(boxID);
+  var buttonObj = getElementObject(boxID+B_SFIX);
+  if (boxObj == null || buttonObj == null) {
+     // Box or button not found
+  } else if (open) {
+     openBox(boxObj, buttonObj);
+     // Make button visible
+     buttonObj.style.display="inline";
+  } else {
+     closeBox(boxObj, buttonObj);
+     // Make button visible
+     buttonObj.style.display="inline";
+  }
+}
+
+/**
+ * Switches the state of a collapseable box, e.g.
+ * if it's opened, it'll be closed, and vice versa.
+ * 
+ * @param boxID Identifier of box
+ */
+function switchState(boxID) {
+  var boxObj = getElementObject(boxID);
+  var buttonObj = getElementObject(boxID+B_SFIX);
+  if (boxObj == null || buttonObj == null) {
+     // Box or button not found
+  } else if (boxObj.style.display=="none") {
+     // Box is closed, so open it
+     openBox(boxObj, buttonObj);
+  } else if (boxObj.style.display=="block") {
+     // Box is opened, so close it
+     closeBox(boxObj, buttonObj);
+  }
+}
+
+/**
+ * Closes all boxes in a given list.
+ * 
+ * @param boxList Array of box IDs
+ */
+function collapseAll(boxList) {
+  var idx;
+  for (idx = 0; idx < boxList.length; idx++) {
+     var boxObj = getElementObject(boxList[idx]);
+     var buttonObj = getElementObject(boxList[idx]+B_SFIX);
+     closeBox(boxObj, buttonObj);
+  }
+}
+
+/**
+ * Open all boxes in a given list.
+ * 
+ * @param boxList Array of box IDs
+ */
+function expandAll(boxList) {
+  var idx;
+  for (idx = 0; idx < boxList.length; idx++) {
+     var boxObj = getElementObject(boxList[idx]);
+     var buttonObj = getElementObject(boxList[idx]+B_SFIX);
+     openBox(boxObj, buttonObj);
+  }
+}
+
+/**
+ * Makes all the control buttons of boxes appear.
+ * 
+ * @param boxList Array of box IDs
+ */
+function viewControlButtons(boxList) {
+    var idx;
+    for (idx = 0; idx < boxList.length; idx++) {
+        buttonObj = getElementObject(boxList[idx]+B_SFIX);
+        if (buttonObj != null) {
+            buttonObj.style.display = "inline";
+        }
+    }
+}
+
+/**
+ * Makes all the control buttons of boxes disappear.
+ * 
+ * @param boxList Array of box IDs
+ */
+function hideControlButtons(boxList) {
+    var idx;
+    for (idx = 0; idx < boxList.length; idx++) {
+        buttonObj = getElementObject(boxList[idx]+B_SFIX);
+        if (buttonObj != null) {
+            buttonObj.style.display = "none";
+        }
+    }
+}
+
+/**
+ * Sets the page for either printing mode
+ * or viewing mode. In printing mode, the page
+ * is made to be more readable when printing it out.
+ * In viewing mode, the page is more browsable.
+ *
+ * @param isPrinterVersion If true, display in
+ *                                 printing mode; otherwise, 
+ *                                 in viewing mode
+ */
+function displayMode(isPrinterVersion) {
+    var obj;
+    if (isPrinterVersion) {
+        // Hide global control buttons
+        obj = getElementObject("globalControls");
+        if (obj != null) {
+            obj.style.visibility = "hidden";
+        }
+        // Hide Legend
+        obj = getElementObject("legend");
+        if (obj != null) {
+            obj.style.display = "none";
+        }
+        obj = getElementObject("legendTOC");
+        if (obj != null) {
+            obj.style.display = "none";
+        }
+        // Hide Glossary
+        obj = getElementObject("glossary");
+        if (obj != null) {
+            obj.style.display = "none";
+        }
+        obj = getElementObject("glossaryTOC");
+        if (obj != null) {
+            obj.style.display = "none";
+        }
+
+        // Expand all diagrams
+        expandAll(diagramBoxes);
+        // Expand all logical diagrams
+        expandAll(logicalDiagramBoxes);        
+        // Expand all XML Instance Representation tables
+        expandAll(xiBoxes);
+        // Expand all Schema Component Representation tables
+        expandAll(scBoxes);
+
+        // Hide Control buttons
+        hideControlButtons(diagramBoxes);
+        hideControlButtons(logicalDiagramBoxes);
+        hideControlButtons(xiBoxes);
+        hideControlButtons(scBoxes);
+    } else {
+        // View global control buttons
+        obj = getElementObject("globalControls");
+        if (obj != null) {
+            obj.style.visibility = "visible";
+        }
+        // View Legend
+        obj = getElementObject("legend");
+        if (obj != null) {
+            obj.style.display = "block";
+        }
+        obj = getElementObject("legendTOC");
+        if (obj != null) {
+            obj.style.display = "block";
+        }
+        // View Glossary
+        obj = getElementObject("glossary");
+        if (obj != null) {
+            obj.style.display = "block";
+        }
+        obj = getElementObject("glossaryTOC");
+        if (obj != null) {
+            obj.style.display = "block";
+        }
+
+        // Expand all diagram boxes
+        expandAll(diagramBoxes);
+        // Collapse all logical diagram boxes.
+        collapseAll(logicalDiagramBoxes);
+        // Expand all XML Instance Representation tables
+        expandAll(xiBoxes);
+        // Collapse all Schema Component Representation tables
+        collapseAll(scBoxes);
+
+        // View Control buttons
+        viewControlButtons(diagramBoxes);
+        viewControlButtons(logicalDiagramBoxes);
+        viewControlButtons(xiBoxes);
+        viewControlButtons(scBoxes);
+    }
+}
+
+
+
+// -->
+</script>
+      <script type="text/javascript">
+<!--
+          
+         
+/**
+ * Counter of documentation windows
+ * Used to give each window a unique name
+ */
+var windowCount = 0;
+         
+/**
+ * Opens up a window displaying the documentation
+ * of a schema component in the XML Instance
+ * Representation table.
+ * 
+ * @param compDesc      Description of schema component 
+ * @param compName      Name of schema component 
+ * @param docTextArray Array containing the paragraphs 
+ *                           of the new document
+ */
+function viewDocumentation(compDesc, compName, docTextArray) {
+  var width = 400;
+  var height = 200;
+  var locX = 100;
+  var locY = 200;
+
+  /* Generate content */
+  var actualText = "<html>";
+  actualText += "<head><title>";
+  actualText += compDesc;
+  if (compName != '') {
+     actualText += ": " + compName;
+  }
+  actualText += "</title></head>";
+  actualText += "<body bgcolor=\"#FFFFEE\">";
+  // Title
+  actualText += "<p style=\"font-family: Arial, sans-serif; font-size: 12pt; font-weight: bold; letter-spacing:1px;\">";
+  actualText += compDesc;
+  if (compName != '') {
+     actualText += ": <span style=\"color:#006699\">" + compName + "</span>";
+  }
+  actualText += "</p>";
+  // Documentation
+  var idx;
+  for (idx = 0; idx < docTextArray.length; idx++) {
+     actualText += "<p style=\"font-family: Arial, sans-serif; font-size: 10pt;\">" + docTextArray[idx] + "</p>";
+  }
+  // Link to close window
+  actualText += "<a href=\"javascript:void(0)\" onclick=\"window.close();\" style=\"font-family: Arial, sans-serif; font-size: 8pt;\">Close</a>";
+  actualText += "</body></html>";
+
+  /* Display window */
+  windowCount++;
+  var docWindow = window.open("", "documentation"+windowCount, "toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable,alwaysRaised,dependent,titlebar=no,width="+width+",height="+height+",screenX="+locX+",left="+locX+",screenY="+locY+",top="+locY);
+  docWindow.document.write(actualText);
+}         
+      
+// -->
+</script>
+   </head>
+   <body>
+      <h1>
+         <a name="top">Documentation for IWWEM-messages</a>
+      </h1>
+      <div style="float: right;">
+         <div id="printerControls" style="display:none;">
+            <input type="checkbox" onclick="displayMode(this.checked)"/>Printer-friendly Version</div>
+         <script type="text/javascript">
+<!--
+          
+var pc = getElementObject("printerControls");
+if (pc != null) {
+   pc.style.display="block";
+}
+               
+// -->
+</script>
+         <div id="globalControls" style="display:none">
+            <strong>Logical Diagram:</strong>
+            <br/>
+            <span style="margin-left: 1em; white-space: nowrap">[ <a href="javascript:void(0)" onclick="expandAll(logicalDiagramBoxes)">Expand All</a> | <a href="javascript:void(0)" onclick="collapseAll(logicalDiagramBoxes)">Collapse All</a> ]</span>
+            <br/>
+            <br/>
+            <strong>XML Instance Representation:</strong>
+            <br/>
+            <span style="margin-left: 1em; white-space: nowrap">[ <a href="javascript:void(0)" onclick="expandAll(xiBoxes)">Expand All</a> | <a href="javascript:void(0)" onclick="collapseAll(xiBoxes)">Collapse All</a> ]</span>
+            <br/>
+            <br/>
+            <strong>Diagram:</strong>
+            <br/>
+            <span style="margin-left: 1em; white-space: nowrap">[ <a href="javascript:void(0)" onclick="expandAll(diagramBoxes)">Expand All</a> | <a href="javascript:void(0)" onclick="collapseAll(diagramBoxes)">Collapse All</a> ]</span>
+            <br/>
+            <br/>
+            <strong>Schema Component Representation:</strong>
+            <br/>
+            <span style="margin-left: 1em; white-space: nowrap">[ <a href="javascript:void(0)" onclick="expandAll(scBoxes)">Expand All</a> | <a href="javascript:void(0)" onclick="collapseAll(scBoxes)">Collapse All</a> ]</span>
+         </div>
+         <script type="text/javascript">
+<!--
+          
+var gc = getElementObject("globalControls");
+if (gc != null) {
+   gc.style.display="block";
+}
+               
+// -->
+</script>
+      </div>
+      <h2>Table of Contents</h2>
+      <ul>
+         <li>
+            <a href="#SchemaProperties">Schema Document Properties</a>
+         </li>
+         <li>
+            <a href="#SchemaDeclarations">Global Declarations</a>
+            <ul>
+               <li>
+                  <a href="#h-682470827">Attribute: <strong>jobId</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h538347798">Attribute: <strong>relURI</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h-1961385328">Attribute: <strong>time</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h886358932">Element: <strong>enactionlaunched</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h1132667318">Element: <strong>enactionreport</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h1073158951">Element: <strong>example</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h-1091810772">Element: <strong>examples</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h-598823737">Element: <strong>input</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h-1205312604">Element: <strong>output</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h1550451623">Element: <strong>snapshot</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h819360172">Element: <strong>snapshots</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h1300956578">Element: <strong>workflow</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h-543288000">Element: <strong>workflowlist</strong>
+                  </a>
+               </li>
+            </ul>
+         </li>
+         <li>
+            <a href="#SchemaDefinitions">Global Definitions</a>
+            <ul>
+               <li>
+                  <a href="#h-315118956">Attribute Group: <strong>TimeJob</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h-358993540">Complex Type: <strong>IODesc</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h-770931028">Complex Type: <strong>IORepType</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h1245665552">Simple Type: <strong>EnactionStatusType</strong>
+                  </a>
+               </li>
+               <li>
+                  <a href="#h787032828">Simple Type: <strong>EnactionStepStatusType</strong>
+                  </a>
+               </li>
+            </ul>
+         </li>
+      </ul>
+      <ul id="legendTOC" style="margin-top: 0em">
+         <li>
+            <a href="#Legend">Legend</a>
+         </li>
+      </ul>
+      <ul id="glossaryTOC" style="margin-top: 0em">
+         <li>
+            <a href="#Glossary">Glossary</a>
+         </li>
+      </ul>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h2>
+         <a name="SchemaProperties">Schema Document Properties</a>
+      </h2>
+      <table class="properties">
+         <tr>
+            <th>
+               <a title="Look up 'Target Namespace' in glossary"
+                  href="IWWEM-messages.xsd.html#term_TargetNS">Target Namespace</a>
+            </th>
+            <td>
+               <span class="targetNS">http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend</span>
+            </td>
+         </tr>
+         <tr>
+            <th>Element and Attribute Namespaces</th>
+            <td>
+               <ul>
+                  <li>Global element and attribute declarations belong to this schema's target namespace.</li>
+                  <li>By default, local element declarations belong to this schema's target namespace.</li>
+                  <li>By default, local attribute declarations have no namespace.</li>
+               </ul>
+            </td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">$Id: IWWEM-messages.xsd 1227 2008-03-14 18:34:14Z jmfernandez $
+	
+This schema was designed to model
+the messages between frontend modules and AJAX layer of
+INB Web Workflow Launcher.
+
+INB Web Workflow Launcher has been created by
+José María Fernández González, 2007-2008, for
+INB (http://www.inab.org/).
+
+Java backend modules have been made in Java and use Taverna core
+libraries. The initial seed of that code came from Taverna example
+called "workflowlauncher".
+
+Perl frontend modules have been made in Perl. They use various standard
+Perl libraries and LockNLog library, created in the context of iHOP
+web services by José María Fernández González, 2007.</td>
+         </tr>
+      </table>
+      <h3>Declared Namespaces</h3>
+      <table class="namespaces">
+         <tr>
+            <th>Prefix</th>
+            <th>Namespace</th>
+         </tr>
+         <tr>
+            <td>
+               <a name="ns_xml">xml</a>
+            </td>
+            <td>http://www.w3.org/XML/1998/namespace</td>
+         </tr>
+         <tr>
+            <td>
+               <a name="ns_xsd">xsd</a>
+            </td>
+            <td>http://www.w3.org/2001/XMLSchema</td>
+         </tr>
+         <tr>
+            <td>
+               <a name="ns_iwwem">iwwem</a>
+            </td>
+            <td>
+               <span class="targetNS">http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend</span>
+            </td>
+         </tr>
+      </table>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="schema_scbox_button" class="control"
+                   onclick="switchState('schema_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="schema_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:schema</span> 
+               <span class="scTag">targetNamespace</span>="<span class="scContent">http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend</span>" <span class="scTag">elementFormDefault</span>="<span class="scContent">qualified</span>"&gt;<div class="scContent" style="margin-left: 1.5em">...</div>&lt;/<span class="scTag">xsd:schema</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('schema_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h2>
+         <a name="SchemaDeclarations">Global Declarations</a>
+      </h2>
+      <h3>Attribute: <a name="h-682470827" class="name">jobId</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>jobId</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Attribute Group <b>
+                  <a href="#h-315118956">TimeJob</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>
+               <span class="type">
+                  <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+            </td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">The enaction job ID, which must be used by subsequent operations</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-682470827_xibox_button" class="control"
+                   onclick="switchState('h-682470827_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h-682470827_xibox" class="contents">
+            <span style="margin-left: 0em"> 
+               <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:jobId="<span class="type">
+                  <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>"</span>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-682470827_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-682470827_diagram_button" class="control"
+                   onclick="switchState('h-682470827_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h-682470827_diagram" class="contents">
+            <img usemap="#h2126787420" src="schemaDiagrams/h2126787420.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h2126787420.map--><map name="h2126787420">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-682470827_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h-682470827_scbox_button" class="control"
+                   onclick="switchState('h-682470827_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h-682470827_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:attribute</span> 
+               <span class="scTag">name</span>="<span class="scContent">jobId</span>" <span class="scTag">type</span>="<span class="scContent">
+                  <span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+               </span>"/&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-682470827_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Attribute: <a name="h538347798" class="name">relURI</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>relURI</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h-543288000">workflowlist</a>
+               </b>, Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>
+               <span class="type">
+                  <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span>
+            </td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">A relative URI, base for linked resources</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h538347798_xibox_button" class="control"
+                   onclick="switchState('h538347798_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h538347798_xibox" class="contents">
+            <span style="margin-left: 0em"> 
+               <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:relURI="<span class="type">
+                  <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span>"</span>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h538347798_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h538347798_diagram_button" class="control"
+                   onclick="switchState('h538347798_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h538347798_diagram" class="contents">
+            <img usemap="#h-2009515107" src="schemaDiagrams/h-2009515107.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-2009515107.map--><map name="h-2009515107">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h538347798_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h538347798_scbox_button" class="control"
+                   onclick="switchState('h538347798_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h538347798_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:attribute</span> 
+               <span class="scTag">name</span>="<span class="scContent">relURI</span>" <span class="scTag">type</span>="<span class="scContent">
+                  <span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span>
+               </span>"/&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h538347798_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Attribute: <a name="h-1961385328" class="name">time</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>time</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Attribute Group <b>
+                  <a href="#h-315118956">TimeJob</a>
+               </b>, Element <b>
+                  <a href="#h-543288000">workflowlist</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>
+               <span class="type">
+                  <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span>
+            </td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">A time ticket which reports when this event has happened</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-1961385328_xibox_button" class="control"
+                   onclick="switchState('h-1961385328_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h-1961385328_xibox" class="contents">
+            <span style="margin-left: 0em"> 
+               <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:time="<span class="type">
+                  <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span>"</span>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1961385328_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-1961385328_diagram_button" class="control"
+                   onclick="switchState('h-1961385328_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h-1961385328_diagram" class="contents">
+            <img usemap="#h772303895" src="schemaDiagrams/h772303895.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h772303895.map--><map name="h772303895">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1961385328_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h-1961385328_scbox_button" class="control"
+                   onclick="switchState('h-1961385328_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h-1961385328_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:attribute</span> 
+               <span class="scTag">name</span>="<span class="scContent">time</span>" <span class="scTag">type</span>="<span class="scContent">
+                  <span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span>
+               </span>"/&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1961385328_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Element: <a name="h886358932" class="name">enactionlaunched</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>enactionlaunched</td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>Locally-defined complex type</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Nillable' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Nillable">Nillable</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">This message is sent by enactionlauncher when
+an enaction job has been successfully enqueued</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h886358932_logicalDiagram_button" class="control"
+                   onclick="switchState('h886358932_logicalDiagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Logical Diagram</span>
+         </div>
+         <div id="h886358932_logicalDiagram" class="contents">
+            <img usemap="#h1735690129" src="schemaDiagrams/h1735690129.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h1735690129.map--><map name="h1735690129">
+               <area shape="rect" alt="h1073158951" coords="457,136,828,192"
+                     href="IWWEM-messages.xsd.html#h1073158951"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h886358932_logicalDiagram', false);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h886358932_xibox_button" class="control"
+                   onclick="switchState('h886358932_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h886358932_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:enactionlaunched<br/>
+               <span style="margin-left: 0.5em"> 
+                  <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;time&#34; attribute declaration." href="#h-1961385328">time</a>="<span class="occurs">[1]</span>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> 
+                  <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;jobId&#34; attribute declaration." href="#h-682470827">jobId</a>="<span class="occurs">[1]</span>"</span>&gt; <br/>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;example&#34; element declaration." href="#h1073158951">example</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;example&#34; element declaration." href="#h1073158951">example</a>&gt; <span class="occurs">[0..1]</span> 
+                  <p class="documentation">'When a input has been signaled to be saved as an example this element is included to tell that it was done properly.'</p>
+               </div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:enactionlaunched&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h886358932_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h886358932_diagram_button" class="control"
+                   onclick="switchState('h886358932_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h886358932_diagram" class="contents">
+            <img usemap="#h689034011" src="schemaDiagrams/h689034011.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h689034011.map--><map name="h689034011">
+               <area shape="rect" alt="h1073158951" coords="314,0,463,40"
+                     href="IWWEM-messages.xsd.html#h1073158951"/>
+
+               <area shape="rect" alt="h-315118956" coords="228,50,399,76"
+                     href="IWWEM-messages.xsd.html#h-315118956"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h886358932_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h886358932_scbox_button" class="control"
+                   onclick="switchState('h886358932_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h886358932_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:element</span> 
+               <span class="scTag">name</span>="<span class="scContent">enactionlaunched</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                     <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">ref</span>="<span class="scContent">
+                           <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;example&#34; element declaration." href="#h1073158951">example</a>
+                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"/&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attributeGroup</span> 
+                     <span class="scTag">ref</span>="<span class="scContent">
+                        <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;TimeJob&#34; attribute group definition." href="#h-315118956">TimeJob</a>
+                     </span>"/&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h886358932_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Element: <a name="h1132667318" class="name">enactionreport</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>enactionreport</td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>Locally-defined complex type</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Nillable' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Nillable">Nillable</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">A bunch of enaction reports</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1132667318_logicalDiagram_button" class="control"
+                   onclick="switchState('h1132667318_logicalDiagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Logical Diagram</span>
+         </div>
+         <div id="h1132667318_logicalDiagram" class="contents">
+            <img usemap="#h2030706227" src="schemaDiagrams/h2030706227.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h2030706227.map--><map name="h2030706227">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1132667318_logicalDiagram', false);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1132667318_xibox_button" class="control"
+                   onclick="switchState('h1132667318_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h1132667318_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:enactionreport&gt; <br/>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:enactionstatus<br/>
+                  <span style="margin-left: 0.5em"> 
+                     <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;time&#34; attribute declaration." href="#h-1961385328">time</a>="<span class="occurs">[1]</span>"</span>
+                  <br/>
+                  <span style="margin-left: 0.5em"> 
+                     <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;jobId&#34; attribute declaration." href="#h-682470827">jobId</a>="<span class="occurs">[1]</span>"</span>
+                  <br/>
+                  <span style="margin-left: 0.5em"> state="<span class="type">
+                        <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;EnactionStatusType&#34; type definition." href="#h1245665552">EnactionStatusType</a>
+                     </span> 
+                     <span class="occurs">[1]</span> 
+                     <p class="documentation">'The state of the enaction'</p>"</span>
+                  <br/>
+                  <span style="margin-left: 0.5em"> 
+                     <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;relURI&#34; attribute declaration." href="#h538347798">relURI</a>="<span class="occurs">[1]</span>"</span>&gt;  <span class="occurs">[1..*]</span>  
+                  <p class="documentation">'The current status of a particular enaction'</p>
+                  <br/>
+                  <span class="group" style="margin-left: 1.5em">Start <a title="Look up 'Choice' in glossary" href="IWWEM-messages.xsd.html#term_Choice">Choice</a> 
+                     <span class="occurs">[0..1]</span>
+                  </span>
+                  <br/>
+                  <div style="margin-left: 3em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:enactionReport&gt;  <span class="occurs">[1]</span>  
+                     <p class="documentation">'The XML report given by the enactor'</p>
+                     <br/>
+                     <span class="other" style="margin-left: 1.5em">&lt;!-- Mixed content --&gt;</span>
+                     <br/>
+                     <div class="other" style="margin-left: 1.5em">Allow any elements from a namespace other than this schema's namespace (strict validation). <span class="occurs">[0..*]</span>
+                     </div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:enactionReport&gt;</div>
+                  <div style="margin-left: 3em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:enactionReportError&gt; <span class="type">
+                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:enactionReportError&gt; <span class="occurs">[1]</span> 
+                     <p class="documentation">'This element only appears when a parsing error on enactionReport happens'</p>
+                  </div>
+                  <span class="group" style="margin-left: 1.5em">End Choice</span>
+                  <br/>
+                  <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;snapshot&#34; element declaration." href="#h1550451623">snapshot</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;snapshot&#34; element declaration." href="#h1550451623">snapshot</a>&gt; <span class="occurs">[0..1]</span>
+                  </div>
+                  <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;input&#34; element declaration." href="#h-598823737">input</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;input&#34; element declaration." href="#h-598823737">input</a>&gt; <span class="occurs">[0..*]</span>
+                  </div>
+                  <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;output&#34; element declaration." href="#h-1205312604">output</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;output&#34; element declaration." href="#h-1205312604">output</a>&gt; <span class="occurs">[0..*]</span>
+                  </div>
+                  <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:step<br/>
+                     <span style="margin-left: 0.5em"> name="<span class="type">
+                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                        <span class="occurs">[1]</span> 
+                        <p class="documentation">'The name of this input, output or step'</p>"</span>
+                     <br/>
+                     <span style="margin-left: 0.5em"> state="<span class="type">
+                           <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;EnactionStepStatusType&#34; type definition." href="#h787032828">EnactionStepStatusType</a>
+                        </span> 
+                        <span class="occurs">[0..1]</span> 
+                        <p class="documentation">'The state of this enaction step'</p>"</span>&gt;  <span class="occurs">[0..*]</span>  
+                     <p class="documentation">'The step'</p>
+                     <br/>
+                     <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:extraStepInfo<br/>
+                        <span style="margin-left: 0.5em"> sched="<span class="type">
+                              <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span> 
+                           <span class="occurs">[1]</span> 
+                           <p class="documentation">'When the step was scheduled'</p>"</span>
+                        <br/>
+                        <span style="margin-left: 0.5em"> start="<span class="type">
+                              <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span> 
+                           <span class="occurs">[0..1]</span> 
+                           <p class="documentation">'When the step started to run'</p>"</span>
+                        <br/>
+                        <span style="margin-left: 0.5em"> stop="<span class="type">
+                              <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span> 
+                           <span class="occurs">[0..1]</span> 
+                           <p class="documentation">'When the step stopped, either by an error or successfully'</p>"</span>
+                        <br/>
+                        <span style="margin-left: 0.5em"> iterNumber="<span class="type">anySimpleType</span> 
+                           <span class="occurs">[0..1]</span> 
+                           <p class="documentation">'Current iteration number'</p>"</span>
+                        <br/>
+                        <span style="margin-left: 0.5em"> iterMax="<span class="type">anySimpleType</span> 
+                           <span class="occurs">[0..1]</span> 
+                           <p class="documentation">'Max iteration number'</p>"</span>&gt;  <span class="occurs">[0..1]</span>  
+                        <p class="documentation">'Extra step information, provided by Taverna'</p>
+                        <br/>
+                        <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:stepError<br/>
+                           <span style="margin-left: 0.5em"> header="<span class="type">
+                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                              <span class="occurs">[1]</span>"</span>&gt;  <span class="occurs">[0..*]</span>  
+                           <p class="documentation">'Detailed step error report'</p>
+                           <br/>
+                           <span style="margin-left: 1.5em"> 
+                              <span class="type">
+                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                           </span>
+                           <br/>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:stepError&gt;</div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:extraStepInfo&gt;</div>
+                     <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;input&#34; element declaration." href="#h-598823737">input</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;input&#34; element declaration." href="#h-598823737">input</a>&gt; <span class="occurs">[0..*]</span>
+                     </div>
+                     <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;output&#34; element declaration." href="#h-1205312604">output</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;output&#34; element declaration." href="#h-1205312604">output</a>&gt; <span class="occurs">[0..*]</span>
+                     </div>
+                     <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:iterations&gt;  <span class="occurs">[0..1]</span> 
+                        <br/>
+                        <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:step<br/>
+                           <span style="margin-left: 0.5em"> name="<span class="type">
+                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                              <span class="occurs">[1]</span> 
+                              <p class="documentation">'The name of this input, output or step'</p>"</span>&gt;  <span class="occurs">[1..*]</span> 
+                           <br/>
+                           <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;input&#34; element declaration." href="#h-598823737">input</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;input&#34; element declaration." href="#h-598823737">input</a>&gt; <span class="occurs">[0..*]</span>
+                           </div>
+                           <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;output&#34; element declaration." href="#h-1205312604">output</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;output&#34; element declaration." href="#h-1205312604">output</a>&gt; <span class="occurs">[0..*]</span>
+                           </div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:step&gt;</div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:iterations&gt;</div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:step&gt;</div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:enactionstatus&gt;</div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:enactionreport&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1132667318_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1132667318_diagram_button" class="control"
+                   onclick="switchState('h1132667318_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h1132667318_diagram" class="contents">
+            <img usemap="#h733529149" src="schemaDiagrams/h733529149.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h733529149.map--><map name="h733529149">
+               <area shape="rect" alt="h1550451623" coords="594,86,745,126"
+                     href="IWWEM-messages.xsd.html#h1550451623"/>
+
+               <area shape="rect" alt="h-598823737" coords="594,136,722,176"
+                     href="IWWEM-messages.xsd.html#h-598823737"/>
+
+               <area shape="rect" alt="h-1205312604" coords="594,186,730,226"
+                     href="IWWEM-messages.xsd.html#h-1205312604"/>
+
+               <area shape="rect" alt="h-315118956" coords="508,723,679,749"
+                     href="IWWEM-messages.xsd.html#h-315118956"/>
+
+               <area shape="rect" alt="h1245665552" coords="508,759,610,785"
+                     href="IWWEM-messages.xsd.html#h1245665552"/>
+
+               <area shape="rect" alt="h538347798" coords="508,795,659,821"
+                     href="IWWEM-messages.xsd.html#h538347798"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1132667318_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h1132667318_scbox_button" class="control"
+                   onclick="switchState('h1132667318_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h1132667318_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:element</span> 
+               <span class="scTag">name</span>="<span class="scContent">enactionreport</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                     <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">name</span>="<span class="scContent">enactionstatus</span>" <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                              <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:choice</span> 
+                                 <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                    <span class="scTag">name</span>="<span class="scContent">enactionReport</span>" <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span> 
+                                       <span class="scTag">mixed</span>="<span class="scContent">true</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                                          <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:any</span> 
+                                             <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>" <span class="scTag">namespace</span>="<span class="scContent">##other</span>"/&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+                                 <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                    <span class="scTag">name</span>="<span class="scContent">enactionReportError</span>" <span class="scTag">type</span>="<span class="scContent">
+                                       <span class="type">
+                                          <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                                    </span>" <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"/&gt;</div>&lt;/<span class="scTag">xsd:choice</span>&gt;</div>
+                              <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                 <span class="scTag">ref</span>="<span class="scContent">
+                                    <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;snapshot&#34; element declaration." href="#h1550451623">snapshot</a>
+                                 </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"/&gt;</div>
+                              <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                 <span class="scTag">ref</span>="<span class="scContent">
+                                    <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;input&#34; element declaration." href="#h-598823737">input</a>
+                                 </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>
+                              <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                 <span class="scTag">ref</span>="<span class="scContent">
+                                    <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;output&#34; element declaration." href="#h-1205312604">output</a>
+                                 </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>
+                              <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                 <span class="scTag">name</span>="<span class="scContent">step</span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexContent</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:extension</span> 
+                                          <span class="scTag">base</span>="<span class="scContent">
+                                             <span class="type">
+                                                <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;IORepType&#34; type definition." href="#h-770931028">IORepType</a>
+                                             </span>
+                                          </span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                                             <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                                <span class="scTag">name</span>="<span class="scContent">extraStepInfo</span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                                                      <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                                         <span class="scTag">name</span>="<span class="scContent">stepError</span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:simpleContent</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:extension</span> 
+                                                                  <span class="scTag">base</span>="<span class="scContent">
+                                                                     <span class="type">
+                                                                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                                                                  </span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                                                                     <span class="scTag">name</span>="<span class="scContent">header</span>" <span class="scTag">type</span>="<span class="scContent">
+                                                                        <span class="type">
+                                                                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                                                                     </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:extension</span>&gt;</div>&lt;/<span class="scTag">xsd:simpleContent</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>
+                                                   <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                                                      <span class="scTag">name</span>="<span class="scContent">sched</span>" <span class="scTag">type</span>="<span class="scContent">
+                                                         <span class="type">
+                                                            <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span>
+                                                      </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                                                   <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                                                      <span class="scTag">name</span>="<span class="scContent">start</span>" <span class="scTag">type</span>="<span class="scContent">
+                                                         <span class="type">
+                                                            <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span>
+                                                      </span>" <span class="scTag">use</span>="<span class="scContent">optional</span>"/&gt;</div>
+                                                   <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                                                      <span class="scTag">name</span>="<span class="scContent">stop</span>" <span class="scTag">type</span>="<span class="scContent">
+                                                         <span class="type">
+                                                            <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span>
+                                                      </span>" <span class="scTag">use</span>="<span class="scContent">optional</span>"/&gt;</div>
+                                                   <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                                                      <span class="scTag">name</span>="<span class="scContent">iterNumber</span>"/&gt;</div>
+                                                   <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                                                      <span class="scTag">name</span>="<span class="scContent">iterMax</span>"/&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+                                             <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                                <span class="scTag">ref</span>="<span class="scContent">
+                                                   <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;input&#34; element declaration." href="#h-598823737">input</a>
+                                                </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>
+                                             <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                                <span class="scTag">ref</span>="<span class="scContent">
+                                                   <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;output&#34; element declaration." href="#h-1205312604">output</a>
+                                                </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>
+                                             <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                                <span class="scTag">name</span>="<span class="scContent">iterations</span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                                                      <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                                         <span class="scTag">name</span>="<span class="scContent">step</span>" <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexContent</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:extension</span> 
+                                                                  <span class="scTag">base</span>="<span class="scContent">
+                                                                     <span class="type">
+                                                                        <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;IORepType&#34; type definition." href="#h-770931028">IORepType</a>
+                                                                     </span>
+                                                                  </span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                                                                     <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                                                        <span class="scTag">ref</span>="<span class="scContent">
+                                                                           <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;input&#34; element declaration." href="#h-598823737">input</a>
+                                                                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>
+                                                                     <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                                                        <span class="scTag">ref</span>="<span class="scContent">
+                                                                           <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;output&#34; element declaration." href="#h-1205312604">output</a>
+                                                                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>&lt;/<span class="scTag">xsd:extension</span>&gt;</div>&lt;/<span class="scTag">xsd:complexContent</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>
+                                          <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                                             <span class="scTag">name</span>="<span class="scContent">state</span>" <span class="scTag">type</span>="<span class="scContent">
+                                                <span class="type">
+                                                   <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;EnactionStepStatusType&#34; type definition." href="#h787032828">EnactionStepStatusType</a>
+                                                </span>
+                                             </span>"/&gt;</div>&lt;/<span class="scTag">xsd:extension</span>&gt;</div>&lt;/<span class="scTag">xsd:complexContent</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>
+                           <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attributeGroup</span> 
+                              <span class="scTag">ref</span>="<span class="scContent">
+                                 <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;TimeJob&#34; attribute group definition." href="#h-315118956">TimeJob</a>
+                              </span>"/&gt;</div>
+                           <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                              <span class="scTag">name</span>="<span class="scContent">state</span>" <span class="scTag">type</span>="<span class="scContent">
+                                 <span class="type">
+                                    <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;EnactionStatusType&#34; type definition." href="#h1245665552">EnactionStatusType</a>
+                                 </span>
+                              </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                           <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                              <span class="scTag">ref</span>="<span class="scContent">
+                                 <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;relURI&#34; attribute declaration." href="#h538347798">relURI</a>
+                              </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1132667318_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Element: <a name="h1073158951" class="name">example</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>example</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h-1091810772">examples</a>
+               </b>, Element <b>
+                  <a href="#h1300956578">workflow</a>
+               </b>, Element <b>
+                  <a href="#h886358932">enactionlaunched</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>Locally-defined complex type</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Nillable' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Nillable">Nillable</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">Input examples, in baclava format</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1073158951_logicalDiagram_button" class="control"
+                   onclick="switchState('h1073158951_logicalDiagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Logical Diagram</span>
+         </div>
+         <div id="h1073158951_logicalDiagram" class="contents">
+            <img usemap="#h1598219768" src="schemaDiagrams/h1598219768.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h1598219768.map--><map name="h1598219768">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1073158951_logicalDiagram', false);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1073158951_xibox_button" class="control"
+                   onclick="switchState('h1073158951_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h1073158951_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:example<br/>
+               <span style="margin-left: 0.5em"> uuid="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> name="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> path="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span> 
+                  <span class="occurs">[1]</span>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> date="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span> 
+                  <span class="occurs">[1]</span>"</span>&gt; <br/>
+               <span style="margin-left: 1.5em"> 
+                  <span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+               </span>
+               <br/>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:example&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1073158951_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1073158951_diagram_button" class="control"
+                   onclick="switchState('h1073158951_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h1073158951_diagram" class="contents">
+            <img usemap="#h1379571502" src="schemaDiagrams/h1379571502.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h1379571502.map--><map name="h1379571502">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1073158951_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h1073158951_scbox_button" class="control"
+                   onclick="switchState('h1073158951_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h1073158951_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:element</span> 
+               <span class="scTag">name</span>="<span class="scContent">example</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:simpleContent</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:extension</span> 
+                        <span class="scTag">base</span>="<span class="scContent">
+                           <span class="type">
+                              <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                        </span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                           <span class="scTag">name</span>="<span class="scContent">uuid</span>" <span class="scTag">type</span>="<span class="scContent">
+                              <span class="type">
+                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                           </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                        <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                           <span class="scTag">name</span>="<span class="scContent">name</span>" <span class="scTag">type</span>="<span class="scContent">
+                              <span class="type">
+                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                           </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                        <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                           <span class="scTag">name</span>="<span class="scContent">path</span>" <span class="scTag">type</span>="<span class="scContent">
+                              <span class="type">
+                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span>
+                           </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                        <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                           <span class="scTag">name</span>="<span class="scContent">date</span>" <span class="scTag">type</span>="<span class="scContent">
+                              <span class="type">
+                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span>
+                           </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:extension</span>&gt;</div>&lt;/<span class="scTag">xsd:simpleContent</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1073158951_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Element: <a name="h-1091810772" class="name">examples</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>examples</td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>Locally-defined complex type</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Nillable' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Nillable">Nillable</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">
+    Examples catalog
+</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-1091810772_logicalDiagram_button" class="control"
+                   onclick="switchState('h-1091810772_logicalDiagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Logical Diagram</span>
+         </div>
+         <div id="h-1091810772_logicalDiagram" class="contents">
+            <img usemap="#h-848476119" src="schemaDiagrams/h-848476119.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-848476119.map--><map name="h-848476119">
+               <area shape="rect" alt="h1073158951" coords="457,0,828,56"
+                     href="IWWEM-messages.xsd.html#h1073158951"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1091810772_logicalDiagram', false);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-1091810772_xibox_button" class="control"
+                   onclick="switchState('h-1091810772_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h-1091810772_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:examples&gt; <br/>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;example&#34; element declaration." href="#h1073158951">example</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;example&#34; element declaration." href="#h1073158951">example</a>&gt; <span class="occurs">[0..*]</span>
+               </div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:examples&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1091810772_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-1091810772_diagram_button" class="control"
+                   onclick="switchState('h-1091810772_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h-1091810772_diagram" class="contents">
+            <img usemap="#h963362227" src="schemaDiagrams/h963362227.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h963362227.map--><map name="h963362227">
+               <area shape="rect" alt="h1073158951" coords="270,0,419,40"
+                     href="IWWEM-messages.xsd.html#h1073158951"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1091810772_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h-1091810772_scbox_button" class="control"
+                   onclick="switchState('h-1091810772_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h-1091810772_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:element</span> 
+               <span class="scTag">name</span>="<span class="scContent">examples</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                     <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">ref</span>="<span class="scContent">
+                           <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;example&#34; element declaration." href="#h1073158951">example</a>
+                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1091810772_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Element: <a name="h-598823737" class="name">input</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>input</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>, Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>, Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>
+               <span class="type">
+                  <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;IORepType&#34; type definition." href="#h-770931028">IORepType</a>
+               </span>
+            </td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Nillable' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Nillable">Nillable</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">The feeded inputs</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-598823737_logicalDiagram_button" class="control"
+                   onclick="switchState('h-598823737_logicalDiagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Logical Diagram</span>
+         </div>
+         <div id="h-598823737_logicalDiagram" class="contents">
+            <img usemap="#h-1412689384" src="schemaDiagrams/h-1412689384.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-1412689384.map--><map name="h-1412689384">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-598823737_logicalDiagram', false);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-598823737_xibox_button" class="control"
+                   onclick="switchState('h-598823737_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h-598823737_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:input<br/>
+               <span style="margin-left: 0.5em"> name="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span> 
+                  <p class="documentation">'The name of this input, output or step'</p>"</span>/&gt; </div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-598823737_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-598823737_diagram_button" class="control"
+                   onclick="switchState('h-598823737_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h-598823737_diagram" class="contents">
+            <img usemap="#h-1001744178" src="schemaDiagrams/h-1001744178.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-1001744178.map--><map name="h-1001744178">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-598823737_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h-598823737_scbox_button" class="control"
+                   onclick="switchState('h-598823737_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h-598823737_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:element</span> 
+               <span class="scTag">name</span>="<span class="scContent">input</span>" <span class="scTag">type</span>="<span class="scContent">
+                  <span class="type">
+                     <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;IORepType&#34; type definition." href="#h-770931028">IORepType</a>
+                  </span>
+               </span>"/&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-598823737_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Element: <a name="h-1205312604" class="name">output</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>output</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>, Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>, Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>
+               <span class="type">
+                  <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;IORepType&#34; type definition." href="#h-770931028">IORepType</a>
+               </span>
+            </td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Nillable' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Nillable">Nillable</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">The obtained outputs</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-1205312604_logicalDiagram_button" class="control"
+                   onclick="switchState('h-1205312604_logicalDiagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Logical Diagram</span>
+         </div>
+         <div id="h-1205312604_logicalDiagram" class="contents">
+            <img usemap="#h1143880481" src="schemaDiagrams/h1143880481.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h1143880481.map--><map name="h1143880481">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1205312604_logicalDiagram', false);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-1205312604_xibox_button" class="control"
+                   onclick="switchState('h-1205312604_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h-1205312604_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:output<br/>
+               <span style="margin-left: 0.5em"> name="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span> 
+                  <p class="documentation">'The name of this input, output or step'</p>"</span>/&gt; </div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1205312604_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-1205312604_diagram_button" class="control"
+                   onclick="switchState('h-1205312604_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h-1205312604_diagram" class="contents">
+            <img usemap="#h998279979" src="schemaDiagrams/h998279979.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h998279979.map--><map name="h998279979">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1205312604_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h-1205312604_scbox_button" class="control"
+                   onclick="switchState('h-1205312604_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h-1205312604_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:element</span> 
+               <span class="scTag">name</span>="<span class="scContent">output</span>" <span class="scTag">type</span>="<span class="scContent">
+                  <span class="type">
+                     <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;IORepType&#34; type definition." href="#h-770931028">IORepType</a>
+                  </span>
+               </span>"/&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-1205312604_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Element: <a name="h1550451623" class="name">snapshot</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>snapshot</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h819360172">snapshots</a>
+               </b>, Element <b>
+                  <a href="#h1300956578">workflow</a>
+               </b>, Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>Locally-defined complex type</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Nillable' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Nillable">Nillable</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">Snapshots from workflow executions</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1550451623_logicalDiagram_button" class="control"
+                   onclick="switchState('h1550451623_logicalDiagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Logical Diagram</span>
+         </div>
+         <div id="h1550451623_logicalDiagram" class="contents">
+            <img usemap="#h-605828572" src="schemaDiagrams/h-605828572.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-605828572.map--><map name="h-605828572">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1550451623_logicalDiagram', false);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1550451623_xibox_button" class="control"
+                   onclick="switchState('h1550451623_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h1550451623_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:snapshot<br/>
+               <span style="margin-left: 0.5em"> uuid="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> name="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> date="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span> 
+                  <span class="occurs">[1]</span>"</span>&gt; <br/>
+               <span style="margin-left: 1.5em"> 
+                  <span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+               </span>
+               <br/>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:snapshot&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1550451623_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1550451623_diagram_button" class="control"
+                   onclick="switchState('h1550451623_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h1550451623_diagram" class="contents">
+            <img usemap="#h1206009774" src="schemaDiagrams/h1206009774.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h1206009774.map--><map name="h1206009774">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1550451623_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h1550451623_scbox_button" class="control"
+                   onclick="switchState('h1550451623_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h1550451623_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:element</span> 
+               <span class="scTag">name</span>="<span class="scContent">snapshot</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:simpleContent</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:extension</span> 
+                        <span class="scTag">base</span>="<span class="scContent">
+                           <span class="type">
+                              <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                        </span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                           <span class="scTag">name</span>="<span class="scContent">uuid</span>" <span class="scTag">type</span>="<span class="scContent">
+                              <span class="type">
+                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                           </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                        <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                           <span class="scTag">name</span>="<span class="scContent">name</span>" <span class="scTag">type</span>="<span class="scContent">
+                              <span class="type">
+                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                           </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                        <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                           <span class="scTag">name</span>="<span class="scContent">date</span>" <span class="scTag">type</span>="<span class="scContent">
+                              <span class="type">
+                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span>
+                           </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:extension</span>&gt;</div>&lt;/<span class="scTag">xsd:simpleContent</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1550451623_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Element: <a name="h819360172" class="name">snapshots</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>snapshots</td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>Locally-defined complex type</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Nillable' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Nillable">Nillable</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">
+    Snapshots catalog
+</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h819360172_logicalDiagram_button" class="control"
+                   onclick="switchState('h819360172_logicalDiagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Logical Diagram</span>
+         </div>
+         <div id="h819360172_logicalDiagram" class="contents">
+            <img usemap="#h-454497923" src="schemaDiagrams/h-454497923.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-454497923.map--><map name="h-454497923">
+               <area shape="rect" alt="h1550451623" coords="457,0,828,56"
+                     href="IWWEM-messages.xsd.html#h1550451623"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h819360172_logicalDiagram', false);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h819360172_xibox_button" class="control"
+                   onclick="switchState('h819360172_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h819360172_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:snapshots&gt; <br/>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;snapshot&#34; element declaration." href="#h1550451623">snapshot</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;snapshot&#34; element declaration." href="#h1550451623">snapshot</a>&gt; <span class="occurs">[0..*]</span>
+               </div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:snapshots&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h819360172_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h819360172_diagram_button" class="control"
+                   onclick="switchState('h819360172_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h819360172_diagram" class="contents">
+            <img usemap="#h-122084045" src="schemaDiagrams/h-122084045.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-122084045.map--><map name="h-122084045">
+               <area shape="rect" alt="h1550451623" coords="272,0,423,40"
+                     href="IWWEM-messages.xsd.html#h1550451623"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h819360172_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h819360172_scbox_button" class="control"
+                   onclick="switchState('h819360172_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h819360172_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:element</span> 
+               <span class="scTag">name</span>="<span class="scContent">snapshots</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                     <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">ref</span>="<span class="scContent">
+                           <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;snapshot&#34; element declaration." href="#h1550451623">snapshot</a>
+                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h819360172_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Element: <a name="h1300956578" class="name">workflow</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>workflow</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h-543288000">workflowlist</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>Locally-defined complex type</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Nillable' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Nillable">Nillable</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">The description of a particular workflow</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1300956578_logicalDiagram_button" class="control"
+                   onclick="switchState('h1300956578_logicalDiagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Logical Diagram</span>
+         </div>
+         <div id="h1300956578_logicalDiagram" class="contents">
+            <img usemap="#h-507358049" src="schemaDiagrams/h-507358049.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-507358049.map--><map name="h-507358049">
+               <area shape="rect" alt="h1073158951" coords="457,787,828,843"
+                     href="IWWEM-messages.xsd.html#h1073158951"/>
+
+               <area shape="rect" alt="h1550451623" coords="457,853,828,909"
+                     href="IWWEM-messages.xsd.html#h1550451623"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1300956578_logicalDiagram', false);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1300956578_xibox_button" class="control"
+                   onclick="switchState('h1300956578_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h1300956578_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:workflow<br/>
+               <span style="margin-left: 0.5em"> lsid="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span> 
+                  <p class="documentation">'The LSID generated by Taverna when the workflow was created'</p>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> author="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span> 
+                  <p class="documentation">'The name of the author of the workflow (if it is available)'</p>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> title="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span> 
+                  <p class="documentation">'The title given to the workflow by the author (if it is available)'</p>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> path="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span> 
+                  <span class="occurs">[1]</span> 
+                  <p class="documentation">'The relative path to the workflow, respect to the local workflow repository base URL'</p>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> svg="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span> 
+                  <span class="occurs">[1]</span> 
+                  <p class="documentation">'The relative path to the SVG graph representation of the workflow, respect to the local workflow repository base URL'</p>"</span>&gt; <br/>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:description&gt; <span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:description&gt; <span class="occurs">[1]</span> 
+                  <p class="documentation">'Available documentation related to the workflow. It might be in HTML'</p>
+               </div>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:graph<br/>
+                  <span style="margin-left: 0.5em"> mime="<span class="type">
+                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                     <span class="occurs">[0..1]</span> 
+                     <p class="documentation">'MIME type of this graph image'</p>"</span>&gt;  <span class="occurs">[0..*]</span>  
+                  <p class="documentation">'Graphical representation of the workflow, relative to the workflow home'</p>
+                  <br/>
+                  <span style="margin-left: 1.5em"> 
+                     <span class="type">
+                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span> 
+                  </span>
+                  <br/>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:graph&gt;</div>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:dependsOn<br/>
+                  <span style="margin-left: 0.5em"> dep="<span class="type">
+                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span> 
+                     <span class="occurs">[1]</span> 
+                     <p class="documentation">'The relative URI to the subworkflow'</p>"</span>/&gt;  <span class="occurs">[0..*]</span> 
+                  <p class="documentation">'The subworkflows\' this workflow depends on...'</p>
+               </div>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:input&gt; <span class="type">
+                     <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;IODesc&#34; type definition." href="#h-358993540">IODesc</a>
+                  </span> &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:input&gt; <span class="occurs">[0..*]</span> 
+                  <p class="documentation">'The set of inputs of the workflow. The workflow can zero inputs when it is a self-contained, demonstration or test workflow.'</p>
+               </div>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:output&gt; <span class="type">
+                     <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;IODesc&#34; type definition." href="#h-358993540">IODesc</a>
+                  </span> &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:output&gt; <span class="occurs">[0..*]</span> 
+                  <p class="documentation">'The set of outputs of the workflow. There should be at least one output, but a workflow developer can \'forget\' creating it when it is more interested in side-effects than in the generated results.'</p>
+               </div>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;example&#34; element declaration." href="#h1073158951">example</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;example&#34; element declaration." href="#h1073158951">example</a>&gt; <span class="occurs">[0..*]</span>
+               </div>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;snapshot&#34; element declaration." href="#h1550451623">snapshot</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;snapshot&#34; element declaration." href="#h1550451623">snapshot</a>&gt; <span class="occurs">[0..*]</span>
+               </div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:workflow&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1300956578_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1300956578_diagram_button" class="control"
+                   onclick="switchState('h1300956578_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h1300956578_diagram" class="contents">
+            <img usemap="#h1304480297" src="schemaDiagrams/h1304480297.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h1304480297.map--><map name="h1304480297">
+               <area shape="rect" alt="h-358993540" coords="265,192,350,232"
+                     href="IWWEM-messages.xsd.html#h-358993540"/>
+
+               <area shape="rect" alt="h-358993540" coords="265,242,358,282"
+                     href="IWWEM-messages.xsd.html#h-358993540"/>
+
+               <area shape="rect" alt="h1073158951" coords="265,292,414,332"
+                     href="IWWEM-messages.xsd.html#h1073158951"/>
+
+               <area shape="rect" alt="h1550451623" coords="265,342,416,382"
+                     href="IWWEM-messages.xsd.html#h1550451623"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1300956578_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h1300956578_scbox_button" class="control"
+                   onclick="switchState('h1300956578_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h1300956578_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:element</span> 
+               <span class="scTag">name</span>="<span class="scContent">workflow</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                     <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">name</span>="<span class="scContent">description</span>" <span class="scTag">type</span>="<span class="scContent">
+                           <span class="type">
+                              <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"/&gt;</div>
+                     <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">name</span>="<span class="scContent">graph</span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:simpleContent</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:extension</span> 
+                                 <span class="scTag">base</span>="<span class="scContent">
+                                    <span class="type">
+                                       <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span>
+                                 </span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                                    <span class="scTag">name</span>="<span class="scContent">mime</span>" <span class="scTag">type</span>="<span class="scContent">
+                                       <span class="type">
+                                          <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                                    </span>"/&gt;</div>&lt;/<span class="scTag">xsd:extension</span>&gt;</div>&lt;/<span class="scTag">xsd:simpleContent</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+                     <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">name</span>="<span class="scContent">dependsOn</span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                              <span class="scTag">name</span>="<span class="scContent">dep</span>" <span class="scTag">type</span>="<span class="scContent">
+                                 <span class="type">
+                                    <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span>
+                              </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+                     <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">name</span>="<span class="scContent">input</span>" <span class="scTag">type</span>="<span class="scContent">
+                           <span class="type">
+                              <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;IODesc&#34; type definition." href="#h-358993540">IODesc</a>
+                           </span>
+                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>
+                     <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">name</span>="<span class="scContent">output</span>" <span class="scTag">type</span>="<span class="scContent">
+                           <span class="type">
+                              <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;IODesc&#34; type definition." href="#h-358993540">IODesc</a>
+                           </span>
+                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>
+                     <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">ref</span>="<span class="scContent">
+                           <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;example&#34; element declaration." href="#h1073158951">example</a>
+                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>
+                     <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">ref</span>="<span class="scContent">
+                           <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;snapshot&#34; element declaration." href="#h1550451623">snapshot</a>
+                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                     <span class="scTag">name</span>="<span class="scContent">lsid</span>" <span class="scTag">type</span>="<span class="scContent">
+                        <span class="type">
+                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                     </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                     <span class="scTag">name</span>="<span class="scContent">author</span>" <span class="scTag">type</span>="<span class="scContent">
+                        <span class="type">
+                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                     </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                     <span class="scTag">name</span>="<span class="scContent">title</span>" <span class="scTag">type</span>="<span class="scContent">
+                        <span class="type">
+                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                     </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                     <span class="scTag">name</span>="<span class="scContent">path</span>" <span class="scTag">type</span>="<span class="scContent">
+                        <span class="type">
+                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span>
+                     </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                     <span class="scTag">name</span>="<span class="scContent">svg</span>" <span class="scTag">type</span>="<span class="scContent">
+                        <span class="type">
+                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span>
+                     </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1300956578_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Element: <a name="h-543288000" class="name">workflowlist</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>workflowlist</td>
+         </tr>
+         <tr>
+            <th>Type</th>
+            <td>Locally-defined complex type</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Nillable' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Nillable">Nillable</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">A list of available workflows in the workflow repository.
+workflowlister frontend module returns the information following this sub-schema.</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-543288000_logicalDiagram_button" class="control"
+                   onclick="switchState('h-543288000_logicalDiagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Logical Diagram</span>
+         </div>
+         <div id="h-543288000_logicalDiagram" class="contents">
+            <img usemap="#h-241220035" src="schemaDiagrams/h-241220035.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-241220035.map--><map name="h-241220035">
+               <area shape="rect" alt="h1300956578" coords="457,202,828,258"
+                     href="IWWEM-messages.xsd.html#h1300956578"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-543288000_logicalDiagram', false);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-543288000_xibox_button" class="control"
+                   onclick="switchState('h-543288000_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h-543288000_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:workflowlist<br/>
+               <span style="margin-left: 0.5em"> 
+                  <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;time&#34; attribute declaration." href="#h-1961385328">time</a>="<span class="occurs">[1]</span>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> 
+                  <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;relURI&#34; attribute declaration." href="#h538347798">relURI</a>="<span class="occurs">[1]</span>"</span>&gt; <br/>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:message<br/>
+                  <span style="margin-left: 0.5em"> retval="<span class="type">
+                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:integer</span> 
+                     <span class="occurs">[0..1]</span> 
+                     <p class="documentation">'The error value assigned to the message'</p>"</span>&gt;  <span class="occurs">[0..1]</span>  
+                  <p class="documentation">'This is a simple message with an error value, generated by insertion or deletion processes'</p>
+                  <br/>
+                  <span style="margin-left: 1.5em"> 
+                     <span class="type">
+                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  </span>
+                  <br/>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:message&gt;</div>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;workflow&#34; element declaration." href="#h1300956578">workflow</a>&gt; ... &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;workflow&#34; element declaration." href="#h1300956578">workflow</a>&gt; <span class="occurs">[0..*]</span>
+               </div>&lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:workflowlist&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-543288000_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-543288000_diagram_button" class="control"
+                   onclick="switchState('h-543288000_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h-543288000_diagram" class="contents">
+            <img usemap="#h-1493965113" src="schemaDiagrams/h-1493965113.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-1493965113.map--><map name="h-1493965113">
+               <area shape="rect" alt="h1300956578" coords="281,107,431,147"
+                     href="IWWEM-messages.xsd.html#h1300956578"/>
+
+               <area shape="rect" alt="h-1961385328" coords="195,157,337,183"
+                     href="IWWEM-messages.xsd.html#h-1961385328"/>
+
+               <area shape="rect" alt="h538347798" coords="195,193,346,219"
+                     href="IWWEM-messages.xsd.html#h538347798"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-543288000_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h-543288000_scbox_button" class="control"
+                   onclick="switchState('h-543288000_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h-543288000_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:element</span> 
+               <span class="scTag">name</span>="<span class="scContent">workflowlist</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
+                     <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">name</span>="<span class="scContent">message</span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:simpleContent</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:extension</span> 
+                                 <span class="scTag">base</span>="<span class="scContent">
+                                    <span class="type">
+                                       <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                                 </span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                                    <span class="scTag">name</span>="<span class="scContent">retval</span>" <span class="scTag">type</span>="<span class="scContent">
+                                       <span class="type">
+                                          <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:integer</span>
+                                    </span>"/&gt;</div>&lt;/<span class="scTag">xsd:extension</span>&gt;</div>&lt;/<span class="scTag">xsd:simpleContent</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+                     <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                        <span class="scTag">ref</span>="<span class="scContent">
+                           <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;workflow&#34; element declaration." href="#h1300956578">workflow</a>
+                        </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                     <span class="scTag">ref</span>="<span class="scContent">
+                        <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;time&#34; attribute declaration." href="#h-1961385328">time</a>
+                     </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                     <span class="scTag">ref</span>="<span class="scContent">
+                        <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;relURI&#34; attribute declaration." href="#h538347798">relURI</a>
+                     </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-543288000_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h2>
+         <a name="SchemaDefinitions">Global Definitions</a>
+      </h2>
+      <h3>Attribute Group: <a name="h-315118956" class="name">TimeJob</a>
+      </h3>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>TimeJob</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h886358932">enactionlaunched</a>
+               </b>, Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">These two attributes are used together at least twice</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-315118956_xibox_button" class="control"
+                   onclick="switchState('h-315118956_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h-315118956_xibox" class="contents">
+            <span style="margin-left: 0em"> 
+               <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;time&#34; attribute declaration." href="#h-1961385328">time</a>="<span class="occurs">[1]</span>"</span>
+            <br/>
+            <span style="margin-left: 0em"> 
+               <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;jobId&#34; attribute declaration." href="#h-682470827">jobId</a>="<span class="occurs">[1]</span>"</span>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-315118956_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-315118956_diagram_button" class="control"
+                   onclick="switchState('h-315118956_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h-315118956_diagram" class="contents">
+            <img usemap="#h-895534565" src="schemaDiagrams/h-895534565.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-895534565.map--><map name="h-895534565">
+               <area shape="rect" alt="h-1961385328" coords="128,0,270,26"
+                     href="IWWEM-messages.xsd.html#h-1961385328"/>
+
+               <area shape="rect" alt="h-682470827" coords="128,36,275,62"
+                     href="IWWEM-messages.xsd.html#h-682470827"/>
+
+            </map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-315118956_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h-315118956_scbox_button" class="control"
+                   onclick="switchState('h-315118956_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h-315118956_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:attributeGroup</span> 
+               <span class="scTag">name</span>="<span class="scContent">TimeJob</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                  <span class="scTag">ref</span>="<span class="scContent">
+                     <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;time&#34; attribute declaration." href="#h-1961385328">time</a>
+                  </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+               <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                  <span class="scTag">ref</span>="<span class="scContent">
+                     <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;jobId&#34; attribute declaration." href="#h-682470827">jobId</a>
+                  </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:attributeGroup</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-315118956_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Complex Type: <a name="h-358993540" class="name">IODesc</a>
+      </h3>
+      <table class="hierarchy">
+         <tr>
+            <th>Super-types:</th>
+            <td>None</td>
+         </tr>
+         <tr>
+            <th>Sub-types:</th>
+            <td>None</td>
+         </tr>
+      </table>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>IODesc</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h1300956578">workflow</a>
+               </b>, Element <b>
+                  <a href="#h1300956578">workflow</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+         <tr>
+            <th>Documentation</th>
+            <td class="documentation">Generic complex type for input &amp; output descriptions</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-358993540_xibox_button" class="control"
+                   onclick="switchState('h-358993540_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h-358993540_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;...&gt; <br/>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:description&gt; <span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:description&gt; <span class="occurs">[0..1]</span> 
+                  <p class="documentation">'Available documentation related to this input/output. It might be in HTML'</p>
+               </div>
+               <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:mime&gt; <span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:mime&gt; <span class="occurs">[1..*]</span> 
+                  <p class="documentation">'The associated mime/types to this input/output'</p>
+               </div>&lt;/...&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-358993540_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-358993540_diagram_button" class="control"
+                   onclick="switchState('h-358993540_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h-358993540_diagram" class="contents">
+            <img usemap="#h-249848573" src="schemaDiagrams/h-249848573.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-249848573.map--><map name="h-249848573">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-358993540_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h-358993540_scbox_button" class="control"
+                   onclick="switchState('h-358993540_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h-358993540_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:complexType</span> 
+               <span class="scTag">name</span>="<span class="scContent">IODesc</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                     <span class="scTag">name</span>="<span class="scContent">description</span>" <span class="scTag">type</span>="<span class="scContent">
+                        <span class="type">
+                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                     </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                     <span class="scTag">name</span>="<span class="scContent">mime</span>" <span class="scTag">type</span>="<span class="scContent">
+                        <span class="type">
+                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                     </span>" <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-358993540_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Complex Type: <a name="h-770931028" class="name">IORepType</a>
+      </h3>
+      <table class="hierarchy">
+         <tr>
+            <th>Super-types:</th>
+            <td>None</td>
+         </tr>
+         <tr>
+            <th>Sub-types:</th>
+            <td>None</td>
+         </tr>
+      </table>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>IORepType</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h-598823737">input</a>
+               </b>, Element <b>
+                  <a href="#h-1205312604">output</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>
+               <a title="Look up 'Abstract' in glossary"
+                  href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+            </th>
+            <td>no</td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-770931028_xibox_button" class="control"
+                   onclick="switchState('h-770931028_xibox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">XML Instance Representation</span>
+         </div>
+         <div id="h-770931028_xibox" class="contents">
+            <div style="margin-left: 0em">&lt;...<br/>
+               <span style="margin-left: 0.5em"> name="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span> 
+                  <p class="documentation">'The name of this input, output or step'</p>"</span>/&gt; </div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-770931028_xibox', true);
+// -->
+</script>
+      </div>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h-770931028_diagram_button" class="control"
+                   onclick="switchState('h-770931028_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h-770931028_diagram" class="contents">
+            <img usemap="#h1535031859" src="schemaDiagrams/h1535031859.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h1535031859.map--><map name="h1535031859">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-770931028_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h-770931028_scbox_button" class="control"
+                   onclick="switchState('h-770931028_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h-770931028_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:complexType</span> 
+               <span class="scTag">name</span>="<span class="scContent">IORepType</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                  <span class="scTag">name</span>="<span class="scContent">name</span>" <span class="scTag">type</span>="<span class="scContent">
+                     <span class="type">
+                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                  </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h-770931028_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Simple Type: <a name="h1245665552" class="name">EnactionStatusType</a>
+      </h3>
+      <table class="hierarchy">
+         <tr>
+            <th>Super-types:</th>
+            <td>
+               <span class="type">
+                  <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> &lt; <strong>EnactionStatusType</strong> (by restriction)</td>
+         </tr>
+         <tr>
+            <th>Sub-types:</th>
+            <td>
+               <ul>
+                  <li>
+                     <span class="type">
+                        <a title="Jump to &#34;EnactionStepStatusType&#34; type definition." href="#h787032828">EnactionStepStatusType</a>
+                     </span> (by restriction)</li>
+               </ul>
+            </td>
+         </tr>
+      </table>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>EnactionStatusType</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Content</th>
+            <td>
+               <ul>
+                  <li>Base XSD Type: string</li>
+               </ul>
+               <ul>
+                  <li>
+                     <em>value</em> comes from list: {'queued'|'running'|'finished'|'error'|'dead'|'fatal'|'unknown'|'disposed'}</li>
+               </ul>
+            </td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h1245665552_diagram_button" class="control"
+                   onclick="switchState('h1245665552_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h1245665552_diagram" class="contents">
+            <img usemap="#h-818290025" src="schemaDiagrams/h-818290025.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-818290025.map--><map name="h-818290025">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1245665552_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h1245665552_scbox_button" class="control"
+                   onclick="switchState('h1245665552_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h1245665552_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:simpleType</span> 
+               <span class="scTag">name</span>="<span class="scContent">EnactionStatusType</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:restriction</span> 
+                  <span class="scTag">base</span>="<span class="scContent">
+                     <span class="type">
+                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                  </span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">queued</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">running</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">finished</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">error</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">dead</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">fatal</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">unknown</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">disposed</span>"/&gt;</div>&lt;/<span class="scTag">xsd:restriction</span>&gt;</div>&lt;/<span class="scTag">xsd:simpleType</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h1245665552_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <h3>Simple Type: <a name="h787032828" class="name">EnactionStepStatusType</a>
+      </h3>
+      <table class="hierarchy">
+         <tr>
+            <th>Super-types:</th>
+            <td>
+               <span class="type">
+                  <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> &lt; <span class="type">
+                  <a title="Jump to &#34;EnactionStatusType&#34; type definition." href="#h1245665552">EnactionStatusType</a>
+               </span> (by restriction) &lt; <strong>EnactionStepStatusType</strong> (by restriction)</td>
+         </tr>
+         <tr>
+            <th>Sub-types:</th>
+            <td>None</td>
+         </tr>
+      </table>
+      <table class="properties">
+         <tr>
+            <th>Name</th>
+            <td>EnactionStepStatusType</td>
+         </tr>
+         <tr>
+            <th>Used by (from the same schema document)</th>
+            <td>Element <b>
+                  <a href="#h1132667318">enactionreport</a>
+               </b>
+            </td>
+         </tr>
+         <tr>
+            <th>Content</th>
+            <td>
+               <ul>
+                  <li>Base XSD Type: string</li>
+               </ul>
+               <ul>
+                  <li>
+                     <em>value</em> comes from list: {'queued'|'running'|'finished'|'error'|'dead'|'fatal'|'unknown'|'disposed'}</li>
+               </ul>
+               <ul>
+                  <li>
+                     <em>value</em> comes from list: {'queued'|'running'|'finished'|'error'}</li>
+               </ul>
+            </td>
+         </tr>
+      </table>
+      <div class="sample box">
+         <div>
+            <input type="button" id="h787032828_diagram_button" class="control"
+                   onclick="switchState('h787032828_diagram'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Diagram</span>
+         </div>
+         <div id="h787032828_diagram" class="contents">
+            <img usemap="#h-26683773" src="schemaDiagrams/h-26683773.png"/>
+            <!--
+            Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-26683773.map--><map name="h-26683773">
+</map>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h787032828_diagram', true);
+// -->
+</script>
+      </div>
+      <div class="schemaComponent box">
+         <div>
+            <input type="button" id="h787032828_scbox_button" class="control"
+                   onclick="switchState('h787032828_scbox'); return false;"
+                   style="display: none"/> 
+            <span class="caption">Schema Component Representation</span>
+         </div>
+         <div id="h787032828_scbox" class="contents">
+            <div style="margin-left: 0em">&lt;<span class="scTag">xsd:simpleType</span> 
+               <span class="scTag">name</span>="<span class="scContent">EnactionStepStatusType</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:restriction</span> 
+                  <span class="scTag">base</span>="<span class="scContent">
+                     <span class="type">
+                        <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;EnactionStatusType&#34; type definition." href="#h1245665552">EnactionStatusType</a>
+                     </span>
+                  </span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">queued</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">running</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">finished</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">error</span>"/&gt;</div>&lt;/<span class="scTag">xsd:restriction</span>&gt;</div>&lt;/<span class="scTag">xsd:simpleType</span>&gt;</div>
+         </div>
+         <script type="text/javascript">
+<!--
+          setState('h787032828_scbox', false);
+// -->
+</script>
+      </div>
+      <div style="text-align: right; clear: both;">
+         <a href="#top">top</a>
+      </div>
+      <hr/>
+      <div id="legend">
+         <h2>
+            <a name="Legend">Legend</a>
+         </h2>
+         <div style="float: left; width: 15em;">
+            <h3 style="margin-bottom: 0px;">Complex Type:</h3>
+            <div class="hint" style="margin-left: 0em;">Schema Component Type</div>
+         </div>
+         <div style="float: left; width: 15em;">
+            <h3 style="margin-bottom: 0px;">
+               <span class="name">AusAddress</span>
+            </h3>
+            <div class="hint" style="margin-left: 0em;">Schema Component Name</div>
+         </div>
+         <table class="hierarchy" style="clear : both">
+            <tr>
+               <th>Super-types:</th>
+               <td>
+                  <span class="type" style="color: #0000FF; text-decoration:underline;">Address</span> &lt; <span class="current">AusAddress</span> (by extension)</td>
+            </tr>
+            <tr>
+               <th>Sub-types:</th>
+               <td>
+                  <ul>
+                     <li>
+                        <span class="type" style="color: #0000FF; text-decoration:underline;">QLDAddress</span> (by restriction)</li>
+                  </ul>
+               </td>
+            </tr>
+         </table>
+         <div class="hint">If this schema component is a type definition, its type hierarchy is shown in a gray-bordered box.</div>
+         <table class="properties">
+            <tr>
+               <th>Name</th>
+               <td>AusAddress</td>
+            </tr>
+            <tr>
+               <th>
+                  <a title="Look up 'Abstract' in glossary"
+                     href="IWWEM-messages.xsd.html#term_Abstract">Abstract</a>
+               </th>
+               <td>no</td>
+            </tr>
+         </table>
+         <div class="hint">The table above displays the properties of this schema component.</div>
+         <div class="sample box">
+            <div>
+               <span class="caption">XML Instance Representation</span>
+            </div>
+            <div class="contents">
+               <span style="margin-left: 0em">&lt;...</span>
+               <span class="newFields">
+                  <span> country="<span class="fixed">Australia</span>"</span>
+               </span>&gt; <br/>
+               <span style="margin-left: 1.5em" class="inherited">&lt;unitNo&gt; <span class="type">string</span> &lt;/unitNo&gt; <span class="occurs">[0..1]</span>
+               </span>
+               <br/>
+               <span style="margin-left: 1.5em" class="inherited">&lt;houseNo&gt; <span class="type">string</span> &lt;/houseNo&gt; <span class="occurs">[1]</span>
+               </span>
+               <br/>
+               <span style="margin-left: 1.5em" class="inherited">&lt;street&gt; <span class="type">string</span> &lt;/street&gt; <span class="occurs">[1]</span>
+               </span>
+               <br/>
+               <span class="group" style="margin-left: 1.5em">Start <a title="Look up 'Choice' in glossary" href="#term_Choice">Choice</a>
+                  <span class="occurs">[1]</span>
+               </span>
+               <br/>
+               <span style="margin-left: 3em" class="inherited">&lt;city&gt; <span class="type">string</span> &lt;/city&gt; <span class="occurs">[1]</span>
+               </span>
+               <br/>
+               <span style="margin-left: 3em" class="inherited">&lt;town&gt; <span class="type">string</span> &lt;/town&gt; <span class="occurs">[1]</span>
+               </span>
+               <br/>
+               <span class="group" style="margin-left: 1.5em">End Choice</span>
+               <br/>
+               <span class="newFields">
+                  <span style="margin-left: 1.5em">&lt;state&gt; <span class="type" style="text-decoration:underline;">AusStates</span> &lt;/state&gt; <span class="occurs">[1]</span>
+                  </span>
+                  <br/>
+                  <span style="margin-left: 1.5em">&lt;postcode&gt; <span class="constraint">string &lt;&lt;<em>pattern</em> = [1-9][0-9]{3}&gt;&gt;</span> &lt;/postcode&gt; <span class="occurs">[1]</span>
+                     <a href="javascript:void(0)" title="View Documentation" class="documentation"
+                        onclick="docArray = new Array('Post code must be a four-digit number.'); viewDocumentation('Element', 'postcode', docArray);">?</a>
+                  </span>
+                  <br/>
+               </span>
+               <span style="margin-left: 0em">&lt;/...&gt;</span>
+               <br/>
+            </div>
+         </div>
+         <div class="hint">
+            <p>The XML Instance Representation table above shows the schema component's content as an XML instance.</p>
+            <ul>
+               <li>The minimum and maximum occurrence of elements and attributes are provided in square brackets, e.g. [0..1].</li>
+               <li>Model group information are shown in gray, e.g. Start Choice ... End Choice.</li>
+               <li>For type derivations, the elements and attributes that have been added to or changed from the base type's content are shown in <span style="font-weight: bold">bold</span>.</li>
+               <li>If an element/attribute has a fixed value, the fixed value is shown in green, e.g. country="Australia".</li>
+               <li>Otherwise, the type of the element/attribute is displayed.
+               <ul>
+                     <li>If the element/attribute's type is in the schema, a link is provided to it.</li>
+                     <li>For local simple type definitions, the constraints are displayed in angle brackets, e.g. &lt;&lt;<em>pattern</em> = [1-9][0-9]{3}&gt;&gt;.</li>
+                  </ul>
+               </li>
+               <li>If a local element/attribute has documentation, it will be displayed in a window that pops up when the question mark inside the attribute or next to the element is clicked, e.g. &lt;postcode&gt;.</li>
+            </ul>
+         </div>
+         <div class="schemaComponent box">
+            <div>
+               <span class="caption">Schema Component Representation</span>
+            </div>
+            <div class="contents">
+               <span style="margin-left: 0em">&lt;<span class="scTag">complexType</span>
+                  <span class="scTag">name</span>="<span class="scContent">AusAddress</span>"&gt;</span>
+               <br/>
+               <span style="margin-left: 1.5em">&lt;<span class="scTag">complexContent</span>&gt;</span>
+               <br/>
+               <span style="margin-left: 3em">&lt;<span class="scTag">extension</span>
+                  <span class="scTag">base</span>="<span class="scContent">
+                     <span class="type" style="text-decoration:underline;">Address</span>
+                  </span>"&gt;</span>
+               <br/>
+               <span style="margin-left: 4.5em">&lt;<span class="scTag">sequence</span>&gt;</span>
+               <br/>
+               <span style="margin-left: 6em">&lt;<span class="scTag">element</span>
+                  <span class="scTag">name</span>="<span class="scContent">state</span>" <span class="scTag">type</span>="<span class="scContent">
+                     <span class="type" style="text-decoration:underline;">AusStates</span>
+                  </span>"/&gt;</span>
+               <br/>
+               <span style="margin-left: 6em">&lt;<span class="scTag">element</span>
+                  <span class="scTag">name</span>="<span class="scContent">postcode</span>"&gt;</span>
+               <br/>
+               <span style="margin-left: 7.5em">&lt;<span class="scTag">simpleType</span>&gt;</span>
+               <br/>
+               <span style="margin-left: 9em">&lt;<span class="scTag">restriction</span>
+                  <span class="scTag">base</span>="<span class="scContent">
+                     <span class="type">string</span>
+                  </span>"&gt;</span>
+               <br/>
+               <span style="margin-left: 10.5em">&lt;<span class="scTag">pattern</span>
+                  <span class="scTag">value</span>="<span class="scContent">[1-9][0-9]{3}</span>"/&gt;</span>
+               <br/>
+               <span style="margin-left: 9em">&lt;/<span class="scTag">restriction</span>&gt;</span>
+               <br/>
+               <span style="margin-left: 7.5em">&lt;/<span class="scTag">simpleType</span>&gt;</span>
+               <br/>
+               <span style="margin-left: 6em">&lt;/<span class="scTag">element</span>&gt;</span>
+               <br/>
+               <span style="margin-left: 4.5em">&lt;/<span class="scTag">sequence</span>&gt;</span>
+               <br/>
+               <span style="margin-left: 4.5em">&lt;<span class="scTag">attribute</span>
+                  <span class="scTag">name</span>="<span class="scContent">country</span>" <span class="scTag">type</span>="<span class="scContent">
+                     <span class="type">string</span>
+                  </span>" <span class="scTag">fixed</span>="<span class="scContent">Australia</span>"/&gt;</span>
+               <br/>
+               <span style="margin-left: 3em">&lt;/<span class="scTag">extension</span>&gt;</span>
+               <br/>
+               <span style="margin-left: 1.5em">&lt;/<span class="scTag">complexContent</span>&gt;</span>
+               <br/>
+               <span style="margin-left: 0em">&lt;/<span class="scTag">complexType</span>&gt;</span>
+               <br/>
+            </div>
+         </div>
+         <div class="hint">The Schema Component Representation table above displays the underlying XML representation of the schema component. (Annotations are not shown.)</div>
+         <div style="text-align: right; clear: both;">
+            <a href="#top">top</a>
+         </div>
+         <hr/>
+      </div>
+      <div id="glossary">
+         <h2>
+            <a name="Glossary">Glossary</a>
+         </h2>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_Abstract">Abstract</a> 
+            </span>(Applies to complex type definitions and element declarations). An abstract element or complex type cannot used to validate an element instance. If there is a reference to an abstract element, only element declarations that can substitute the abstract element can be used to validate the instance. For references to abstract type definitions, only derived types can be used.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_All">All Model Group</a> 
+            </span>Child elements can be provided <em>in any order</em> in instances. See: <a title="http://www.w3.org/TR/xmlschema-1/#element-all"
+               href="http://www.w3.org/TR/xmlschema-1/#element-all">http://www.w3.org/TR/xmlschema-1/#element-all</a>.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_Choice">Choice Model Group</a> 
+            </span>
+            <em>Only one</em> from the list of child elements and model groups can be provided in instances. See: <a title="http://www.w3.org/TR/xmlschema-1/#element-choice"
+               href="http://www.w3.org/TR/xmlschema-1/#element-choice">http://www.w3.org/TR/xmlschema-1/#element-choice</a>.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_CollapseWS">Collapse Whitespace Policy</a> 
+            </span>Replace tab, line feed, and carriage return characters with space character (Unicode character 32). Then, collapse contiguous sequences of space characters into single space character, and remove leading and trailing space characters.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_ElemBlock">Disallowed Substitutions</a> 
+            </span>(Applies to element declarations). If <em>substitution</em> is specified, then <a title="Look up 'substitution group' in glossary"
+               href="IWWEM-messages.xsd.html#term_SubGroup">substitution group</a> members cannot be used in place of the given element declaration to validate element instances. If <em>derivation methods</em>, e.g. extension, restriction, are specified, then the given element declaration will not validate element instances that have types derived from the element declaration's type using the specified derivation methods. Normally, element instances can override their declaration's type by specifying an <code>xsi:type</code> attribute.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_Key">Key Constraint</a> 
+            </span>Like <a title="Look up 'Uniqueness Constraint' in glossary"
+               href="IWWEM-messages.xsd.html#term_Unique">Uniqueness Constraint</a>, but additionally requires that the specified value(s) must be provided. See: <a title="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+               href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions">http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions</a>.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_KeyRef">Key Reference Constraint</a> 
+            </span>Ensures that the specified value(s) must match value(s) from a <a title="Look up 'Key Constraint' in glossary"
+               href="IWWEM-messages.xsd.html#term_Key">Key Constraint</a> or <a title="Look up 'Uniqueness Constraint' in glossary"
+               href="IWWEM-messages.xsd.html#term_Unique">Uniqueness Constraint</a>. See: <a title="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+               href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions">http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions</a>.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_ModelGroup">Model Group</a> 
+            </span>Groups together element content, specifying the order in which the element content can occur and the number of times the group of element content may be repeated. See: <a title="http://www.w3.org/TR/xmlschema-1/#Model_Groups"
+               href="http://www.w3.org/TR/xmlschema-1/#Model_Groups">http://www.w3.org/TR/xmlschema-1/#Model_Groups</a>.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_Nillable">Nillable</a> 
+            </span>(Applies to element declarations). If an element declaration is nillable, instances can use the <code>xsi:nil</code> attribute. The <code>xsi:nil</code> attribute is the boolean attribute, <em>nil</em>, from the <em>http://www.w3.org/2001/XMLSchema-instance</em> namespace. If an element instance has an <code>xsi:nil</code> attribute set to true, it can be left empty, even though its element declaration may have required content.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_Notation">Notation</a> 
+            </span>A notation is used to identify the format of a piece of data. Values of elements and attributes that are of type, NOTATION, must come from the names of declared notations. See: <a title="http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations"
+               href="http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations">http://www.w3.org/TR/xmlschema-1/#cNotation_Declarations</a>.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_PreserveWS">Preserve Whitespace Policy</a> 
+            </span>Preserve whitespaces exactly as they appear in instances.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_TypeFinal">Prohibited Derivations</a> 
+            </span>(Applies to type definitions). Derivation methods that cannot be used to create sub-types from a given type definition.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_TypeBlock">Prohibited Substitutions</a> 
+            </span>(Applies to complex type definitions). Prevents sub-types that have been derived using the specified derivation methods from validating element instances in place of the given type definition.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_ReplaceWS">Replace Whitespace Policy</a> 
+            </span>Replace tab, line feed, and carriage return characters with space character (Unicode character 32).</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_Sequence">Sequence Model Group</a> 
+            </span>Child elements and model groups must be provided <em>in the specified order</em> in instances. See: <a title="http://www.w3.org/TR/xmlschema-1/#element-sequence"
+               href="http://www.w3.org/TR/xmlschema-1/#element-sequence">http://www.w3.org/TR/xmlschema-1/#element-sequence</a>.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_SubGroup">Substitution Group</a> 
+            </span>Elements that are <em>members</em> of a substitution group can be used wherever the <em>head</em> element of the substitution group is referenced.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_ElemFinal">Substitution Group Exclusions</a> 
+            </span>(Applies to element declarations). Prohibits element declarations from nominating themselves as being able to substitute a given element declaration, if they have types that are derived from the original element's type using the specified derivation methods.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_TargetNS">Target Namespace</a> 
+            </span>The target namespace identifies the namespace that components in this schema belongs to. If no target namespace is provided, then the schema components do not belong to any namespace.</p>
+         <p>
+            <span class="glossaryTerm">
+               <a name="term_Unique">Uniqueness Constraint</a> 
+            </span>Ensures uniqueness of an element/attribute value, or a combination of values, within a specified scope. See: <a title="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions"
+               href="http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions">http://www.w3.org/TR/xmlschema-1/#cIdentity-constraint_Definitions</a>.</p>
+         <div style="text-align: right; clear: both;">
+            <a href="#top">top</a>
+         </div>
+         <hr/>
+      </div>
+      <p class="footer">Generated by <a href="http://www.oxygenxml.com">&lt;oXygen/&gt; XML Editor</a> using a modified version of <a href="http://titanium.dstc.edu.au/xml/xs3p">xs3p</a> that adds schema diagrams and chunking support. Last modified: <script type="text/javascript">
+<!--
+          document.write(document.lastModified);
+// -->
+</script>
+      </p>
+   </body>
+</html>
