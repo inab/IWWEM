@@ -1,0 +1,353 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><!-- InstanceBegin template="/Templates/jtemplate.dwt" codeOutsideHTMLIsLocked="false" --><!-- InstanceBeginEditable name="doctitle" --><title>Applet Parameters</title><!-- InstanceEndEditable -->
+
+
+
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"><meta http-equiv="keywords" content="jalview,multiple,sequence,alignment,editor,viewer,java,download,barton group,protein,dna,das,distributed annotation system"><!-- InstanceBeginEditable name="head" --><!-- InstanceEndEditable -->
+
+<style type="text/css">
+<!--
+td {
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size: 12px;
+}
+.plain {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	text-decoration: none;
+}
+.plain:hover{
+	background-color:#000000; color: #F2F2FF;
+}
+
+-->
+</style>
+<script language="JavaScript">
+function genHref()
+{
+	var s1 = "ml:ljvwr", s2 = "athpai.g", s3 = "ioe@leo ", href="";
+	for(i=0; i<8; i++)
+	{	href = href + s1.charAt(i) + s2.charAt(i) + s3.charAt(i);	}
+	window.location=href;
+}
+</script></head><body link="#000000" alink="#000000" vlink="#000000">
+<div align="left">
+  <table cellpadding="5" height="100" width="805">
+    <tbody><tr>
+      <td background="jalViewAppletParameters_files/jalview.gif">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.compbio.dundee.ac.uk/" target="NEW"><img src="jalViewAppletParameters_files/uodc_r1_c1.gif" border="1" height="101" width="143"></a></td>
+    </tr>
+  </tbody></table>
+  <table border="0" cellpadding="5" cellspacing="5" width="805">
+    <tbody><tr>
+      <td border="5" bgcolor="#f2f2ff" valign="top" width="183">
+
+	  <div align="center">
+          <table border="0" cellpadding="0" cellspacing="0" height="386" width="182">
+            <tbody><tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/index.html" class="plain">Home</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/overview.html" class="plain">Overview</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/download.html" class="plain">Download</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/examples/applets.html" class="plain">Applet
+                Version</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/examples/examples.html" class="plain">Screenshots</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/faq.html" class="plain">FAQ</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/documentList.html" class="plain">Documentation</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/releaseHistory.html" class="plain">Release
+                history</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/source/source.html" class="plain">Source
+                Code</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/links.html" class="plain">Links</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/mailman/listinfo/jalview-announce" class="plain" target="NEW">News
+                Mailing List</a></td>
+            </tr>
+            <tr>
+              <td align="center" valign="middle"><a href="http://www.jalview.org/mailman/listinfo/jalview-discuss" class="plain" target="NEW">Discussion Mailing List</a></td>
+            </tr>
+            <tr></tr>
+            <tr>
+              <td align="center" valign="middle"><br>Please send
+            problems<br>and bug reports to:<br>
+<a href="#" onclick="javascript:genHref();"><img src="jalViewAppletParameters_files/help.gif" border="0" height="19" width="123"></a></td>
+            </tr>
+          </tbody></table>
+
+        </div>
+
+        <div align="center"> <a href="http://www.bbsrc.ac.uk/" target="NEW"><br>
+          <img src="jalViewAppletParameters_files/bbsrc.jpg" border="1" height="108" width="156"></a> </div>
+        </td>
+      <td bgcolor="#f2f2ff" valign="top" width="587"><!-- InstanceBeginEditable name="Contents" --> 
+        <p><strong>Download the applet jar file from <a href="http://www.jalview.org/examples/jalviewApplet.jar">here</a>.</strong> 
+        </p>
+        <p><strong><font size="2">**NEW FEATURES** in Jalview 2.3</font></strong></p>
+        <ul>
+          <li><font size="2">Note that Parameter "PDBFile" now takes 
+            the PDB file followed by a space separated list of alignment sequence 
+            ids to associate the structure to. It is also possible to associate 
+            multiple PDB files by adding an incremental value to PDBFile (up to 
+            10). It is also possible to map specific sequences to specific chains 
+            by using the following notation:<br>
+            <br>
+            &lt;param name="PDBFile" value="First.pdb SeqA SeqB 
+            SeqC"&gt; </font><br>
+            <font size="2">&lt;param name="PDBFile2" value="Second.pdb 
+            A=SeqA B=SeqB C=SeqC"&gt; </font><br>
+            <font size="2">&lt;param name="PDBFile3" value="Third.pdb 
+            D=SeqX B=SeqY C=SeqZ"&gt; </font> <br>
+          </li>
+          <li>Note parameter "PDBSeq" is no longer required.<br>
+          </li>
+          <li>To use Jmol as the structure viewer for Jalview, you must include 
+            the jar file in the applet archive argument thus:<br>
+            <pre><font size="2">archive="jalviewApplet.jar,Jmol-11.0.2.jar"</font></pre>
+          </li>
+          <li>Jmol 11.0.2 is not Java 1.1 compatible, and requires at least Java 
+            1.4 plugin in the clients web browser. If the client does not have 
+            Java 1.4, or if the Jmol-11.0.2.jar is not added to the archive, the 
+            original Jalview structure viewer will still be available. <br>
+          </li>
+          <li>Jalview 2.3 currently works only with Jmol 11.0.2, and it is recommended 
+            that you use the Jmol jar file located <a href="http://www.jalview.org/examples/Jmol-11.0.2.jar">here</a> 
+            <p>&nbsp;</p>
+          </li>
+        </ul>
+        <strong><font size="2">**NEW FEATURES** in Jalview 2.1</font></strong> 
+        <ul>
+          <li>Jalview Applet can read and display JNet secondary structure annotation 
+            directly via the <strong>jnetfile</strong> parameter. <br>
+          </li>
+          <li>Param <font face="Courier New, Courier, mono">UserDefinedColour</font><em> 
+            </em>- specify your own colours for each residue using a semi colon 
+            separated list. Multiple residues can be assigned the same colour 
+            using commas. eg:<br>
+            <font face="Courier New, Courier, mono">&lt;param name="userDefinedColour" 
+            value="D,E=red; K,R,H=0022FF; C=yellow"&gt;</font><br>
+          </li>
+          <li>Param <font face="Courier New, Courier, mono">showFeatureSettings</font> 
+            - this will display the feature settings window when the applet starts.<br>
+          </li>
+          <li>Param <font face="Courier New, Courier, mono">Application_URL value="http://www.jalview.org/services/launchApp"<br>
+            </font>This calls a servlet which creates a JNLP file with the alignment 
+            file, annotations file and features file of the applet as arguments. 
+            If the user has Java installed, the returned JNLP file should start 
+            up the full Jalview Application. BUT this does not currently work 
+            for alignment files added to the applet in a zip file.<br>
+          </li>
+          <li>Alignment file can be a series of parameters using eg PFAM format 
+            <br>
+            <font face="Courier New, Courier, mono">&lt;param name="sequence1" 
+            value="Q93XJ9_SOLTU/11-26 TSFLPRKPVVTSLKAI"&gt;<br>
+            &lt;param name="sequence2" value="FER1_PEA/14-29 TSFLRTQPMPMSVTTT"&gt;<br>
+            </font>(All the usual Jalview File formats are valid, however each 
+            new line in an alignment file must be entered as a parameter)<font face="Courier New, Courier, mono"><br>
+            </font> </li>
+        </ul>
+        <h3 align="left">Useful to know!!</h3>
+        <ul>
+          <li>Package all your data files into a single (or multiple) zip / jar 
+            files. This is very useful to reduce download time of large data files. 
+            The applet archive tag can take multiple entries separated by commas, 
+            eg<br>
+            <font align="left" face="Courier New, Courier, mono">&lt;applet code="jalview.bin.JalviewLite"<em><strong> 
+            archive="jalviewApplet.jar, mydata.zip"</strong></em>&gt;<br>
+            </font></li>
+          <li> Use Jalview for input to a HTML form. For an example of how to 
+            code this using Javascript, click <a href="http://www.jalview.org/examples/formComplete.html">here</a>. 
+            <br>
+          </li>
+          <li>Embed Jalview into the web page, without the "Start Jalview" 
+            button by setting the embed parameter to true;<br>
+            &lt;param name="embedded" value="true"&gt; </li>
+        </ul>
+        <table align="center" border="1" width="97%">
+          <tbody><tr> 
+            <td height="23" width="103"><strong>&lt;param name=""</strong></td>
+            <td width="80"><strong>value=""&gt;</strong></td>
+            <td width="100%"><strong>Description</strong></td>
+          </tr>
+          <tr> 
+            <td>file</td>
+            <td>fileName</td>
+            <td>The file to open, must be on same server as the applet.</td>
+          </tr>
+          <tr> 
+            <td>sequence1,<br>
+              sequence2,<br>
+              sequence3</td>
+            <td>sequence in (preferably) PFAM or Fasta format</td>
+            <td>The alignment can be added as a series of sequences instead of 
+              from a file.</td>
+          </tr>
+          <tr> 
+            <td>tree</td>
+            <td>fileName</td>
+            <td>Tree file in Newick format</td>
+          </tr>
+          <tr> 
+            <td>features</td>
+            <td>fileName</td>
+            <td>Jalview Features file to be applied to the alignment</td>
+          </tr>
+          <tr> 
+            <td>annotations</td>
+            <td>fileName</td>
+            <td>Jalview Annotation file will be added to the alignment</td>
+          </tr>
+          <tr> 
+            <td>jnetfile</td>
+            <td>fileName</td>
+            <td>Secondary structure predictions from a <a href="http://www.compbio.dundee.ac.uk/%7Ewww-jpred/">Jnet</a> Concise 
+              file will be added to the first sequence in the alignment.</td>
+          </tr>
+          <tr> 
+            <td>PDBfile(x)</td>
+            <td><p>fileName seq1 seq2 seq3</p>
+              <p>or</p>
+              <p>fileName A=seq1 B=seq2 C=seq3</p></td>
+            <td>PDB file which is to be associated with a sequence, followed by 
+              space separated list of alignment sequence ids. PDB chains can be 
+              specifed to map to particular sequence by using A=SeqA notation</td>
+          </tr>
+          <tr> 
+            <td><p>PDBSeq<br>
+                *Not needed post Jalview 2.3, use PDBFile instead</p></td>
+            <td>SequenceId</td>
+            <td>The sequence to associate a PDB file with. Note the value is case 
+              sensitive.</td>
+          </tr>
+          <tr> 
+            <td>defaultColour</td>
+            <td> <em>One of: </em><br>
+              Clustal, Blosum62, % Identity, Hydrophobic, Zappo, Taylor, Helix 
+              Propensity, Strand Propensity, Turn Propensity, Buried Index, Nucleotide</td>
+            <td>Default is no colour.</td>
+          </tr>
+          <tr> 
+            <td>userDefinedColour</td>
+            <td><p><em>Example:</em><br>
+                D,E=red; K,R,H=0022FF; c=yellow</p></td>
+            <td>Define residue colours</td>
+          </tr>
+          <tr> 
+            <td height="35">showFullId</td>
+            <td>true <em>or</em> false</td>
+            <td>if true displays start and end residue at the end of sequence 
+              Id.</td>
+          </tr>
+          <tr> 
+            <td>showAnnotation</td>
+            <td>true <em>or</em> false</td>
+            <td>If true shows the annotation panel below the alignment.</td>
+          </tr>
+          <tr> 
+            <td>showConservation</td>
+            <td>true <em>or</em> false</td>
+            <td>Default is true.</td>
+          </tr>
+          <tr> 
+            <td>showQuality</td>
+            <td>true <em>or</em> false</td>
+            <td>Default is true.</td>
+          </tr>
+          <tr> 
+            <td>showConsensus</td>
+            <td>true <em>or</em> false</td>
+            <td>Default is true.</td>
+          </tr>
+          <tr> 
+            <td>sortBy</td>
+            <td> Id <em>or</em> Pairwise Identity</td>
+            <td> Sorts the alignment on startup</td>
+          </tr>
+          <tr> 
+            <td>RGB</td>
+            <td>colour as hex string</td>
+            <td>Background colour for applet button - purely cosmetic to blend 
+              in with your web page. For orange, enter the value FF6600</td>
+          </tr>
+          <tr> 
+            <td>embedded</td>
+            <td>true <em>or</em> false</td>
+            <td>The applet is embedded in the web page, the "Start Jalview" 
+              button is not displayed.</td>
+          </tr>
+          <tr> 
+            <td>windowWidth</td>
+            <td>value</td>
+            <td>frame width</td>
+          </tr>
+          <tr> 
+            <td>windowHeight</td>
+            <td>value</td>
+            <td>frame height</td>
+          </tr>
+          <tr> 
+            <td>label</td>
+            <td>label text</td>
+            <td>Change text for the Launch Jalview Button</td>
+          </tr>
+          <tr> 
+            <td>wrap</td>
+            <td>true <em>or</em> false</td>
+            <td>Opens new windows in wrapped mode</td>
+          </tr>
+          <tr> 
+            <td>linkLabel_1</td>
+            <td>Uniprot</td>
+            <td rowspan="2"><p>Right click on sequence id to see list of available 
+                links. Any new links MUST have $SEQUENCE_ID$ as part of the linkURL_n 
+                value. For multiple links, increment the label and url name by 
+                1. ie <br>
+                &lt;param name="linkLabel_2" ..., <br>
+                &lt;param name="linkUrl_2"....<br>
+              </p></td>
+          </tr>
+          <tr> 
+            <td> <p><br>
+                linkUrl_1<br>
+              </p></td>
+            <td><p><br>
+                http://us.expasy.org/cgi-bin/<br>
+                niceprot.pl?$SEQUENCE_ID$</p></td>
+          </tr>
+          <tr> 
+            <td>showFeatureSettings</td>
+            <td>true <em>or</em> false</td>
+            <td>Shows the feature settings window when starting the applet</td>
+          </tr>
+          <tr> 
+            <td>application_url</td>
+            <td><p><em>URL of dynamic JNLP servlet,</em></p>
+              <p>http://www.jalview.org/services/launchApp</p></td>
+            <td>Launches full application with original alignment, features and 
+              annotations files used in applet</td>
+          </tr>
+        </tbody></table>
+        <p align="center">&nbsp;</p>
+        <!-- InstanceEndEditable --></td>
+    </tr>
+  </tbody></table>
+</div>
+<!-- InstanceEnd --></body></html>
