@@ -502,6 +502,7 @@ DataBrowser.MolViewer = {
 		*/
 	}
 };
+
 // JMol intialization
 function JMolAlert(appname,info,addi) {
 	if(info=='Script completed' && DataBrowser.MolViewer.jmolRunme) {
@@ -517,3 +518,78 @@ jmolInitialize('js/jmol');
 jmolSetDocument(false);
 jmolSetCallback('messageCallback','JMolAlert');
 DataBrowser.addViewer(DataBrowser.MolViewer);
+
+DataBrowser.NewickViewer = {
+	/*
+	dataSource:	DataBrowser.Inline,
+	*/
+	dataSource:	DataBrowser.Link,
+	dataFormat:	DataBrowser.Native,
+	acceptedMIME:	[
+		'biotree/newick'
+	],
+	
+	applyView: function (data,paramArray,databrowserDiv,genview) {
+		var fullhref=window.location.href;
+		var basehref = fullhref.substring(0,fullhref.lastIndexOf('/')+1);
+		var applet = genview.createElement('applet');
+		
+		// Embedded JalView
+		var param = genview.createElement("param");
+		param.setAttribute("name","config_file");
+		param.setAttribute("value",basehref+"js/atv.conf");
+		applet.appendChild(param);
+		
+		param.setAttribute("name","url_of_tree_to_load");
+		param.setAttribute("value",basehref+data);
+		applet.appendChild(param);
+		
+		applet.name=DataBrowser.MolViewer.jmolId;
+		applet.setAttribute("archive","js/forester-4.00_alpha10.jar");
+		applet.setAttribute("mayscript","true");
+		applet.setAttribute("style","width:100%;height:100%");
+		applet.setAttribute("code","org.forester.atv.ATVapplet");
+
+		databrowserDiv.appendChild(applet);
+	}
+};
+
+DataBrowser.addViewer(DataBrowser.NewickViewer);
+
+DataBrowser.MSAViewer = {
+	/*
+	dataSource:	DataBrowser.Inline,
+	*/
+	dataSource:	DataBrowser.Link,
+	dataFormat:	DataBrowser.Native,
+	acceptedMIME:	[
+		'bioinformatics/x-msa'
+	],
+	
+	applyView: function (data,paramArray,databrowserDiv,genview) {
+		var applet = genview.createElement('applet');
+		
+		// Embedded JalView
+		var param = genview.createElement("param");
+		param.setAttribute("name","embedded");
+		param.setAttribute("value","true");
+		applet.appendChild(param);
+		
+		//var fullhref=window.location.href;
+		//var basehref = fullhref.substring(0,fullhref.lastIndexOf('/')+1);
+
+		param.setAttribute("name","file");
+		param.setAttribute("value",data);
+		applet.appendChild(param);
+		
+		applet.name=DataBrowser.MolViewer.jmolId;
+		applet.setAttribute("archive","js/jalviewApplet-2.3.jar");
+		applet.setAttribute("mayscript","true");
+		applet.setAttribute("style","width:100%;height:100%");
+		applet.setAttribute("code","jalview.bin.JalviewLite");
+
+		databrowserDiv.appendChild(applet);
+	}
+};
+
+DataBrowser.addViewer(DataBrowser.MSAViewer);

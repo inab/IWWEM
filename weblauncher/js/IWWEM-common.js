@@ -100,7 +100,16 @@ GeneralView.initCheck = function(check) {
 	};
 };
 
-GeneralView.Check = function(control) {
+GeneralView.Check = function(control,/* optional */ setDefaultEH,genview,thetext,isRight,color) {
+	if(control==undefined) {
+		if(!color || (color!='red' && color!='green' && color!='blue')) {
+			color='blue';
+		}
+		control=genview.createElement('span');
+		control.className='checkbox'+color+' checkbox '+((isRight)?'right':'left');
+		control.innerHTML=thetext;
+	}
+	
 	this.control=control;
 	this.checked=false;
 	
@@ -108,6 +117,20 @@ GeneralView.Check = function(control) {
 		var className;
 		this.baseClassName=className=control.className;
 		this.firstClassName=(className.indexOf(' ')==-1)?className:className.substring(0,className.indexOf(' '));
+	}
+	
+	if(setDefaultEH) {
+		if(typeof setDefaultEH != 'function') {
+			var check=this;
+			setDefaultEH = function() {
+				if(check.checked) {
+					check.doUncheck();
+				} else {
+					check.doCheck();
+				}
+			};
+		}
+		this.addEventListener('click', setDefaultEH, false);
 	}
 };
 
@@ -533,7 +556,7 @@ GeneralView.prototype = {
 	},
 	
 	/* Generates a new graphical input */
-	generateFileSpan: function (thetext,controlname, /* optional */ external) {
+	generateFileSpan: function (thetext,controlname, /* optional */ external,siblings) {
 		var randominputid=WidgetCommon.getRandomUUID();
 
 		// The container of all these 'static' elements
@@ -593,10 +616,26 @@ GeneralView.prototype = {
 
 		// Last children!
 		thediv.appendChild(theinput);
+		
+		if(siblings!=undefined) {
+			if(siblings instanceof Array) {
+				for(var si=0;si<siblings.length;si++) {
+					thediv.appendChild(siblings[si]);
+				}
+			} else {
+				thediv.appendChild(siblings);
+			}
+		}
 
 		thediv.appendChild(containerDiv);
 
 		return thediv;
+	},
+	
+	generateCheckControl: function(thetext,/* optional */isRight,color,setDefaultEH) {
+		var check=new GeneralView.Check(undefined,setDefaultEH,this,thetext,isRight,color);
+		
+		return check;
 	},
 	
 	dispose: function(customDispose) {

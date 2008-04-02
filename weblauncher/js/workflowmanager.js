@@ -207,8 +207,8 @@ function ManagerView(genview) {
 	
 	var manview = this;
 	// As confirm check is no more a real check, let's fake it!
-	var check = this.check = new GeneralView.Check(genview.getElementById('confirm'));
-	this.check.addEventListener('click', function() {
+	var check;
+	check = this.check = new GeneralView.Check(genview.getElementById('confirm'),function() {
 		if(check.checked) {
 			check.doUncheck();
 		} else if(manview.wfselect.selectedIndex!=-1) {
@@ -216,7 +216,7 @@ function ManagerView(genview) {
 		} else {
 			alert('This confirmation can only be checked when a workflow is selected');
 		}
-	},false);
+	});
 	
 	// To update on automatic changes of the selection box
 	this.wfselect.addEventListener('change',function () {
@@ -344,7 +344,7 @@ ManagerView.prototype = {
 		if(workflow.depends.length>0) {
 			thep.appendChild(this.genview.createElement('br'));
 			var thei = this.genview.createElement('i');
-			thei.innerHTML = '(This workflow depends on '+workflow.depends.length+' subworkflow'+((workflow.depends.length>1)?'s':'')+')';
+			thei.innerHTML = '(This workflow depends on '+workflow.depends.length+' external subworkflow'+((workflow.depends.length>1)?'s':'')+')';
 			thep.appendChild(thei);
 		}
 		this.descContainer.appendChild(thep);
@@ -561,20 +561,17 @@ function NewWorkflowView(genview) {
 	this.newWFContainer=genview.getElementById('newWFContainer');
 	this.newWFUploading=genview.getElementById('newWFUploading');
 	
-	this.newWFStyleText=new GeneralView.Check(genview.getElementById('newWFStyleText'));
-	
-	this.newWFStyleFile=new GeneralView.Check(genview.getElementById('newWFStyleFile'));
-	
-	var newwfview = this;
 	// Either text or file
-	this.newWFStyleText.addEventListener('click', function() { newwfview.setTextControl(); }, false);
-	this.newWFStyleFile.addEventListener('click', function() { newwfview.setFileControl(); }, false);
+	var newwfview = this;
+	this.newWFStyleText=new GeneralView.Check(genview.getElementById('newWFStyleText'), function() { newwfview.setTextControl(); });
+	this.newWFStyleFile=new GeneralView.Check(genview.getElementById('newWFStyleFile'), function() { newwfview.setFileControl(); });
 	
 	this.newWFControl = undefined;
 	//this.iframe = undefined;
 	
 	// More on subworkflows
 	this.newSubWFContainer=genview.getElementById('newSubWFContainer');
+	this.embedCheck=undefined;
 	
 	// Setting up data island request
 	if(BrowserDetect.browser=='Konqueror') {
@@ -628,12 +625,19 @@ NewWorkflowView.prototype = {
 	
 	/* Generates a new graphical input */
 	generateSubworkflowSpan: function () {
-		var fileSpan= this.genview.generateFileSpan('Add local subworkflow','workflowDep');
+		var check=this.genview.generateCheckControl('Embed',undefined,undefined,1);
+		var checkSpan = this.genview.createElement('span');
+		checkSpan.className='borderedOption';
+		checkSpan.appendChild(check.control);
+		var fileSpan= this.genview.generateFileSpan('Add local subworkflow&nbsp;','workflowDep',undefined,checkSpan);
+		
+		this.embedCheck=check;
 		this.newSubWFContainer.appendChild(fileSpan);
 	},
 	
 	closeNewWorkflowFrame: function() {
 		if(!this.uploading) {
+			this.embedCheck=undefined;
 			this.genview.closeFrame(this.frameNewId);
 			this.clearView();
 			GeneralView.freeContainer(this.newSubWFContainer);
@@ -643,6 +647,11 @@ NewWorkflowView.prototype = {
 	upload: function () {
 		if(!this.uploading) {
 			if(this.newWFControl && this.newWFControl.value && this.newWFControl.value.length > 0) {
+				if(this.embedCheck.checked) {
+					var freeze = this.genview.createHiddenInput('freezeWorkflowDeps','1');
+					this.newSubWFContainer.appendChild(freeze);
+				}
+				
 				this.newWFUploading.style.visibility='visible';
 				
 				/*

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <IWWEMpatterns xmlns="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend/patterns">
     <detectionPattern name="PDB">
-        <description>First pattern for IWWE&amp;M</description>
+        <description>PDB extractor</description>
         <applyToMIME type="text/xml"/>
         <expression>
             <xpath expression="//moby:PDB-Text/moby:String[@articleName='content' or @moby:articleName='content']">
@@ -12,9 +12,10 @@
             <reExpression/>
         </extractionStep>
         <assignMIME type="chemical/x-pdb"/>
+        <assignMIME type="text/plain"/>
     </detectionPattern>
     <detectionPattern name="EnrichedPDB">
-        <description>Second pattern for IWWE&amp;M</description>
+        <description>Enriched PDB extractor</description>
         <applyToMIME type="text/xml"/>
         <expression>
             <xpath expression="//moby:PDB_Enriched">
@@ -32,9 +33,10 @@
             </xpath>
         </extractionStep>
         <assignMIME type="chemical/x-pdb"/>
+        <assignMIME type="text/plain"/>
     </detectionPattern>
     <detectionPattern name="FsolvText">
-        <description>Third pattern for IWWE&amp;M</description>
+        <description>FSolv Extractor</description>
         <applyToMIME type="text/xml"/>
         <expression>
             <xpath expression="//moby:FSOLV_Text/moby:String[@articleName='content' or @moby:articleName='content']">
@@ -44,6 +46,46 @@
         <extractionStep encoding="raw">
             <reExpression/>
         </extractionStep>
+        <assignMIME type="text/plain"/>
+    </detectionPattern>
+    <detectionPattern name="GFF">
+        <description>GFF Extractor</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//moby:GFF/moby:String[@articleName='content' or @moby:articleName='content']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="raw">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="text/plain"/>
+    </detectionPattern>
+    <detectionPattern name="MOBYJPEG">
+        <description>MOBY Base64 JPEG image extractor</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//moby:b64_encoded_jpeg/moby:String[@articleName='content' or @moby:articleName='content']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="base64">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="image/jpeg"/>
+    </detectionPattern>
+    <detectionPattern name="MOBYNewick">
+        <description>MOBY Newick extractor (Newick format is defined at http://evolution.genetics.washington.edu/phylip/newicktree.html)</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//moby:Newick_Text/moby:String[@articleName='content' or @moby:articleName='content']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="raw">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="biotree/newick"/>
         <assignMIME type="text/plain"/>
     </detectionPattern>
 </IWWEMpatterns>

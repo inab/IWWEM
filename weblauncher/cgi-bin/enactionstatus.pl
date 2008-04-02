@@ -66,11 +66,13 @@ sub processStep($$$;$) {
 	my($resultsdir)=$basedir . '/Results';
 	appendInputs($inputsfile,$outputDoc,$es);
 	appendOutputs($outputsfile,$outputDoc,$es);
-	appendResults($resultsdir,$outputDoc,$es,$enactionReport);
+	return appendResults($resultsdir,$outputDoc,$es,$enactionReport);
 }
 
 sub appendResults($$$;$) {
 	my($resultsdir,$outputDoc,$parent,$enactionReport)=@_;
+	
+	my($failedSth)=undef;
 	
 	if(-d $resultsdir) {
 		my($RDIR);
@@ -112,6 +114,7 @@ sub appendResults($$$;$) {
 						} elsif($name eq 'ServiceFailure') {
 							$stop=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
 							$state='error';
+							$failedSth=1;
 						} elsif($name eq 'ServiceError') {
 							push(@errreport,[$child->getAttribute('Message'),$child->textContent()]);
 						}
@@ -153,7 +156,8 @@ sub appendResults($$$;$) {
 					if(-d $iteratedir) {
 						my($iternode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'iterations');
 						$step->appendChild($iternode);
-						appendResults($iteratedir,$outputDoc,$iternode);
+						my($subFailed)=appendResults($iteratedir,$outputDoc,$iternode);
+						$failedSth=1  if(defined($subFailed));
 					}
 				}
 				
@@ -177,6 +181,7 @@ sub appendResults($$$;$) {
 					$state = 'finished';
 				} elsif( -f $jobdir . '/FAILED.txt') {
 					$state = 'error';
+					$failedSth=1;
 				} elsif( -f $jobdir . '/START') {
 					$state = 'running';
 				} else {
@@ -195,7 +200,8 @@ sub appendResults($$$;$) {
 					if(-d $iteratedir) {
 						my($iternode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'iterations');
 						$step->appendChild($iternode);
-						appendResults($iteratedir,$outputDoc,$iternode);
+						my($subFailed)=appendResults($iteratedir,$outputDoc,$iternode);
+						$failedSth=1  if(defined($subFailed));
 					}
 				}
 				
@@ -204,6 +210,8 @@ sub appendResults($$$;$) {
 			closedir($RDIR);
 		}
 	}
+	
+	return $failedSth;
 }
 
 sub getFreshEnactionReport($$) {
@@ -541,7 +549,8 @@ foreach my $jobId (@jobIdList) {
 			
 			# Now including subinformation...
 			if(defined($includeSubs)) {
-				processStep($jobdir,$outputDoc,$es,(defined($enactionReport) && $enactionReport->localname eq 'enactionReport')?$enactionReport:undef);
+				my($failedSth)=processStep($jobdir,$outputDoc,$es,(defined($enactionReport) && $enactionReport->localname eq 'enactionReport')?$enactionReport:undef);
+				$state='error'  if($state eq 'finished' && defined($failedSth));
 			}
 		}
 	}

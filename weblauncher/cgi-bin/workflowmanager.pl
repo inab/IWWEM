@@ -294,12 +294,17 @@ if(defined($hasInputWorkflow)) {
 								if(defined($uritext) && length($uritext)>0) {
 									if(exists($WFhash{$uritext})) {
 										# Cleaning up the content of the dependency
-										foreach my $child ($dep->childNodes()) {
-											$dep->removeChild($child);
-										}
+										# and changing its content
 										if(defined($doFreezeWorkflowDeps)) {
-											$dep->appendChild($WFdoc->importNode($WFhash{$uritext}[0]->documentElement));
+											my($parent)=$dep->parentNode();
+											foreach my $child ($parent->childNodes()) {
+												$parent->removeChild($child);
+											}
+											$parent->appendChild($WFdoc->importNode($WFhash{$uritext}[0]->documentElement));
 										} else {
+											foreach my $child ($dep->childNodes()) {
+												$dep->removeChild($child);
+											}
 											# So we can add new text node with no problem
 											$dep->appendChild($WFdoc->createTextNode($WFhash{$uritext}[3]));
 											# And mark it to save it later because
