@@ -129,11 +129,11 @@
         <assignMIME type="bioinformatics/x-msa"/>
         <assignMIME type="text/plain"/>
     </detectionPattern>
-    <detectionPattern name="MOBYHTMLTreeDet">
-        <description>MOBY Multiple Sequence Alignment Extractor</description>
+    <detectionPattern name="MOBYHTML">
+        <description>MOBY HTML Extractor</description>
         <applyToMIME type="text/xml"/>
         <expression>
-            <xpath expression="//moby:TreeDet_Annotation_HTML/moby:String[@articleName='content' or @moby:articleName='content']">
+            <xpath expression="//moby:text-html/moby:String[@articleName='content' or @moby:articleName='content']">
                 <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
             </xpath>
         </expression>
@@ -142,11 +142,11 @@
         </extractionStep>
         <assignMIME type="text/html"/>
     </detectionPattern>
-    <detectionPattern name="MOBYHTML">
-        <description>MOBY Multiple Sequence Alignment Extractor</description>
+    <detectionPattern name="MOBYHTMLTreeDet">
+        <description>MOBY HTML Extractor (from TreeDet)</description>
         <applyToMIME type="text/xml"/>
         <expression>
-            <xpath expression="//moby:text-html/moby:String[@articleName='content' or @moby:articleName='content']">
+            <xpath expression="//moby:TreeDet_Annotation_HTML/moby:String[@articleName='content' or @moby:articleName='content']">
                 <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
             </xpath>
         </expression>
