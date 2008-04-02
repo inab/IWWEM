@@ -540,6 +540,7 @@ DataBrowser.NewickViewer = {
 		param.setAttribute("value",basehref+"js/atv.conf");
 		applet.appendChild(param);
 		
+		param = genview.createElement("param");
 		param.setAttribute("name","url_of_tree_to_load");
 		param.setAttribute("value",basehref+data);
 		applet.appendChild(param);
@@ -578,6 +579,7 @@ DataBrowser.MSAViewer = {
 		//var fullhref=window.location.href;
 		//var basehref = fullhref.substring(0,fullhref.lastIndexOf('/')+1);
 
+		param = genview.createElement("param");
 		param.setAttribute("name","file");
 		param.setAttribute("value",data);
 		applet.appendChild(param);

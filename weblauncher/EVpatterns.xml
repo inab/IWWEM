@@ -74,6 +74,19 @@
         </extractionStep>
         <assignMIME type="image/jpeg"/>
     </detectionPattern>
+    <detectionPattern name="MOBYTypedImage">
+        <description>MOBY Base64 image extractor</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//moby:Typed_Image/moby:String[@articleName='rawdata' or @moby:articleName='rawdata']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="base64">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="image/*"/>
+    </detectionPattern>
     <detectionPattern name="MOBYNewick">
         <description>MOBY Newick extractor (Newick format is defined at http://evolution.genetics.washington.edu/phylip/newicktree.html)</description>
         <applyToMIME type="text/xml"/>
@@ -87,5 +100,59 @@
         </extractionStep>
         <assignMIME type="biotree/newick"/>
         <assignMIME type="text/plain"/>
+    </detectionPattern>
+    <detectionPattern name="MOBYMSA">
+        <description>MOBY Multiple Sequence Alignment Extractor</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//moby:Sequence_alignment_report/moby:String[@articleName='content' or @moby:articleName='content']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="raw">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="bioinformatics/x-msa"/>
+        <assignMIME type="text/plain"/>
+    </detectionPattern>
+    <detectionPattern name="BADMOBYMSA">
+        <description>MOBY Multiple Sequence Alignment Extractor</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//Sequence_alignment_report/String[@articleName='content' or @moby:articleName='content']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="raw">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="bioinformatics/x-msa"/>
+        <assignMIME type="text/plain"/>
+    </detectionPattern>
+    <detectionPattern name="MOBYHTMLTreeDet">
+        <description>MOBY Multiple Sequence Alignment Extractor</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//moby:TreeDet_Annotation_HTML/moby:String[@articleName='content' or @moby:articleName='content']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="raw">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="text/html"/>
+    </detectionPattern>
+    <detectionPattern name="MOBYHTML">
+        <description>MOBY Multiple Sequence Alignment Extractor</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//moby:text-html/moby:String[@articleName='content' or @moby:articleName='content']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="raw">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="text/html"/>
     </detectionPattern>
 </IWWEMpatterns>
