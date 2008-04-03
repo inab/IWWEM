@@ -281,6 +281,11 @@ function EnactionView(genview) {
 		enactview.disposeEnaction();
 	},false);
 	
+	this.disposeButton=genview.getElementById('disposeButton');
+	WidgetCommon.addEventListener(this.disposeButton,'click',function() {
+		enactview.disposeEnaction(1);
+	},false);
+	
 	//this.svg=new TavernaSVG();
 	
 	this.iterationSelect=genview.getElementById('iterationSelect');
@@ -1284,12 +1289,15 @@ EnactionView.prototype = {
 	
 	disposeEnaction: function(isDispose) {
 		if(
-			this.check.checked &&
-			this.state!='frozen' &&
-			this.state!='dead' &&
-			this.state!='error' &&
-			this.state!='killed' &&
-			this.state!='finished'
+			this.check.checked && (
+				isDispose || (
+					this.state!='frozen' &&
+					this.state!='dead' &&
+					this.state!='error' &&
+					this.state!='killed' &&
+					this.state!='finished'
+				)
+			)
 		) {
 			var sureDispose=confirm('Are you REALLY sure you want to '+(isDispose?'dispose (and kill)':'kill (but not dispose)')+' this enaction?');
 			this.check.doUncheck();
