@@ -27,10 +27,12 @@ public class INBEnactionAsyncReport
 	public final static String SOCKETFILE="socket";
 	private WorkflowInstance wi;
 	private File statusDir;
+	private ServerSocket ss;
 	
 	public INBEnactionAsyncReport(WorkflowInstance wi,File statusDir) {
 		this.wi=wi;
 		this.statusDir=statusDir;
+		this.ss=null;
 	}
 	
 	public void run() {
@@ -75,16 +77,35 @@ public class INBEnactionAsyncReport
 							// Do nothing! (or report it in a log file?)
 						}
 					}
-				} while(true);
+				} while(!ss.isClosed());
 			} catch(FileNotFoundException fnfe) {
 				// Do nothing!!! (or report it in a log file?)
 			} catch(IOException ioe) {
 				// Do nothing!!! (or report it in a log file?)
 			} finally {
 				ss.close();
+				ss=null;
 			}
 		} catch(IOException ioe0) {
 			// Do nothing!!! (or report it in a log file?)
+		}
+	}
+	
+	public void tryStop() {
+		try {
+			if(ss!=null) {
+				ss.close();
+			}
+		} catch(IOException ioe) {
+			// Do nothing!!! (or report it in a log file?)
+		}
+		// Stopping the thread
+		if(isAlive()) {
+			try {
+				join(1500);
+			} catch(InterruptedException ie) {
+				// Do nothing!!! (or report it in a log file?)
+			}
 		}
 	}
 }

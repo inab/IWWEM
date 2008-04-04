@@ -89,7 +89,9 @@ public class INBWorkflowEventListener
 	
 	protected HashMap<String,Integer> iterState;
 	protected HashMap<WorkflowInstance,WorkflowInstance> wInheritance;
-
+	
+	protected INBEnactionAsyncReport t;
+	
 	public INBWorkflowEventListener(File statusDir,ClassLoader lcl)
 	{	this(statusDir,lcl,false);
 	}
@@ -105,6 +107,7 @@ public class INBWorkflowEventListener
 		this.wInheritance=new HashMap<WorkflowInstance,WorkflowInstance>();
 		this.lcl=lcl;
 		currentWI=null;
+		t=null;
 	}
 	
 	/**
@@ -133,7 +136,7 @@ public class INBWorkflowEventListener
 		WorkflowInstance thisWI=e.getWorkflowInstance();
 		if(currentWI==null) {
 			currentWI=thisWI;
-			Thread t=new INBEnactionAsyncReport(thisWI,statusDir);
+			t=new INBEnactionAsyncReport(thisWI,statusDir);
 
 			// The thread can die when the program has finished,
 			// so it has been marked as a server one
@@ -538,6 +541,8 @@ public class INBWorkflowEventListener
 		// Cleaning up!
 		if(e.getWorkflowInstance()==currentWI) {
 			currentWI=null;
+			t.tryStop();
+			t=null;
 		}
 	}
 

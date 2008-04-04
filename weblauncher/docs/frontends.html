@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>INB IWWE&amp;M v0.5.1 frontends call parameters</title>
+<title>INB IWWE&amp;M v0.6 frontends call parameters</title>
 </head>
 <style type="text/css">
 .frontend {
@@ -19,13 +19,13 @@
 }
 </style>
 <body>
-<div align="center"><h1>INB IWWE&amp;M v0.5.1 frontends</h1></div>
+<div align="center"><h1>INB IWWE&amp;M v0.6 frontends</h1></div>
 Currently, IWWE&amp;M has 4 frontends, used by AJAX GUIs:
 <ul>
 <li><tt><a href="#workflowmanager">workflowmanager</a></tt></li>
 <li><tt><a href="#enactionlauncher">enactionlauncher</a></tt></li>
 <li><tt><a href="#enactionstatus">enactionstatus</a></tt></li>
-<li><tt><a href="#enactproxy">enactproxy</a></tt></li>
+<li><tt><a href="#IWWEMproxy">IWWEMproxy</a></tt></li>
 </ul>
 <hr>
 
@@ -93,11 +93,14 @@ parse pure XML loaded in embedded FRAMEs or IFRAMEs due browser limitations. Whe
 by an <tt>xml</tt> tag (for Internet Explorer), and when parameter is <span class="value">2</span>, the content is wrapped by a <tt>div</tt> tag
 (for Konqueror).
 </li>
-<li><u><span class="parameter">workflow</span> <i>(required, multiple)</i></u>: This parameter can be used in two different ways. When this parameter has been passed as a value, then its content is interpreted as a workflow Id associated to a workflow available in the workflow repository. When this parameter has been passed using a POST transfer in multipart/form-data style and it has been marked as a file, then its value is interpreted as the raw content of a workflow definition in Taverna SCUFL format.In any case, the workflow represented by this parameter is used for the enaction process to be started.
+<li><u><span class="parameter">wfId</span> <i>(required)</i></u>: This parameter must have a valid workflow Id associated to a workflow available in the workflow repository. If this parameter is not used, then <span class="parameter">workflow</span> parameter must be used.
 </li>
-<li><u><span class="parameter">BACLAVA_FILE</span> <i>(optional, multiple)</i></u>: This parameter is used to set input values for the enaction process as a whole. As <tt>workflow</tt> parameter, this one can be used in two different ways: when this parameter has been passed as a value, then its content is interpreted as the identifier of an input example associated to the workflow identified by the <span class="parameter">workflow</span> parameter; when this parameter has been passed using a POST transfer in multipart/form-data style and it has been marked as a file, then its value is interpreted as the raw content of a Baclava-formatted file.
+<li><u><span class="parameter">workflow</span> and <span class="parameter">workflowDep</span> <i>(optional, multiple)</i></u>:
+These parameters were designed to upload new workflows to the workflow repository. So, the best enviroment to use them is in a POST transfer, in multipar/form-data style, optionally transferring them as files. <span class="parameter">workflow</span> parameters represent the workflows to be added, in <a href="http://www.mygrid.org.uk/usermanual1.7/scufl_language_wb_features.html">Taverna SCUFL format</a>. As any of the uploaded workflows can have locally referenced dependencies, <span class="parameter">workflowDep</span> parameters can be used to upload those local dependencies along with the workflows to upload. This step is not needed when there is no external dependency (i.e. the dependencies are already embedded in the workflows), or the dependencies are referenced with HTTP, HTTPS or FTP urls.
 </li>
-<li><u><span class="parameter">PARAM_</span> prefixed parameters <i>(optional, multiple)</i></u>: These parameters are used to set values for the inputs of the workflow to be enacted. The text after the <span class="parameter">PARAM_</span> prefix sets the name of the input to be assigned. As <span class="parameter">workflow</span> and <span class="parameter">BACLAVA_FILE</span> parameters, these parameters can be used in two different ways: when any of these parameters has been passed as a value, then its content is interpreted as the raw value; when this parameter has been passed using a POST transfer in multipart/form-data style and it has been marked as a file, then the content of this transferred file is interpreted as the raw content assigned to the parameter.
+<li><u><span class="parameter">BACLAVA_FILE</span> <i>(optional, multiple)</i></u>: This parameter is used to set input values for the enaction process as a whole. This parameter can be used in two different ways: when this parameter has been passed as a value, then its content is interpreted as the identifier of an input example associated to the workflow identified by the <span class="parameter">wfId</span> parameter; when this parameter has been passed using a POST transfer in multipart/form-data style and it has been marked as a file, then its value is interpreted as the raw content of a Baclava-formatted file.
+</li>
+<li><u><span class="parameter">PARAM_</span> prefixed parameters <i>(optional, multiple)</i></u>: These parameters are used to set values for the inputs of the workflow to be enacted. The text after the <span class="parameter">PARAM_</span> prefix sets the name of the input to be assigned. As <span class="parameter">BACLAVA_FILE</span> parameter, these parameters can be used in two different ways: when any of these parameters has been passed as a value, then its content is interpreted as the raw value; when this parameter has been passed using a POST transfer in multipart/form-data style and it has been marked as a file, then the content of this transferred file is interpreted as the raw content assigned to the parameter.
 </li>
 <li><u><span class="parameter">exampleName</span> and <span class="parameter">exampleDesc</span> <i>(optional)</i></u>: These parameters are used to save and describe the input to this workflow enaction as an input example associated to the original workflow. These parameters do not work with inline workflow definitions. <span class="parameter">exampleName</span> has no restrictions in its value, and at the moment it should be encoded in ISO-8859-1. <span class="parameter">exampleDesc</span> is the description of the input example which is being created, and it can be HTML content (also encoded in ISO-8859-1).
 </li>
@@ -138,17 +141,17 @@ be taken. <span class="parameter">snapshotName</span> has no restrictions in its
 </ul>
 
 <hr>
-<a name="enactproxy"><div align="center"><h2>INB IWWE&amp;M: <span class="frontend">enactproxy</span> frontend documentation and call parameters</h2></div></a>
+<a name="IWWEMproxy"><div align="center"><h2>INB IWWE&amp;M: <span class="frontend">IWWEMproxy</span> frontend documentation and call parameters</h2></div></a>
 
 <div align="justify">
-<p>This frontend module was created to overcome some of the limitations of current browsers. Enaction process launched with <span class="frontend">enactionlauncher</span> save both inputs and ouputs of the whole process, intermediate steps and iterations in Baclava XML format. <a href="../enactionviewer.html">AJAX GUI Enaction Viewer</a> allows the end user to browse this information, but some data viewers it uses are only able to handle information coming from an URL. <span class="frontend">enactproxy</span> is responsible of decoding, extracting and streaming this information under demand.
+<p>This frontend module was created to overcome some of the limitations of current browsers. Enaction process launched with <span class="frontend">enactionlauncher</span> save both inputs and ouputs of the whole process, intermediate steps and iterations in Baclava XML format. <a href="../enactionviewer.html">AJAX GUI Enaction Viewer</a> allows the end user to browse this information, but some data viewers it uses are only able to handle information coming from an URL. <span class="frontend">IWWEMproxy</span> is responsible of decoding, extracting and streaming this information under demand.
 </div>
 
 <h3>Call parameters</h3>
 
 <ul>
 <li><u><span class="parameter">jobId</span> <i>(required)</i></u>:
-<span class="frontend">enactproxy</span> frontend needs either an enaction job identifier or an snapshot identifier in order to work and know where to find the information to decode, extract and stream.
+<span class="frontend">IWWEMproxy</span> frontend needs either an enaction job identifier or an snapshot identifier in order to work and know where to find the information to decode, extract and stream.
 </li>
 <li><u><span class="parameter">asMime</span> <i>(required)</i></u>:
 The value of this parameter sets the MIME type used to label the streamed information, so HTTP clients (web browsers, GUIs) are able to select a viewer or a program to use based on it.

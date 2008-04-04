@@ -31,32 +31,25 @@ my($query)=CGI->new();
 # Web applications do need this!
 $|=1;
 	
-# Step Zero, job directory
-my($jobid)=undef;
-my($jobdir)=undef;
-do {
-	$jobid = WorkflowCommon::genUUID();
-	$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
-} while (-d $jobdir);
-mkpath($jobdir);
-
-my($wfile)=$jobdir . '/'. $WorkflowCommon::WORKFLOWFILE;
-my($efile)=$jobdir . '/joberrlog.txt';
+my($hasInputWorkflow)=undef;
+my($hasInputWorkflowDeps)=undef;
 my($workflowId)=undef;
 my($wfilefetched)=undef;
 my($baclavafound)=undef;
-my($inputdir)=$jobdir . '/jobinput';
-mkdir($inputdir);
+
 my(@inputdesc)=();
 my(@baclavadesc)=();
 my($inputcount)=0;
 my($retval)=0;
+my($retvalmsg)=undef;
 my($dataisland)=undef;
 my($dataislandTag)=undef;
 
 my($exampleName)=undef;
 my($exampleDesc)=undef;
 my(@saveExample)=();
+
+my(@parseParam)=();
 
 # First step, parameter and workflow storage (if any!)
 PARAMPROC:
@@ -70,61 +63,23 @@ foreach my $param ($query->param()) {
 		} else {
 			$dataislandTag='div';
 		}
-	} elsif($param eq 'workflow') {
+	} elsif($param eq $WorkflowCommon::PARAMWORKFLOW) {
+		$hasInputWorkflow=1;
 		$wfilefetched=1;
-		my($WORKFLOW)=$query->upload($param);
+	} elsif($param eq $WorkflowCommon::PARAMWORKFLOWDEP) {
+		$hasInputWorkflowDeps=1;
+	} elsif($param eq $WorkflowCommon::PARAMWFID) {
+		$workflowId=$query->param($param);
 		
-		last if($query->cgi_error());
-		
-		my($WFH);
-		if(open($WFH,'>',$wfile)) {
-			unless(defined($WORKFLOW)) {
-				$workflowId=$query->param($param);
-				
-				my($wabspath)=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::WORKFLOWFILE;
-				
-				# Is it a 'sure' path?
-				if(index($workflowId,'/')==0 || index($workflowId,'../')!=-1 || ! -f $wabspath) {
-					$retval = 2;
-					last;
-				}
-				
-				unless(open($WORKFLOW,'<',$wabspath)) {
-					$retval=1;
-					last;
-				}
-			}
-			
-			# Copying the file
-			my($line);
-			while($line=<$WORKFLOW>) {
-				print $WFH $line;
-			}
-			
-			# Time to copy dependencies needed by workflow
-			if(defined($workflowId)) {
-				close($WORKFLOW);
-				my($depsdir)=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::DEPDIR;
-				my($jobdepsdir)=$jobdir.'/'.$WorkflowCommon::DEPDIR;
-				mkpath($jobdepsdir);
-				my($DIR);
-				if(opendir($DIR,$depsdir)) {
-					my($entry);
-					while($entry=readdir($DIR)) {
-						my($fentry)=$depsdir.'/'.$entry;
-						next  if(index($entry,'.')==0 || !($entry =~ /\.xml$/) || !-f $fentry);
-						
-						copy($fentry,$jobdepsdir.'/'.$entry);
-					}
-					closedir($DIR);
-				}
-			}
-			
-			close($WFH);
-		} else {
-			$retval = 3;
+		my($wabspath)=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::WORKFLOWFILE;
+
+		# Is it a 'sure' path?
+		if(index($workflowId,'/')==0 || index($workflowId,'../')!=-1 || ! -f $wabspath) {
+			$retval = 2;
 			last;
 		}
+		$wfilefetched=1;
+		# Deps should be done later...
 	} elsif($param eq $WorkflowCommon::BACLAVAPARAM) {
 		$baclavafound=1;
 	} elsif($param eq $WorkflowCommon::PARAMSAVEEX) {
@@ -132,58 +87,99 @@ foreach my $param ($query->param()) {
 	} elsif($param eq $WorkflowCommon::PARAMSAVEEXDESC) {
 		$exampleDesc=$query->param($param);
 	} elsif(length($param)>length($WorkflowCommon::PARAMPREFIX) && index($param,$WorkflowCommon::PARAMPREFIX)==0) {
-		# Single param handling
-		my $paramName = substr($param,length($WorkflowCommon::PARAMPREFIX));
-		my $paramPath = $inputdir . '/' . $inputcount;
-		
-		my(@PFH)=$query->upload($param);
-		
-		last  if($query->cgi_error());
-		
-		my($isfh)=1;
-		
-		if(scalar(@PFH)==0) {
-			@PFH=$query->param($param);
-			$isfh=undef;
-		}
-		
-		my($many)=undef;
-		
-		my($fcount)=0;
-		my($destfile);
-		if(scalar(@PFH)>1) {
-			$many = 1;
-			mkdir($paramPath);
-			$destfile=$paramPath . '/' . $fcount;
-		} else {
-			$destfile=$paramPath;
-		}
-
-		foreach my $PH (@PFH) {
-			my($PARH);
-			if(open($PARH,'>',$destfile)) {
-				if(defined($isfh)) {
-					my($line);
-					# We hope the file will be in UTF-8
-					while($line=<$PH>) {
-						print $PARH $line;
-					}
-				} else {
-					print $PARH encode('UTF-8',$PH);
-				}
-				close($PARH);
-			} else {
-				$retval = 4;
-				last PARAMPROC;
-			}
-			$fcount++;
-			$destfile=$paramPath . '/' . $fcount;
-		}
-		
-		push(@inputdesc,(defined($many)?'-inputArrayDir':'-inputFile'),$paramName,$paramPath);
-		
-		$inputcount++;
+		push(@parseParam,$param);
 	}
+}
+
+my($parser)=XML::LibXML->new();
+
+# Step Zero, job directory
+my($jobid)=undef;
+my($jobdir)=undef;
+
+if(defined($hasInputWorkflow)) {
+	$workflowId=undef;
+	
+	my($p_res)=undef;
+	($retval,$retvalmsg,$p_res)=WorkflowCommon::parseInlineWorkflows($query,$parser,$hasInputWorkflowDeps,undef,$WorkflowCommon::JOBDIR);
+	$retval=$p_res->[0];
+	$retvalmsg=$p_res->[1];
+	
+	$jobid=$p_res->[0]  if(scalar(@{$p_res})>0);
+	$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
+} else {
+	do {
+		$jobid = WorkflowCommon::genUUID();
+		$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
+	} while (-d $jobdir);
+	mkpath($jobdir);
+}
+
+my($wfile)=$jobdir . '/'. $WorkflowCommon::WORKFLOWFILE;
+my($efile)=$jobdir . '/joberrlog.txt';
+my($inputdir)=$jobdir . '/jobinput';
+mkdir($inputdir);
+
+foreach my $param (@parseParam) {
+	# Single param handling
+	my $paramName = substr($param,length($WorkflowCommon::PARAMPREFIX));
+	my $paramPath = $inputdir . '/' . $inputcount;
+
+	my(@PFH)=$query->upload($param);
+
+	last  if($query->cgi_error());
+
+	my($isfh)=1;
+
+	if(scalar(@PFH)==0) {
+		@PFH=$query->param($param);
+		$isfh=undef;
+	}
+
+	my($many)=undef;
+
+	my($fcount)=0;
+	my($destfile);
+	if(scalar(@PFH)>1) {
+		$many = 1;
+		mkdir($paramPath);
+		$destfile=$paramPath . '/' . $fcount;
+	} else {
+		$destfile=$paramPath;
+	}
+
+	foreach my $PH (@PFH) {
+		my($PARH);
+		if(open($PARH,'>',$destfile)) {
+			if(defined($isfh)) {
+				my($line);
+				# We hope the file will be in UTF-8
+				while($line=<$PH>) {
+					print $PARH $line;
+				}
+			} else {
+				print $PARH encode('UTF-8',$PH);
+			}
+			close($PARH);
+		} else {
+			$retval = 4;
+			last PARAMPROC;
+		}
+		$fcount++;
+		$destfile=$paramPath . '/' . $fcount;
+	}
+
+	push(@inputdesc,(defined($many)?'-inputArrayDir':'-inputFile'),$paramName,$paramPath);
+
+	$inputcount++;
+}
+
+if(defined($workflowId)) {
+	# Copying and patching input workflow
+	my($wabspath)=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::WORKFLOWFILE;
+	my($WFmaindoc)=$parser->parse_file($wabspath);
+	
+	($retval,$retvalmsg)=WorkflowCommon::patchWorkflow($query,$parser,undef,$jobid,$jobdir,undef,$WFmaindoc,$hasInputWorkflowDeps,1,1);
 }
 
 if(defined($baclavafound)) {
@@ -253,7 +249,6 @@ if(defined($exampleName) && defined($workflowId)) {
 		$randfile=$WorkflowCommon::WORKFLOWDIR.'/'.$relrandfile;
 	} while(-f $randfile);
 	
-	my($parser)=XML::LibXML->new();
 	my($catalogfile)=$WorkflowCommon::WORKFLOWDIR.'/'.$workflowId.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
 	my($catalog)=$parser->parse_file($catalogfile);
 	my($example)=$catalog->createElementNS($WorkflowCommon::WFD_NS,'example');
@@ -275,6 +270,7 @@ if(defined($exampleName) && defined($workflowId)) {
 
 # We must signal here errors and exit
 if($retval!=0 || $query->cgi_error() || !defined($wfilefetched)) {
+	print STDERR "RETVAL  $retval  RETVALMSG $retvalmsg  ".$query->cgi_error()."\n";
 	my $error = $query->cgi_error;
 	$error = '500 Internal Server Error'  unless(defined($error));
 	print $query->header(-status=>$error),

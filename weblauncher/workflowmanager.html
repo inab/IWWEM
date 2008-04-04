@@ -1,6 +1,6 @@
 <html>
 <head>
-	<title>INB Web Workflow Manager v0.5.1</title>
+	<title>INB Web Workflow Manager v0.6</title>
 	<!--
 		$Id$
 		workflowmanager.html
@@ -25,7 +25,7 @@
 	<script type="text/javascript" src="js/workflowmanager.js"></script>
 </head>
 <body onload="InitIWWEM(WorkflowManagerCustomInit)" onunload="DisposeIWWEM(WorkflowManagerCustomDispose)">
-<div align="center"><b>INB Web Workflow Enactor &amp; Manager v0.5.1</b></div>
+<div align="center"><b>INB Web Workflow Enactor &amp; Manager v0.6</b></div>
 <form id="formManager" method="post" enctype="multipart/form-data">
 	<table style="width:100%;table-layout:fixed;">
 		<tr><td class="data" style="width:30%">
@@ -116,7 +116,7 @@
 	<div class="secondary">
 		<div align="center">Please introduce your inputs for workflow</div>
 		<form id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data">
-			<input id="workflowHiddenInput" type="hidden" name="workflow"></input>
+			<input id="workflowHiddenInput" type="hidden" name="wfId"></input>
 			<table width="100%">
 				<tr><td>
 					<div align="center" id="enactsvg"></div>

@@ -674,7 +674,11 @@ EnactionView.prototype = {
 				case 'finished':
 				case 'error':
 					var enactview=this;
-					tramp.removeNodeHandler(step.name,this.stepClickHandler,'click');
+					try {
+						tramp.removeNodeHandler(step.name,this.stepClickHandler,'click');
+					} catch(reee) {
+						// Do Nothing(R)
+					}
 					tramp.setNodeHandler(step.name,this.stepClickHandler,'click');
 					break;
 			}

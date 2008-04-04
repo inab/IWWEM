@@ -77,7 +77,7 @@ DataBrowser.LocatedData.prototype = {
 	genDownloadURL: function(mime) {
 		var qsParm={jobId: this.jobId , step: this.stepName , IOMode: this.IOMode , IOPath: this.IOPath , asMime: mime};
 		if(this.iteration!=undefined)  qsParm['iteration']=this.iteration;
-		return WidgetCommon.generateQS(qsParm,"cgi-bin/enactproxy");
+		return WidgetCommon.generateQS(qsParm,"cgi-bin/IWWEMproxy");
 	}
 };
 
@@ -211,7 +211,11 @@ DataBrowser.prototype={
 						}
 
 						// Last, applying view
-						viewer.applyView(dataValue,dataObject.genCallParams(mime),databrowser.databrowserDiv,databrowser.genview);
+						try {
+							viewer.applyView(dataValue,dataObject.genCallParams(mime),databrowser.databrowserDiv,databrowser.genview);
+						} catch(eee) {
+							alert(eee);
+						}
 					}
 				}
 				
@@ -279,7 +283,6 @@ DataBrowser.DefaultViewer = {
 	dataSource:	DataBrowser.Inline,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	[
-		'text/xml',
 		'text/plain',
 		'*'
 	],
@@ -303,6 +306,24 @@ DataBrowser.DefaultViewer = {
 	}
 };
 DataBrowser.addViewer(DataBrowser.DefaultViewer);
+
+DataBrowser.XMLViewer = {
+	dataSource:	DataBrowser.Inline,
+	dataFormat:	DataBrowser.Native,
+	acceptedMIME:	[
+		'text/xml',
+	],
+	applyView: function(data,paramArray,databrowserDiv,genview) {
+		var xmldata=data;
+		if(typeof xmldata == 'string') {
+			var parser = new DOMParser();
+			xmldata = parser.parseFromString(data,'application/xml');
+		}
+		var xmldiv=IWWEMPrettyXML.generateBrowsableXML(xmldata,genview.thedoc);
+		databrowserDiv.appendChild(xmldiv);
+	}
+};
+DataBrowser.addViewer(DataBrowser.XMLViewer);
 
 DataBrowser.HTMLViewer = {
 	dataSource:	DataBrowser.Inline,
