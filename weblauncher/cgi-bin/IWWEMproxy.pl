@@ -105,9 +105,9 @@ if(defined($asMime) && defined($jobId)) {
 				if(defined($isExample)) {
 					$targfile=$jobId.'.xml';
 				} elsif($IOMode eq 'I') {
-					$targfile='Inputs.xml';
+					$targfile=$WorkflowCommon::INPUTSFILE;
 				} elsif($IOMode eq 'O') {
-					$targfile='Outputs.xml';
+					$targfile=$WorkflowCommon::OUTPUTSFILE;
 				}
 				
 				if(defined($targfile)) {

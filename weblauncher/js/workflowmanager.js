@@ -51,7 +51,8 @@ function IODesc(ioD) {
 	
 }
 
-function InputExample(inEx) {
+function InputExample(wfUUID,inEx) {
+	this.wfUUID=wfUUID;
 	this.name=inEx.getAttribute('name');
 	this.uuid=inEx.getAttribute('uuid');
 	this.date=inEx.getAttribute('date');
@@ -63,14 +64,15 @@ InputExample.prototype = {
 	generateOption: function (/* optional */ thedoc) {
 		if(!thedoc)  thedoc=document;
 		var exSelOpt = thedoc.createElement('option');
-		exSelOpt.value = this.uuid;
+		exSelOpt.value = 'example:'+this.wfUUID+':'+this.uuid;
 		exSelOpt.text = this.name+' ('+this.date+')';
 		
 		return exSelOpt;
 	}
 };
 
-function OutputSnapshot(ouSn) {
+function OutputSnapshot(wfUUID,ouSn) {
+	this.wfUUID=wfUUID;
 	this.name=ouSn.getAttribute('name');
 	this.uuid=ouSn.getAttribute('uuid');
 	this.date=ouSn.getAttribute('date');
@@ -81,7 +83,7 @@ OutputSnapshot.prototype = {
 	generateOption: function (/* optional */ thedoc) {
 		if(!thedoc)  thedoc=document;
 		var snSelOpt = thedoc.createElement('option');
-		snSelOpt.value = this.uuid;
+		snSelOpt.value = 'snapshot:'+this.wfUUID+':'+this.uuid;
 		snSelOpt.text = this.name+' ('+this.date+')';
 		
 		return snSelOpt;
@@ -130,12 +132,12 @@ function WorkflowDesc(wfD) {
 					depends.push(child.getAttribute('sub'));
 					break;
 				case 'example':
-					var newExample = new InputExample(child);
+					var newExample = new InputExample(this.uuid,child);
 					examples[newExample.uuid]=newExample;
 					this.hasExamples=1;
 					break;
 				case 'snapshot':
-					var newSnapshot = new OutputSnapshot(child);
+					var newSnapshot = new OutputSnapshot(this.uuid,child);
 					snapshots[newSnapshot.uuid]=newSnapshot;
 					break;
 				case 'input':

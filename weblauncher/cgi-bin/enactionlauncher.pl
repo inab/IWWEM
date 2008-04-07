@@ -34,6 +34,10 @@ $|=1;
 my($hasInputWorkflow)=undef;
 my($hasInputWorkflowDeps)=undef;
 my($workflowId)=undef;
+my($wabspath)=undef;
+my($originalInput)=undef;
+my($reusePrevInput)=undef;
+my($onlySaveAsExample)=undef;
 my($wfilefetched)=undef;
 my($baclavafound)=undef;
 
@@ -69,12 +73,34 @@ foreach my $param ($query->param()) {
 	} elsif($param eq $WorkflowCommon::PARAMWORKFLOWDEP) {
 		$hasInputWorkflowDeps=1;
 	} elsif($param eq $WorkflowCommon::PARAMWFID) {
-		$workflowId=$query->param($param);
+		my($id)=$query->param($param);
 		
-		my($wabspath)=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::WORKFLOWFILE;
-
+		if($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			$workflowId=$1;
+			my($wabsbasepath)=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::SNAPSHOTSDIR . '/' . $2 . '/';
+			$wabspath=$wabsbasepath . $WorkflowCommon::WORKFLOWFILE;
+			
+			$originalInput=$wabsbasepath . $WorkflowCommon::INPUTSFILE;
+		} elsif($id =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+			my($ENHAND);
+			my($wabsbasepath)=$WorkflowCommon::JOBDIR . '/' . $1 . '/';
+			if(open($ENHAND,'<',$wabsbasepath . $WorkflowCommon::WFIDFILE)) {
+				$workflowId=<$ENHAND>;
+				close($ENHAND);
+			} else {
+				$retval=2;
+				last;
+			}
+			$wabspath=$wabsbasepath . $WorkflowCommon::WORKFLOWFILE;
+			
+			$originalInput=$wabsbasepath . $WorkflowCommon::INPUTSFILE;
+		} else {
+			$workflowId=$id;
+			$wabspath=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::WORKFLOWFILE;
+		}
+		
 		# Is it a 'sure' path?
-		if(index($workflowId,'/')==0 || index($workflowId,'../')!=-1 || ! -f $wabspath) {
+		if(index($id,'/')!=-1 || ! -f $wabspath) {
 			$retval = 2;
 			last;
 		}
@@ -82,6 +108,10 @@ foreach my $param ($query->param()) {
 		# Deps should be done later...
 	} elsif($param eq $WorkflowCommon::BACLAVAPARAM) {
 		$baclavafound=1;
+	} elsif($param eq 'reusePrevInput') {
+		$reusePrevInput=1;
+	} elsif($param eq 'onlySaveAsExample') {
+		$onlySaveAsExample=1;
 	} elsif($param eq $WorkflowCommon::PARAMSAVEEX) {
 		$exampleName=$query->param($param);
 	} elsif($param eq $WorkflowCommon::PARAMSAVEEXDESC) {
@@ -176,7 +206,6 @@ foreach my $param (@parseParam) {
 
 if(defined($workflowId)) {
 	# Copying and patching input workflow
-	my($wabspath)=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::WORKFLOWFILE;
 	my($WFmaindoc)=$parser->parse_file($wabspath);
 	
 	($retval,$retvalmsg)=WorkflowCommon::patchWorkflow($query,$parser,undef,$jobid,$jobdir,undef,$WFmaindoc,$hasInputWorkflowDeps,1,1);
@@ -202,7 +231,19 @@ if(defined($baclavafound)) {
 
 			foreach my $exfile (@BFH) {
 				my($baclavaname)=$paramPath.'/'.$fcount.'.xml';
-				my($example)=$WorkflowCommon::WORKFLOWDIR.'/'.$workflowId.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$exfile.'.xml';
+				
+				my($origWFID)=undef;
+				my($exId)=undef;
+				
+				if($exfile =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+					$origWFID=$1;
+					$exId=$2;
+				} else {
+					$origWFID=$workflowId;
+					$exId=$exfile;
+				}
+				
+				my($example)=$WorkflowCommon::WORKFLOWDIR.'/'.$origWFID.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$exId.'.xml';
 				next  if(index($exfile,'/')==0 || index($exfile,'../')!=-1 || ! -f $example );
 				if(copy($example,$baclavaname)) {
 					push(@baclavadesc,'-inputDoc',$baclavaname);
@@ -233,6 +274,14 @@ if(defined($baclavafound)) {
 	}
 	
 	$inputcount++;
+} elsif(defined($originalInput) && defined($reusePrevInput)) {
+	my $paramPath = $inputdir . '/' . $inputcount . '-baclava';
+	my($baclavaname)=$paramPath.'/'.'original.xml';
+	if(copy($originalInput,$baclavaname)) {
+		$inputcount++;
+	} else {
+		$retval=4;
+	}
 }
 
 # This example node will be used to notify
@@ -265,7 +314,7 @@ if(defined($exampleName) && defined($workflowId)) {
 	$catalog->toFile($catalogfile);
 	
 	# Last
-	push(@saveExample,'-saveInputs',$randfile);
+	push(@saveExample,(defined($onlySaveAsExample)?'-onlySaveInputs':'-saveInputs'),$randfile);
 }
 
 # We must signal here errors and exit
@@ -305,7 +354,7 @@ unless(defined($cpid)) {
 	
 	if(defined($workflowId)) {
 		my($WFID);
-		if(open($WFID,'>',$jobdir.'/WFID')) {
+		if(open($WFID,'>',$jobdir.'/'.$WorkflowCommon::WFIDFILE)) {
 			print $WFID $workflowId;
 			close($WFID);
 		}
@@ -347,10 +396,10 @@ unless(defined($cpid)) {
 	open(STDOUT,'>&=',\*STDERR);
 	setsid();
 	
-	# Now it is time to enqueue this query (limited resources)
-	my($mutex)=LockNLog::Mutex->new($WorkflowCommon::MAXJOBS,$WorkflowCommon::JOBCHECKDELAY);
 	# Now trying to become a true workflow launcher!!!!
-	$mutex->mutex(sub {
+	
+	my($submethod)=sub {
+		my($eraseRes)=@_;
 		my($runpid)=fork();
 		unless(defined($runpid)) {
 			my($FATAL);
@@ -360,8 +409,9 @@ unless(defined($cpid)) {
 		} elsif($runpid!=0) {
 			# I'm the son which holds the run slot
 			waitpid($runpid,0);
-			
+
 			# Now, the slot can freed properly
+			rmtree($jobdir)  if(defined($eraseRes));
 		} else {
 			# I'm the grandson, which can be killed
 			setsid();
@@ -370,7 +420,7 @@ unless(defined($cpid)) {
 				print $RUNPID $$;
 				close($RUNPID);
 			}
-			
+
 			{
 				exec($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
 					'-baseDir',$WorkflowCommon::MAVENDIR,
@@ -387,5 +437,12 @@ unless(defined($cpid)) {
 			close($FATAL);
 			print STDERR "FATAL ERROR-1: Failed to become a workflow launcher!\n$!";
 		}
-	});
+	};
+	if(defined($onlySaveAsExample))  {
+		eval $submethod->(1);
+	} else {
+		# Now it is time to enqueue this query (limited resources)
+		my($mutex)=LockNLog::Mutex->new($WorkflowCommon::MAXJOBS,$WorkflowCommon::JOBCHECKDELAY);
+		$mutex->mutex($submethod);
+	}
 }

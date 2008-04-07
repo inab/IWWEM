@@ -21,7 +21,9 @@ use LWP::UserAgent;
 use POSIX qw(strftime);
 use XML::LibXML;
 
-use vars qw($WORKFLOWFILE $SVGFILE $PNGFILE $PDFFILE $DEPDIR $EXAMPLESDIR $SNAPSHOTSDIR);
+use vars qw($WORKFLOWFILE $SVGFILE $PNGFILE $PDFFILE $WFIDFILE $DEPDIR $EXAMPLESDIR $SNAPSHOTSDIR);
+
+use vars qw($INPUTSFILE $OUTPUTSFILE);
 
 use vars qw($WORKFLOWRELDIR $WORKFLOWDIR $JOBRELDIR $JOBDIR $MAXJOBS $JOBCHECKDELAY $LAUNCHERDIR $MAVENDIR);
 
@@ -42,6 +44,7 @@ $WORKFLOWFILE='workflow.xml';
 $SVGFILE='workflow.svg';
 $PDFFILE='workflow.pdf';
 $PNGFILE='workflow.png';
+$WFIDFILE='WFID';
 
 %GRAPHREP=(
 	$WorkflowCommon::SVGFILE => 'image/svg+xml',
@@ -74,7 +77,7 @@ $LAUNCHERDIR = $FindBin::Bin.'/INBWorkflowLauncher';
 # workflowparser and workflowlauncher
 $MAVENDIR = $FindBin::Bin.'/inb-maven';
 
-$PARAMWFID='wfId';
+$PARAMWFID='id';
 $PARAMWORKFLOW='workflow';
 $PARAMWORKFLOWDEP='workflowDep';
 $PARAMISLAND='dataIsland';
@@ -87,6 +90,8 @@ $EXAMPLEPREFIX='example:';
 $ENACTIONPREFIX='enaction:';
 
 $CATALOGFILE='catalog.xml';
+$INPUTSFILE='Inputs.xml';
+$OUTPUTSFILE='Outputs.xml';
 
 $WFD_NS = 'http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend';
 $PAT_NS = $WFD_NS . '/patterns';

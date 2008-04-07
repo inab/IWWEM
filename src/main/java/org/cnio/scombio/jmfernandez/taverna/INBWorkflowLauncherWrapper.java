@@ -83,6 +83,7 @@ public class INBWorkflowLauncherWrapper
 		{"-inputArrayFile","2","A single pair input name / file which contains a list of file names which contain the values"},
 		{"-inputArrayDir","2","A single pair input name / directory where files with the values are stored"},
 		{"-saveInputs","1","All the inputs, saved in a Baclava document"},
+		{"-onlySaveInputs","1","All the inputs, saved in a Baclava document, but no enaction!"},
 		{"-outputDoc","1","All the workflow outputs, saved in a Baclava document"},
 		{"-outputDir","1","All the workflow outputs, saved in a directory which will contain the structure of the outputs"},
 		{"-report","1","Taverna XML report file"},
@@ -112,6 +113,8 @@ public class INBWorkflowLauncherWrapper
 	
 	File saveInputFile;
 	
+	boolean onlySave=false;
+	
 	protected HashMap<String, DataThing> baseInputs = new HashMap<String, DataThing>();
 	
 	public static void main(String[] args) {
@@ -136,7 +139,7 @@ public class INBWorkflowLauncherWrapper
 		// All the tasks from parent (including parameter parsing) have been done
 		ScuflModel model=super.run(args);
 		
-		if(model!=null) {
+		if(model!=null && !onlySave) {
 			WorkflowLauncher launcher = new WorkflowLauncher(model);
 			
 			logger.debug("And now, executing workflow!!!!!");
@@ -265,6 +268,10 @@ public class INBWorkflowLauncherWrapper
 			reportFile = NewFile(values.get(0));
 		} else if(param.equals("-saveInputs")) {
 			saveInputFile=NewFile(values.get(0));
+			onlySave=false;
+		} else if(param.equals("-onlySaveInputs")) {
+			saveInputFile=NewFile(values.get(0));
+			onlySave=true;
 		} else if (param.equals("-input")) {
 			baseInputs.put(values.get(0),DataThingFactory.bake(values.get(1)));
 			logger.debug("Param "+values.get(0)+" has been set to "+values.get(1));

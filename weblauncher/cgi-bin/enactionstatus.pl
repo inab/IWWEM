@@ -61,8 +61,8 @@ sub appendIO($$$$) {
 sub processStep($$$;$) {
 	my($basedir,$outputDoc,$es,$enactionReport)=@_;
 	
-	my($inputsfile)=$basedir . '/Inputs.xml';
-	my($outputsfile)=$basedir . '/Outputs.xml';
+	my($inputsfile)=$basedir . '/' . $WorkflowCommon::INPUTSFILE;
+	my($outputsfile)=$basedir . '/' . $WorkflowCommon::OUTPUTSFILE;
 	my($resultsdir)=$basedir . '/Results';
 	appendInputs($inputsfile,$outputDoc,$es);
 	appendOutputs($outputsfile,$outputDoc,$es);
@@ -149,8 +149,8 @@ sub appendResults($$$;$) {
 				
 				if(defined($includeSubs)) {
 					my($jobdir)=$resultsdir .'/'. $entry;
-					appendInputs($jobdir . '/Inputs.xml',$outputDoc,$step);
-					appendOutputs($jobdir . '/Outputs.xml',$outputDoc,$step);
+					appendInputs($jobdir . '/' . $WorkflowCommon::INPUTSFILE,$outputDoc,$step);
+					appendOutputs($jobdir . '/' . $WorkflowCommon::OUTPUTSFILE,$outputDoc,$step);
 					
 					my($iteratedir)=$jobdir . '/Iterations';
 					if(-d $iteratedir) {
@@ -193,8 +193,8 @@ sub appendResults($$$;$) {
 				$step->setAttribute('state',$state);
 				
 				if(defined($includeSubs)) {
-					appendInputs($jobdir . '/Inputs.xml',$outputDoc,$step);
-					appendOutputs($jobdir . '/Outputs.xml',$outputDoc,$step);
+					appendInputs($jobdir . '/' . $WorkflowCommon::INPUTSFILE,$outputDoc,$step);
+					appendOutputs($jobdir . '/' . $WorkflowCommon::OUTPUTSFILE,$outputDoc,$step);
 					
 					my($iteratedir)=$jobdir . '/Iterations';
 					if(-d $iteratedir) {
@@ -426,7 +426,7 @@ foreach my $jobId (@jobIdList) {
 				my($workflowId)=undef;
 				# Trying to get the workflowId
 				my($WFID);
-				if(open($WFID,'<',$jobdir.'/WFID')) {
+				if(open($WFID,'<',$jobdir.'/'.$WorkflowCommon::WFIDFILE)) {
 					$workflowId=<$WFID>;
 					close($WFID);
 				}
