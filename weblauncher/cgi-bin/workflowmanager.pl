@@ -38,6 +38,11 @@ my($hasInputWorkflow)=undef;
 my($hasInputWorkflowDeps)=undef;
 my($doFreezeWorkflowDeps)=undef;
 
+my $parser = XML::LibXML->new();
+my $context = XML::LibXML::XPathContext->new();
+$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
+$context->registerNs('sn',$WorkflowCommon::WFD_NS);
+
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
 	# We are skipping all unknown params
@@ -49,18 +54,49 @@ foreach my $param ($query->param()) {
 		} else {
 			$dataislandTag='div';
 		}
-	} elsif($param eq 'eraseWFId') {
-		my(@workflowId)=$query->param($param);
+	} elsif($param eq 'eraseId') {
+		my(@iwwemId)=$query->param($param);
 		last if($query->cgi_error());
 		
-		foreach my $wrelpath (@workflowId) {
+		foreach my $irelpath (@iwwemId) {
 			# We are only erasing what it is valid...
-			next  if(index($wrelpath,'/')==0 || index($wrelpath,'../')!=-1);
+			next  if(length($irelpath)==0 || index($irelpath,'/')==0 || index($irelpath,'../')!=-1);
 			
 			# Checking rules should be inserted here...
-			
-			# And last, unlink!
-			rmtree($WorkflowCommon::WORKFLOWDIR.'/'.$wrelpath);
+			if($irelpath =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+				my($wfsnap)=$1;
+				my($snapId)=$2;
+				eval {
+					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catdoc)=$parser->parse_file($catfile);
+
+					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$snapId']",$catdoc);
+					foreach my $snap (@eraseSnap) {
+						$snap->parentNode->removeChild($snap);
+					}
+					$catdoc->toFile($catfile);
+				};
+				rmtree($WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$snapId);
+			} elsif($irelpath =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+				my($wfexam)=$1;
+				my($examId)=$2;
+				eval {
+					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catdoc)=$parser->parse_file($catfile);
+
+					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$examId']",$catdoc);
+					foreach my $exam (@eraseExam) {
+						$exam->parentNode->removeChild($exam);
+					}
+					$catdoc->toFile($catfile);
+				};
+				unlink($WorkflowCommon::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$examId.'.xml');
+			} elsif($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+				rmtree($WorkflowCommon::JOBDIR.'/'.$1);
+			} else {
+				# And last, unlink!
+				rmtree($WorkflowCommon::WORKFLOWDIR.'/'.$irelpath);
+			}
 		}
 	} elsif($param eq $WorkflowCommon::PARAMWORKFLOW) {
 		$hasInputWorkflow=1;
@@ -70,10 +106,6 @@ foreach my $param ($query->param()) {
 		$doFreezeWorkflowDeps=1;
 	}
 }
-
-my $parser = XML::LibXML->new();
-my $context = XML::LibXML::XPathContext->new();
-$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
 
 # Parsing input workflows
 if(defined($hasInputWorkflow)) {

@@ -64,10 +64,10 @@ When this frontend is called with no input parameter, it answers the detailed st
 parameters are used for the workflow repository maintenance:
 
 <ul>
-<li><u><span class="parameter">eraseWFId</span> <i>(optional, multiple)</i></u>:
-When this parameter is set with a workflow identifier, <span class="frontend">workflowmanager</span> frontend disposes all the resources associated
-to the workflow labeled with that identifier before returning the workflow repository status. This parameter can be set many times,
-doing all the workflow erasing operations at once.
+<li><u><span class="parameter">eraseId</span> <i>(optional, multiple)</i></u>:
+When this parameter is set with an identifier (workflow Ids, qualified example Ids, qualified enaction Ids, qualified snapshot Ids), <span class="frontend">workflowmanager</span> frontend disposes all the resources associated
+to the element labeled with that identifier before returning the workflow repository status. This parameter can be set many times,
+doing all the erasing operations at once.
 </li>
 <li><u><span class="parameter">workflow</span> and <span class="parameter">workflowDep</span> <i>(optional, multiple)</i></u>:
 These parameters were designed to upload new workflows to the workflow repository. So, the best enviroment to use them is in a POST transfer, in multipar/form-data style, optionally transferring them as files. <span class="parameter">workflow</span> parameters represent the workflows to be added, in <a href="http://www.mygrid.org.uk/usermanual1.7/scufl_language_wb_features.html">Taverna SCUFL format</a>. As any of the uploaded workflows can have locally referenced dependencies, <span class="parameter">workflowDep</span> parameters can be used to upload those local dependencies along with the workflows to upload. This step is not needed when there is no external dependency (i.e. the dependencies are already embedded in the workflows), or the dependencies are referenced with HTTP, HTTPS or FTP urls.

@@ -373,7 +373,7 @@ foreach my $jobId (@jobIdList) {
 		}
 	} else {
 		# For completion, we handle qualified job Ids
-		$jobId =~ s/^enaction://;
+		$jobId =~ s/^$WorkflowCommon::ENACTIONPREFIX//;
 		$jobdir=$WorkflowCommon::JOBDIR . '/' .$jobId;
 	}
 

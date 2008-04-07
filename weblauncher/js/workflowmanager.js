@@ -449,7 +449,7 @@ ManagerView.prototype = {
 		
 		var qsParm = {};
 		if(wfToErase) {
-			qsParm['eraseWFId']=wfToErase;
+			qsParm['eraseId']=wfToErase;
 		}
 		var listQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/workflowmanager");
 		var listRequest = this.listRequest = new XMLHttpRequest();
