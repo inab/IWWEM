@@ -59,7 +59,6 @@ foreach my $param ($query->param()) {
 		$bundle64=$query->param($param);
 	} elsif($param eq 'withName') {
 		$withName=$query->param($param);
-		$withName=undef   if($withName eq '');
 	}
 	
 	# Error checking
@@ -75,12 +74,20 @@ if(defined($asMime) && defined($jobId)) {
 	# Time to know the overall status of this enaction
 	my($jobdir)=undef;
 	my($wfsnap)=undef;
+	my($isExample)=undef;
 	
 	if(index($jobId,$WorkflowCommon::SNAPSHOTPREFIX)==0) {
 		if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 			$wfsnap=$1;
 			$jobId=$2;
 			$jobdir=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
+		}
+	} elsif(index($jobId,$WorkflowCommon::EXAMPLEPREFIX)==0) {
+		if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+			$wfsnap=$1;
+			$jobId=$2;
+			$jobdir=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::EXAMPLESDIR;
+			$isExample=1;
 		}
 	} else {
 		# For completion, we handle qualified job Ids
@@ -95,7 +102,9 @@ if(defined($asMime) && defined($jobId)) {
 				$retval=-1  unless(!defined($withName) || index($withName,'/')==-1);
 			} else {
 				my($targfile)=undef;
-				if($IOMode eq 'I') {
+				if(defined($isExample)) {
+					$targfile=$jobId.'.xml';
+				} elsif($IOMode eq 'I') {
 					$targfile='Inputs.xml';
 				} elsif($IOMode eq 'O') {
 					$targfile='Outputs.xml';
@@ -107,7 +116,7 @@ if(defined($asMime) && defined($jobId)) {
 						@path=split(/\//,$IOPath);
 					}
 					if(scalar(@path)>0) {
-						unless(defined($withName)) {
+						if(defined($withName) && length($withName)==0) {
 							$withName=join('_',@path);
 							$withName =~ s/\[([^\]]+)\]/-$1/g;
 						}
@@ -115,7 +124,7 @@ if(defined($asMime) && defined($jobId)) {
 						
 						# Now, the physical path
 						my($stepdir)=$jobdir;
-						if(defined($step) && length($step)>0 && $step ne $jobId) {
+						if(!defined($isExample) && defined($step) && length($step)>0 && $step ne $jobId) {
 							$stepdir .= '/Results/'.$step;
 						} else {
 							$step='';

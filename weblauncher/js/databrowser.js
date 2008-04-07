@@ -74,9 +74,10 @@ DataBrowser.LocatedData.prototype = {
 		this.dataObject = dataObject;
 	},
 
-	genDownloadURL: function(mime) {
+	genDownloadURL: function(mime,/* optional */ withName) {
 		var qsParm={jobId: this.jobId , step: this.stepName , IOMode: this.IOMode , IOPath: this.IOPath , asMime: mime};
 		if(this.iteration!=undefined)  qsParm['iteration']=this.iteration;
+		if(withName!=undefined)  qsParm['withName']=withName;
 		return WidgetCommon.generateQS(qsParm,"cgi-bin/IWWEMproxy");
 	}
 };
@@ -188,7 +189,8 @@ DataBrowser.prototype={
 			selmime = '*';
 		}
 		
-		var downloadURL=this.locObject.genDownloadURL(selmime);
+		var fetchURL=this.locObject.genDownloadURL(selmime);
+		var downloadURL=this.locObject.genDownloadURL(selmime,'');
 		this.IOPathSpan.innerHTML='<a href="'+downloadURL+'" target="_blank">'+this.locObject.IOPath+'</a>';
 		var viewers= DataBrowser.Viewers[selmime];
 		if(viewers instanceof Array) {
@@ -206,7 +208,7 @@ DataBrowser.prototype={
 						if(viewer.dataSource==DataBrowser.Inline || dataObject.isLink) {
 							dataValue = dataObject.data[(viewer.dataFormat == DataBrowser.Native)?1:0];
 						} else {
-							dataValue=downloadURL;
+							dataValue=fetchURL;
 							// Left enactproxy base64 case integration
 						}
 

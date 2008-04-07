@@ -166,13 +166,13 @@ be taken. <span class="parameter">snapshotName</span> has no restrictions in its
 
 <ul>
 <li><u><span class="parameter">jobId</span> <i>(required)</i></u>:
-<span class="frontend">IWWEMproxy</span> frontend needs either a qualified or unqualified enaction job identifier or a qualified snapshot identifier in order to work and know where to find the information to decode, extract and stream.
+<span class="frontend">IWWEMproxy</span> frontend needs either a qualified or unqualified enaction job identifier, a qualified snapshot identifier or a qualified example identifier in order to work and know where to find the information to decode, extract and stream.
 </li>
 <li><u><span class="parameter">asMime</span> <i>(required)</i></u>:
 The value of this parameter sets the MIME type used to label the streamed information, so HTTP clients (web browsers, GUIs) are able to select a viewer or a program to use based on it.
 </li>
 <li><u><span class="parameter">withName</span> <i>(optional)</i></u>:
-The value of this parameter sets the suggested name for the streamed content when it is going to be saved by a web browser. If this parameter is not set, the suggested name is derived from the input parameters.
+The value of this parameter sets the suggested name for the streamed content when it is going to be saved by a web browser. If this parameter is set to the empty string, the suggested name is derived from the input parameters.
 </li>
 <li><u><span class="parameter">bundle64</span> <i>(optional)</i></u>:
 When this parameter is set, then the information to decode, extract and stream comes from its value.
@@ -182,14 +182,14 @@ When this parameter is set, then the information to decode, extract and stream c
 If <span class="parameter">bundle64</span> is not set, then information needed to fetch and decode is given by next parameters:
 
 <ul>
-<li><u><span class="parameter">step</span> <i>(required)</i></u>:
-The name of the workflow step which took this input or generated this output.
+<li><u><span class="parameter">step</span> <i>(optional)</i></u>:
+The name of the workflow step which took this input or generated this output. This only make sense for enaction job identifiers and snapshot identifiers, when the information from a concrete step is being fetched.
 </li>
 <li><u><span class="parameter">iteration</span> <i>(optional)</i></u>:
-If the workflow step iterated, the iteration number. Otherwise, the whole step is taken into account.
+If we have set the workflow step and the workflow step iterated, the iteration number. Otherwise, the whole step is taken into account.
 </li>
-<li><u><span class="parameter">IOMode</span> <i>(required, either <span class="value">I</span> or <span class="value">O</span>)</i></u>:
-If this parameter is set to <span class="value">I</span>, then <span class="parameter">IOPath</span> is referring to an input. If this parameter is set to <span class="value">O</span>, then <span class="parameter">IOPath</span> is referring to an output.
+<li><u><span class="parameter">IOMode</span> <i>(optional, either <span class="value">I</span> or <span class="value">O</span>)</i></u>:
+This parameter only makes sense with enaction job and snapshot identifiers. If this parameter is set to <span class="value">I</span>, then <span class="parameter">IOPath</span> is referring to an input. If this parameter is set to <span class="value">O</span>, then <span class="parameter">IOPath</span> is referring to an output.
 </li>
 <li><u><span class="parameter">IOPath</span> <i>(required)</i></u>:
 The virtual path to reach the value to return. These paths are similar to:
