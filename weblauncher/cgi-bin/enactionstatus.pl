@@ -451,8 +451,9 @@ foreach my $jobId (@jobIdList) {
 						if(system("cp","-dpr",$jobdir,$snapdir)==0) {
 							# Last but one, register snapshot
 							my($snapnode)=$catdoc->createElementNS($WorkflowCommon::WFD_NS,'snapshot');
+							# First in unqualified form
 							$snapnode->setAttribute('name',encode('UTF-8',$snapshotName));
-							$snapnode->setAttribute('uuid',$WorkflowCommon::SNAPSHOTPREFIX.$workflowId.':'.$uuid);
+							$snapnode->setAttribute('uuid',$uuid);
 							$snapnode->setAttribute('date',LockNLog::getPrintableNow());
 							if(defined($snapshotDesc) && length($snapshotDesc)>0) {
 								$snapnode->appendChild($catdoc->createCDATASection(encode('UTF-8',$snapshotDesc)));
@@ -464,6 +465,8 @@ foreach my $jobId (@jobIdList) {
 							$catdoc->toFile($catfile);
 
 							# And let's add it to the report
+							# in qualified form
+							$snapnode->setAttribute('uuid',$WorkflowCommon::SNAPSHOTPREFIX.$workflowId.':'.$uuid);
 							$es->appendChild($outputDoc->importNode($snapnode));
 						}
 					};

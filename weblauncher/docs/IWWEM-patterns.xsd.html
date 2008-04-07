@@ -838,7 +838,7 @@ if (gc != null) {
          </tr>
          <tr>
             <th>Documentation</th>
-            <td class="documentation">$Id: IWWEM-patterns.xsd 1227 2008-03-14 18:34:14Z jmfernandez $
+            <td class="documentation">$Id: IWWEM-patterns.xsd 1253 2008-04-01 17:59:37Z jmfernandez $
 
     This schema is used to hold the information about the usable
 recognition patterns. These patterns can be either RE (for raw text)
@@ -983,7 +983,12 @@ information.
                   <span style="margin-left: 0.5em"> name="<span class="type">
                         <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
                      <span class="occurs">[1]</span> 
-                     <p class="documentation">'Symbolic detection name'</p>"</span>&gt;  <span class="occurs">[0..*]</span>  
+                     <p class="documentation">'Symbolic detection name'</p>"</span>
+                  <br/>
+                  <span style="margin-left: 0.5em"> gotLinks="<span class="type">
+                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:boolean</span> 
+                     <span class="occurs">[0..1]</span> 
+                     <p class="documentation">'Does this detection pattern get links to data, instead of raw data?'</p>"</span>&gt;  <span class="occurs">[0..*]</span>  
                   <p class="documentation">'A recognition/detection/extraction pattern. It is applied in two steps. First one, at least one of the input MIME types must match with at least one of the detectable MIME types. Second one, the detection pattern must match the content. Once these two steps are fulfilled, the extraction patterns are applied on the patterned subsets.'</p>
                   <br/>
                   <div style="margin-left: 1.5em">&lt;<a href="#ns_pat" title="Find out namespace of 'pat' prefix">pat</a>:description&gt; <span class="type">
@@ -1129,7 +1134,12 @@ information.
                               <span class="scTag">name</span>="<span class="scContent">name</span>" <span class="scTag">type</span>="<span class="scContent">
                                  <span class="type">
                                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
-                              </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>
+                              </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                           <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                              <span class="scTag">name</span>="<span class="scContent">gotLinks</span>" <span class="scTag">type</span>="<span class="scContent">
+                                 <span class="type">
+                                    <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:boolean</span>
+                              </span>" <span class="scTag">use</span>="<span class="scContent">optional</span>" <span class="scTag">default</span>="<span class="scContent">false</span>"/&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>
                <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:unique</span> 
                   <span class="scTag">name</span>="<span class="scContent">detectionPatternNameUnique</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:selector</span> 
                      <span class="scTag">xpath</span>="<span class="scContent">detectionPattern</span>"/&gt;</div>

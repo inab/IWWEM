@@ -237,8 +237,8 @@ public class INBWorkflowParserWrapper {
 	 * This version has to match the version of the real dependency you have to
 	 * Taverna libraries on your classpath (ie. the pom.xml dependencies).
 	 */
-	public static final String TAVERNA_BASE_VERSION = "1.7.0.0";
-	public static final String TAVERNA_MINOR_VERSION = "1.7.0.0";
+	public static final String TAVERNA_BASE_VERSION = "1.7.1.0";
+	public static final String TAVERNA_MINOR_VERSION = "1.7.1.0";
 	private static final String SCRIPT_NAME="inbworkflowparser";
 	private static final String SVG_ZOOM="SVGzoom.js";
 	private static final String SVG_TOOLTIP="SVGtooltip.js";

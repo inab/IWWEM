@@ -155,4 +155,17 @@
         </extractionStep>
         <assignMIME type="text/html"/>
     </detectionPattern>
+    <detectionPattern name="MOBYGeneExpressionImages" gotLinks="true">
+        <description>MOBY image link extractor HTML Extractor (from TreeDet)</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//moby:GeneExpressionAnnotation/moby:String[@articleName='rawdata' or @moby:articleName='rawdata']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="raw">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="image/*"/>
+    </detectionPattern>
 </IWWEMpatterns>

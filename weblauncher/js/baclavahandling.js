@@ -8,7 +8,7 @@
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
 */
 
-function DataObject(base64Input,nativeInput,/* optional */ params,mimeList) {
+function DataObject(base64Input,nativeInput,/* optional */ params,mimeList,isLink) {
 	if(!base64Input)  base64Input=undefined;
 	if(!nativeInput)  nativeInput=undefined;
 	
@@ -19,6 +19,7 @@ function DataObject(base64Input,nativeInput,/* optional */ params,mimeList) {
 	this.candidateMatches=undefined;
 	this.params=params;
 	this.mimeList=mimeList;
+	this.isLink=isLink;
 }
 
 DataObject.prototype = {

@@ -180,6 +180,7 @@ DataMatcher.Match = function(data,pattern,numMatch) {
 
 DataMatcher.DetectionPattern = function(patternDOM) {
 	this.name=patternDOM.getAttribute('name');
+	this.isLink=patternDOM.getAttribute('gotLinks')=='true';
 	this.description=undefined;
 	this.expression=undefined;
 	this.targetMIME=new Array();
@@ -259,7 +260,7 @@ DataMatcher.DetectionPattern.prototype = {
 						var pmatch=new DataObject((extStep.encoding!='raw')?arrRet:undefined,(extStep.encoding=='raw')?arrRet:undefined);
 						paramArray.push(pmatch);
 					}
-					var datamatch = new DataObject((fextStep.encoding!='raw')?farrRet:undefined,(fextStep.encoding=='raw')?farrRet:undefined,paramArray,this.assignMIME);
+					var datamatch = new DataObject((fextStep.encoding!='raw')?farrRet:undefined,(fextStep.encoding=='raw')?farrRet:undefined,paramArray,this.assignMIME,this.isLink);
 					var match=new DataMatcher.Match(datamatch,this.name,candi);
 					results.push(match);
 				}

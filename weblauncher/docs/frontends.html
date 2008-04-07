@@ -29,6 +29,21 @@ Currently, IWWE&amp;M has 4 frontends, used by AJAX GUIs:
 </ul>
 <hr>
 
+<p>All these frontends use the concept of IDs: workflow IDs, example IDs, enaction IDs, snapshot IDs. All the unqualified IDs have the format of an <a href="http://en.wikipedia.org/wiki/UUID">UUID</a>, but there are some differences when the IDs are fully quilified:</p>
+<ul>
+<li>Any workflow ID has the format of an UUID, for instance 2365b91b-b7ae-4aa9-ae70-e8be4f40c0b3. So, workflow IDs have the same qualified and unqualified representation.</li>
+<li>As an example ID depends on a workflow, a fully qualified example ID has the format of "example:{wUUID}:{eUUID}", where wUUID is the workflow ID and eUUID is the example ID.
+For instance:
+<div align="center">example:0b4d3b5c-d4e7-4697-a831-7be74a35943b:f81c2a2a-3a85-454a-a9fe-077b2fcc6201</div>
+</li>
+<li>Any enaction ID has the format of an UUID, for instance 7fd924fe-17de-428b-b5ca-607fab01eb9a. In some contexts it is needed to differenciate between a workflow ID and an enaction ID, so its qualified form is "enaction:{nUUID}", where nUUID is the enaction ID.
+</li>
+<li>As an snapshot ID depends on a workflow, a fully qualified snapshot ID has the format of
+"snapshot:{wUUID}:{sUUID}", where wUUID is the workflow ID and eUUID is the snapshot ID. For instance:
+<div align="center">snapshot:bd7c0e35-8749-45d9-9340-50f40d72de2f:fb71bf25-c17b-4345-a379-a52c1249ecb7</div>
+</li>
+</ul>
+
 <a name="workflowmanager"><div align="center"><h2>INB IWWE&amp;M: <span class="frontend">workflowmanager</span> frontend documentation and call parameters</h2></div></a>
 
 <div align="justify">

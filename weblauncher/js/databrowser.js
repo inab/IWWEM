@@ -203,7 +203,7 @@ DataBrowser.prototype={
 					if(viewer) {
 						var dataObject = databrowser.dataObject;
 						var dataValue=undefined;
-						if(viewer.dataSource==DataBrowser.Inline) {
+						if(viewer.dataSource==DataBrowser.Inline || dataObject.isLink) {
 							dataValue = dataObject.data[(viewer.dataFormat == DataBrowser.Native)?1:0];
 						} else {
 							dataValue=downloadURL;

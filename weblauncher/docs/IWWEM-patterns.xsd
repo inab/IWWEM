@@ -170,6 +170,11 @@ got from the detection pattern]]></xsd:documentation>
                                 <xsd:documentation><![CDATA[Symbolic detection name]]></xsd:documentation>
                             </xsd:annotation>
                         </xsd:attribute>
+                        <xsd:attribute name="gotLinks" use="optional" type="xsd:boolean" default="false">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[Does this detection pattern get links to data, instead of raw data?]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
                     </xsd:complexType>
                 </xsd:element>
             </xsd:sequence>
