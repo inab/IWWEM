@@ -242,7 +242,11 @@ function ManagerView(genview) {
 		manview.reloadList();
 	},false);
 	
-
+	// SVG resize
+	WidgetCommon.addEventListener(window,'resize',function() {
+		manview.updateSVGSize();
+	},false);
+	
 	/*
 	WidgetCommon.addEventListener(this.wfselect,'change',function () {
 		manview.updateView(function() {
@@ -314,6 +318,13 @@ ManagerView.prototype = {
 		} else {
 			this.clearView(callbackFunc);
 		}
+	},
+	
+	/* This method updates the size of the workflow */
+	updateSVGSize: function () {
+		var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
+		var maxwidth=(parentno.clientWidth-32)+'px';
+		this.svg.SVGrescale(maxwidth,'120mm');
 	},
 	
 	updateViewInternal: function(workflow) {

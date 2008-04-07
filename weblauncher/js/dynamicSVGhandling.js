@@ -141,6 +141,7 @@ TavernaSVG.prototype = {
 
 	SVGrescale: function (lenW, /* optional */ lenH, thedoc) {
 		if(this.SVGtramp) {
+			if(!thedoc && this.current instanceof Array)  thedoc=this.current[5];
 			if(!thedoc)  thedoc=document;
 			
 			if(lenW && lenH) {

@@ -372,6 +372,10 @@ function EnactionView(genview) {
 	
 	// At last, getting the enaction id
 	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg');
+	// SVG resize
+	WidgetCommon.addEventListener(window,'resize',function() {
+		enactview.updateSVGSize();
+	},false);
 }
 
 EnactionView.getJobDir = function(jobId) {
@@ -642,6 +646,13 @@ EnactionView.prototype = {
 			this.generalStatusSpan.innerHTML=gstate;
 			this.svg.removeSVG(callbackFill);
 		}
+	},
+	
+	/* This method updates the size of the workflow */
+	updateSVGSize: function () {
+		var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
+		var maxwidth=(parentno.clientWidth-32)+'px';
+		this.svg.SVGrescale(maxwidth,'120mm');
 	},
 	
 	updateStepView: function(step) {
