@@ -352,11 +352,19 @@ DataBrowser.LinkViewer = {
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	['text/x-taverna-web-url'],
 	applyView: function(data,paramArray,databrowserDiv,genview) {
+		var ifraId='_ifra_';
+		databrowserDiv.innerHTML="<a href='"+data+"'>"+data+
+			"</a><br><iframe id='"+ifraId+
+			"' name='"+ifraId+
+			"' src='"+data+
+			"' frameborder='0' style='margin: 0px; padding: 0px; overflow: auto; height:100%; width: 100%;'></iframe>";
+		/*
 		var a=genview.createElement('a');
 		a.href=data;
 		a.target='_blank';
 		a.innerHTML=data;
 		databrowserDiv.appendChild(a);
+		*/
 	}
 };
 DataBrowser.addViewer(DataBrowser.LinkViewer);
