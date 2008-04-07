@@ -141,7 +141,7 @@ enactions and enaction snapshots.</p>
 
 <ul>
 <li><u><span class="parameter">jobId</span> <i>(required)</i></u>:
-<span class="frontend">enactionstatus</span> frontend needs either an enaction job identifier or an snapshot identifier.
+<span class="frontend">enactionstatus</span> frontend needs either an enaction job identifier (either qualified or unqualified) or a qualified snapshot identifier.
 </li>
 <li><u><span class="parameter">dispose</span> <i>(optional, either <span class="value">0</span> or <span class="value">1</span>)</i></u>:
 If this parameter is set to <span class="value">0</span>, the enaction process is killed (if it is still running).
@@ -166,7 +166,7 @@ be taken. <span class="parameter">snapshotName</span> has no restrictions in its
 
 <ul>
 <li><u><span class="parameter">jobId</span> <i>(required)</i></u>:
-<span class="frontend">IWWEMproxy</span> frontend needs either an enaction job identifier or an snapshot identifier in order to work and know where to find the information to decode, extract and stream.
+<span class="frontend">IWWEMproxy</span> frontend needs either a qualified or unqualified enaction job identifier or a qualified snapshot identifier in order to work and know where to find the information to decode, extract and stream.
 </li>
 <li><u><span class="parameter">asMime</span> <i>(required)</i></u>:
 The value of this parameter sets the MIME type used to label the streamed information, so HTTP clients (web browsers, GUIs) are able to select a viewer or a program to use based on it.

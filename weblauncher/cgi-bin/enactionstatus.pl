@@ -372,6 +372,8 @@ foreach my $jobId (@jobIdList) {
 			$es->setAttribute('relURI',$WorkflowCommon::WORKFLOWRELDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR);
 		}
 	} else {
+		# For completion, we handle qualified job Ids
+		$jobId =~ s/^enaction://;
 		$jobdir=$WorkflowCommon::JOBDIR . '/' .$jobId;
 	}
 

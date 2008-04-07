@@ -83,6 +83,8 @@ if(defined($asMime) && defined($jobId)) {
 			$jobdir=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
 		}
 	} else {
+		# For completion, we handle qualified job Ids
+		$jobId =~ s/^enaction://;
 		$jobdir=$WorkflowCommon::JOBDIR . '/' .$jobId;
 	}
 	
