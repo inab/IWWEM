@@ -898,7 +898,7 @@ if (gc != null) {
          </tr>
          <tr>
             <th>Documentation</th>
-            <td class="documentation">$Id: IWWEM-messages.xsd 1253 2008-04-01 17:59:37Z jmfernandez $
+            <td class="documentation">$Id: IWWEM-messages.xsd 1268 2008-04-07 17:29:30Z jmfernandez $
 	
 This schema was designed to model
 the messages between frontend modules and AJAX layer of
@@ -1773,7 +1773,7 @@ The textual content of this element is the description of the example (possibly 
                <span style="margin-left: 0.5em"> uuid="<span class="type">
                      <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
                   <span class="occurs">[1]</span> 
-                  <p class="documentation">'The snapshot UUID. As this UUID has only meaning taking into account the context workflow, it is it unqualified form'</p>"</span>
+                  <p class="documentation">'The example UUID. As this UUID has only meaning taking into account the context workflow, it is it unqualified form'</p>"</span>
                <br/>
                <span style="margin-left: 0.5em"> name="<span class="type">
                      <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
@@ -2559,10 +2559,10 @@ The textual content of this element is the description of the example (possibly 
             <img usemap="#h-507358049" src="schemaDiagrams/h-507358049.png"/>
             <!--
             Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-507358049.map--><map name="h-507358049">
-               <area shape="rect" alt="h1073158951" coords="457,787,828,843"
+               <area shape="rect" alt="h1073158951" coords="457,839,828,895"
                      href="IWWEM-messages.xsd.html#h1073158951"/>
 
-               <area shape="rect" alt="h1550451623" coords="457,853,828,909"
+               <area shape="rect" alt="h1550451623" coords="457,905,828,961"
                      href="IWWEM-messages.xsd.html#h1550451623"/>
 
             </map>
@@ -2582,6 +2582,11 @@ The textual content of this element is the description of the example (possibly 
          </div>
          <div id="h1300956578_xibox" class="contents">
             <div style="margin-left: 0em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:workflow<br/>
+               <span style="margin-left: 0.5em"> uuid="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
+                  <span class="occurs">[1]</span> 
+                  <p class="documentation">'The workflow UUID. As the workflow can be in an enaction or an snapshot, it is always in qualified form'</p>"</span>
+               <br/>
                <span style="margin-left: 0.5em"> lsid="<span class="type">
                      <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
                   <span class="occurs">[1]</span> 
@@ -2732,6 +2737,11 @@ The textual content of this element is the description of the example (possibly 
                         <span class="scTag">ref</span>="<span class="scContent">
                            <a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:<a title="Jump to &#34;snapshot&#34; element declaration." href="#h1550451623">snapshot</a>
                         </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>&lt;/<span class="scTag">xsd:sequence</span>&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                     <span class="scTag">name</span>="<span class="scContent">uuid</span>" <span class="scTag">type</span>="<span class="scContent">
+                        <span class="type">
+                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                     </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
                   <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
                      <span class="scTag">name</span>="<span class="scContent">lsid</span>" <span class="scTag">type</span>="<span class="scContent">
                         <span class="type">

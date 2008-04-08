@@ -34,6 +34,7 @@ my($retval)=0;
 my($retvalmsg)=undef;
 my($dataisland)=undef;
 my($dataislandTag)=undef;
+my($id)=undef;
 my($hasInputWorkflow)=undef;
 my($hasInputWorkflowDeps)=undef;
 my($doFreezeWorkflowDeps)=undef;
@@ -102,6 +103,8 @@ foreach my $param ($query->param()) {
 		$hasInputWorkflow=1;
 	} elsif($param eq $WorkflowCommon::PARAMWORKFLOWDEP) {
 		$hasInputWorkflowDeps=1;
+	} elsif($param eq $WorkflowCommon::PARAMWFID) {
+		$id=$query->param($param);
 	} elsif($param eq 'freezeWorkflowDeps') {
 		$doFreezeWorkflowDeps=1;
 	}
@@ -128,10 +131,39 @@ if($query->cgi_error()) {
 my(@dirstack)=('.');
 my(@workflowlist)=();
 
+$id=''  unless(defined($id));
+my($baseListDir)=undef;
+my($listDir)=undef;
+my($subId)=undef;
+my($uuidPrefix)=undef;
+if(index($id,$WorkflowCommon::ENACTIONPREFIX)==0) {
+	$baseListDir=$WorkflowCommon::JOBRELDIR;
+	$listDir=$WorkflowCommon::JOBDIR;
+	$uuidPrefix=$WorkflowCommon::ENACTIONPREFIX;
+	
+	if($id =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+		$subId=$1;
+	}
+} elsif($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+)/) {
+	$baseListDir=$WorkflowCommon::WORKFLOWRELDIR . '/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
+	$listDir=$WorkflowCommon::WORKFLOWDIR .'/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
+	$uuidPrefix=$WorkflowCommon::SNAPSHOTPREFIX . $1 . ':';
+	
+	if($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+		$subId=$2;
+	}
+} else {
+	$baseListDir=$WorkflowCommon::WORKFLOWRELDIR;
+	$listDir=$WorkflowCommon::WORKFLOWDIR;
+	$uuidPrefix='';
+	
+	$subId=$id  if(length($id)>0);
+}
+
 # Looking for workflows
 foreach my $dir (@dirstack) {
 	my($WFDIR);
-	my($fdir)=$WorkflowCommon::WORKFLOWDIR.'/'.$dir;
+	my($fdir)=$listDir.'/'.$dir;
 	if(opendir($WFDIR,$fdir)) {
 		my($entry);
 		my(@posdirstack)=();
@@ -143,7 +175,7 @@ foreach my $dir (@dirstack) {
 			my($rentry)=($dir ne '.')?($dir.'/'.$entry):$entry;
 			if($entry eq $WorkflowCommon::WORKFLOWFILE) {
 				$foundworkflowdir=1;
-			} elsif(-d $fentry) {
+			} elsif(-d $fentry && (!defined($subId) || ($subId eq $entry))) {
 				push(@posdirstack,$rentry);
 			}
 		}
@@ -161,7 +193,7 @@ foreach my $dir (@dirstack) {
 my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
 my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflowlist');
 $root->setAttribute('time',LockNLog::getPrintableNow());
-$root->setAttribute('relURI',$WorkflowCommon::WORKFLOWRELDIR);
+$root->setAttribute('relURI',$baseListDir);
 $outputDoc->setDocumentElement($root);
 
 $root->appendChild($outputDoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTWM) ));
@@ -179,17 +211,17 @@ if($retval!=0) {
 foreach my $wf (@workflowlist) {
 	eval {
 		my($relwffile)=$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
-		my $doc = $parser->parse_file($WorkflowCommon::WORKFLOWDIR.'/'.$relwffile);
+		my $doc = $parser->parse_file($listDir.'/'.$relwffile);
 		# Getting description from workflow definition
 		my @nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
 		if(scalar(@nodelist)>0) {
 			my $wfe = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflow');
 			my($desc)=$nodelist[0];
-			$wfe->setAttribute('uuid',$wf);
+			$wfe->setAttribute('uuid',$uuidPrefix.$wf);
 			$wfe->setAttribute('lsid',$desc->getAttribute('lsid'));
 			$wfe->setAttribute('author',$desc->getAttribute('author'));
 			$wfe->setAttribute('title',$desc->getAttribute('title'));
-			my($wffile)=$WorkflowCommon::WORKFLOWDIR.'/'.$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
+			my($wffile)=$listDir.'/'.$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
 			$wfe->setAttribute('path',$relwffile);
 			my $svg = $wf.'/'.$WorkflowCommon::SVGFILE;
 			$wfe->setAttribute('svg',$svg);
@@ -204,7 +236,7 @@ foreach my $wf (@workflowlist) {
 			while(($gfile,$gmime)=each(%WorkflowCommon::GRAPHREP)) {
 				my $rfile = $wf.'/'.$gfile;
 				# Only include what has been generated!
-				if( -f $WorkflowCommon::WORKFLOWDIR.'/'.$rfile) {
+				if( -f $listDir.'/'.$rfile) {
 					my($gchild)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'graph');
 					$gchild->setAttribute('mime',$gmime);
 					$gchild->appendChild($outputDoc->createTextNode($rfile));
@@ -215,7 +247,7 @@ foreach my $wf (@workflowlist) {
 			# Now, including dependencies
 			my($DEPDIRH);
 			my($depreldir)=$wf.'/'.$WorkflowCommon::DEPDIR;
-			my($depdir)=$WorkflowCommon::WORKFLOWDIR.'/'.$depreldir;
+			my($depdir)=$listDir.'/'.$depreldir;
 			if(opendir($DEPDIRH,$depdir)) {
 				my($entry);
 				while($entry=readdir($DEPDIRH)) {
@@ -233,7 +265,7 @@ foreach my $wf (@workflowlist) {
 			}
 			
 			# Getting Inputs
-			@nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'source');
+			@nodelist = $context->findnodes('/s:scufl/s:source',$doc);
 			foreach my $source (@nodelist) {
 				my $input = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'input');
 				$input->setAttribute('name',$source->getAttribute('name'));
@@ -261,7 +293,7 @@ foreach my $wf (@workflowlist) {
 			}
 			
 			# And Outputs
-			@nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'sink');
+			@nodelist = $context->findnodes('/s:scufl/s:sink',$doc);
 			foreach my $sink (@nodelist) {
 				my $output = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'output');
 				$output->setAttribute('name',$sink->getAttribute('name'));
@@ -289,16 +321,20 @@ foreach my $wf (@workflowlist) {
 			}
 			
 			# Now importing the examples catalog
-			my($examples)=$parser->parse_file($WorkflowCommon::WORKFLOWDIR.'/'.$wf.'/'.$WorkflowCommon::EXAMPLESDIR . '/' . $WorkflowCommon::CATALOGFILE);
-			for my $child ($examples->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'example')) {
-				$wfe->appendChild($outputDoc->importNode($child));
-			}
+			eval {
+				my($examples)=$parser->parse_file($listDir.'/'.$wf.'/'.$WorkflowCommon::EXAMPLESDIR . '/' . $WorkflowCommon::CATALOGFILE);
+				for my $child ($examples->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'example')) {
+					$wfe->appendChild($outputDoc->importNode($child));
+				}
+			};
 			
 			# And the snapshots one!
-			my($snapshots)=$parser->parse_file($WorkflowCommon::WORKFLOWDIR.'/'.$wf.'/'.$WorkflowCommon::SNAPSHOTSDIR . '/' . $WorkflowCommon::CATALOGFILE);
-			for my $child ($snapshots->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'snapshot')) {
-				$wfe->appendChild($outputDoc->importNode($child));
-			}
+			eval {
+				my($snapshots)=$parser->parse_file($listDir.'/'.$wf.'/'.$WorkflowCommon::SNAPSHOTSDIR . '/' . $WorkflowCommon::CATALOGFILE);
+				for my $child ($snapshots->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'snapshot')) {
+					$wfe->appendChild($outputDoc->importNode($child));
+				}
+			};
 			
 			# At last, appending the new workflow entry
 			$root->appendChild($wfe);
