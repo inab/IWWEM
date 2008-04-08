@@ -10,7 +10,7 @@
 
 use strict;
 
-#use Encode;
+use Encode;
 use FindBin;
 use CGI;
 use MIME::Base64;
@@ -40,6 +40,7 @@ my($IOMode)=undef;
 my($IOPath)=undef;
 my($bundle64)=undef;
 my($withName)=undef;
+my($charset)=undef;
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
@@ -55,6 +56,10 @@ foreach my $param ($query->param()) {
 		$IOMode=$query->param($param);
 	} elsif($param eq 'IOPath') {
 		$IOPath=$query->param($param);
+		$IOPath=undef  unless(length($IOPath)>0);
+	} elsif($param eq 'charset') {
+		$charset=$query->param($param);
+		$charset=undef  unless(length($charset)>0);
 	} elsif($param eq 'bundle64') {
 		$bundle64=$query->param($param);
 	} elsif($param eq 'withName') {
@@ -70,11 +75,11 @@ my($retval)=0;
 my($bacio)=undef;
 my(@path)=();
 my($facet)=undef;
-if(defined($asMime) && defined($jobId)) {
+my($isExample)=undef;
+if((!defined($IOPath) ||defined($asMime)) && defined($jobId)) {
 	# Time to know the overall status of this enaction
 	my($jobdir)=undef;
 	my($wfsnap)=undef;
-	my($isExample)=undef;
 	
 	if(index($jobId,$WorkflowCommon::SNAPSHOTPREFIX)==0) {
 		if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
@@ -97,7 +102,7 @@ if(defined($asMime) && defined($jobId)) {
 	
 	# Is it a valid job id?
 	if(index($jobId,'/')==-1 && defined($jobdir) && -d $jobdir && -r $jobdir) {
-		if($asMime =~ /^[^ \/\n\t]+\/[^ \/\n\t]+/) {
+		if(!defined($IOPath) || $asMime =~ /^[^ \/\n\t]+\/[^ \/\n\t]+/) {
 			if(defined($bundle64)) {
 				$retval=-1  unless(!defined($withName) || index($withName,'/')==-1);
 			} else {
@@ -112,15 +117,15 @@ if(defined($asMime) && defined($jobId)) {
 				
 				if(defined($targfile)) {
 					# The pseudo XPath IOPath
-					if(defined($IOPath)) {
+					if(defined($IOPath) && length($IOPath)>0) {
 						@path=split(/\//,$IOPath);
 					}
-					if(scalar(@path)>0) {
+					if(!defined($IOPath) || length($IOPath)==0 || scalar(@path)>0) {
 						if(defined($withName) && length($withName)==0) {
 							$withName=join('_',@path);
 							$withName =~ s/\[([^\]]+)\]/-$1/g;
 						}
-						$facet=shift(@path);
+						$facet=shift(@path) if(scalar(@path)>0);
 						
 						# Now, the physical path
 						my($stepdir)=$jobdir;
@@ -182,136 +187,190 @@ if($retval ne '0' || $query->cgi_error()) {
 	my $error = $query->cgi_error;
 	$error = '500 Internal Server Error'  unless(defined($error));
 	print $query->header(-status=>$error),
-		$query->start_html('EnactProxy Problems'),
+		$query->start_html('IWWEMproxy Problems'),
 		$query->h2('Request not processed because some parameter was not properly provided'.(($retval ne '0')?" (Errcode=$retval)":'')),
 		$query->strong($error);
 	exit 0;
 }
 
-my($retmesg)=undef;
+my($dec)=undef;
 
-# Now it is time to work!
-my($pathi)=undef;
-unless(defined($bundle64)) {
+if(defined($IOPath) && (length($IOPath)>0)) {
+	my($retmesg)=undef;
+	
+	# Now it is time to work!
+	my($pathi)=undef;
+	unless(defined($bundle64)) {
+		eval {
+			my($context)=XML::LibXML::XPathContext->new();
+			$context->registerNs('b',$WorkflowCommon::BACLAVA_NS);
+
+			my($xpathfetch)="/b:dataThingMap/b:dataThing[\@key='$facet']/b:myGridDataDocument/";
+
+			my($pathlength)=scalar(@path);
+			for($pathi=$pathlength-1;$pathi>=0;$pathi--) {
+				if(index($path[$pathi],'#')==0) {
+					last;
+				}
+			}
+			my($effpathlength)=($pathi>=0)?$pathi:$pathlength;
+			if($effpathlength>0) {
+				$xpathfetch .= 'b:partialOrder/b:itemList/';
+				$effpathlength--;
+				for(my $pathidx=0; $pathidx<$effpathlength; $pathidx++) {
+					$xpathfetch .= "b:partialOrder[\@index='$path[$pathidx]']/b:itemList/";
+				}
+				$xpathfetch .= "b:dataElement[\@index='$path[$effpathlength]']";
+			} else {
+				$xpathfetch .= 'b:dataElement';
+			}
+
+			# Last step
+			$xpathfetch .= '/b:dataElementData';
+			my(@datanodes)=$context->findnodes($xpathfetch,$bacio);
+
+			if(scalar(@datanodes)!=0) {
+				$bundle64=$datanodes[0]->textContent();
+			} else {
+				$retmesg="XPath $xpathfetch not found";
+			}
+		};
+
+		if($@) {
+			if(defined($retmesg)) {
+				$retmesg .= "\n".$@;
+			} else {
+				$retmesg=$@;
+			}
+		}
+	}
+
+	# We must signal here late errors
+	if(defined($retmesg)) {
+		print $query->header(-status=> '404 Not Found'),
+			$query->start_html('IWWEMproxy Problems'),
+			$query->h2('Request not processed because '.$retmesg);
+		exit 0;
+	}
+
+	# And now, decoding
+	$dec=decode_base64($bundle64);
+
+	# Do we have to do further processing?
+	if($pathi!=-1) {
+		# We are going to parse!
+		my($parser)=XML::LibXML->new();
+		my($context)=XML::LibXML::XPathContext->new();
+		$context->registerNs('pat',$WorkflowCommon::PAT_NS);
+		#$context->registerNs('s',$WorkflowCommon::SCUFL_NS);
+
+		my($docpat);
+		eval {
+			$docpat=$parser->parse_file($WorkflowCommon::PATTERNSFILE);
+		};
+		unless($@) {
+			my($pathlength)=scalar(@path);
+			for(;$pathi<$pathlength;$pathi++) {
+				if($path[$pathi] =~ /^#([^\[\]]+)\[([0-9]+)\]$/) {
+					my($patternName)=$1;
+					my($match)=$2;
+
+					unless(ref($dec)) {
+						eval {
+							$dec=$parser->parse_string($dec);
+						};
+
+						if($@) {
+							last;
+							$dec=undef;
+						}
+					}
+
+					my(@patnodes)=$context->findnodes("//pat:detectionPattern[\@name='$patternName']",$docpat);
+					last  if(scalar(@patnodes)!=1);
+
+					my($expression)=undef;
+					my($extractStep)=undef;
+
+					foreach my $expr ($patnodes[0]->childNodes()) {
+						if($expr->nodeType==XML::LibXML::XML_ELEMENT_NODE) {
+							my($tagname)=$expr->localName();
+							if(!defined($expression) && $tagname eq 'expression') {
+								$expression=parseExpression($expr);
+							} elsif(!defined($extractStep) && $tagname eq 'extractionStep') {
+								$extractStep=parseExpression($expr);
+							}
+						}
+					}
+
+					last  unless(defined($expression) && defined($extractStep));
+					my($matched)=applyExpression($expression,$dec,$match);
+					$dec=applyExpression($extractStep,$matched);
+					last  unless(defined($dec));
+				} else {
+					last;
+				}
+			}
+
+			$dec=$dec->textContent()  if(ref($dec));
+		}
+	}
+} elsif(defined($bundle64)) {
+	print $query->header(-status=> '404 Not Found'),
+		$query->start_html('IWWEMproxy Problems'),
+		$query->h2('Request not processed because outputs listing cannot be got from a Base64 bundle');
+	exit 0;
+} else {
+	# Generating output listing
+	my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
+	my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'dataBundle');
+	$root->setAttribute('time',LockNLog::getPrintableNow());
+	$root->setAttribute('uuid',$jobId);
+	unless(defined($isExample)) {
+		$root->setAttribute('flow',(($IOMode eq 'I')?'Inputs':'Outputs'));
+		$root->setAttribute('step',$step)  if(defined($step) && length($step)>0);
+		$root->setAttribute('iteration',$iteration)  if(defined($iteration) && length($iteration)>0);
+	}
+	$root->appendChild($outputDoc->createComment($WorkflowCommon::COMMENTWM));
+	$outputDoc->setDocumentElement($root);
+	
+	# TODO
 	eval {
 		my($context)=XML::LibXML::XPathContext->new();
 		$context->registerNs('b',$WorkflowCommon::BACLAVA_NS);
-
-		my($xpathfetch)="/b:dataThingMap/b:dataThing[\@key='$facet']/b:myGridDataDocument/";
-
-		my($pathlength)=scalar(@path);
-		for($pathi=$pathlength-1;$pathi>=0;$pathi--) {
-			if(index($path[$pathi],'#')==0) {
-				last;
+		$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
+		my(@facets)=$context->findnodes('/b:dataThingMap/b:dataThing',$bacio);
+		foreach my $facet (@facets) {
+			my($outnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'output');
+			$outnode->setAttribute('name',$facet->getAttribute('key'));
+			my(@mimes)=$context->findnodes('.//s:mimeType/text()',$facet);
+			push(@mimes,$outputDoc->createTextNode('text/plain'))  if(scalar(@mimes)==0);
+			foreach my $mime (@mimes) {
+				my($mimeNode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'mime');
+				$mimeNode->appendChild($outputDoc->createTextNode($mime->textContent()));
+				$outnode->appendChild($mimeNode);
 			}
-		}
-		my($effpathlength)=($pathi>=0)?$pathi:$pathlength;
-		if($effpathlength>0) {
-			$xpathfetch .= 'b:partialOrder/b:itemList/';
-			$effpathlength--;
-			for(my $pathidx=0; $pathidx<$effpathlength; $pathidx++) {
-				$xpathfetch .= "b:partialOrder[\@index='$path[$pathidx]']/b:itemList/";
-			}
-			$xpathfetch .= "b:dataElement[\@index='$path[$effpathlength]']";
-		} else {
-			$xpathfetch .= 'b:dataElement';
-		}
-
-		# Last step
-		$xpathfetch .= '/b:dataElementData';
-		my(@datanodes)=$context->findnodes($xpathfetch,$bacio);
-		
-		if(scalar(@datanodes)!=0) {
-			$bundle64=$datanodes[0]->textContent();
-		} else {
-			$retmesg="XPath $xpathfetch not found";
+			$root->appendChild($outnode);
 		}
 	};
 	
 	if($@) {
-		if(defined($retmesg)) {
-			$retmesg .= "\n".$@;
-		} else {
-			$retmesg=$@;
-		}
-	}
-}
-
-# We must signal here late errors
-if(defined($retmesg)) {
-	print $query->header(-status=> '404 Not Found'),
-		$query->start_html('EnactProxy Problems'),
-		$query->h2('Request not processed because '.$retmesg);
-	exit 0;
-}
-
-# And now, decoding
-my($dec)=decode_base64($bundle64);
-
-# Do we have to do further processing?
-if($pathi!=-1) {
-	# We are going to parse!
-	my($parser)=XML::LibXML->new();
-	my($context)=XML::LibXML::XPathContext->new();
-	$context->registerNs('pat',$WorkflowCommon::PAT_NS);
-	#$context->registerNs('s',$WorkflowCommon::SCUFL_NS);
-	
-	my($docpat);
-	eval {
-		$docpat=$parser->parse_file($WorkflowCommon::PATTERNSFILE);
-	};
-	unless($@) {
-		my($pathlength)=scalar(@path);
-		for(;$pathi<$pathlength;$pathi++) {
-			if($path[$pathi] =~ /^#([^\[\]]+)\[([0-9]+)\]$/) {
-				my($patternName)=$1;
-				my($match)=$2;
-				
-				unless(ref($dec)) {
-					eval {
-						$dec=$parser->parse_string($dec);
-					};
-					
-					if($@) {
-						last;
-						$dec=undef;
-					}
-				}
-				
-				my(@patnodes)=$context->findnodes("//pat:detectionPattern[\@name='$patternName']",$docpat);
-				last  if(scalar(@patnodes)!=1);
-				
-				my($expression)=undef;
-				my($extractStep)=undef;
-				
-				foreach my $expr ($patnodes[0]->childNodes()) {
-					if($expr->nodeType==XML::LibXML::XML_ELEMENT_NODE) {
-						my($tagname)=$expr->localName();
-						if(!defined($expression) && $tagname eq 'expression') {
-							$expression=parseExpression($expr);
-						} elsif(!defined($extractStep) && $tagname eq 'extractionStep') {
-							$extractStep=parseExpression($expr);
-						}
-					}
-				}
-				
-				last  unless(defined($expression) && defined($extractStep));
-				my($matched)=applyExpression($expression,$dec,$match);
-				$dec=applyExpression($extractStep,$matched);
-				last  unless(defined($dec));
-			} else {
-				last;
-			}
-		}
-		
-		$dec=$dec->textContent()  if(ref($dec));
+		print $query->header(-status=> '404 Not Found'),
+			$query->start_html('IWWEMproxy Problems'),
+			$query->h2('Request not processed because '.$@);
+		exit 0;
+	} else {
+		$charset='UTF-8';
+		$dec=encode($charset,$outputDoc->toString());
+		$asMime='application/xml';
+		$withName=undef;
 	}
 }
 
 $dec=''  unless(defined($dec));
 
 my(@headerPars)=(-type=>$asMime,-expires=>'+60s');
-
+push(@headerPars,-charset=>'UTF-8')  if(defined($charset));
 
 # Guessing the extension
 if(defined($withName)) {

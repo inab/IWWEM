@@ -102,7 +102,7 @@ var IWWEMPrettyXML = {
 					// Value
 					attrSpan=thedoc.createElement('span');
 					attrSpan.className='attribute-value';
-					attrSpan.appendChild(thedoc.createTextNode(attr.value));
+					attrSpan.appendChild(thedoc.createTextNode('"'+attr.value+'"'));
 					thediv.appendChild(attrSpan);
 				}
 

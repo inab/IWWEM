@@ -170,7 +170,7 @@ be taken. <span class="parameter">snapshotName</span> has no restrictions in its
 <a name="IWWEMproxy"><div align="center"><h2><a href="http://www.inab.org/"><img src="logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend">IWWEMproxy</span> frontend documentation and call parameters</h2></div></a>
 
 <div align="justify">
-<p>This frontend module was created to overcome some of the limitations of current browsers. Enaction process launched with <span class="frontend">enactionlauncher</span> save both inputs and ouputs of the whole process, intermediate steps and iterations in Baclava XML format. <a href="../enactionviewer.html">AJAX GUI Enaction Viewer</a> allows the end user to browse this information, but some data viewers it uses are only able to handle information coming from an URL. <span class="frontend">IWWEMproxy</span> is responsible of decoding, extracting and streaming this information under demand.
+<p>This frontend module was created to overcome some of the limitations of current browsers. Enaction process launched with <span class="frontend">enactionlauncher</span> save both inputs and ouputs of the whole process, intermediate steps and iterations in Baclava XML format. <a href="../enactionviewer.html">AJAX GUI Enaction Viewer</a> allows the end user to browse this information, but some data viewers it uses are only able to handle information coming from an URL. <span class="frontend">IWWEMproxy</span> is responsible of decoding, extracting and streaming this information under demand. It also provides a limited listing of the data bundles when <span class="parameter">bundle64</span> and <span class="parameter">IOPath</span> parameters are unset.
 </div>
 
 <h3>Call parameters</h3>
@@ -180,7 +180,10 @@ be taken. <span class="parameter">snapshotName</span> has no restrictions in its
 <span class="frontend">IWWEMproxy</span> frontend needs either a qualified or unqualified enaction job identifier, a qualified snapshot identifier or a qualified example identifier in order to work and know where to find the information to decode, extract and stream.
 </li>
 <li><u><span class="parameter">asMime</span> <i>(required)</i></u>:
-The value of this parameter sets the MIME type used to label the streamed information, so HTTP clients (web browsers, GUIs) are able to select a viewer or a program to use based on it.
+The value of this parameter sets the MIME type used to label the streamed information, so HTTP clients (web browsers, GUIs) are able to select a viewer or a program to use based on it. It is ignored when <span class="parameter">bundle64</span> and <span class="parameter">IOPath</span> are unset.
+</li>
+<li><u><span class="parameter">charset</span> <i>(optional)</i></u>:
+The value of this parameter sets the charset of the streamed information, so HTTP clients (web browsers, GUIs) are able to see it properly. It is ignored when <span class="parameter">bundle64</span> and <span class="parameter">IOPath</span> are unset.
 </li>
 <li><u><span class="parameter">withName</span> <i>(optional)</i></u>:
 The value of this parameter sets the suggested name for the streamed content when it is going to be saved by a web browser. If this parameter is set to the empty string, the suggested name is derived from the input parameters.
