@@ -1,7 +1,7 @@
 /*
 	$Id$
 	datamatcher.js
-	from INB Web Workflow Enactor & Manager (IWWE&M)
+	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 	Author: José María Fernández González (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
@@ -245,6 +245,9 @@ DataMatcher.DetectionPattern.prototype = {
 				var farrRet=fextStep.match(candres);
 				if(farrRet!=undefined && farrRet.length>0) {
 					farrRet=farrRet[0];
+					if(typeof farrRet == 'object') {
+						farrRet = WidgetCommon.getTextContent(farrRet);
+					}
 					var paramArray=new Array();
 					for(var extStepi=1;extStepi<this.extractionStep.length;extStepi++) {
 						var extStep=this.extractionStep[extStepi];
@@ -254,6 +257,7 @@ DataMatcher.DetectionPattern.prototype = {
 							if(typeof arrRet == 'object') {
 								arrRet = WidgetCommon.getTextContent(arrRet);
 							}
+							alert(arrRet);
 						} else {
 							arrRet=undefined;
 						}

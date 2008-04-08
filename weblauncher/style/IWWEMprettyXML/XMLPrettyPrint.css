@@ -1,4 +1,19 @@
 @charset "UTF-8";
+
+/*
+	$Id$
+	XMLPrettyPrint.css
+	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
+	Author: José María Fernández González (C) 2008
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+*/
+
+/*
+	Most of the contents of this file are based on XMLPrettyPrint.css from Mozilla/Firefox
+*/
+
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -43,15 +58,6 @@
   border-bottom: 3px solid black;
   padding: 0.5em;
   margin-bottom: 1em;
-}
-
-table {
-  border-spacing: 0;
-  margin: 0;
-}
-
-td {
-  padding: 0;
 }
 
 div {

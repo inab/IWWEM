@@ -4,7 +4,7 @@
 	<!--
 		$Id$
 		enactionviewer.html
-		from INB Web Workflow Enactor & Manager (IWWE&M)
+		from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 		Author: José María Fernández González (C) 2007-2008
 		Institutions:
 		*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
@@ -30,6 +30,8 @@
 	<script type="text/javascript" src="js/IWWEMprettyXML.js"></script>
 	<script type="text/javascript" src="js/databrowser.js"></script>
 	<script type="text/javascript" src="js/datamatcher.js"></script>
+	<script type="text/javascript" src="js/datatreeview.js"></script>
+	<script type="text/javascript" src="js/enactionstep.js"></script>
 	<script type="text/javascript" src="js/enactionviewer.js"></script>
 </head>
 <body onload="InitIWWEM(EnactionViewerCustomInit)" onunload="DisposeIWWEM(EnactionViewerCustomDispose)">
@@ -41,28 +43,12 @@
 		</td><td class="data" style="width:33%;max-width:33%;">
 			<u>Step</u>: <span id="stageSpan"></span><br>
 			<u>State</u>: <span id="stageStateSpan"></span>
-		</td><td style="width:33%;max-width:33%;vertical-align:top">
-			<form style="padding:0px;margin:0px">
-				<span id="IOStepSpan"></span> <span id="IOPathSpan"></span><br>
-				<u>MIME</u> <select id="mimeSelect"></select>
-			</form>
+		</td><td style="width:33%;max-width:33%;vertical-align:top" id="mimeInfoSelect">
 		</td></tr><tr><td class="middle">
 			<div align="center" id="svgdiv"></div>
 			<!--<select name="workflow" id="workflow" style="width:230px;" size="20"></select>-->
 		</td><td class="data" style="width:33%;max-width:33%;">
-			<div class="scrolldatawide">
-				<form>
-					<div id="iterDiv" style="display:none"><b>Iteration </b><select id="iterationSelect"></select></div>
-					<div id="schedStampDiv" style="display:none"><b>Scheduled: </b><span id="schedStampSpan">&nbsp;</span></div>
-					<div id="startStampDiv" style="display:none"><b>Started: </b><span id="startStampSpan">&nbsp;</span></div>
-					<div id="stopStampDiv" style="display:none"><b>Stopped: </b><span id="stopStampSpan">&nbsp;</span></div>
-					<div id="errStepDiv">&nbsp;</div>
-					<span id="inputsSpan" class="IOStat">Inputs&nbsp;<img src="style/ajaxLoader.gif"></img></span>
-					<div id="inputs">&nbsp;</div>
-					<br><span id="outputsSpan" class="IOStat">Outputs&nbsp;<img src="style/ajaxLoader.gif"></img></span>
-					<div id="outputs">&nbsp;</div>
-				</form>
-			</div>
+			<div class="scrolldatawide" id="dataTreeDiv"></div>
 		</td><td style="width:33%;max-width:33%;" align="center" valign="top">
 			<div id="databrowser" class="scroll"></div>
 		</td></tr><tr><td class="buttons">

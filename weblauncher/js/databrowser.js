@@ -1,7 +1,7 @@
 /*
 	$Id$
 	databrowser.js
-	from INB Web Workflow Enactor & Manager (IWWE&M)
+	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 	Author: José María Fernández González (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
@@ -9,13 +9,44 @@
 */
 
 /* Data viewer, the must-be royal crown */
-function DataBrowser(databrowserId,genview) {
+function DataBrowser(genview,databrowserId,mimePathDivId) {
 	this.genview=genview;
 	
 	this.databrowserDiv=genview.getElementById(databrowserId);
-	this.mimeSelect=genview.getElementById('mimeSelect');
-	this.IOStepSpan=genview.getElementById('IOStepSpan');
-	this.IOPathSpan=genview.getElementById('IOPathSpan');
+	
+	var mimePathDiv=genview.getElementById(mimePathDivId);
+	
+	// mime and others form creation
+	var theform=genview.createElement('form');
+	theform.setAttribute('style','padding:0px;margin:0px;');
+	
+	// IOStep Span
+	this.IOStepSpan=genview.createElement('span');
+	theform.appendChild(this.IOStepSpan);
+	
+	theform.appendChild(genview.thedoc.createTextNode(' '));
+	
+	// IOPath Span
+	this.IOPathSpan=genview.createElement('span');
+	theform.appendChild(this.IOPathSpan);
+	
+	theform.appendChild(genview.createElement('br'));
+	
+	// Text
+	var uPan=genview.createElement('u');
+	uPan.innerHTML='MIME';
+	theform.appendChild(uPan);
+
+	theform.appendChild(genview.thedoc.createTextNode(' '));
+	
+	// MIME Select
+	this.mimeSelect=genview.createElement('select');
+	theform.appendChild(this.mimeSelect);
+	
+	// Appending the form to the parent
+	mimePathDiv.appendChild(theform);
+	
+	// Other information
 	this.dataObject=undefined;
 	this.mimeList=undefined;
 	this.setCallback=undefined;
@@ -419,10 +450,14 @@ DataBrowser.ImageViewer = {
 		'image/gif'
 	],
 	applyView: function (uri,paramArray,databrowserDiv,genview) {
-		// This works with any browser but explorer, nuts!
 		var img=new Image();
+		// This works with any browser but explorer, nuts!
 		//img.src='data:'+mime+';base64,'+data;
 		img.src=uri;
+		img.alt="Unable to fetch/show "+uri;
+		if(paramArray.length>1) {
+			img.title=paramArray[1].data[1];
+		}
 		databrowserDiv.appendChild(img);
 	}
 };

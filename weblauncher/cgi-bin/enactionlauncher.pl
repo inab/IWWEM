@@ -2,7 +2,7 @@
 
 # $Id$
 # enactionlauncher.pl
-# from INB Web Workflow Enactor & Manager (IWWE&M)
+# from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 # Author: José María Fernández González (C) 2007-2008
 # Institutions:
 # *	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)

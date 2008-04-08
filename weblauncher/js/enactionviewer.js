@@ -1,7 +1,7 @@
 /*
 	$Id$
 	enactionviewer.js
-	from INB Web Workflow Enactor & Manager (IWWE&M)
+	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 	Author: José María Fernández González (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
@@ -19,228 +19,6 @@ function EnactionViewerCustomDispose() {
 	}
 }
 
-function WorkflowStep(stepDOM, /* optional */ parentStep) {
-	this.name=stepDOM.getAttribute('name') || stepDOM.getAttribute('jobId');
-	this.state=stepDOM.getAttribute('state');
-	this.parentStep=parentStep;
-	this.input={};
-	this.hasInputs=undefined;
-	this.bacInput=undefined;
-	this.output={};
-	this.hasOutputs=undefined;
-	this.bacOutput=undefined;
-	
-	this.schedStamp=undefined;
-	this.startStamp=undefined;
-	this.stopStamp=undefined;
-	this.iterNumber=undefined;
-	this.iterMax=undefined;
-	this.stepError=undefined;
-	for(var child = stepDOM.firstChild; child; child = child.nextSibling) {
-		if(child.nodeType==1) {
-			switch(GeneralView.getLocalName(child)) {
-				case 'extraStepInfo':
-					var schedStamp=child.getAttribute('sched');
-					if(schedStamp!=undefined && schedStamp!=null && schedStamp!='') {
-						this.schedStamp=schedStamp;
-					}
-					var startStamp=child.getAttribute('start');
-					if(startStamp!=undefined && startStamp!=null && startStamp!='') {
-						this.startStamp=startStamp;
-					}
-					var stopStamp=child.getAttribute('stop');
-					if(stopStamp!=undefined && stopStamp!=null && stopStamp!='') {
-						this.stopStamp=stopStamp;
-					}
-					var iterNumber=child.getAttribute('iterNumber');
-					if(iterNumber!=undefined && iterNumber!=null && iterNumber!='') {
-						this.iterNumber=iterNumber;
-					}
-					var iterMax=child.getAttribute('iterMax');
-					if(iterMax!=undefined && iterMax!=null && iterMax!='') {
-						this.iterMax=iterMax;
-					}
-					var stepError=new Array();
-					for(var stepErr=child.firstChild;stepErr;stepErr=stepErr.nextSibling) {
-						if(stepErr.nodeType==1 && GeneralView.getLocalName(stepErr)=='stepError') {
-							stepError.push({
-								header:  stepErr.getAttribute('header'),
-								message: WidgetCommon.getTextContent(stepErr)
-							});
-						}
-					}
-					// To finish
-					if(stepError.length>0)  this.stepError=stepError;
-					break;
-				case 'iterations':
-					var iterations=new Array();
-					for(var iter=child.firstChild;iter;iter=iter.nextSibling) {
-						if(iter.nodeType==1 && GeneralView.getLocalName(iter)=='step') {
-							iterations.push(new WorkflowStep(iter,this));
-						}
-					}
-					// To finish
-					this.iterations=iterations;
-					break;
-				case 'input':
-					// Baclava not cached (yet)
-					this.input[child.getAttribute('name')]=undefined;
-					this.hasInputs=1;
-					break;
-				case 'output':
-					// Baclava not cached (yet)
-					this.output[child.getAttribute('name')]=undefined;
-					this.hasOutputs=1;
-					break;
-			}
-		}
-	}
-}
-
-WorkflowStep.prototype = {
-	fetchBaclavaObject: function(theurl,thehash,enactview,/* optional */ thenotify, istep) {
-		var request;
-		try {
-			request=new XMLHttpRequest();
-			var onload = function() {
-				var response = request.responseXML;
-				if(!response) {
-					if(request.responseText) {
-						var parser = new DOMParser();
-						response = parser.parseFromString(request.responseText,'application/xml');
-					} else {
-						// Backend error.
-						enactview.addMessage(
-							'<blink><h1 style="color:red">FATAL ERROR B: (with '+
-							theurl+
-							') Please notify it to INB Web Workflow Manager developer</h1></blink>'
-						);
-					}
-				}
-				// Only parse when an answer is available
-				Baclava.Parser(response.documentElement.cloneNode(true),thehash,enactview);
-				try {
-					if(thenotify)  thenotify(istep);
-				} catch(noti) {
-					alert(WidgetCommon.DebugError(noti));
-					// IgnoreIT(R)
-				}
-			};
-			request.onreadystatechange=function() {
-				//enactview.addMessage(request.readyState + '<br>');
-				if(request.readyState==4) {
-					try {
-						if('status' in request) {
-							if(request.status == 200 || request.status == 304) {
-								if(request.parseError && request.parseError.errorCode!=0) {
-									enactview.addMessage('<blink><h1 style="color:red">FATAL ERROR ('+
-										request.parseError.errorCode+
-										") while parsing list at ("+
-										request.parseError.line+
-										","+request.parseError.linePos+
-										"):</h1></blink><pre>"+request.parseError.reason+"</pre>"
-									);
-								} else {
-									var response = request.responseXML;
-									if(!response) {
-										if(request.responseText) {
-											var parser = new DOMParser();
-											response = parser.parseFromString(request.responseText,'application/xml');
-										} else {
-											// Backend error.
-											enactview.addMessage(
-												'<blink><h1 style="color:red">FATAL ERROR B: (with '+
-												theurl+
-												') Please notify it to INB Web Workflow Manager developer</h1></blink>'
-											);
-										}
-									}
-									// Only parse when an answer is available
-									Baclava.Parser(response.documentElement.cloneNode(true),thehash,enactview);
-									try {
-										if(thenotify)  thenotify(istep);
-									} catch(noti) {
-										alert(WidgetCommon.DebugError(noti));
-										// IgnoreIT(R)
-									}
-								}
-								
-							} else {
-								// Communications error.
-								var statusText='';
-								if(('statusText' in request) && request.statusText) {
-									statusText=request.statusText;
-								}
-								enactview.addMessage(
-									'<blink><h1 style="color:red">FATAL ERROR while fetching '+
-									theurl+
-									': '+
-									request.status+
-									' '+
-									statusText+
-									'</h1></blink>'
-								);
-							}
-						} else {
-							enactview.addMessage(
-								'<blink><h1 style="color:red">FATAL ERROR F: (with '+
-								theurl+
-								') Please notify it to INB Web Workflow Manager developer</h1></blink>'
-							);
-						}
-					} catch(e) {
-						enactview.addMessage(
-							'<blink><h1 style="color:red">FATAL ERROR: Unable to complete '+
-							theurl+
-							' reload!</h1></blink><pre>'+
-							WidgetCommon.DebugError(e)+
-							'</pre>'
-						);
-					}
-					request.onreadystatechange=function() {};
-				}
-			};
-			
-			// Now it is time to send the query
-			request.open('GET',theurl,true);
-			request.send(null);
-		} catch(e) {
-			enactview.addMessage(
-				'<blink><h1 style="color:red">FATAL ERROR: Unable to start '+
-				theurl+
-				' reload!</h1></blink><pre>'+
-				WidgetCommon.DebugError(e)+
-				'</pre>'
-			);
-			request=undefined;
-		}
-		
-		return request;
-	},
-	
-	fetchBaclava: function(baseJob,enactview,gotInputHandler,gotOutputHandler,/* optional */ istep) {
-		var relpath=baseJob+'/'+EnactionView.getJobDir(this.name)+'/';
-		
-		// Determining whether 
-		if(this.hasInputs && !(this.input[Baclava.GOT]) && !this.bacInput) {
-			this.bacInput=this.fetchBaclavaObject(relpath+'Inputs.xml',this.input,enactview,gotInputHandler,istep);
-		}
-		
-		if(this.hasOutputs && !(this.output[Baclava.GOT]) && !this.bacOutput) {
-			this.bacOutput=this.fetchBaclavaObject(relpath+'Outputs.xml',this.output,enactview,gotOutputHandler,istep);
-		}
-		
-		// Now, the iterations
-		if(this.iterations) {
-			var iti = this.iterations;
-			var itil = iti.length;
-			for(var i=0; i<itil ; i++) {
-				iti[i].fetchBaclava(relpath+'Iterations',enactview,gotInputHandler,gotOutputHandler,i);
-			}
-		}
-	}
-};
-
 /* Window handling code */
 function EnactionView(genview) {
 	this.genview=genview;
@@ -252,14 +30,7 @@ function EnactionView(genview) {
 	this.stageStateSpan=genview.getElementById('stageStateSpan');
 	
 	// Detailed info about a step
-	this.schedStampDiv=genview.getElementById('schedStampDiv');
-	this.schedStampSpan=genview.getElementById('schedStampSpan');
-	this.startStampDiv=genview.getElementById('startStampDiv');
-	this.startStampSpan=genview.getElementById('startStampSpan');
-	this.stopStampDiv=genview.getElementById('stopStampDiv');
-	this.stopStampSpan=genview.getElementById('stopStampSpan');
-	this.errStepDiv=genview.getElementById('errStepDiv');
-	this.iterDiv=genview.getElementById('iterDiv');
+	this.datatreeview=new DataTreeView(genview,'dataTreeDiv','databrowser','mimeInfoSelect','extractData');
 	
 	// Update button text
 	this.updateTextSpan=genview.getElementById('updateTextSpan');
@@ -288,14 +59,6 @@ function EnactionView(genview) {
 	
 	//this.svg=new TavernaSVG();
 	
-	this.iterationSelect=genview.getElementById('iterationSelect');
-	this.inContainer=genview.getElementById('inputs');
-	this.outContainer=genview.getElementById('outputs');
-	this.inputsSpan=genview.getElementById('inputsSpan');
-	this.outputsSpan=genview.getElementById('outputsSpan');
-	
-	this.databrowser=new DataBrowser('databrowser',genview);
-	
 	this.frameViewId=undefined;
 	this.frameOtherId=undefined;
 	this.frameSnapId=undefined;
@@ -321,8 +84,6 @@ function EnactionView(genview) {
 	// formSnapshotEnaction is not needed at this level
 	// snapshotDesc is dynamic, so it is not caught here
 	this.snapshotDescContainer=genview.getElementById('snapshotDescContainer');
-	
-	this.matcher = new DataMatcher();
 	
 	// Important update facets
 	this.enactQueryReq=undefined;
@@ -424,9 +185,10 @@ EnactionView.NoSelect = function (event) {
 	
 EnactionView.prototype = {
 	init: function() {
+		var datatreeview=this.datatreeview;
 		var enactview=this;
 		this.svg.removeSVG(function() {
-			enactview.matcher.addMatchers(['EVpatterns.xml'],this,function() {
+			datatreeview.matcher.addMatchers(['EVpatterns.xml'],enactview,function() {
 				enactview.internalDispose(function() {
 					var qsParm={};
 					WidgetCommon.parseQS(qsParm);
@@ -457,23 +219,19 @@ EnactionView.prototype = {
 	},
 	
 	clearViewInternal: function () {
-		// TODO
-		// Some free containers will be here
-		GeneralView.freeSelect(this.mimeSelect);
 		
 		this.step=undefined;
 		this.istep=undefined;
 		this.setStep();
 		
-		this.databrowser.clearView();
+		// TODO
+		// Some free containers will be here
 		GeneralView.freeContainer(this.dateSpan);
 		GeneralView.freeContainer(this.generalStatusSpan);
 		GeneralView.freeContainer(this.stageSpan);
 		GeneralView.freeContainer(this.stageStateSpan);
-		GeneralView.freeContainer(this.errStepDiv);
-		this.schedStampDiv.style.display='none';
-		this.startStampDiv.style.display='none';
-		this.stopStampDiv.style.display='none';
+		
+		this.datatreeview.clearView();
 	},
 	
 	internalDispose: function(/*optional*/callbackFunc) {
@@ -494,13 +252,10 @@ EnactionView.prototype = {
 		this.initializedSVG=undefined;
 		this.waitingSVG=undefined;
 		this.stepCache={};
+		this.datatreeview.clearSelect();
 		this.step=undefined;
 		this.istep=undefined;
 		this.setStep();
-		if(this.iterSelectHandler) {
-			WidgetCommon.removeEventListener(this.iterationSelect,'change',this.iterSelectHandler,false);
-			this.iterationSelect=undefined;
-		}
 		this.state='unknown';
 		this.reloadButton.className='button';
 		this.snapButton.className='button';
@@ -606,7 +361,7 @@ EnactionView.prototype = {
 		if(state!='unknown' && state!='queued' && state!='undefined') {
 			// Updating the step cache for the meta-step
 			// i.e., the workflow
-			var step=new WorkflowStep(this.domStatus);
+			var step=new EnactionStep(this.domStatus);
 			this.stepCache[this.jobId]=step;
 			this.updateJobView(step);
 			if(this.step && step.name==this.step.name) {
@@ -629,7 +384,7 @@ EnactionView.prototype = {
 					}
 					// Updating the step cache
 					if(update) {
-						var step=new WorkflowStep(child);
+						var step=new EnactionStep(child);
 						this.stepCache[step.name]=step;
 						this.updateStepView(step);
 						if(this.step && step.name==this.step.name) {
@@ -757,17 +512,17 @@ EnactionView.prototype = {
 		this.setStep(step);
 	},
 	
+	getBaseHREF: function() {
+		return EnactionView.BaseHREF;
+	},
+	
 	setStep: function (step,/*optional*/ iteration) {
 		// To finish
 		if(!step) {
 			step=this.step;
 		}
 		// Unfilling iterations
-		if(this.iterSelectHandler) {
-			WidgetCommon.removeEventListener(this.iterationSelect,'change',this.iterSelectHandler,false);
-			this.iterSelectHandler=undefined;
-		}
-		GeneralView.freeSelect(this.iterationSelect);
+		this.datatreeview.clearSelect();
 
 		if(step) {
 			if(!iteration) {
@@ -783,124 +538,12 @@ EnactionView.prototype = {
 			this.istep=iteration;
 			
 			// Filling step information
-			if(step.schedStamp && iteration==-1) {
-				this.schedStampDiv.style.display='block';
-				this.schedStampSpan.innerHTML=step.schedStamp;
-			} else {
-				this.schedStampDiv.style.display='none';
-			}
-
-			if(step.startStamp && iteration==-1) {
-				this.startStampDiv.style.display='block';
-				this.startStampSpan.innerHTML=step.startStamp;
-			} else {
-				this.startStampDiv.style.display='none';
-			}
-
-			if(step.stopStamp && iteration==-1) {
-				this.stopStampDiv.style.display='block';
-				this.stopStampSpan.innerHTML=step.stopStamp;
-			} else {
-				this.stopStampDiv.style.display='none';
-			}
-			
-			GeneralView.freeContainer(this.errStepDiv);
-			if(step.stepError && iteration==-1) {
-				var errHTML='<span style="color:red;font-weight:bold;">Processing Errors</span><br>';
-				for(var ierr=0;ierr<step.stepError.length;ierr++) {
-					var therr=step.stepError[ierr];
-					var lierr=this.genview.createElement('ul');
-					errHTML += '<u>'+therr.header+'</u><br><pre>'+therr.message+'</pre><br>';
-				}
-				this.errStepDiv.innerHTML=errHTML;
-			}
-
-			// Filling iterations
-			var iterO=this.genview.createElement('option');
-			iterO.value=-1;
-			iterO.text=(((step.input[Baclava.GOT]) && (step.output[Baclava.GOT]))?'':'* ')+'Whole';
-			try {
-				this.iterationSelect.add(iterO,null);
-			} catch(e) {
-				this.iterationSelect.add(iterO);
-			}
-			
-			// For the global step
-			var enactview=this;
-			var gstep=step;
-			// I'm using here absolute paths, because when this function is called from inside SVG
-			// click handlers, base href is the one from the SVG, not the one from this page.
-			var inputSignaler = function(istep) {
-				enactview.tryUpdateIOStatus(gstep,istep,'input',enactview.inputsSpan,enactview.inContainer,'hasInputs');
-			};
-			
-			if(step.iterations) {
-				this.iterDiv.style.display='block';
-				var giter=gstep.iterations;
-				var giterl = giter.length;
-				for(var i=0;i<giterl;i++) {
-					var ministep=giter[i];
-					iterO=this.genview.createElement('option');
-					iterO.text=(((ministep.input[Baclava.GOT]) && (ministep.output[Baclava.GOT]))?'':'* ')+ministep.name;
-					iterO.value=i;
-					try {
-						this.iterationSelect.add(iterO,null);
-					} catch(e) {
-						this.iterationSelect.add(iterO);
-					}
-				}
-
-				// Looking this concrete iteration
-				if(iteration!=-1) {
-					step=gstep.iterations[iteration];
-				}
-
-				// Showing the correct position
-				this.iterationSelect.selectedIndex=iteration+1;
-
-				this.iterSelectHandler=function(event) {
-					if(!event)  event=window.event;
-					var target=(event.currentTarget)?event.currentTarget:event.srcElement;
-					if(target.selectedIndex!=-1) {
-						enactview.setStep(gstep,target.options[target.selectedIndex].value);
-					}
-				};
-				WidgetCommon.addEventListener(this.iterationSelect,'change',this.iterSelectHandler,false);
-			} else {
-				this.iterDiv.style.display='none';
-			}
-			// Fetching data after, not BEFORE creating the select
-			var outputSignaler = function(istep) {
-				enactview.tryUpdateIOStatus(gstep,istep,'output',enactview.outputsSpan,enactview.outContainer,'hasOutputs');
-			};
-			gstep.fetchBaclava(EnactionView.BaseHREF+'/'+this.JobsBase+((step.name!=this.jobId)?('/'+this.jobDir+'/Results'):''),this,inputSignaler,outputSignaler);
-			
-			
-			// For this concrete (sub)step
-			// Inputs
-			this.updateIOStatus(step.input,this.inputsSpan,this.inContainer,step.hasInputs,new DataBrowser.LocatedData(this.jobId,gstep.name,(iteration!=-1)?step.name:undefined,'I'));
-
-			// Outputs
-			this.updateIOStatus(step.output,this.outputsSpan,this.outContainer,step.hasOutputs,new DataBrowser.LocatedData(this.jobId,gstep.name,(iteration!=-1)?step.name:undefined,'O'));
+			this.datatreeview.setStep(this,step,iteration);
 		} else {
 			// Clearing view
-			GeneralView.freeContainer(this.inContainer);
-			GeneralView.freeContainer(this.outContainer);
+			this.datatreeview.clearContainers();
 			this.stageSpan.innerHTML='NONE';
 			this.stageStateSpan.innerHTML='NONE'
-			this.inContainer.innerHTML='<i>(None)</i>';
-			this.outContainer.innerHTML='<i>(None)</i>';
-			this.iterDiv.style.display='none';
-			/*
-			var iterO=this.genview.createElement('option');
-			iterO.value='NONE';
-			iterO.text='NONE';
-			try {
-				this.iterationSelect.add(iterO,null);
-			} catch(e) {
-				this.iterationSelect.add(iterO);
-			}
-			*/
 		}
 	},
 	
@@ -951,194 +594,6 @@ EnactionView.prototype = {
 			// DoNothing(R)
 		}
 		tramp.unsuspendRedraw(susId);
-	},
-	
-	tryUpdateIOStatus: function(gstep,istep,stepIOFacet,IOSpan,IOContainer,hasIOFacet) {
-		if(this.step==gstep) {
-			// Update the selection text
-			var tstep;
-			var s_istep=istep;
-			if(istep==undefined) {
-				s_istep=istep=-1;
-			}
-			istep=parseInt(istep,10);
-			tstep=(istep!=-1)?s_istep:'Whole';
-			
-			this.iterationSelect.options[istep+1].text=tstep;
-			
-			// And perhaps the generated tree!
-			if(this.istep==istep) {
-				this.updateIOStatus(gstep[stepIOFacet],IOSpan,IOContainer,gstep[hasIOFacet],new DataBrowser.LocatedData(this.jobId,gstep.name,s_istep,(stepIOFacet=='input')?'I':'O'));
-			}
-		}
-	},
-	
-	updateIOStatus: function(stepIO,IOSpan,IOContainer,hasIO,locObject) {
-		GeneralView.freeContainer(IOContainer);
-		var loaded=stepIO[Baclava.GOT];
-		IOSpan.className=(!hasIO || loaded)?'IOStat':'IOStatLoading';
-		if(loaded) {
-			for(var IO in stepIO) {
-				if(IO==Baclava.GOT)  continue;
-				this.generateIO(IO,(loaded)?stepIO:undefined,(loaded)?stepIO[IO].mime:undefined,IOContainer,locObject.newChild(IO));
-			}
-		}
-	},
-	
-	// Tree-like structure
-	generateIO: function(thekey,thehash,mime,parentContainer,locObject) {
-		var data;
-		if(thehash && thehash[thekey] instanceof Baclava) {
-			data = thehash[thekey].data;
-		} else {
-			data = thehash[thekey];
-		}
-		var retval;
-		if(data instanceof DataObject) {
-			// A leaf
-			var retval;
-			var span = this.genview.createElement('div');
-			var spanlabel = this.genview.createElement('span');
-			spanlabel.className='leaflabel';
-			spanlabel.innerHTML=thekey;
-			span.appendChild(spanlabel);
-			if(data.hasData()) {
-				mime=mime.concat();
-				var beMatched = (data.matcherStatus==undefined)?data.canBeMatched(this.matcher,mime):data.matcherStatus;
-
-				span.className='leaf';
-				locObject.setDataObject(data);
-				var enactview=this;
-				if(beMatched==true) {
-					var fruit=this.genview.createElement('img');
-					fruit.src='style/twisty-fruit.png';
-					span.appendChild(fruit);
-					
-					var conspan=this.genview.createElement('div');
-					conspan.className='branchcontainer';
-					var virhash={};
-					for(var matchi=0;matchi<data.dataMatches.length;matchi++) {
-						var match=data.dataMatches[matchi];
-						var virfacet='#'+match.pattern+'['+match.numMatch+']';
-						virhash[virfacet]=match.data;
-						this.generateIO(virfacet,virhash,match.data.mimeList,conspan,locObject.newChild(virfacet));
-					}
-
-					span.appendChild(conspan);
-					retval=2;
-				} else if(beMatched=='maybe') {
-					var seed=this.genview.createElement('img');
-					seed.src='style/seed-small.png';
-					seed.setAttribute('style','margin-left:5px; cursor:pointer;');
-					
-					var seedgrow = function (event) {
-						var frameId=enactview.genview.openFrame('extractData',1);
-						data.doMatching(function(dataMatches) {
-							if(dataMatches.length>0) {
-								seed.src='style/twisty-fruit.png';
-								// Call generateIO to follow the party!
-								var conspan=enactview.genview.createElement('div');
-								conspan.className='branchcontainer';
-								var virhash={};
-								for(var matchi=0;matchi<dataMatches.length;matchi++) {
-									var match=dataMatches[matchi];
-									var virfacet='#'+match.pattern+'['+match.numMatch+']';
-									virhash[virfacet]=match.data;
-									enactview.generateIO(virfacet,virhash,match.data.mimeList,conspan,locObject.newChild(virfacet));
-								}
-
-								span.appendChild(conspan);
-							} else {
-								// Last, updating the class...
-								span.removeChild(seed);
-							}
-							enactview.genview.closeFrame(frameId);
-						});
-						WidgetCommon.removeEventListener(seed,'click',seedgrow,false);
-					};
-					WidgetCommon.addEventListener(seed,'click',seedgrow,false);
-					span.appendChild(seed);
-					retval=1;
-				} else {
-					retval=0;
-				}
-				
-				// Event to show the information
-				WidgetCommon.addEventListener(spanlabel,'click',function () {
-					enactview.databrowser.show(locObject,mime);
-				},false);
-			} else {
-				span.className='deadleaf';
-				retval=-1;
-			}
-
-			//parentContainer.appendChild(this.genview.createElement('br'));
-			parentContainer.appendChild(span);
-		} else {
-			// A branch
-			var div = this.genview.createElement('div');
-			div.className='branch';
-			var span = this.genview.createElement('span');
-			span.className='branchlabel';
-			div.appendChild(span);
-			var condiv = this.genview.createElement('div');
-			condiv.className='branchcontainer';
-
-			// Event to show the contents
-			WidgetCommon.addEventListener(span,'click',EnactionView.BranchClick,false);
-			
-			div.appendChild(condiv);
-			parentContainer.appendChild(div);
-			
-			// Now the children
-			var isscroll=true;
-			var isdead=true;
-			var citem=0;
-			var aitem=0;
-			for(var facet in data) {
-				citem++;
-				var geval=this.generateIO(facet,data,mime,condiv,locObject.newChild(facet));
-				if(geval>0)  isscroll=undefined;
-				if(geval>=0) {
-					isdead=undefined;
-					aitem++;
-				}
-			}
-			var spai = thekey+' <i>('+citem+' item'+((citem!=1)?'s':'');
-			if(citem!=aitem)  spai+=', '+aitem+' alive';
-			spai += ')</i>';
-			span.innerHTML=spai;
-			
-			if(isscroll && aitem<8)  isscroll=undefined;
-			
-			if(isdead) {
-				div.className += ' hiddenbranch';
-				retval=-2;
-			} else {
-				var expandContent;
-				var expandClass;
-				div.className='branch';
-				if(isscroll) {
-					expandContent=' [\u2212]';
-					expandClass='scrollswitch';
-					condiv.className+=' scrollbranchcontainer'
-				} else {
-					expandContent=' [=]';
-					expandClass='noscrollswitch';
-				}
-				var expandSpan = this.genview.createElement('span');
-				expandSpan.className=expandClass;
-				expandSpan.innerHTML=expandContent;
-				// Event to expand/collapse
-				WidgetCommon.addEventListener(expandSpan,'click',EnactionView.ScrollClick,false);
-				WidgetCommon.addEventListener(expandSpan,'selectstart',EnactionView.NoSelect,false);
-				div.insertBefore(expandSpan,condiv);
-				
-				retval=3;
-			}
-		}
-		
-		return retval;
 	},
 	
 	setMessage: function(message) {
