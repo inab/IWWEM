@@ -101,6 +101,20 @@
         <assignMIME type="biotree/newick"/>
         <assignMIME type="text/plain"/>
     </detectionPattern>
+    <detectionPattern name="BADMOBYNewick">
+        <description>MOBY Newick extractor (Newick format is defined at http://evolution.genetics.washington.edu/phylip/newicktree.html)</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//moby:Newick-Text/moby:String[@articleName='content' or @moby:articleName='content']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="raw">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="biotree/newick"/>
+        <assignMIME type="text/plain"/>
+    </detectionPattern>
     <detectionPattern name="MOBYMSA">
         <description>MOBY Multiple Sequence Alignment Extractor</description>
         <applyToMIME type="text/xml"/>

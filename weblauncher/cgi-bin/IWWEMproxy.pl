@@ -76,6 +76,7 @@ my($bacio)=undef;
 my(@path)=();
 my($facet)=undef;
 my($isExample)=undef;
+my($origJobId)=$jobId;
 if((!defined($IOPath) ||defined($asMime)) && defined($jobId)) {
 	# Time to know the overall status of this enaction
 	my($jobdir)=undef;
@@ -129,7 +130,7 @@ if((!defined($IOPath) ||defined($asMime)) && defined($jobId)) {
 						
 						# Now, the physical path
 						my($stepdir)=$jobdir;
-						if(!defined($isExample) && defined($step) && length($step)>0 && $step ne $jobId) {
+						if(!defined($isExample) && defined($step) && length($step)>0 && $step ne $origJobId) {
 							$stepdir .= '/Results/'.$step;
 						} else {
 							$step='';
@@ -325,7 +326,7 @@ if(defined($IOPath) && (length($IOPath)>0)) {
 	my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
 	my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'dataBundle');
 	$root->setAttribute('time',LockNLog::getPrintableNow());
-	$root->setAttribute('uuid',$jobId);
+	$root->setAttribute('uuid',$origJobId);
 	unless(defined($isExample)) {
 		$root->setAttribute('flow',(($IOMode eq 'I')?'Inputs':'Outputs'));
 		$root->setAttribute('step',$step)  if(defined($step) && length($step)>0);

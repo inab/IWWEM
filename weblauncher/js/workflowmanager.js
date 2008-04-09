@@ -28,154 +28,6 @@ function WorkflowManagerCustomDispose() {
 }
 
 /*
-	These classes model the retrieved information about available workflows.
-*/
-function IODesc(ioD) {
-	this.name=ioD.getAttribute('name');
-	this.mime=new Array();
-	for(var child=ioD.firstChild; child ; child=child.nextSibling) {
-		if(child.nodeType==1) {
-			switch(GeneralView.getLocalName(child)) {
-				case 'description':
-					// This is needed because there are some
-					// differences among the standars
-					// and Internet Explorer behavior
-					this.description = WidgetCommon.getTextContent(child);
-					break;
-				case 'mime':
-					this.mime.push(child.getAttribute('type'));
-					break;
-			}
-		}
-	}
-	
-}
-
-function InputExample(wfUUID,inEx) {
-	this.wfUUID=wfUUID;
-	this.name=inEx.getAttribute('name');
-	this.uuid=inEx.getAttribute('uuid');
-	this.date=inEx.getAttribute('date');
-	this.path=inEx.getAttribute('path');
-	this.description = WidgetCommon.getTextContent(inEx);
-}
-
-InputExample.prototype = {
-	generateOption: function (/* optional */ thedoc) {
-		if(!thedoc)  thedoc=document;
-		var exSelOpt = thedoc.createElement('option');
-		exSelOpt.value = 'example:'+this.wfUUID+':'+this.uuid;
-		exSelOpt.text = this.name+' ('+this.date+')';
-		
-		return exSelOpt;
-	}
-};
-
-function OutputSnapshot(wfUUID,ouSn) {
-	this.wfUUID=wfUUID;
-	this.name=ouSn.getAttribute('name');
-	this.uuid=ouSn.getAttribute('uuid');
-	this.date=ouSn.getAttribute('date');
-	this.description = WidgetCommon.getTextContent(ouSn);
-}
-
-OutputSnapshot.prototype = {
-	generateOption: function (/* optional */ thedoc) {
-		if(!thedoc)  thedoc=document;
-		var snSelOpt = thedoc.createElement('option');
-		snSelOpt.value = 'snapshot:'+this.wfUUID+':'+this.uuid;
-		snSelOpt.text = this.name+' ('+this.date+')';
-		
-		return snSelOpt;
-	}
-};
-
-function WorkflowDesc(wfD) {
-	this.uuid = wfD.getAttribute('uuid');
-	this.path = wfD.getAttribute('path');
-	//this.svgpath = wfD.getAttribute('svg');
-	this.title = wfD.getAttribute('title');
-	this.lsid = wfD.getAttribute('lsid');
-	this.author = wfD.getAttribute('author');
-	this.graph = {};
-	
-	var depends=new Array();
-	var inputs={};
-	var outputs={};
-	var examples={};
-	var snapshots={};
-	this.depends=depends;
-	this.inputs=inputs;
-	this.outputs=outputs;
-	this.examples=examples;
-	this.snapshots=snapshots;
-	
-	this.description=undefined;
-	this.hasInputs=undefined;
-	this.hasExamples=undefined;
-	
-	for(var child=wfD.firstChild;child;child=child.nextSibling) {
-		// Only element children, please!
-		if(child.nodeType == 1) {
-			switch(GeneralView.getLocalName(child)) {
-				case 'description':
-					// This is needed because there are some
-					// differences among the standars
-					// and Internet Explorer behavior
-					this.description = WidgetCommon.getTextContent(child);
-					break;
-				case 'graph':
-					// Graph information
-					this.graph[child.getAttribute('mime')]=WidgetCommon.getTextContent(child);
-					break;
-				case 'dependsOn':
-					depends.push(child.getAttribute('sub'));
-					break;
-				case 'example':
-					var newExample = new InputExample(this.uuid,child);
-					examples[newExample.uuid]=newExample;
-					this.hasExamples=1;
-					break;
-				case 'snapshot':
-					var newSnapshot = new OutputSnapshot(this.uuid,child);
-					snapshots[newSnapshot.uuid]=newSnapshot;
-					break;
-				case 'input':
-					var newInput = new IODesc(child);
-					inputs[newInput.name]=newInput;
-					this.hasInputs=1;
-					break;
-				case 'output':
-					var newOutput = new IODesc(child);
-					outputs[newOutput.name]=newOutput;
-					break;
-			}
-		}
-	}
-	
-	// Now, handling SVG special case
-	this.svgpath = ('image/svg+xml' in this.graph)?this.graph['image/svg+xml']:wfD.getAttribute('svg');
-}
-
-WorkflowDesc.prototype = {
-//	generateOption: function (/* optional */ genview) {
-//		if(!genview)  genview=document;
-//		var wfO = genview.createElement('option');
-//		wfO.value = wfO.id = this.uuid;
-//		wfO.text = this.title+' ['+this.lsid+']';
-//		
-//		return wfO;
-//	}
-	generateOption: function (/* optional */ genview) {
-		if(!genview)  genview=document;
-		return  new GeneralView.Option(genview,this.uuid,this.title+' ['+this.lsid+']');
-		// wfO.id = this.uuid;
-		
-		return wfO;
-	}
-};
-
-/*
 	This class manages the available workflows view
 */
 function ManagerView(genview) {
@@ -184,14 +36,8 @@ function ManagerView(genview) {
 	this.wfselect=new GeneralView.Select(genview,'workflow',genview.getElementById('workflow'));
 	this.messageDiv=genview.getElementById('messageDiv');
 	
-	this.titleContainer=genview.getElementById('title');
-	this.lsidContainer=genview.getElementById('lsid');
-	this.authorContainer=genview.getElementById('author');
-	this.descContainer=genview.getElementById('description');
-	this.inContainer=genview.getElementById('inputs');
-	this.outContainer=genview.getElementById('outputs');
-	this.snapContainer=genview.getElementById('snapshots');
-
+	this.wfreport=new WorkflowReport(genview,'wfReportDiv');
+	
 	this.reloadButton=genview.getElementById('reloadButton');
 	this.updateTextSpan=genview.getElementById('updateTextSpan');
 
@@ -273,23 +119,13 @@ ManagerView.prototype = {
 	},
 	
 	clearView: function (/*optional*/callbackFunc) {
-		var manview=this;
+		var wfreport=this.wfreport;
 		this.svg.removeSVG(function() {
-			manview.clearViewInternal();
+			wfreport.clearView();
 			if(typeof callbackFunc=='function') {
 				callbackFunc();
 			}
 		});
-	},
-	
-	clearViewInternal: function() {
-		GeneralView.freeContainer(this.titleContainer);
-		GeneralView.freeContainer(this.lsidContainer);
-		GeneralView.freeContainer(this.authorContainer);
-		GeneralView.freeContainer(this.descContainer);
-		GeneralView.freeContainer(this.snapContainer);
-		GeneralView.freeContainer(this.inContainer);
-		GeneralView.freeContainer(this.outContainer);
 	},
 	
 	/**/
@@ -308,11 +144,12 @@ ManagerView.prototype = {
 		if(workflow) {
 			// SVG graph
 			//this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
-			var me=this;
+			var wfreport=this.wfreport;
+			var WFBase=this.WFBase;
 			var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
 			var maxwidth=(parentno.clientWidth-32)+'px';
 			this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,maxwidth,'120mm',function() {
-				me.updateViewInternal(workflow);
+				wfreport.updateView(WFBase,workflow);
 				if(typeof callbackFunc=='function') {
 					callbackFunc();
 				}
@@ -327,60 +164,6 @@ ManagerView.prototype = {
 		var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
 		var maxwidth=(parentno.clientWidth-32)+'px';
 		this.svg.SVGrescale(maxwidth,'120mm');
-	},
-	
-	updateViewInternal: function(workflow) {
-		// Basic information
-		this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
-		this.lsidContainer.innerHTML = workflow.lsid;
-		this.authorContainer.innerHTML = (workflow.author && workflow.author.length>0)?GeneralView.preProcess(workflow.author):'<i>(anonymous)</i>';
-
-		// Naive detection of rich description
-		if(workflow.description && workflow.description.length>0) {
-			this.descContainer.innerHTML = GeneralView.preProcess(workflow.description);
-		} else {
-			this.descContainer.innerHTML = '<i>(None)</i>';
-		}
-
-		var br;
-		var alink;
-
-		// This is needed to append links to the description itself
-		var thep = this.genview.createElement('p');
-		alink = this.genview.createElement('a');
-		alink.href = this.WFBase+'/'+workflow.path;
-		alink.target = '_blank';
-		alink.innerHTML = '<i>Download Workflow</i>';
-		thep.appendChild(alink);
-
-		// Possible dependencies
-		if(workflow.depends.length>0) {
-			thep.appendChild(this.genview.createElement('br'));
-			var thei = this.genview.createElement('i');
-			thei.innerHTML = '(This workflow depends on '+workflow.depends.length+' external subworkflow'+((workflow.depends.length>1)?'s':'')+')';
-			thep.appendChild(thei);
-		}
-		this.descContainer.appendChild(thep);
-
-		thep = this.genview.createElement('p');
-		for(var gmime in workflow.graph) {
-			alink = this.genview.createElement('a');
-			alink.href = this.WFBase+'/'+workflow.graph[gmime];
-			alink.target = '_blank';
-			alink.innerHTML = '<i>Get Workflow Graph ('+gmime+')</i>';
-			thep.appendChild(alink);
-			thep.appendChild(this.genview.createElement('br'));
-		}
-		this.descContainer.appendChild(thep);
-
-		// Now, inputs and outputs
-		this.attachIOReport(workflow.inputs,this.inContainer);
-		this.attachIOReport(workflow.outputs,this.outContainer);
-
-		// And at last, snapshots
-		this.attachIOReport(workflow.snapshots,this.snapContainer,function(snap) {
-			return '<i><a href="enactionviewer.html?jobId='+snap.uuid+'">'+snap.name+'</a> ('+snap.date+')</i>';
-		});
 	},
 	
 	/* This method fills in the known information about the workflow */
@@ -534,33 +317,6 @@ ManagerView.prototype = {
 			if(sureErase) {
 				this.reloadList(this.wfselect.options[this.wfselect.selectedIndex].value);
 			}
-		}
-	},
-	
-	attachIOReport: function(ioarray,ioContainer, /* optional */lineProc) {
-		GeneralView.freeContainer(ioContainer);
-		
-		var ul;
-		for(var iofacet in ioarray) {
-			var io=ioarray[iofacet];
-			if(!ul)  ul=this.genview.createElement('ul');
-			var li=this.genview.createElement('li');
-			var line;
-			if(lineProc) {
-				line=lineProc(io);
-			} else {
-				line='<i>'+io.name+' ('+io.mime.join(', ')+')</i>';
-			}
-			if('description' in io) {
-				line += '<br>'+GeneralView.preProcess(io.description);
-			}
-			li.innerHTML=line;
-			ul.appendChild(li);
-		}
-		if(ul) {
-			ioContainer.appendChild(ul);
-		} else {
-			ioContainer.innerHTML='<i>(None)</i>';
 		}
 	}
 };

@@ -483,7 +483,9 @@ foreach my $jobId (@jobIdList) {
 			my($includeSubs)=1;
 			my($PPID);
 			my($enactionReport)=undef;
-			if(-f $jobdir . '/FATAL' || ! -f $ppidfile) {
+			if(defined($wfsnap)) {
+				$state = 'frozen';
+			} elsif(-f $jobdir . '/FATAL' || ! -f $ppidfile) {
 				$state='dead';
 			} elsif(!defined($wfsnap) && open($PPID,'<',$ppidfile)) {
 				my($ppid)=<$PPID>;
@@ -541,8 +543,6 @@ foreach my $jobId (@jobIdList) {
 				if($state ne 'fatal' && defined($enactionReport) && $enactionReport->localname eq 'enactionReportError') {
 					$state='fatal';
 				}
-			} elsif(defined($wfsnap)) {
-				$state = 'frozen';
 			} else {
 				$state = 'fatal';
 				$includeSubs=undef;
@@ -555,7 +555,7 @@ foreach my $jobId (@jobIdList) {
 			# Now including subinformation...
 			if(defined($includeSubs)) {
 				my($failedSth)=processStep($jobdir,$outputDoc,$es,(defined($enactionReport) && $enactionReport->localname eq 'enactionReport')?$enactionReport:undef);
-				$state='error'  if($state eq 'finished' && defined($failedSth));
+				$state='dubious'  if($state eq 'finished' && defined($failedSth));
 			}
 		}
 	}

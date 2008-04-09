@@ -72,8 +72,8 @@ function Title(doc, myMapApp, sz) {
 				var twidth=txt.getComputedTextLength();
 				if(!twidth)  twidth = txt.getBBox().width;
 				var xRect = twidth + 0.5*size;
-				var gWidth=parseFloat(doc.documentElement.getAttribute('width'));
-				if(x+xRect > gWidth) x=gWidth-xRect;
+				//var gWidth=parseFloat(doc.documentElement.getAttribute('width'));
+				//if(x+xRect > gWidth) x-=x+xRect-gWidth;
 				rec.setAttribute("width", xRect+'px');
 				grp.setAttribute("transform", "translate(" + x + " " + y + ")");
 

@@ -319,6 +319,8 @@ EnactionView.prototype = {
 				break;
 			case 'dead':
 			case 'error':
+			case 'fatal':
+			case 'dubious':
 			case 'killed':
 				gstate="<span style='color:red;font-weight: bold;'>"+gstate+"</span>";
 				break;
@@ -343,6 +345,8 @@ EnactionView.prototype = {
 			state=='frozen' ||
 			state=='dead' ||
 			state=='error' ||
+			state=='dubious' ||
+			state=='fatal' ||
 			state=='killed' ||
 			state=='finished'
 		) {
@@ -413,43 +417,56 @@ EnactionView.prototype = {
 	updateStepView: function(step) {
 		var tramp=this.svg.getTrampoline();
 		var susId=tramp.suspendRedraw();
+		var color=undefined;
+		switch(step.state) {
+			case 'queued':
+				//tramp.changeNodeFill(step.name,'violet');
+				color='violet';
+				break;
+			case 'running':
+				//tramp.changeNodeFill(step.name,'yellow');
+				color='yellow';
+				break;
+			case 'finished':
+				//tramp.changeNodeFill(step.name,'green');
+				color='green';
+				break;
+			case 'error':
+				//tramp.changeNodeFill(step.name,'red');
+				color='red';
+				break;
+		}
 		try {
-			// Setting the fill
-			switch(step.state) {
-				case 'queued':
-					//tramp.changeNodeFill(step.name,'violet');
-					tramp.setNodeBulbColor(step.name,'violet');
-					break;
-				case 'running':
-					//tramp.changeNodeFill(step.name,'yellow');
-					tramp.setNodeBulbColor(step.name,'yellow');
-					break;
-				case 'finished':
-					//tramp.changeNodeFill(step.name,'green');
-					tramp.setNodeBulbColor(step.name,'green');
-					break;
-				case 'error':
-					//tramp.changeNodeFill(step.name,'red');
-					tramp.setNodeBulbColor(step.name,'red');
-					break;
-			}
-			
-			// And the click property
-			switch(step.state) {
-				case 'running':
-				case 'finished':
-				case 'error':
-					var enactview=this;
-					try {
-						tramp.removeNodeHandler(step.name,this.stepClickHandler,'click');
-					} catch(reee) {
-						// Do Nothing(R)
-					}
-					tramp.setNodeHandler(step.name,this.stepClickHandler,'click');
-					break;
+			if(color!=undefined) {
+				tramp.setNodeBulbColor(step.name,color);
 			}
 		} catch(e) {
-			// DoNothing(R)
+			// Fallback for very old SVGs
+			try {
+				tramp.changeNodeFill(step.name,color);
+			} catch(ee) {
+				// Do Nothing(R)
+			}
+		}
+			
+		// And the click property
+		switch(step.state) {
+			case 'running':
+			case 'finished':
+			case 'error':
+				var enactview=this;
+				try {
+					tramp.removeNodeHandler(step.name,this.stepClickHandler,'click');
+				} catch(e) {
+					// Do Nothing(R)
+				}
+				try {
+					tramp.setNodeHandler(step.name,this.stepClickHandler,'click');
+				} catch(e) {
+					// DoNothing(R)
+					alert(e);
+				}
+				break;
 		}
 		tramp.unsuspendRedraw(susId);
 	},
@@ -474,6 +491,8 @@ EnactionView.prototype = {
 					this.clearJobNodes();
 					break;
 				case 'error':
+				case 'fatal':
+				case 'dubious':
 				case 'frozen':
 				case 'dead':
 					this.errorJobNodes(step.state);
@@ -614,6 +633,8 @@ EnactionView.prototype = {
 			this.state=='frozen' ||
 			this.state=='dead' ||
 			this.state=='error' ||
+			this.state=='fatal' ||
+			this.state=='dubious' ||
 			this.state=='killed' ||
 			this.state=='finished'
 		)  return;
@@ -694,6 +715,7 @@ EnactionView.prototype = {
 											state!='frozen' &&
 											state!='dead' &&
 											state!='error' &&
+											state!='dubious' &&
 											state!='killed' &&
 											state!='finished'
 										) {
@@ -764,6 +786,8 @@ EnactionView.prototype = {
 					this.state!='frozen' &&
 					this.state!='dead' &&
 					this.state!='error' &&
+					this.state!='fatal' &&
+					this.state!='dubious' &&
 					this.state!='killed' &&
 					this.state!='finished'
 				)

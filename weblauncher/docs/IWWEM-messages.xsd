@@ -43,6 +43,11 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
                     <xsd:documentation><![CDATA[The enaction job has successfully finished]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="dubious">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The enaction job has finished properly, but some of its states finished with error]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="error">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[The enaction job has finished with error]]></xsd:documentation>

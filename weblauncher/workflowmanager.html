@@ -22,6 +22,8 @@
 	<script type="text/javascript" src="js/FCKeditor/fckeditor.js"></script>
 	<script type="text/javascript" src="js/dynamicSVGhandling.js"></script>
 	<script type="text/javascript" src="js/IWWEM-common.js"></script>
+	<script type="text/javascript" src="js/workflowdesc.js"></script>
+	<script type="text/javascript" src="js/workflowreport.js"></script>
 	<script type="text/javascript" src="js/workflowmanager.js"></script>
 </head>
 <body onload="InitIWWEM(WorkflowManagerCustomInit)" onunload="DisposeIWWEM(WorkflowManagerCustomDispose)">
@@ -38,19 +40,7 @@
 		</td><td class="middle" style="width:40%;">
 			<div align="center" id="svgdiv"></div>
 		</td><td align="right" valign="top" style="width:30%">
-			<div class="scrolldatawide">
-				<b>Title:</b>&nbsp;<span id="title"></span>
-				<p><b>LSID:</b>&nbsp;<span id="lsid"></span></p>
-				<p><b>Author:</b>&nbsp;<span id="author"></span></p>
-				<b>Inputs</b>
-				<div id="inputs">&nbsp;</div>
-				<b>Outputs</b>
-				<div id="outputs">&nbsp;</div>
-				<b>Description</b>
-				<div id="description" style="text-align:justify">&nbsp;</div>
-				<b>Available enaction snapshots</b>
-				<div id="snapshots" style="text-align:justify">&nbsp;</div>
-			</div>
+			<div class="scrolldatawide" id="wfReportDiv"></div>
 		</td></tr><tr><td class="buttons">
 			<table align="left" style="margin:0px;padding:0px"><tr valign="middle"><td align="center">
 				<div id="reloadButton" class="button"><span id="updateTextSpan">Update</span> <img src="style/reload.png"></div>

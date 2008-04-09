@@ -902,7 +902,7 @@ if (gc != null) {
          </tr>
          <tr>
             <th>Documentation</th>
-            <td class="documentation">$Id: IWWEM-messages.xsd 1275 2008-04-08 11:39:06Z jmfernandez $
+            <td class="documentation">$Id: IWWEM-messages.xsd 1276 2008-04-08 16:41:42Z jmfernandez $
 	
 This schema was designed to model
 the messages between frontend modules and AJAX layer of
@@ -3485,7 +3485,7 @@ workflowlister frontend module returns the information following this sub-schema
                </ul>
                <ul>
                   <li>
-                     <em>value</em> comes from list: {'queued'|'running'|'finished'|'error'|'dead'|'fatal'|'unknown'|'disposed'}</li>
+                     <em>value</em> comes from list: {'queued'|'running'|'finished'|'dubious'|'error'|'dead'|'fatal'|'unknown'|'disposed'}</li>
                </ul>
             </td>
          </tr>
@@ -3528,6 +3528,8 @@ workflowlister frontend module returns the information following this sub-schema
                      <span class="scTag">value</span>="<span class="scContent">running</span>"/&gt;</div>
                   <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
                      <span class="scTag">value</span>="<span class="scContent">finished</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
+                     <span class="scTag">value</span>="<span class="scContent">dubious</span>"/&gt;</div>
                   <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
                      <span class="scTag">value</span>="<span class="scContent">error</span>"/&gt;</div>
                   <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:enumeration</span> 
@@ -3585,7 +3587,7 @@ workflowlister frontend module returns the information following this sub-schema
                </ul>
                <ul>
                   <li>
-                     <em>value</em> comes from list: {'queued'|'running'|'finished'|'error'|'dead'|'fatal'|'unknown'|'disposed'}</li>
+                     <em>value</em> comes from list: {'queued'|'running'|'finished'|'dubious'|'error'|'dead'|'fatal'|'unknown'|'disposed'}</li>
                </ul>
                <ul>
                   <li>
