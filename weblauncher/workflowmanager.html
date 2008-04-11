@@ -1,6 +1,6 @@
 <html>
 <head>
-	<title>INB Interactive Web Workflow Manager v0.6</title>
+	<title>INB Interactive Web Workflow Enactor &amp; Manager v0.6</title>
 	<!--
 		$Id$
 		workflowmanager.html
@@ -24,53 +24,53 @@
 	<script type="text/javascript" src="js/IWWEM-common.js"></script>
 	<script type="text/javascript" src="js/workflowdesc.js"></script>
 	<script type="text/javascript" src="js/workflowreport.js"></script>
+
+	<script type="text/javascript" src="js/prettify/prettify.js"></script>
+	<script type="text/javascript" src="js/jmol/Jmol.js"></script>
+	<script type="text/javascript" src="js/base64.js"></script>
+	<script type="text/javascript" src="js/baclavahandling.js"></script>
+	<script type="text/javascript" src="js/IWWEMprettyXML.js"></script>
+	<script type="text/javascript" src="js/databrowser.js"></script>
+	<script type="text/javascript" src="js/datamatcher.js"></script>
+	<script type="text/javascript" src="js/datatreeview.js"></script>
+	<script type="text/javascript" src="js/enactionstep.js"></script>
+
 	<script type="text/javascript" src="js/workflowmanager.js"></script>
 </head>
 <body onload="InitIWWEM(WorkflowManagerCustomInit)" onunload="DisposeIWWEM(WorkflowManagerCustomDispose)">
-<div align="center"><b><a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> Interactive Web Workflow Enactor &amp; Manager v0.6</b></div>
 <form id="formManager" method="post" enctype="multipart/form-data">
-	<table style="width:100%;table-layout:fixed;">
-		<tr><td class="data" style="width:30%">
-			<div class="scrolldatawide" id="workflow">
-			</div>
-			<!--
-			<select name="workflow" id="workflow" class="scrolldataselect" size="20"></select>
-			-->
-			<!--<select name="workflow" id="workflow" style="width:230px;" size="20"></select>-->
-		</td><td class="middle" style="width:40%;">
-			<div align="center" id="svgdiv"></div>
-		</td><td align="right" valign="top" style="width:30%">
-			<div class="scrolldatawide" id="wfReportDiv"></div>
-		</td></tr><tr><td class="buttons">
-			<table align="left" style="margin:0px;padding:0px"><tr valign="middle"><td align="center">
+		<table align="center" style="width:98%;height:98%;table-layout:fixed;">
+			<tr><td colspan="6" align="center"><a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <b id="titleB">Interactive Web Workflow Enactor &amp; Manager v0.6</b></td></tr>
+			<tr><td colspan="2" class="data" style="vertical-align:middle;min-width:30%;width:30%;max-width:30%;min-height:85%;height:85%;max-height:85%;">
+				<div class="scrolldatawide" id="workflow"></div>
+			</td><td colspan="2" class="middle" style="vertical-align:middle;min-width:40%;width:40%;max-width:40%;min-height:85%;height:85%;max-height:85%;">
+				<div align="center" id="wfsvgdiv" style="width:100%"></div>
+			</td><td colspan="2" align="right" style="vertical-align:middle;min-width:30%;width:30%;max-width:30%;min-height:85%;height:85%;max-height:85%;">
+				<div class="scrolldatawide" id="wfReportDiv"></div>
+			</td></tr><tr><td colspan="6" align="right">
+				<span id="confirm" class='checkboxred checkbox right'>Confirm</span>
+			</td></tr><tr><td class="buttons" align="center">
 				<div id="reloadButton" class="button"><span id="updateTextSpan">Update</span> <img src="style/reload.png"></div>
-			</td><td align="center">
-				<div class="button" onclick="genview.newwfview.openNewWorkflowFrame()">Add new <img src="style/blueplus.png"></div>
-			</td></tr></table>
-		</td><td class="buttons">
-			<div align="center">
-				<div id="launchButton" class="button">Launch!<img src="style/greenball.png"></img></div>
-			</div>
-		</td><td class="buttons">
-			<div align="right" style="vertical-align: bottom;">
-				<span id="confirm" class='checkboxred checkbox right'>Confirm</span><br>
-				<!--
-				<label>Confirm<input type="checkbox" name="confirm" id="confirm"></input></label><br>
-				-->
-				<div id="deleteButton" class="button">Delete <img src="style/recycle.png"></img></div>
-			</div>
-		</td></tr>
-	</table>
-	<!-- Messages table -->
-	<table>
-		<tr><td>
-			<p><u>Submitted enaction jobs</u></p>
-			<ol id="submittedList"></ol>
-		</td><td>
-			<p><u>Last operation message</u></p>
-			<div id="messageDiv"></div>
-		</td></tr>
-	</table>
+			</td><td class="buttons" align="center">
+				<div id="newWFButton" class="button">Add new <img src="style/blueplus.png"></div>
+			</td><td class="buttons" align="center">
+				<div id="relaunchButton" class="button">Relaunch!<img src="style/regreenball.png"></div>
+			</td><td class="buttons" align="center">
+				<div id="launchButton" class="button">Launch!<img src="style/greenball.png"></div>
+			</td><td class="buttons" align="center">
+				<div id="openEnactionButton" class="button">Inspect it <img src="style/run.png"></div>
+			</td><td class="buttons" align="center">
+				<div id="deleteButton" class="button">Delete <img src="style/recycle.png"></div>
+			</td></tr>
+		<!-- Messages table -->
+			<tr><td colspan="2" style="width:100%;height:5%;overflow:auto">
+				<p><u>Submitted enaction jobs</u></p>
+				<ol id="submittedList"></ol>
+			</td><td colspan="4" style="width:100%;height:5%;overflow:auto">
+				<p><u>Last operation message</u></p>
+				<div id="messageDiv"></div>
+			</td></tr>
+		</table>
 </form>
 <div class="hidden" id="outerAbsDiv"></div>
 <div class="hidden" id="newWorkflow">
@@ -104,36 +104,33 @@
 </div>
 <div class="hidden" id="newEnaction">
 	<div class="secondary">
-		<div align="center">Please introduce your inputs for workflow</div>
 		<form id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data">
 			<input id="workflowHiddenInput" type="hidden" name="id"></input>
-			<table width="100%">
-				<tr><td>
-					<div align="center" id="enactsvg"></div>
-				</td><td width="100%">
-					<div class="scrolldatalarge">
-						<div style="margin: 5px 5px 5px 5px">
-							<span class="borderedOption"><span id="noneExampleSpan" class="radio right">Use inputs</span>&nbsp;<span id="saveAsExampleSpan" class="checkboxgreen checkbox right">Save as example</span></span>
-							<span class="borderedOption"><span id="useExampleSpan" class="radio right">Use example</span></span>
-							<div id="saveExampleDiv"></div>
-						</div>
-						<div id="newInputs"></div>
-					</div>
-				</td></tr>
-			</table>
+		<table align="center" style="width:98%; height:98%;"><tr valign="middle">
+			<td colspan="2" style="text-align:center;">Please introduce your inputs for this workflow</td>
+		</tr><tr><td rowspan="2" style="min-width:40%;width:40%;max-width:40%;min-height:100%;height:100%;max-height:100%;vertical-align:middle;" align="center">
+			<div id="enactsvg" style="width:100%"></div>
+		</td><td style="min-width:60%;width:60%;max-width:60%;height:5%">
+			<div id="useDiv" align="center" style="margin: 5px 5px 5px 5px">
+				<span class="borderedOption"><span id="noneExampleSpan" class="radio right">Use inputs</span>&nbsp;<span id="saveAsExampleSpan" class="checkboxgreen checkbox right">Save as example</span></span>
+				<span class="borderedOption"><span id="useExampleSpan" class="radio right">Use example</span></span>
+				<div id="saveExampleDiv"></div>
+			</div>
+		</td></tr><tr><td style="min-width:60%;width:60%;max-width:60%;">
+			<div class="scrolldatawide" id="newInputs"> </div>
+		</td></tr>
+		<tr><td align="left">
+			<div class="button" onclick="genview.newenactview.closeNewEnactionFrame()">
+				<img src="style/leftarrow.png"></img> Back
+			</div>
+		</td><td align="right">
+			<div class="button" onclick="genview.newenactview.enact()">
+				Start! <img src="style/run.png"></img>
+			</div>
+		</td></tr></table>
 		</form>
 		<div id="newEnactUploading">
 			<iframe src="about:blank" frameborder="0" id="enactIFRAME" name="enactIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
-		</div>
-		<div class="button back" onclick="genview.newenactview.closeNewEnactionFrame()">
-			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
-				<img src="style/leftarrow.png"></img> Back
-			</td></tr></table>
-		</div>
-		<div class="button forward" onclick="genview.newenactview.enact()">
-			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
-				Start! <img src="style/run.png"></img>
-			</td></tr></table>
 		</div>
 	</div>
 </div>
@@ -148,6 +145,11 @@
 <div class="hidden" id="submitEnaction">
 	<table style="width:100%; height:100%"><tr valign="middle"><td align="center">
 		<img src="style/big-ajax-submit.gif"></img>
+	</td></tr></table>
+</div>
+<div class="hidden" id="extractData">
+	<table style="width:100%; height:100%"><tr valign="middle"><td align="center">
+		<img src="style/big-ajax-extract.gif"></img>
 	</td></tr></table>
 </div>
 <iframe class="hidden" frameborder="0" src="about:blank" id="shimmer">

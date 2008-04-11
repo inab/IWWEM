@@ -276,9 +276,11 @@ if(defined($baclavafound)) {
 	$inputcount++;
 } elsif(defined($originalInput) && defined($reusePrevInput)) {
 	my $paramPath = $inputdir . '/' . $inputcount . '-baclava';
+	mkpath($paramPath);
 	my($baclavaname)=$paramPath.'/'.'original.xml';
 	if(copy($originalInput,$baclavaname)) {
 		$inputcount++;
+		push(@baclavadesc,'-inputDoc',$baclavaname);
 	} else {
 		$retval=4;
 	}

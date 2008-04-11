@@ -30,7 +30,7 @@ function EnactionView(genview) {
 	this.stageStateSpan=genview.getElementById('stageStateSpan');
 	
 	// Detailed info about a step
-	this.datatreeview=new DataTreeView(genview,'dataTreeDiv','databrowser','mimeInfoSelect','extractData');
+	this.datatreeview=new DataTreeView(genview,'dataTreeDiv','databrowser','mimeInfoSelect','extractData','preprocessData');
 	
 	// Update button text
 	this.updateTextSpan=genview.getElementById('updateTextSpan');
@@ -45,6 +45,11 @@ function EnactionView(genview) {
 	this.snapButton=genview.getElementById('snapButton');
 	WidgetCommon.addEventListener(this.snapButton,'click',function() {
 		enactview.openSnapshotFrame();
+	},false);
+	
+	this.relaunchButton=genview.getElementById('relaunchButton');
+	WidgetCommon.addEventListener(this.relaunchButton,'click',function() {
+		enactview.reenact();
 	},false);
 	
 	this.killButton=genview.getElementById('killButton');
@@ -72,10 +77,11 @@ function EnactionView(genview) {
 		}
 	},false);
 	
-	this.messageDiv=genview.getElementById('messageDiv');
 	// Now, transient divs
 	
 	// viewOtherEnaction is not needed at this level
+	this.otherEnactionsFrame=genview.getElementById('otherEnactionsFrameId');
+	
 	this.formViewEnaction=genview.getElementById('formViewEnaction');
 	this.jobIdField=genview.getElementById('jobId');
 	
@@ -139,17 +145,6 @@ function EnactionView(genview) {
 	},false);
 }
 
-EnactionView.getJobDir = function(jobId) {
-	if(jobId) {
-		jobId=jobId.toString();
-		if(jobId.indexOf('snapshot:')==0) {
-			jobId=jobId.substring(jobId.lastIndexOf(':')+1);
-		}
-	}
-	
-	return jobId;
-};
-
 EnactionView.BaseHREF = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
 
 EnactionView.BranchClick = function (event) {
@@ -187,13 +182,17 @@ EnactionView.prototype = {
 	init: function() {
 		var datatreeview=this.datatreeview;
 		var enactview=this;
+		var genview=this.genview;
 		this.svg.removeSVG(function() {
-			datatreeview.matcher.addMatchers(['EVpatterns.xml'],enactview,function() {
+			datatreeview.matcher.addMatchers(['EVpatterns.xml'],genview,function() {
 				enactview.internalDispose(function() {
 					var qsParm={};
 					WidgetCommon.parseQS(qsParm);
 					if(('jobId' in qsParm) && qsParm['jobId'] && qsParm['jobId'].length > 0) {
-						var jobId=qsParm['jobId'];
+						var jobId=qsParm['jobId'].toString();
+						if(jobId.indexOf('enaction:')==0) {
+							jobId=jobId.substring(jobId.indexOf(':')+1);
+						}
 						enactview.reloadStatus(jobId,true);
 					} else {
 						enactview.openOtherEnactionFrame();
@@ -271,7 +270,7 @@ EnactionView.prototype = {
 		for(var i=0;i< statusL.length;i++) {
 			var enStatus=statusL.item(i);
 			if(enStatus.getAttribute('jobId')==this.jobId) {
-				this.jobDir=EnactionView.getJobDir(this.jobId);
+				this.jobDir=EnactionStep.getJobDir(this.jobId);
 				this.JobsBase=enStatus.getAttribute('relURI');
 
 				this.domStatus=enStatus;
@@ -286,13 +285,14 @@ EnactionView.prototype = {
 					var enactview=this;
 					this.waitingSVG=1;
 					var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
-					var maxwidth=(parentno.clientWidth-32)+'px';
+					var maxwidth=(parentno.offsetWidth-32)+'px';
+					var maxheight=(parentno.offsetHeight-32)+'px';
 					this.svg.loadSVG(GeneralView.SVGDivId,
 						this.JobsBase+'/'+this.jobDir+'/workflow.svg',
 //						'100mm',
 //						'120mm',
 						maxwidth,
-						'120mm',
+						maxheight,
 						function() {
 							enactview.waitingSVG=undefined;
 							enactview.refreshEnactionStatus(state,callbackFill);
@@ -411,7 +411,8 @@ EnactionView.prototype = {
 	updateSVGSize: function () {
 		var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
 		var maxwidth=(parentno.clientWidth-32)+'px';
-		this.svg.SVGrescale(maxwidth,'120mm');
+		var maxheight=(parentno.offsetHeight-32)+'px';
+		this.svg.SVGrescale(maxwidth,maxheight);
 	},
 	
 	updateStepView: function(step) {
@@ -541,7 +542,6 @@ EnactionView.prototype = {
 			step=this.step;
 		}
 		// Unfilling iterations
-		this.datatreeview.clearSelect();
 
 		if(step) {
 			if(!iteration) {
@@ -557,9 +557,11 @@ EnactionView.prototype = {
 			this.istep=iteration;
 			
 			// Filling step information
-			this.datatreeview.setStep(this,step,iteration);
+			var baseJob = this.getBaseHREF()+'/'+this.JobsBase+((step.name!=this.jobId)?('/'+this.jobDir+'/Results'):'');
+			this.datatreeview.setStep(baseJob,this.jobId,step,iteration);
 		} else {
 			// Clearing view
+			this.datatreeview.clearSelect();
 			this.datatreeview.clearContainers();
 			this.stageSpan.innerHTML='NONE';
 			this.stageStateSpan.innerHTML='NONE'
@@ -615,18 +617,6 @@ EnactionView.prototype = {
 		tramp.unsuspendRedraw(susId);
 	},
 	
-	setMessage: function(message) {
-		this.messageDiv.innerHTML=message;
-	},
-	
-	addMessage: function(message) {
-		this.messageDiv.innerHTML+=message;
-	},
-	
-	clearMessage: function() {
-		GeneralView.freeContainer(this.messageDiv);
-	},
-	
 	reloadStatus: function(/* optional */ jobId,isFullReload,snapshotName,snapshotDesc,isKill) {
 		// Final states
 		if(
@@ -662,7 +652,7 @@ EnactionView.prototype = {
 			qsParm['dispose']='0';
 		}
 		var enactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionstatus");
-		this.clearMessage();
+		this.genview.clearMessage();
 		
 		// Cleaning up obsolete resources
 		if(isFullReload) {
@@ -675,6 +665,7 @@ EnactionView.prototype = {
 		this.jobId=jobId;
 		var enactQueryReq = this.enactQueryReq = new XMLHttpRequest();
 		var enactview=this;
+		var genview=this.genview;
 		try {
 			enactQueryReq.onreadystatechange = function() {
 				if(enactQueryReq.readyState==4) {
@@ -683,7 +674,7 @@ EnactionView.prototype = {
 						if('status' in enactQueryReq) {
 							if(enactQueryReq.status==200) {
 								if(enactQueryReq.parseError && enactQueryReq.parseError.errorCode!=0) {
-									enactview.setMessage(
+									genview.setMessage(
 										'<blink><h1 style="color:red">FATAL ERROR ('+
 										enactQueryReq.parseError.errorCode+
 										") while parsing list at ("+
@@ -701,7 +692,7 @@ EnactionView.prototype = {
 											response = parser.parseFromString(enactQueryReq.responseText,'application/xml');
 										} else {
 											// TODO
-											enactview.setMessage(
+											genview.setMessage(
 												'<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>'
 											);
 											// Backend error.
@@ -746,18 +737,18 @@ EnactionView.prototype = {
 								if(('statusText' in enactQueryReq) && enactQueryReq['statusText']) {
 									statusText=enactQueryReq.statusText;
 								}
-								enactview.setMessage(
+								genview.setMessage(
 									'<blink><h1 style="color:red">FATAL ERROR while collecting enaction status: '+
 									enactQueryReq.status+' '+statusText+'</h1></blink>'
 								);
 							}
 						} else {
-							enactview.setMessage(
+							genview.setMessage(
 								'<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>'
 							);
 						}
 					} catch(e) {
-						enactview.setMessage(
+						genview.setMessage(
 							'<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+
 							WidgetCommon.DebugError(e)+'</pre>'
 						);
@@ -772,7 +763,7 @@ EnactionView.prototype = {
 			enactQueryReq.open('GET',enactQuery,true);
 			enactQueryReq.send(null);
 		} catch(e) {
-			this.setMessage(
+			this.genview.setMessage(
 				'<blink><h1 style="color:red">FATAL ERROR: Unable to start reload!</h1></blink><pre>'+
 				WidgetCommon.DebugError(e)+'</pre>'
 			);
@@ -823,6 +814,7 @@ EnactionView.prototype = {
 		} else {
 			this.frameOtherId=this.genview.openFrame('viewOtherEnaction',1);
 		}
+		this.otherEnactionsFrame.src='workflowmanager.html?id=enaction:';
 	},
 	
 	viewEnaction: function() {
@@ -837,6 +829,7 @@ EnactionView.prototype = {
 	
 	closeOtherEnactionFrame: function() {
 		if(this.jobId) {
+			this.otherEnactionsFrame.src='about:blank';
 			this.genview.closeFrame(this.frameOtherId);
 		} else {
 			alert('You must enter an enaction Id\nbecause there is no previous known enaction.');
@@ -888,5 +881,114 @@ EnactionView.prototype = {
 	closeSnapshotFrame: function() {
 		this.genview.closeFrame(this.frameSnapId);
 		GeneralView.freeContainer(this.snapshotDescContainer);
+	},
+	
+	openReenactFrame: function() {
+		this.reenactFrameId=this.genview.openFrame('extractData',1);
+	},
+	
+	closeReenactFrame: function() {
+		if(this.reenactFrameId) {
+			this.genview.closeFrame(this.reenactFrameId);
+			this.reenactFrameId=undefined;
+		}
+	},
+	
+	/* This method has been adapted from NewEnactionview.reenact */
+	reenact: function() {
+		// The enaction id is the only we need!
+		if(!this.jobId)  return;
+		
+		var enUUID=this.jobId;
+		
+		// First, locking the window
+		this.openReenactFrame();
+		
+		var qsParm = {};
+		qsParm['id']=enUUID;
+		qsParm['reusePrevInput']='1';
+		var reenactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionlauncher");
+		var reenactRequest = new XMLHttpRequest();
+		var enactview=this;
+		var genview=this.genview;
+		genview.clearMessage();
+		try {
+			reenactRequest.onreadystatechange = function() {
+				if(reenactRequest.readyState==4) {
+					try {
+						if('status' in reenactRequest) {
+							if(reenactRequest.status==200) {
+								// Beware parsing errors in Explorer
+								if(reenactRequest.parseError && reenactRequest.parseError.errorCode!=0) {
+									genview.setMessage('<blink><h1 style="color:red">FATAL ERROR ('+
+										reenactRequest.parseError.errorCode+
+										") while parsing reenaction submission at ("+
+										reenactRequest.parseError.line+
+										","+reenactRequest.parseError.linePos+
+										"):</h1></blink><pre>"+reenactRequest.parseError.reason+"</pre>");
+								} else {
+									var response = reenactRequest.responseXML;
+									if(!response) {
+										if(reenactRequest.responseText) {
+											var parser = new DOMParser();
+											response = parser.parseFromString(reenactRequest.responseText,'application/xml');
+										} else {
+											// Backend error.
+											genview.setMessage('<blink><h1 style="color:red">FATAL ERROR BRE: Please notify it to INB Web Workflow Manager developer</h1></blink>');
+										}
+									}
+
+									enactview.parseEnactionIdAndRelaunch(response);
+								}
+							} else {
+								// Communications error.
+								var statusText='';
+								if(('statusText' in reenactRequest) && reenactRequest['statusText']) {
+									statusText=reenactRequest.statusText;
+								}
+								genview.setMessage('<blink><h1 style="color:red">FATAL ERROR while reenacting '+
+									enUUID+': '+reenactRequest.status+' '+statusText+'</h1></blink>');
+							}
+						} else {
+							genview.setMessage('<blink><h1 style="color:red">FATAL ERROR FRE: Please notify it to INB Web Workflow Manager developer</h1></blink>');
+						}
+					} catch(e) {
+						genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to complete reenaction!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>');
+					} finally {
+						// Removing 'Loading...' frame
+						enactview.closeReenactFrame();
+						reenactRequest.onreadystatechange=function() {};
+						reenactRequest=undefined;
+					}
+				}
+			};
+			reenactRequest.open('GET',reenactQuery,true);
+			reenactRequest.send(null);
+		} catch(e) {
+			this.genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to start reenaction of '+
+				enUUID+'!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>');
+		}
+	},
+	
+	/* This method has been adapted from NewEnactionview.parseEnactionAndLaunch */
+	parseEnactionIdAndRelaunch: function(enactIdDOM) {
+		var enactId;
+		
+		if(enactIdDOM) {
+			if(enactIdDOM.documentElement &&
+				enactIdDOM.documentElement.tagName &&
+				(GeneralView.getLocalName(enactIdDOM.documentElement)=='enactionlaunched')
+			) {
+				enactId = enactIdDOM.documentElement.getAttribute('jobId');
+				if(enactId) {
+					var thewin=(top)?top:((parent)?parent:window);
+					thewin.open('enactionviewer.html?jobId='+enactId,'_top');
+				}
+			} else {
+				this.genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to start the re-enaction process</h1></blink>');
+			}
+		}
+		
+		return enactId;
 	}
 };

@@ -10,8 +10,8 @@
 
 function WorkflowManagerCustomInit() {
 	var manview = this.manview=new ManagerView(this);
-	this.newwfview=new NewWorkflowView(this);
-	this.newenactview=new NewEnactionView(this);
+	this.newwfview=new NewWorkflowView(this,this.manview.restrictId);
+	this.newenactview=new NewEnactionView(manview);
 	
 	manview.svg.removeSVG(function() {
 		manview.reloadList();
@@ -34,26 +34,36 @@ function ManagerView(genview) {
 	this.genview=genview;
 	//this.wfselect=genview.getElementById('workflow');
 	this.wfselect=new GeneralView.Select(genview,'workflow',genview.getElementById('workflow'));
-	this.messageDiv=genview.getElementById('messageDiv');
 	
 	this.wfreport=new WorkflowReport(genview,'wfReportDiv');
 	
 	this.reloadButton=genview.getElementById('reloadButton');
 	this.updateTextSpan=genview.getElementById('updateTextSpan');
 
+	this.openEnactionButton=genview.getElementById('openEnactionButton');
 	this.launchButton=genview.getElementById('launchButton');
+	this.relaunchButton=genview.getElementById('relaunchButton');
 	this.deleteButton=genview.getElementById('deleteButton');
+	
+	this.openEnactionButton.className='buttondisabled';
 	this.launchButton.className='buttondisabled';
+	this.relaunchButton.className='buttondisabled';
 	this.deleteButton.className='buttondisabled';
 	
+	var manview = this;
 	// this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown.svg','75mm','90mm');
-	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg');
+	this.svgdivid='wfsvgdiv';
+	var parentno=this.genview.getElementById(this.svgdivid).parentNode;
+	var maxwidth=(parentno.offsetWidth-32)+'px';
+	var maxheight=(parentno.offsetHeight-32)+'px';
+	this.svg=new TavernaSVG(this.svgdivid,'style/unknown-inb.svg',maxwidth,maxheight,function() {
+		manview.updateSVGSize();
+	});
 	
 	this.wfA={};
 	this.listRequest=undefined;
 	this.WFBase=undefined;
 	
-	var manview = this;
 	// As confirm check is no more a real check, let's fake it!
 	var check;
 	check = this.check = new GeneralView.Check(genview.getElementById('confirm'),function() {
@@ -70,13 +80,17 @@ function ManagerView(genview) {
 	this.wfselect.addEventListener('change',function () {
 		manview.updateView(function() {
 			if(manview.wfselect.selectedIndex==-1) {
+				manview.openEnactionButton.className='buttondisabled';
 				manview.launchButton.className='buttondisabled';
+				manview.relaunchButton.className='buttondisabled';
 				manview.deleteButton.className='buttondisabled';
 				if(manview.check.checked) {
 					manview.check.setCheck(false);
 				}
 			} else {
+				manview.openEnactionButton.className='button';
 				manview.launchButton.className='button';
+				manview.relaunchButton.className='button';
 				manview.deleteButton.className='button';
 			}
 		});
@@ -106,6 +120,30 @@ function ManagerView(genview) {
 	*/
 	
 	this.frameReloadId=undefined;
+	
+	this.restrictId=undefined;
+	
+	// Parsing id param
+	var qsParm={};
+	WidgetCommon.parseQS(qsParm);
+	if(('id' in qsParm) && qsParm['id'] && qsParm['id'].length > 0) {
+		this.restrictId=qsParm['id'];
+		
+		WidgetCommon.addEventListener(this.openEnactionButton,'click',function() {
+			manview.doOpenEnaction();
+		},false);
+		
+		// Setting up the title
+		var pageTitle=this.genview.getElementById('titleB');
+		pageTitle.innerHTML='Interactive Enaction Inspector v0.6';
+		// Deactivating buttons!!!
+		var useDiv=this.genview.getElementById('useDiv');
+		useDiv.style.display='none';
+	} else {
+		// Deactivating buttons!!!
+		this.openEnactionButton.style.display='none';
+		this.relaunchButton.style.display='none';
+	}
 }
 
 
@@ -143,12 +181,13 @@ ManagerView.prototype = {
 		var workflow = this.getCurrentWorkflow();
 		if(workflow) {
 			// SVG graph
-			//this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
+			//this.svg.loadSVG(this.svgdivid,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
 			var wfreport=this.wfreport;
 			var WFBase=this.WFBase;
-			var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
-			var maxwidth=(parentno.clientWidth-32)+'px';
-			this.svg.loadSVG(GeneralView.SVGDivId,this.WFBase+'/'+workflow.svgpath,maxwidth,'120mm',function() {
+			var parentno=this.genview.getElementById(this.svgdivid).parentNode;
+			var maxwidth=(parentno.offsetWidth-32)+'px';
+			var maxheight=(parentno.offsetHeight-32)+'px';
+			this.svg.loadSVG(this.svgdivid,this.WFBase+'/'+workflow.svgpath,maxwidth,maxheight,function() {
 				wfreport.updateView(WFBase,workflow);
 				if(typeof callbackFunc=='function') {
 					callbackFunc();
@@ -161,9 +200,12 @@ ManagerView.prototype = {
 	
 	/* This method updates the size of the workflow */
 	updateSVGSize: function () {
-		var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
-		var maxwidth=(parentno.clientWidth-32)+'px';
-		this.svg.SVGrescale(maxwidth,'120mm');
+		var svgdiv=this.genview.getElementById(this.svgdivid);
+		var parentno=svgdiv.parentNode;
+		var maxwidth=(parentno.offsetWidth-32)+'px';
+		var maxheight=(parentno.offsetHeight-32)+'px';
+		//alert(parentno.offsetHeight+"||"+parentno.clientHeight);
+		this.svg.SVGrescale(maxwidth,maxheight);
 	},
 	
 	/* This method fills in the known information about the workflow */
@@ -198,6 +240,7 @@ ManagerView.prototype = {
 			listDOM.tagName &&
 			GeneralView.getLocalName(listDOM)=='workflowlist'
 		) {
+			var sortArr=new Array();
 			this.WFBase = listDOM.getAttribute('relURI');
 			for(var child=listDOM.firstChild ; child ; child=child.nextSibling) {
 				if(child.nodeType==1) {
@@ -205,23 +248,54 @@ ManagerView.prototype = {
 						case 'workflow':
 							var workflow=new WorkflowDesc(child);
 							this.wfA[workflow.uuid]=workflow;
-
-							var wfO = workflow.generateOption(this.genview);
-
-							// Last: save selection!
-							this.wfselect.add(wfO);
+							sortArr.push(workflow);
 							break;
+							
 						case 'message':
 							var mtext=WidgetCommon.getTextContent(child);
 							if(!mtext)  mtext='';
-							this.messageDiv.innerHTML += '<p><u>Return Value:</u> '+child.getAttribute('retval')+'</p><pre>'+mtext+'</pre>';
+							this.genview.addMessage('<p><u>Return Value:</u> '+
+								child.getAttribute('retval')+
+								'</p><pre>'+mtext+'</pre>'
+							);
 							break;
 					}
 				}
 			}
+			
+			// Now, time to sort this... TODO
+			var sortFunc=function (a,b) {
+				if(a.title < b.title)  return -1;
+				if(a.title > b.title)  return 1;
+				if(a.date < b.date)  return 1;
+				if(a.date > b.date)  return -1;
+				
+				return 0;
+			};
+			
+			if(this.restrictId) {
+				sortFunc=function (a,b) {
+					if(a.date < b.date)  return 1;
+					if(a.date > b.date)  return -1;
+					if(a.title < b.title)  return -1;
+					if(a.title > b.title)  return 1;
+					return 0;
+				};
+			}
+			
+			sortArr=sortArr.sort(sortFunc);
+			
+			// And show it!
+			for(var soi=0;soi<sortArr.length;soi++) {
+				var workflow=sortArr[soi];
+				var wfO = workflow.generateOption(this.genview);
+
+				// Last: save selection!
+				this.wfselect.add(wfO);
+			}
 		} else {
 			this.WFBase='.';
-			this.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to fetch the workflow repository listing!</h1></blink>';
+			this.genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to fetch the workflow repository listing!</h1></blink>');
 		}
 	},
 	
@@ -233,13 +307,17 @@ ManagerView.prototype = {
 		this.check.setCheck(false);
 		
 		var qsParm = {};
-		if(wfToErase) {
+		if(this.restrictId!=undefined) {
+			qsParm['id']=this.restrictId;
+		}
+		if(wfToErase!=undefined) {
 			qsParm['eraseId']=wfToErase;
 		}
 		var listQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/workflowmanager");
 		var listRequest = this.listRequest = new XMLHttpRequest();
 		var manview=this;
-		GeneralView.freeContainer(this.messageDiv);
+		var genview=this.genview;
+		genview.clearMessage();
 		try {
 			listRequest.onreadystatechange = function() {
 				if(listRequest.readyState==4) {
@@ -250,12 +328,13 @@ ManagerView.prototype = {
 							if(listRequest.status==200) {
 								// Beware parsing errors in Explorer
 								if(listRequest.parseError && listRequest.parseError.errorCode!=0) {
-									manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR ('+
+									genview.setMessage('<blink><h1 style="color:red">FATAL ERROR ('+
 										listRequest.parseError.errorCode+
 										") while parsing list at ("+
 										listRequest.parseError.line+
 										","+listRequest.parseError.linePos+
-										"):</h1></blink><pre>"+listRequest.parseError.reason+"</pre>";
+										"):</h1></blink><pre>"+listRequest.parseError.reason+"</pre>"
+									);
 								} else {
 									var response = listRequest.responseXML;
 									if(!response) {
@@ -264,7 +343,7 @@ ManagerView.prototype = {
 											response = parser.parseFromString(listRequest.responseText,'application/xml');
 										} else {
 											// Backend error.
-											manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>';
+											genview.setMessage('<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>');
 										}
 									}
 									manview.fillWorkflowList(response.documentElement.cloneNode(true),function() {
@@ -281,14 +360,15 @@ ManagerView.prototype = {
 								if(('statusText' in listRequest) && listRequest['statusText']) {
 									statusText=listRequest.statusText;
 								}
-								manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR while fetching list: '+
-									listRequest.status+' '+statusText+'</h1></blink>';
+								genview.setMessage('<blink><h1 style="color:red">FATAL ERROR while fetching list: '+
+									listRequest.status+' '+statusText+'</h1></blink>'
+								);
 							}
 						} else {
-							manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>';
+							genview.setMessage('<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>');
 						}
 					} catch(e) {
-						manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
+						genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>');
 					} finally {
 						// Removing 'Loading...' frame
 						if(doClose) {
@@ -307,7 +387,7 @@ ManagerView.prototype = {
 			listRequest.open('GET',listQuery,true);
 			listRequest.send(null);
 		} catch(e) {
-			this.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to start reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>';
+			genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to start reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>');
 		}
 	},
 	
@@ -318,22 +398,41 @@ ManagerView.prototype = {
 				this.reloadList(this.wfselect.options[this.wfselect.selectedIndex].value);
 			}
 		}
+	},
+	
+	doOpenEnaction: function() {
+		if(this.wfselect.selectedIndex!=-1) {
+			var thewin=(top)?top:((parent)?parent:window);
+			thewin.open('enactionviewer.html?jobId='+this.wfselect.options[this.wfselect.selectedIndex].value,'_top');
+		}
 	}
 };
 
-function NewWorkflowView(genview) {
+function NewWorkflowView(genview,restrictId) {
 	this.genview = genview;
+	this.restrictId=restrictId;
 	this.uploading = undefined;
 	
 	this.iframe=genview.getElementById('uploadIFRAME');
 	this.newWFForm=genview.getElementById('formNewWF');
 	this.newWFContainer=genview.getElementById('newWFContainer');
 	this.newWFUploading=genview.getElementById('newWFUploading');
+	var newWFButton=genview.getElementById('newWFButton');
 	
 	// Either text or file
 	var newwfview = this;
 	this.newWFStyleText=new GeneralView.Check(genview.getElementById('newWFStyleText'), function() { newwfview.setTextControl(); });
 	this.newWFStyleFile=new GeneralView.Check(genview.getElementById('newWFStyleFile'), function() { newwfview.setFileControl(); });
+	
+	if(restrictId!=undefined) {
+		// Hiding new Workflow button
+		newWFButton.style.visibility='hidden';
+	} else {
+		// Attaching the event
+		WidgetCommon.addEventListener(newWFButton,'click',function() {
+			newwfview.openNewWorkflowFrame()
+		},false);
+	}
 	
 	this.newWFControl = undefined;
 	//this.iframe = undefined;
@@ -421,6 +520,11 @@ NewWorkflowView.prototype = {
 					this.newSubWFContainer.appendChild(freeze);
 				}
 				
+				if(this.restrictId!=undefined) {
+					var resId = this.genview.createHiddenInput('id',this.restrictId);
+					this.newSubWFContainer.appendChild(resId);
+				}
+				
 				this.newWFUploading.style.visibility='visible';
 				
 				/*
@@ -449,7 +553,7 @@ NewWorkflowView.prototype = {
 				
 				var onUpload = function() {
 					// First, parsing content
-					GeneralView.freeContainer(newwfview.genview.manview.messageDiv);
+					newwfview.genview.clearMessage();
 					var xdoc=WidgetCommon.getIFrameDocument(iframe);
 					if(xdoc) {
 						if(BrowserDetect.browser=='Explorer') {
@@ -501,9 +605,10 @@ NewWorkflowView.prototype = {
 	}
 };
 
-function NewEnactionView(genview) {
-	this.genview = genview;
-	this.manview=genview.manview;
+function NewEnactionView(manview) {
+	this.manview=manview;
+	var genview = this.genview = manview.genview;
+	this.restrictId=manview.restrictId;
 	
 	this.iframe=genview.getElementById('enactIFRAME');
 	this.newEnactForm=genview.getElementById('formEnactor');
@@ -515,10 +620,13 @@ function NewEnactionView(genview) {
 	
 	var newenactview = this;
 	
-	WidgetCommon.addEventListener(this.manview.launchButton,'click',function() {
+	WidgetCommon.addEventListener(manview.launchButton,'click',function() {
 		newenactview.openNewEnactionFrame();
 	},false);
 
+	WidgetCommon.addEventListener(manview.relaunchButton,'click',function() {
+		newenactview.reenact();
+	},false);
 	
 	this.enactSVG = new TavernaSVG();
 	this.inputs=new Array();
@@ -544,10 +652,15 @@ function NewEnactionView(genview) {
 	this.inputstatecontrol=undefined;
 	
 	this.saveExampleDiv=genview.getElementById('saveExampleDiv');
+	this.saveOnlyCheck=undefined;
 	
 	this.inputmode=undefined;
 
 	this.setupInputType();
+	
+	WidgetCommon.addEventListener(window,'resize',function() {
+		newenactview.updateSVGSize();
+	},false);
 }
 
 NewEnactionView.prototype = {
@@ -590,19 +703,29 @@ NewEnactionView.prototype = {
 		}
 	},
 	
+	updateSVGSize: function() {
+		var parentno=this.enactSVGContainer.parentNode;
+		var maxwidth=(parentno.offsetWidth-32)+'px';
+		var maxheight=(parentno.offsetHeight-32)+'px';
+		//alert(parentno.offsetHeight+"||"+parentno.clientHeight);
+		//alert(maxwidth+' '+maxheight);
+		this.enactSVG.SVGrescale(maxwidth,maxheight);
+	},
+	
 	setSaveExampleMode: function(state) {
 		if(!this.inputmode) {
 			if(state!=this.saveAsExample.checked) {
 				if(this.saveAsExample.checked) {
 					this.saveAsExample.setCheck(false);
+					this.saveOnlyCheck=undefined;
 					GeneralView.freeContainer(this.saveExampleDiv);
 				} else {
 					this.saveAsExample.setCheck(true);
 					
 					// MORE - creating dialog fields
 					var spanName=this.genview.createElement('span');
-					spanName.innerHTML='Example Name';
-					var brName=this.genview.createElement('br');
+					spanName.innerHTML='Example Name ';
+					//var brName=this.genview.createElement('br');
 					var exampleName=this.genview.createElement('input');
 					exampleName.type='text';
 					exampleName.name='exampleName';
@@ -612,8 +735,15 @@ NewEnactionView.prototype = {
 					var brDesc=this.genview.createElement('br');
 					
 					this.saveExampleDiv.appendChild(spanName);
-					this.saveExampleDiv.appendChild(brName);
+					//this.saveExampleDiv.appendChild(brName);
 					this.saveExampleDiv.appendChild(exampleName);
+					this.saveOnlyCheck = this.genview.generateCheckControl(
+								'Only Save Example',
+								undefined,
+								undefined,
+								1,
+								this.saveExampleDiv
+							);
 					this.saveExampleDiv.appendChild(br);
 					this.saveExampleDiv.appendChild(spanDesc);
 					this.saveExampleDiv.appendChild(brDesc);
@@ -624,7 +754,10 @@ NewEnactionView.prototype = {
 						var basehref = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
 						exampleDesc.BasePath='js/FCKeditor/';
 						exampleDesc.Config['CustomConfigurationsPath']=basehref+'/js/fckconfig_IWWEM.js';
-						this.saveExampleDiv.innerHTML += exampleDesc.CreateHtml();
+						var fckdiv=this.genview.createElement('div');
+						fckdiv.setAttribute('style','margin:0px;padding:0px;');
+						fckdiv.innerHTML = exampleDesc.CreateHtml();
+						this.saveExampleDiv.appendChild(fckdiv);
 					} else {
 						// I prefer my own defaults
 						var exampleDesc=this.genview.createElement('textarea');
@@ -667,10 +800,8 @@ NewEnactionView.prototype = {
 			// First, do the needed preparations!
 			var WFBase = this.manview.WFBase;
 			
-			// SVG graph
 			this.workflow = workflow;
 			this.WFBase = WFBase;
-			this.enactSVG.loadSVG(this.enactSVGContainer.id,WFBase+'/'+workflow.svgpath,'100mm','120mm');
 			
 			// Inputs
 			this.setInputMode(this.noneExampleSpan.control);
@@ -678,6 +809,16 @@ NewEnactionView.prototype = {
 			
 			// And at last, open frame
 			this.frameEnactId=this.genview.openFrame('newEnaction');
+			
+			// SVG graph
+			var parentno=this.enactSVGContainer.parentNode;
+			var maxwidth=(parentno.offsetWidth-32)+'px';
+			var maxheight=(parentno.offsetHeight-32)+'px';
+			//alert(maxwidth+' '+maxheight);
+			var newenactview=this;
+			this.enactSVG.loadSVG(this.enactSVGContainer.id,WFBase+'/'+workflow.svgpath,maxwidth,maxheight,function() {
+				newenactview.updateSVGSize();
+			});
 		/*
 		} else {
 			alert('Please, first select a workflow before trying to enact one');
@@ -699,34 +840,178 @@ NewEnactionView.prototype = {
 		divdesc.className = 'scrolldatamin';
 		
 		// And last!!!!
-		this.inputsContainer.align='center';
 		this.inputsContainer.innerHTML='Example ';
 		this.inputsContainer.appendChild(exSelect);
+		
+		// Choicing...
+		var thechoicedesc=this.genview.createElement('span');
+		thechoicedesc.className='radio left';
+		thechoicedesc.innerHTML='Desc';
+		var radiothechoicedesc=new GeneralView.Check(thechoicedesc);
+		radiothechoicedesc.doCheck();
+		
+		var thechoicedata=this.genview.createElement('span');
+		thechoicedata.className='radio left';
+		thechoicedata.innerHTML='Data';
+		var radiothechoicedata=new GeneralView.Check(thechoicedata);
+		
+		var radiostatecontrol=radiothechoicedesc;
+		
+		var descdataSpan=this.genview.createElement('span');
+		descdataSpan.className='borderedOption';
+		descdataSpan.appendChild(thechoicedesc);
+		descdataSpan.appendChild(thechoicedata);
+		
+		this.inputsContainer.appendChild(descdataSpan);
+
 		this.inputsContainer.appendChild(divdesc);
 		
-		// And the on change event, which must be taken into account
+
+		// Table for data browser
+		var table=this.genview.createElement('table');
+		table.setAttribute('style','width:100%; height:100%;margin:0px;padding:0px;table-layout:fixed;display:none;');
+
+		var tr0=this.genview.createElement('tr');
+		table.appendChild(tr0);
+		var td1=this.genview.createElement('td');
+		td1.setAttribute("rowspan","2");
+		td1.setAttribute('style','width:50%;height:100%;');
+		tr0.appendChild(td1);
+		var dataTreeDiv=this.genview.createElement('div');
+		var dataTreeDivId=WidgetCommon.getRandomUUID();
+		dataTreeDiv.setAttribute('id',dataTreeDivId);
+		dataTreeDiv.setAttribute('class','scrolldatawide');
+		td1.appendChild(dataTreeDiv);
+		
+		var mimeInfoSelect=this.genview.createElement('td');
+		mimeInfoSelectId=WidgetCommon.getRandomUUID();
+		mimeInfoSelect.setAttribute('id',mimeInfoSelectId);
+		mimeInfoSelect.setAttribute('style','width:50%;overflow:hidden');
+		tr0.appendChild(mimeInfoSelect);
+		
+		var tr=this.genview.createElement('tr');
+		tr.setAttribute('style','vertical-align:middle');
+		table.appendChild(tr);
+		var td2=this.genview.createElement('td');
+		td2.setAttribute('style','width:50%;height:100%;');
+		tr.appendChild(td2);
+		var databrowser=this.genview.createElement('div');
+		var databrowserId=WidgetCommon.getRandomUUID();
+		databrowser.setAttribute('id',databrowserId);
+		databrowser.setAttribute('class','scroll');
+		td2.appendChild(databrowser);
+
+		this.inputsContainer.appendChild(table);
+		
+		// And now... the browser object!
+		var datatreeview = new DataTreeView(this.genview,dataTreeDivId,databrowserId,mimeInfoSelectId, undefined);
+		
+		// the on change event, which must be taken into account
+		var newenactview=this;
 		var WFBase = this.manview.WFBase;
+		var stepCache={};
+		var step=undefined;
+		var WFBase=this.manview.WFBase;
+		var viewExample=function(exampleUUID) {
+			var step=stepCache[exampleUUID];
+			datatreeview.setStep(WFBase,exampleUUID,step,-1);
+		};
 		var onSelectChange=function() {
-			GeneralView.freeContainer(divdesc);
 			if(exSelect.selectedIndex!=-1) {
-				var example = workflow.examples[exSelect.options[exSelect.selectedIndex].value];
-				
-				var output='<b>Example name:</b> '+example.name;
-				output += '<p>UUID:</b>&nbsp;'+example.uuid+'</p>';
-				output += '<p><b>Date:</b> '+example.date+'</p>';
-				output += '<p><i><a href="'+WFBase+'/'+example.path+'">Download example in Baclava format</a></i></p>';
-				output += '<b>Description</b><br>';
-				if(example.description && example.description.length>0) {
-					output += GeneralView.preProcess(example.description);
+				var example = workflow.getExample(exSelect.options[exSelect.selectedIndex].value);
+				if(radiothechoicedesc.checked) {
+					newenactview.inputsContainer.className='scrolldatawide';
+					GeneralView.freeContainer(divdesc);
+					table.style.display='none';
+					divdesc.style.display='block';
+					var output='<b>Example name:</b> '+example.name;
+					output += '<p><b>UUID:</b>&nbsp;'+example.uuid+'</p>';
+					output += '<p><b>Date:</b> '+example.date+'</p>';
+					output += '<p><i><a href="'+WFBase+'/'+example.path+'">Download example in Baclava format</a></i></p>';
+					output += '<b>Description</b><br>';
+					if(example.description && example.description.length>0) {
+						output += GeneralView.preProcess(example.description);
+					} else {
+						output += '<i>(None)</i>';
+					}
+
+					divdesc.innerHTML=output;
 				} else {
-					output += '<i>(None)</i>';
+					newenactview.inputsContainer.className='';
+					divdesc.style.display='none';
+					table.style.display='table';
+					
+					var exampleUUID=example.getQualifiedUUID();
+					if(exampleUUID in stepCache) {
+						viewExample(exampleUUID);
+					} else {
+						var request;
+						var genview=this.genview;
+						var qsParm = {};
+						qsParm['jobId']=example.getQualifiedUUID();
+						var theurl = WidgetCommon.generateQS(qsParm,"cgi-bin/IWWEMproxy");
+						try {
+							request=new XMLHttpRequest();
+							request.onload = function() {
+								var response = request.responseXML;
+								if(!response) {
+									if(request.responseText) {
+										var parser = new DOMParser();
+										response = parser.parseFromString(request.responseText,'application/xml');
+									} else {
+										// Backend error.
+										genview.addMessage(
+											'<blink><h1 style="color:red">FATAL ERROR B: (with '+
+											theurl+
+											') Please notify it to INB Web Workflow Manager developer</h1></blink>'
+										);
+									}
+								}
+								// Only parse when an answer is available
+								stepCache[exampleUUID]=new EnactionStep(response.documentElement);
+								viewExample(exampleUUID);
+
+								request.onload=function() {};
+								request=undefined;
+							};
+
+							// Now it is time to send the query
+							request.open('GET',theurl,true);
+							request.send(null);
+						} catch(e) {
+							genview.addMessage(
+								'<blink><h1 style="color:red">FATAL ERROR: Unable to browse '+
+								theurl+
+								' reload!</h1></blink><pre>'+
+								WidgetCommon.DebugError(e)+
+								'</pre>'
+							);
+							request=undefined;
+						}
+					}
 				}
-				
-				divdesc.innerHTML=output;
 			}
 		};
 		
 		WidgetCommon.addEventListener(exSelect,'change',onSelectChange,false);
+		
+		// And the onclick event!
+		var onclickHandler=function(event) {
+			if(!event)  event=window.event;
+			var target=(event.currentTarget)?event.currentTarget:event.srcElement;
+			if(!radiostatecontrol || radiostatecontrol.control!=target) {
+				if(radiostatecontrol) {
+					radiostatecontrol.doUncheck();
+				}
+				radiostatecontrol=(target==radiothechoicedata.control)?radiothechoicedata:radiothechoicedesc;
+				radiostatecontrol.doCheck();
+				// Redraw!
+				onSelectChange();
+			}
+		};
+		
+		radiothechoicedesc.addEventListener('click', onclickHandler, false);
+		radiothechoicedata.addEventListener('click', onclickHandler, false);
 		
 		if(workflow.hasExamples) {
 			// Now it is time to fill in the select control
@@ -921,21 +1206,35 @@ NewEnactionView.prototype = {
 		this.workflow=undefined;
 	},
 	
-	openSubmitFrame: function() {
-		var elem=this.genview.getElementById('submitEnaction');
-		elem.className='submitEnaction';
+	openSubmitFrame: function(/* optional */useShimmer) {
+		if(useShimmer) {
+			this.reEnactFrameId=this.genview.openFrame('submitEnaction',1);
+		} else {
+			var elem=this.genview.getElementById('submitEnaction');
+			elem.className='submitEnaction';
+		}
 	},
 	
-	closeSubmitFrame: function() {
-		var elem=this.genview.getElementById('submitEnaction');
-		elem.className='hidden';
+	closeSubmitFrame: function(/* optional */useShimmer) {
+		if(this.reEnactFrameId) {
+			this.genview.closeFrame(this.reEnactFrameId);
+			this.reEnactFrameId=undefined;
+		} else {
+			var elem=this.genview.getElementById('submitEnaction');
+			elem.className='hidden';
+		}
 	},
 	
 	enact: function () {
 		if(this.workflow.hasInputs && !this.inputmode && this.inputCounter<=0) {
 			alert('You must introduce an input before trying to\nstart the enaction process');
 		} else {
-
+			// Creating the hidden value for 
+			if(this.saveOnlyCheck && this.saveOnlyCheck.checked)  {
+				var newhid = this.genview.createHiddenInput('onlySaveAsExample','1');
+				this.workflowHiddenInput.parentNode.insertBefore(newhid,this.workflowHiddenInput.nextSibling);
+			}
+			
 			// First, locking the window
 			this.openSubmitFrame();
 
@@ -964,7 +1263,7 @@ NewEnactionView.prototype = {
 			var newenactview = this;
 			var iframeLoaded = function() {
 				// First, parsing content
-				GeneralView.freeContainer(newenactview.genview.manview.messageDiv);
+				newenactview.genview.clearMessage();
 				var xdoc=WidgetCommon.getIFrameDocument(iframe);
 				if(xdoc) {
 					if(BrowserDetect.browser=='Explorer') {
@@ -1014,7 +1313,83 @@ NewEnactionView.prototype = {
 		}
 	},
 	
-	parseEnactionIdAndLaunch: function(enactIdDOM) {
+	reenact: function() {
+		var manview=this.manview;
+		var genview=this.genview;
+		if(manview.wfselect.selectedIndex!=-1) {
+			// The enaction id is the only we need!
+			var enUUID=manview.wfselect.options[manview.wfselect.selectedIndex].value;
+			
+			// First, locking the window
+			this.openSubmitFrame(1);
+			
+			var qsParm = {};
+			qsParm['id']=enUUID;
+			qsParm['reusePrevInput']='1';
+			var reenactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionlauncher");
+			var reenactRequest = new XMLHttpRequest();
+			var newenact=this;
+			genview.clearMessage();
+			try {
+				reenactRequest.onreadystatechange = function() {
+					if(reenactRequest.readyState==4) {
+						try {
+							if('status' in reenactRequest) {
+								if(reenactRequest.status==200) {
+									// Beware parsing errors in Explorer
+									if(reenactRequest.parseError && reenactRequest.parseError.errorCode!=0) {
+										genview.setMessage('<blink><h1 style="color:red">FATAL ERROR ('+
+											reenactRequest.parseError.errorCode+
+											") while parsing reenaction submission at ("+
+											reenactRequest.parseError.line+
+											","+reenactRequest.parseError.linePos+
+											"):</h1></blink><pre>"+reenactRequest.parseError.reason+"</pre>");
+									} else {
+										var response = reenactRequest.responseXML;
+										if(!response) {
+											if(reenactRequest.responseText) {
+												var parser = new DOMParser();
+												response = parser.parseFromString(reenactRequest.responseText,'application/xml');
+											} else {
+												// Backend error.
+												genview.setMessage('<blink><h1 style="color:red">FATAL ERROR BRE: Please notify it to INB Web Workflow Manager developer</h1></blink>');
+											}
+										}
+
+										newenact.parseEnactionIdAndLaunch(response,1);
+									}
+								} else {
+									// Communications error.
+									var statusText='';
+									if(('statusText' in reenactRequest) && reenactRequest['statusText']) {
+										statusText=reenactRequest.statusText;
+									}
+									genview.setMessage('<blink><h1 style="color:red">FATAL ERROR while reenacting '+
+										enUUID+': '+reenactRequest.status+' '+statusText+'</h1></blink>');
+								}
+							} else {
+								genview.setMessage('<blink><h1 style="color:red">FATAL ERROR FRE: Please notify it to INB Web Workflow Manager developer</h1></blink>');
+							}
+						} catch(e) {
+							genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to complete reenaction!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>');
+						} finally {
+							// Removing 'Loading...' frame
+							newenact.closeSubmitFrame();
+							reenactRequest.onreadystatechange=function() {};
+							reenactRequest=undefined;
+						}
+					}
+				};
+				reenactRequest.open('GET',reenactQuery,true);
+				reenactRequest.send(null);
+			} catch(e) {
+				genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to start reenaction of '+
+					enUUID+'!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>');
+			}
+		}
+	},
+	
+	parseEnactionIdAndLaunch: function(enactIdDOM,/* optional */reenact) {
 		var enactId;
 		
 		if(enactIdDOM) {
@@ -1024,21 +1399,28 @@ NewEnactionView.prototype = {
 			) {
 				enactId = enactIdDOM.documentElement.getAttribute('jobId');
 				if(enactId) {
-					var time=enactIdDOM.documentElement.getAttribute('time');
-					// Time to open a new window
-					var theURL="enactionviewer.html?jobId="+enactId;
-					var popup=window.open(theURL,'_blank');
-					if(!popup) {
-						alert('Your browser has just blocked the new enaction window.\nYou can find the link under the\nSubmitted Enaction Jobs area');
+					if(reenact) {
+						var thewin=(top)?top:((parent)?parent:window);
+						thewin.open('enactionviewer.html?jobId='+enactId,'_top');
+					} else {
+						var time=enactIdDOM.documentElement.getAttribute('time');
+						// Time to open a new window
+						var theURL="enactionviewer.html?jobId="+enactId;
+						var popup=window.open(theURL,'_blank');
+						if(!popup) {
+							alert('Your browser has just blocked the new enaction window.\nYou can find the link under the\nSubmitted Enaction Jobs area');
+						}
+
+						// And leave a trace!
+						var theli=this.genview.createElement('li');
+						theli.innerHTML=time+': <a href="'+theURL+'" target="_blank">'+enactId+'</a>';
+						this.submittedList.appendChild(theli);
 					}
-					
-					// And leave a trace!
-					var theli=this.genview.createElement('li');
-					theli.innerHTML=time+': <a href="'+theURL+'" target="_blank">'+enactId+'</a>';
-					this.submittedList.appendChild(theli);
 				}
 			} else {
-				this.genview.manview.messageDiv.innerHTML='<blink><h1 style="color:red">FATAL ERROR: Unable to start the enaction process</h1></blink>';
+				this.genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to start the '+
+					((reenact)?'re-':'')+
+					'enaction process</h1></blink>');
 			}
 		}
 		

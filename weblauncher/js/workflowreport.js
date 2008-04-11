@@ -13,24 +13,39 @@ function WorkflowReport(genview,reportDivId) {
 	
 	var reportDiv=genview.getElementById(reportDivId);
 	
+	// Last update date
+	var b=genview.createElement('b');
+	b.innerHTML='Date:&nbsp;';
+	reportDiv.appendChild(b);
+	this.dateContainer=genview.createElement('span');
+	reportDiv.appendChild(this.dateContainer);
+	reportDiv.appendChild(genview.createElement('br'));
+	
 	// Title info
 	var b=genview.createElement('b');
 	b.innerHTML='Title:&nbsp;';
 	reportDiv.appendChild(b);
 	this.titleContainer=genview.createElement('span');
 	reportDiv.appendChild(this.titleContainer);
+	reportDiv.appendChild(genview.createElement('br'));
+	
+	// UUID info
+	b=genview.createElement('b');
+	b.innerHTML='IWWE&amp;M&nbsp;UUID:&nbsp;';
+	reportDiv.appendChild(b);
+	this.uuidContainer=genview.createElement('span');
+	reportDiv.appendChild(this.uuidContainer);
+	reportDiv.appendChild(genview.createElement('br'));
 	
 	// LSID info
-	var p=genview.createElement('p');
 	b=genview.createElement('b');
-	b.innerHTML='LSID:&nbsp;';
-	p.appendChild(b);
+	b.innerHTML='Taverna&nbsp;LSID:&nbsp;';
+	reportDiv.appendChild(b);
 	this.lsidContainer=genview.createElement('span');
-	p.appendChild(this.lsidContainer);
-	reportDiv.appendChild(p);
+	reportDiv.appendChild(this.lsidContainer);
 	
 	// Author info
-	p=genview.createElement('p');
+	var p=genview.createElement('p');
 	b=genview.createElement('b');
 	b.innerHTML='Author:&nbsp;';
 	p.appendChild(b);
@@ -75,7 +90,9 @@ function WorkflowReport(genview,reportDivId) {
 
 WorkflowReport.prototype={
 	clearView: function() {
+		GeneralView.freeContainer(this.dateContainer);
 		GeneralView.freeContainer(this.titleContainer);
+		GeneralView.freeContainer(this.uuidContainer);
 		GeneralView.freeContainer(this.lsidContainer);
 		GeneralView.freeContainer(this.authorContainer);
 		GeneralView.freeContainer(this.descContainer);
@@ -86,7 +103,9 @@ WorkflowReport.prototype={
 	
 	updateView: function(WFBase,workflow) {
 		// Basic information
+		this.dateContainer.innerHTML = workflow.date;
 		this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
+		this.uuidContainer.innerHTML = workflow.uuid;
 		this.lsidContainer.innerHTML = workflow.lsid;
 		this.authorContainer.innerHTML = (workflow.author && workflow.author.length>0)?GeneralView.preProcess(workflow.author):'<i>(anonymous)</i>';
 

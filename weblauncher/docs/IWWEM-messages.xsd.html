@@ -902,7 +902,7 @@ if (gc != null) {
          </tr>
          <tr>
             <th>Documentation</th>
-            <td class="documentation">$Id: IWWEM-messages.xsd 1276 2008-04-08 16:41:42Z jmfernandez $
+            <td class="documentation">$Id: IWWEM-messages.xsd 1278 2008-04-09 13:09:38Z jmfernandez $
 	
 This schema was designed to model
 the messages between frontend modules and AJAX layer of
@@ -2486,10 +2486,10 @@ The textual content of this element is the description of the example (possibly 
             <img usemap="#h-507358049" src="schemaDiagrams/h-507358049.png"/>
             <!--
             Map ref: file:/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/docs//schemaDiagrams/h-507358049.map--><map name="h-507358049">
-               <area shape="rect" alt="h1073158951" coords="457,943,828,999"
+               <area shape="rect" alt="h1073158951" coords="457,995,828,1051"
                      href="IWWEM-messages.xsd.html#h1073158951"/>
 
-               <area shape="rect" alt="h1550451623" coords="457,1009,828,1065"
+               <area shape="rect" alt="h1550451623" coords="457,1061,828,1117"
                      href="IWWEM-messages.xsd.html#h1550451623"/>
 
             </map>
@@ -2532,12 +2532,17 @@ The textual content of this element is the description of the example (possibly 
                <span style="margin-left: 0.5em"> path="<span class="type">
                      <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span> 
                   <span class="occurs">[1]</span> 
-                  <p class="documentation">'The relative path to the workflow, respect to the local workflow repository base URL'</p>"</span>
+                  <p class="documentation">'The relative path to the workflow, respect to the repository base URL'</p>"</span>
                <br/>
                <span style="margin-left: 0.5em"> svg="<span class="type">
                      <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span> 
                   <span class="occurs">[1]</span> 
-                  <p class="documentation">'The relative path to the SVG graph representation of the workflow, respect to the local workflow repository base URL'</p>"</span>&gt; <br/>
+                  <p class="documentation">'(Deprecated)The relative path to the SVG graph representation of the workflow, respect to the local workflow repository base URL'</p>"</span>
+               <br/>
+               <span style="margin-left: 0.5em"> date="<span class="type">
+                     <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span> 
+                  <span class="occurs">[1]</span> 
+                  <p class="documentation">'The last modification date of the workflow or snapshot'</p>"</span>&gt; <br/>
                <div style="margin-left: 1.5em">&lt;<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:description&gt; <span class="type">
                      <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> &lt;/<a href="#ns_iwwem" title="Find out namespace of 'iwwem' prefix">iwwem</a>:description&gt; <span class="occurs">[1]</span> 
                   <p class="documentation">'Available documentation related to the workflow. It might be in HTML'</p>
@@ -2693,6 +2698,11 @@ The textual content of this element is the description of the example (possibly 
                      <span class="scTag">name</span>="<span class="scContent">svg</span>" <span class="scTag">type</span>="<span class="scContent">
                         <span class="type">
                            <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:anyURI</span>
+                     </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>
+                  <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:attribute</span> 
+                     <span class="scTag">name</span>="<span class="scContent">date</span>" <span class="scTag">type</span>="<span class="scContent">
+                        <span class="type">
+                           <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:dateTime</span>
                      </span>" <span class="scTag">use</span>="<span class="scContent">required</span>"/&gt;</div>&lt;/<span class="scTag">xsd:complexType</span>&gt;</div>&lt;/<span class="scTag">xsd:element</span>&gt;</div>
          </div>
          <script type="text/javascript">

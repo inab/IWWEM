@@ -18,6 +18,10 @@
 	<link rel="stylesheet" type="text/css" href="style/IWWEM-buttons.css"></link>
 	<link rel="stylesheet" type="text/css" href="style/IWWEM-styles.css"></link>
 	
+	<link rel="stylesheet" type="text/css" href="style/IWWEMprettyXML/viewsource.css"></link>
+	<link rel="stylesheet" type="text/css" href="style/IWWEMprettyXML/XMLPrettyPrint.css"></link>
+	<link title="Monospace" rel="alternate stylesheet" type="text/css" href="style/IWWEMprettyXML/XMLMonoPrint.css"></link>
+
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/browserdetect/BrowserDetect.js"></script>
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/widgetCommon.js"></script>
 	<script type="text/javascript" src="js/prettify/prettify.js"></script>
@@ -37,43 +41,34 @@
 <body onload="InitIWWEM(EnactionViewerCustomInit)" onunload="DisposeIWWEM(EnactionViewerCustomDispose)">
 <div align="center"><b><a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> Interactive Web Workflow Enaction Viewer v0.6</b></div>
 	<table style="width:100%;table-layout:fixed;">
-		<tr><td class="middle">
+		<tr><td colspan="2" class="middle">
 			<u>Report date</u>: <span id="dateSpan"><i>(empty)</i></span><br>
 			<u>General status</u>: <span id="generalStatusSpan"><marquee behavior="alternate" loop="-1" style="display:inline;"><font color="violet"><b><blink>loading application</blink></b></font> <img src="style/ajaxLoader.gif"></marquee></span>
-		</td><td class="data" style="width:33%;max-width:33%;">
+		</td><td colspan="2" class="data" style="width:33%;max-width:33%;">
 			<u>Step</u>: <span id="stageSpan"></span><br>
 			<u>State</u>: <span id="stageStateSpan"></span>
-		</td><td style="width:33%;max-width:33%;vertical-align:top" id="mimeInfoSelect">
-		</td></tr><tr><td class="middle">
+		</td><td colspan="2" style="width:33%;max-width:33%;vertical-align:top" id="mimeInfoSelect">
+		</td></tr><tr><td colspan="2" class="middle">
 			<div align="center" id="svgdiv"></div>
 			<!--<select name="workflow" id="workflow" style="width:230px;" size="20"></select>-->
-		</td><td class="data" style="width:33%;max-width:33%;">
-			<div class="scrolldatawide" id="dataTreeDiv"></div>
-		</td><td style="width:33%;max-width:33%;" align="center" valign="top">
+		</td><td colspan="2" class="data" style="width:33%;max-width:33%;">
+			<div class="scrolldatawide" style="height:120mm;" id="dataTreeDiv"></div>
+		</td><td colspan="2" style="width:33%;max-width:33%;" align="center" valign="top">
 			<div id="databrowser" class="scroll"></div>
-		</td></tr><tr><td class="buttons">
-			<div align="center">
-				<table><tr><td>
-					<div id="reloadButton" class="button"><span id="updateTextSpan">Update</span> <img src="style/reload.png"></div>
-				</td><td>
-					<div class="button" onclick="genview.enactview.openOtherEnactionFrame()">Open enaction<img src="style/blueplus.png"></div>
-				</td></tr></table>
-			</div>
-		</td><td class="buttons">
-			<div align="center">
-				<div id="snapButton" class="button">Snapshot <img src="style/snapshot.png"></img></div>
-			</div>
-		</td><td class="buttons">
-			<table align="center" style="margin:0px;padding:0px"><tr valign="middle"><td colspan="2" align="center">
-				<!--
-				<label>Confirm<input type="checkbox" name="confirm" id="confirm"></input></label><br>
-				-->
-				<span id="confirm" class='checkboxred checkbox right'>Confirm</span>
-			</td></tr><tr><td>
-				<div id="killButton" class="button">Kill Job <img src="style/skull.png"></img></div>
-			</td><td>
-				<div id="disposeButton" class="button">Dispose <img src="style/recycle.png"></img></div>
-			</td></tr></table>
+		</td></tr><tr><td colspan="6" align="right">
+			<span id="confirm" class='checkboxred checkbox right'>Confirm</span>
+		</td><tr><td class="buttons" align="center">
+			<div id="reloadButton" class="button"><span id="updateTextSpan">Update</span> <img src="style/reload.png"></div>
+		</td><td class="buttons" align="center">
+			<div class="button" onclick="genview.enactview.openOtherEnactionFrame()">Open enaction<img src="style/blueplus.png"></div>
+		</td><td class="buttons" align="center">
+			<div id="snapButton" class="button">Snapshot <img src="style/snapshot.png"></img></div>
+		</td><td class="buttons" align="center">
+			<div id="relaunchButton" class="button">Relaunch!<img src="style/regreenball.png"></div>
+		</td><td class="buttons" align="center">
+			<div id="killButton" class="button">Kill Job <img src="style/skull.png"></img></div>
+		</td><td class="buttons" align="center">
+			<div id="disposeButton" class="button">Dispose <img src="style/recycle.png"></img></div>
 		</td></tr>
 	</table>
 	<!-- Messages table -->
@@ -85,22 +80,23 @@
 <div class="hidden" id="outerAbsDiv">
 </div>
 <div class="hidden" id="viewOtherEnaction">
-	<div class="secondary">
+	<div class="secondary" style="background-color: #0080ff;">
 		<form id="formViewEnaction" action="enactionviewer.html" method="get">
-				<table style="width:100%; height:100%"><tr valign="middle"><td align="center">
-					Please introduce your enaction Id:<br><input type="text" id="jobId" name="jobId"></input>
-				</td></tr></table>
+			<table align="center" style="width:98%; height:98%;table-layout:fixed"><tr valign="middle"><td colspan="3" style="width:100%; height:100%">
+				<iframe id="otherEnactionsFrameId" src="about:blank" style="border:0;height:100%;width:100%;overflow:auto"></iframe>
+			</td></tr>
+			<tr valign="middle"><td align="center" style="width:33%">
+				<div class="button" onclick="genview.enactview.closeOtherEnactionFrame()">
+					<img src="style/leftarrow.png"></img> Back
+				</div>
+			</td>
+			<td align="center">Select the enaction you want to inspect and press 'Inspect It' or introduce your enaction Id by hand and press 'View':<br><input type="text" id="jobId" name="jobId"></input></td>
+			<td align="center" style="width:33%">
+				<div class="button" onclick="genview.enactview.viewEnaction()">
+					View <img src="style/run.png"></img>
+				</div>
+			</td></tr></table>
 		</form>
-		<div class="button back" onclick="genview.enactview.closeOtherEnactionFrame()">
-			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
-				<img src="style/leftarrow.png"></img> Back
-			</td></tr></table>
-		</div>
-		<div class="button forward" onclick="genview.enactview.viewEnaction()">
-			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
-				View <img src="style/run.png"></img>
-			</td></tr></table>
-		</div>
 	</div>
 </div>
 <div class="hidden" id="snapshotEnaction">

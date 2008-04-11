@@ -120,6 +120,19 @@ function SVGtramp(LoadEvent) {
 			}
 		}
 	}
+	// To allow zooming of content
+	var viewbox=this.SVGroot.getAttribute('viewBox');
+	if(!viewbox) {
+		this.SVGroot.setAttribute('viewBox','0 0 '+this.width+' '+this.height);
+	}
+	var zoompan=this.SVGroot.getAttribute('zoomAndPan');
+	if(!zoompan) {
+		this.SVGroot.setAttribute('zoomAndPan','magnify');
+	}
+	var preserve=this.SVGroot.getAttribute('preserveAspectRatio');
+	if(!preserve) {
+		this.SVGroot.setAttribute('preserveAspectRatio','xMidYMid meet');
+	}
 	
 	// The MapApp, used by the code
 	this.myMapApp=undefined;
@@ -145,7 +158,9 @@ function SVGtramp(LoadEvent) {
 	}
 	
 	// And at last, the hooks
-	if(top) {
+	if(parent) {
+		parent.SVGtrampoline = this;
+	} else if(top) {
 		top.SVGtrampoline = this;
 	}
 }

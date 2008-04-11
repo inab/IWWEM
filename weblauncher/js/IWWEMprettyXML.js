@@ -138,6 +138,7 @@ var IWWEMPrettyXML = {
 					nodeValue+=sibling.nodeValue;
 				}
 				
+				nodeValue=nodeValue.replace(/\n/g,"\n\r");
 				thediv=thedoc.createElement('pre');
 				thediv.className = 'text';
 				thediv.appendChild(thedoc.createTextNode(nodeValue));
@@ -148,6 +149,7 @@ var IWWEMPrettyXML = {
 					nodeValue+=sibling.nodeValue;
 				}
 				
+				nodeValue=nodeValue.replace(/\n/g,"\n\r");
 				thediv=thedoc.createElement('pre');
 				thediv.className = 'cdata';
 				thediv.appendChild(thedoc.createTextNode(nodeValue));
@@ -202,6 +204,7 @@ var IWWEMPrettyXML = {
 			case 11:	// DOCUMENT_FRAGMENT_NODE
 				thediv.className='prettyprint noborder';
 				
+				/*
 				// Stylesheets
 				var e = thedoc.createElement("link");
 				e.setAttribute('rel',"stylesheet");
@@ -215,6 +218,7 @@ var IWWEMPrettyXML = {
 				e.setAttribute('type','text/css');
 				e.setAttribute('href','style/IWWEMprettyXML/XMLMonoPrint.css');
 				thediv.appendChild(e);
+				*/
 				
 				for(var child=XMLnode.firstChild;child;child=child.nextSibling) {
 					var childdiv = IWWEMPrettyXML.generateBrowsableXML(child,thedoc);

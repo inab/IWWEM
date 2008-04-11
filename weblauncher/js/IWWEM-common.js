@@ -15,6 +15,7 @@ function GeneralView(customInit, /* optional */thedoc) {
 	this.shimmer=this.getElementById('shimmer');
 	this.frameIds=new Array();
 	this.frameCounter=0;
+	this.messageDiv=this.getElementById('messageDiv');
 	
 	this.visibleId=undefined;
 	this.usingShimmer=undefined;
@@ -100,7 +101,7 @@ GeneralView.initCheck = function(check) {
 	};
 };
 
-GeneralView.Check = function(control,/* optional */ setDefaultEH,genview,thetext,isRight,color) {
+GeneralView.Check = function(control,/* optional */ setDefaultEH,genview,thetext,isRight,color,parentNode) {
 	if(control==undefined) {
 		if(!color || (color!='red' && color!='green' && color!='blue')) {
 			color='blue';
@@ -108,6 +109,13 @@ GeneralView.Check = function(control,/* optional */ setDefaultEH,genview,thetext
 		control=genview.createElement('span');
 		control.className='checkbox'+color+' checkbox '+((isRight)?'right':'left');
 		control.innerHTML=thetext;
+		if(parentNode!=undefined) {
+			try {
+				parentNode.appendChild(control);
+			} catch(e) {
+				// IgnoreIT(R)
+			}
+		}
 	}
 	
 	this.control=control;
@@ -119,7 +127,7 @@ GeneralView.Check = function(control,/* optional */ setDefaultEH,genview,thetext
 		this.firstClassName=(className.indexOf(' ')==-1)?className:className.substring(0,className.indexOf(' '));
 	}
 	
-	if(setDefaultEH) {
+	if(setDefaultEH!=undefined) {
 		if(typeof setDefaultEH != 'function') {
 			var check=this;
 			setDefaultEH = function() {
@@ -446,6 +454,18 @@ GeneralView.preProcess = function (thedesc) {
 
 /* Now, the instance methods */
 GeneralView.prototype = {
+	setMessage: function(message) {
+		this.messageDiv.innerHTML=message;
+	},
+	
+	addMessage: function(message) {
+		this.messageDiv.innerHTML+=message;
+	},
+	
+	clearMessage: function() {
+		GeneralView.freeContainer(this.messageDiv);
+	},
+	
 	openFrame: function (/* optional */ divId, useShimmer) {
 		if(this.visibleId) {
 			this.suspendFrame();
@@ -632,8 +652,8 @@ GeneralView.prototype = {
 		return thediv;
 	},
 	
-	generateCheckControl: function(thetext,/* optional */isRight,color,setDefaultEH) {
-		var check=new GeneralView.Check(undefined,setDefaultEH,this,thetext,isRight,color);
+	generateCheckControl: function(thetext,/* optional */isRight,color,setDefaultEH,parentNode) {
+		var check=new GeneralView.Check(undefined,setDefaultEH,this,thetext,isRight,color,parentNode);
 		
 		return check;
 	},

@@ -9,8 +9,6 @@
 */
 
 function EnactionStep(stepDOM, /* optional */ parentStep) {
-	this.name=stepDOM.getAttribute('name') || stepDOM.getAttribute('jobId');
-	this.state=stepDOM.getAttribute('state');
 	this.parentStep=parentStep;
 	this.input={};
 	this.hasInputs=undefined;
@@ -25,6 +23,16 @@ function EnactionStep(stepDOM, /* optional */ parentStep) {
 	this.iterNumber=undefined;
 	this.iterMax=undefined;
 	this.stepError=undefined;
+	
+	
+	if(GeneralView.getLocalName(stepDOM)=='dataBundle') {
+		this.name=stepDOM.getAttribute('uuid');
+		this.isExample=1;
+	} else {
+		this.name=stepDOM.getAttribute('name') || stepDOM.getAttribute('jobId');
+		this.state=stepDOM.getAttribute('state');
+		this.isExample=undefined;
+	}
 	for(var child = stepDOM.firstChild; child; child = child.nextSibling) {
 		if(child.nodeType==1) {
 			switch(GeneralView.getLocalName(child)) {
@@ -86,8 +94,21 @@ function EnactionStep(stepDOM, /* optional */ parentStep) {
 	}
 }
 
+EnactionStep.getJobDir = function(jobId) {
+	if(jobId) {
+		jobId=jobId.toString();
+		if(jobId.indexOf('snapshot:')==0) {
+			jobId=jobId.substring(jobId.lastIndexOf(':')+1);
+		} else if(jobId.indexOf('example:')==0) {
+			jobId=jobId.substring(jobId.indexOf(':')+1,jobId.lastIndexOf(':'))+'/examples/'+jobId.substring(jobId.lastIndexOf(':')+1)+'.xml';
+		}
+	}
+	
+	return jobId;
+};
+
 EnactionStep.prototype = {
-	fetchBaclavaObject: function(theurl,thehash,enactview,/* optional */ thenotify, istep) {
+	fetchBaclavaObject: function(theurl,thehash,genview,/* optional */ thenotify, istep) {
 		var request;
 		try {
 			request=new XMLHttpRequest();
@@ -99,7 +120,7 @@ EnactionStep.prototype = {
 						response = parser.parseFromString(request.responseText,'application/xml');
 					} else {
 						// Backend error.
-						enactview.addMessage(
+						genview.addMessage(
 							'<blink><h1 style="color:red">FATAL ERROR B: (with '+
 							theurl+
 							') Please notify it to INB Web Workflow Manager developer</h1></blink>'
@@ -107,7 +128,7 @@ EnactionStep.prototype = {
 					}
 				}
 				// Only parse when an answer is available
-				Baclava.Parser(response.documentElement.cloneNode(true),thehash,enactview);
+				Baclava.Parser(response.documentElement.cloneNode(true),thehash,genview);
 				try {
 					if(thenotify)  thenotify(istep);
 				} catch(noti) {
@@ -116,13 +137,13 @@ EnactionStep.prototype = {
 				}
 			};
 			request.onreadystatechange=function() {
-				//enactview.addMessage(request.readyState + '<br>');
+				//genview.addMessage(request.readyState + '<br>');
 				if(request.readyState==4) {
 					try {
 						if('status' in request) {
 							if(request.status == 200 || request.status == 304) {
 								if(request.parseError && request.parseError.errorCode!=0) {
-									enactview.addMessage('<blink><h1 style="color:red">FATAL ERROR ('+
+									genview.addMessage('<blink><h1 style="color:red">FATAL ERROR ('+
 										request.parseError.errorCode+
 										") while parsing list at ("+
 										request.parseError.line+
@@ -137,7 +158,7 @@ EnactionStep.prototype = {
 											response = parser.parseFromString(request.responseText,'application/xml');
 										} else {
 											// Backend error.
-											enactview.addMessage(
+											genview.addMessage(
 												'<blink><h1 style="color:red">FATAL ERROR B: (with '+
 												theurl+
 												') Please notify it to INB Web Workflow Manager developer</h1></blink>'
@@ -145,7 +166,7 @@ EnactionStep.prototype = {
 										}
 									}
 									// Only parse when an answer is available
-									Baclava.Parser(response.documentElement.cloneNode(true),thehash,enactview);
+									Baclava.Parser(response.documentElement.cloneNode(true),thehash,genview);
 									try {
 										if(thenotify)  thenotify(istep);
 									} catch(noti) {
@@ -160,7 +181,7 @@ EnactionStep.prototype = {
 								if(('statusText' in request) && request.statusText) {
 									statusText=request.statusText;
 								}
-								enactview.addMessage(
+								genview.addMessage(
 									'<blink><h1 style="color:red">FATAL ERROR while fetching '+
 									theurl+
 									': '+
@@ -171,14 +192,14 @@ EnactionStep.prototype = {
 								);
 							}
 						} else {
-							enactview.addMessage(
+							genview.addMessage(
 								'<blink><h1 style="color:red">FATAL ERROR F: (with '+
 								theurl+
 								') Please notify it to INB Web Workflow Manager developer</h1></blink>'
 							);
 						}
 					} catch(e) {
-						enactview.addMessage(
+						genview.addMessage(
 							'<blink><h1 style="color:red">FATAL ERROR: Unable to complete '+
 							theurl+
 							' reload!</h1></blink><pre>'+
@@ -194,7 +215,7 @@ EnactionStep.prototype = {
 			request.open('GET',theurl,true);
 			request.send(null);
 		} catch(e) {
-			enactview.addMessage(
+			genview.addMessage(
 				'<blink><h1 style="color:red">FATAL ERROR: Unable to start '+
 				theurl+
 				' reload!</h1></blink><pre>'+
@@ -207,24 +228,29 @@ EnactionStep.prototype = {
 		return request;
 	},
 	
-	fetchBaclava: function(baseJob,enactview,gotInputHandler,gotOutputHandler,/* optional */ istep) {
-		var relpath=baseJob+'/'+EnactionView.getJobDir(this.name)+'/';
-		
-		// Determining whether 
-		if(this.hasInputs && !(this.input[Baclava.GOT]) && !this.bacInput) {
-			this.bacInput=this.fetchBaclavaObject(relpath+'Inputs.xml',this.input,enactview,gotInputHandler,istep);
-		}
-		
-		if(this.hasOutputs && !(this.output[Baclava.GOT]) && !this.bacOutput) {
-			this.bacOutput=this.fetchBaclavaObject(relpath+'Outputs.xml',this.output,enactview,gotOutputHandler,istep);
-		}
-		
-		// Now, the iterations
-		if(this.iterations) {
-			var iti = this.iterations;
-			var itil = iti.length;
-			for(var i=0; i<itil ; i++) {
-				iti[i].fetchBaclava(relpath+'Iterations',enactview,gotInputHandler,gotOutputHandler,i);
+	fetchBaclava: function(baseJob,genview,gotInputHandler,gotOutputHandler,/* optional */ istep) {
+		var relpath=baseJob+'/'+EnactionStep.getJobDir(this.name);
+		// Determining whether is an example or a true job step
+		if(this.isExample) {
+			if(this.hasOutputs && !(this.output[Baclava.GOT]) && !this.bacOutput) {
+				this.bacOutput=this.fetchBaclavaObject(relpath,this.output,genview,gotOutputHandler,istep);
+			}
+		} else {
+			if(this.hasInputs && !(this.input[Baclava.GOT]) && !this.bacInput) {
+				this.bacInput=this.fetchBaclavaObject(relpath+'/Inputs.xml',this.input,genview,gotInputHandler,istep);
+			}
+
+			if(this.hasOutputs && !(this.output[Baclava.GOT]) && !this.bacOutput) {
+				this.bacOutput=this.fetchBaclavaObject(relpath+'/Outputs.xml',this.output,genview,gotOutputHandler,istep);
+			}
+
+			// Now, the iterations
+			if(this.iterations) {
+				var iti = this.iterations;
+				var itil = iti.length;
+				for(var i=0; i<itil ; i++) {
+					iti[i].fetchBaclava(relpath+'/Iterations',genview,gotInputHandler,gotOutputHandler,i);
+				}
 			}
 		}
 	}

@@ -82,15 +82,11 @@ div {
 /*  text-align: center;*/
 }
 
-.expander-closed > * > .expander-content {
-  display: none;
-}
-
 .expander-content {
   display: block;
 }
 
-.expander-closed > .expander-content {
+.expander-closed .expander-content {
   display: none;
 }
 

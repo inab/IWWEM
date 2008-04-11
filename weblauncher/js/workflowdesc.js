@@ -50,7 +50,8 @@ InputExample.prototype = {
 		if(!thedoc)  thedoc=document;
 		var exSelOpt = thedoc.createElement('option');
 		exSelOpt.value = this.getQualifiedUUID();
-		exSelOpt.text = this.name+' ('+this.date+')';
+		//exSelOpt.text = this.name+' ('+this.date+')';
+		exSelOpt.text = this.name;
 		
 		return exSelOpt;
 	}
@@ -86,6 +87,7 @@ function WorkflowDesc(wfD) {
 	this.title = wfD.getAttribute('title');
 	this.lsid = wfD.getAttribute('lsid');
 	this.author = wfD.getAttribute('author');
+	this.date = wfD.getAttribute('date');
 	this.graph = {};
 	
 	var depends=new Array();
@@ -161,6 +163,25 @@ WorkflowDesc.prototype = {
 		// wfO.id = this.uuid;
 		
 		return wfO;
+	},
+	
+	getExample: function (uuid) {
+		var retval=undefined;
+		if(typeof uuid == 'string') {
+			if(uuid.indexOf('example:')==0) {
+				var stop=uuid.lastIndexOf(':');
+				var wfUUID=uuid.substring(uuid.indexOf(':')+1,stop);
+				if(wfUUID!=this.uuid) {
+					uuid=undefined;
+				} else {
+					uuid=uuid.substr(stop+1);
+				}
+			}
+			if(uuid!=undefined) {
+				retval=this.examples[uuid];
+			}
+		}
+		return retval;
 	}
 };
 

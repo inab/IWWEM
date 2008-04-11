@@ -128,7 +128,8 @@ TD.middle {
 	vertical-align: top;
 	empty-cells: show;
 	display: block;
-	height:120mm;
+	width:100%;
+	height:100%;
 	overflow: auto;
 	text-align: left;
 	border: 1px solid #dfd8c8;
@@ -194,8 +195,8 @@ textarea, input, select {
 	vertical-align: top;
 	empty-cells: show;
 	display: block;
-	width:80mm;
-	height:100mm;
+	width:95%;
+	height:95%;
 	overflow: auto;
 	text-align: left;
 	border: 1px solid #c0c0c0;
@@ -364,9 +365,12 @@ SPAN.branchlabel , SPAN.branchlabelopen {
 
 /* Tweaking pretty-printing */
 
-.prettyprint.noborder {
+.prettyprint.noborder , .noborder {
 	border:0px;
 	font-size: 10px;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
 }
 
 
@@ -376,6 +380,7 @@ SPAN.branchlabel , SPAN.branchlabelopen {
 	white-space: nowrap;
 	border-color: gray;
 	cursor: pointer;
+	display:list-item;
 }
 
 .selOptionEven {

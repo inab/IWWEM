@@ -8,12 +8,12 @@
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
 */
 
-function DataTreeView(genview,dataTreeDivId,dataBrowserDivId,mimePathDivId, /**/ procFrameId) {
+function DataTreeView(genview,dataTreeDivId,dataBrowserDivId,mimePathDivId, /*optional*/ procFrameId,preprocFrameId) {
 	this.genview=genview;
 	
 	this.procFrameId=procFrameId;
 	this.matcher = new DataMatcher();
-	this.databrowser=new DataBrowser(genview,dataBrowserDivId,mimePathDivId);
+	this.databrowser=new DataBrowser(genview,dataBrowserDivId,mimePathDivId,preprocFrameId);
 	
 	// Let's go!
 	var dataBrowserDiv=genview.getElementById(dataTreeDivId);
@@ -137,6 +137,13 @@ DataTreeView.prototype = {
 		GeneralView.freeContainer(IOContainer);
 		var loaded=stepIO[Baclava.GOT];
 		IOSpan.className=(!hasIO || loaded)?'IOStat':'IOStatLoading';
+		if(!hasIO) {
+			IOSpan.style.display='none';
+			IOContainer.style.display='none';
+		} else {
+			IOSpan.style.display='inline';
+			IOContainer.style.display='block';
+		}
 		if(loaded) {
 			for(var IO in stepIO) {
 				if(IO==Baclava.GOT)  continue;
@@ -344,7 +351,7 @@ DataTreeView.prototype = {
 	},
 	
 	addSelectEventListener: function(eventType,iterSelectHandler) {
-		if(this.iterSelectHandler) {
+		if(this.iterSelectHandler && this.iterEventType) {
 			try {
 				WidgetCommon.removeEventListener(this.iterationSelect,this.iterEventType,this.iterSelectHandler,false);
 			} catch(e) {
@@ -355,8 +362,8 @@ DataTreeView.prototype = {
 		this.iterSelectHandler=iterSelectHandler;
 		WidgetCommon.addEventListener(this.iterationSelect,eventType,iterSelectHandler,false);
 	},
-	
-	clearSelect: function() {
+
+	removeSelectEventListener: function() {
 		// Unfilling iterations
 		if(this.iterSelectHandler) {
 			try {
@@ -367,6 +374,9 @@ DataTreeView.prototype = {
 			this.iterSelectHandler=undefined;
 			this.iterEventType=undefined;
 		}
+	},
+	
+	clearSelect: function() {
 		GeneralView.freeSelect(this.iterationSelect);
 		this.step=undefined;
 		this.istep=undefined;
@@ -402,10 +412,19 @@ DataTreeView.prototype = {
 		*/
 	},
 	
-	setStep: function(enactview,step,iteration) {
+	setStep: function(baseJob,jobId,step,iteration) {
+		if(iteration==undefined || (typeof iteration=='string' && iteration=='')) {
+			iteration=-1;
+		}
+		if(typeof iteration == 'string')
+			iteration=parseInt(iteration,10);
+		var prevstep=this.step;
+		
+		if(prevstep!=step)
+			this.clearSelect();
 		this.step=step;
 		this.istep=iteration;
-		
+
 		if(step.schedStamp && iteration==-1) {
 			this.schedStampDiv.style.display='block';
 			this.schedStampSpan.innerHTML=step.schedStamp;
@@ -446,7 +465,6 @@ DataTreeView.prototype = {
 		
 		// For the global step
 		var datatreeview=this;
-		var jobId=enactview.jobId;
 		var gstep=step;
 		// I'm using here absolute paths, because when this function is called from inside SVG
 		// click handlers, base href is the one from the SVG, not the one from this page.
@@ -458,37 +476,38 @@ DataTreeView.prototype = {
 		};
 		
 		if(step.iterations) {
-			this.iterDiv.style.display='block';
-			var giter=gstep.iterations;
-			var giterl = giter.length;
-			for(var i=0;i<giterl;i++) {
-				var ministep=giter[i];
-				iterO=this.genview.createElement('option');
-				iterO.text=(((ministep.input[Baclava.GOT]) && (ministep.output[Baclava.GOT]))?'':'* ')+ministep.name;
-				iterO.value=i;
-				this.addToSelect(iterO);
-			}
-
 			// Looking this concrete iteration
 			if(iteration!=-1) {
 				step=gstep.iterations[iteration];
 			}
-
+			if(prevstep!=gstep) {
+				this.iterDiv.style.display='block';
+				var giter=gstep.iterations;
+				var giterl = giter.length;
+				for(var i=0;i<giterl;i++) {
+					var ministep=giter[i];
+					iterO=this.genview.createElement('option');
+					iterO.text=(((ministep.input[Baclava.GOT]) && (ministep.output[Baclava.GOT]))?'':'* ')+ministep.name;
+					iterO.value=i;
+					this.addToSelect(iterO);
+				}
+			}
 			// Showing the correct position
+			this.removeSelectEventListener();
 			this.setSelectedIndex(iteration+1);
-
+			
 			this.addSelectEventListener('change',function(event) {
 				if(!event)  event=window.event;
 				var target=(event.currentTarget)?event.currentTarget:event.srcElement;
 				if(target.selectedIndex!=-1) {
-					datatreeview.setStep(gstep,target.options[target.selectedIndex].value);
+					datatreeview.setStep(baseJob,jobId,gstep,target.options[target.selectedIndex].value);
 				}
 			});
 		} else {
 			this.iterDiv.style.display='none';
 		}
 		// Fetching data after, not BEFORE creating the select
-		gstep.fetchBaclava(enactview.getBaseHREF()+'/'+enactview.JobsBase+((step.name!=jobId)?('/'+enactview.jobDir+'/Results'):''),enactview,inputSignaler,outputSignaler);
+		gstep.fetchBaclava(baseJob,this.genview,inputSignaler,outputSignaler);
 		
 		// For this concrete (sub)step
 		// Inputs

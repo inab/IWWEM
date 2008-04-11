@@ -15,7 +15,7 @@ function DataMatcher() {
 }
 
 DataMatcher.prototype = {
-	addMatchers: function(matcherURLArray,enactview,callbackFunc,/*optional*/mI) {
+	addMatchers: function(matcherURLArray,genview,callbackFunc,/*optional*/mI) {
 		if(mI==undefined)  mI=0;
 		if(mI<matcherURLArray.length) {
 			var matcherRequest = new XMLHttpRequest();
@@ -28,7 +28,7 @@ DataMatcher.prototype = {
 								if(matcherRequest.status==200) {
 									// Beware parsing errors in Explorer
 									if(matcherRequest.parseError && matcherRequest.parseError.errorCode!=0) {
-										enactview.addMessage(
+										genview.addMessage(
 											'<blink><h1 style="color:red">FATAL ERROR ('+
 											matcherRequest.parseError.errorCode+
 											") while parsing list at ("+
@@ -45,7 +45,7 @@ DataMatcher.prototype = {
 												response = parser.parseFromString(matcherRequest.responseText,'application/xml');
 											} else {
 												// Backend error.
-												enactview.addMessage(
+												genview.addMessage(
 													'<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>'
 												);
 											}
@@ -58,18 +58,18 @@ DataMatcher.prototype = {
 									if(('statusText' in listRequest) && listRequest['statusText']) {
 										statusText=matcherRequest.statusText;
 									}
-									enactview.addMessage(
+									genview.addMessage(
 										'<blink><h1 style="color:red">FATAL ERROR while fetching list: '+
 										matcherRequest.status+' '+statusText+'</h1></blink>'
 									);
 								}
 							} else {
-								enactview.addMessage(
+								genview.addMessage(
 									'<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>'
 								);
 							}
 						} catch(e) {
-							enactview.addMessage(
+							genview.addMessage(
 								'<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+
 								WidgetCommon.DebugError(e)+'</pre>'
 							);
@@ -80,7 +80,7 @@ DataMatcher.prototype = {
 							matcherRequest=undefined;
 							
 							// And calling next step
-							thismatcher.addMatchers(matcherURLArray,enactview,callbackFunc,mI+1);
+							thismatcher.addMatchers(matcherURLArray,genview,callbackFunc,mI+1);
 						}
 					}
 				};
@@ -88,7 +88,7 @@ DataMatcher.prototype = {
 				matcherRequest.open('GET',matcherURLArray[mI],true);
 				matcherRequest.send(null);
 			} catch(e) {
-				enactview.addMessage(
+				genview.addMessage(
 					'<blink><h1 style="color:red">FATAL ERROR: Unable to start reload!</h1></blink><pre>'+
 					WidgetCommon.DebugError(e)+'</pre>'
 				);
@@ -257,7 +257,6 @@ DataMatcher.DetectionPattern.prototype = {
 							if(typeof arrRet == 'object') {
 								arrRet = WidgetCommon.getTextContent(arrRet);
 							}
-							alert(arrRet);
 						} else {
 							arrRet=undefined;
 						}

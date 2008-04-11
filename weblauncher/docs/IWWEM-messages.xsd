@@ -305,12 +305,17 @@ results.]]></xsd:documentation>
             </xsd:attribute>
             <xsd:attribute name="path" type="xsd:anyURI" use="required">
                 <xsd:annotation>
-                    <xsd:documentation><![CDATA[The relative path to the workflow, respect to the local workflow repository base URL]]></xsd:documentation>
+                    <xsd:documentation><![CDATA[The relative path to the workflow, respect to the repository base URL]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="svg" type="xsd:anyURI" use="required">
                 <xsd:annotation>
-                    <xsd:documentation><![CDATA[The relative path to the SVG graph representation of the workflow, respect to the local workflow repository base URL]]></xsd:documentation>
+                    <xsd:documentation><![CDATA[(Deprecated)The relative path to the SVG graph representation of the workflow, respect to the local workflow repository base URL]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="date" type="xsd:dateTime" use="required">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The last modification date of the workflow or snapshot]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
         </xsd:complexType>

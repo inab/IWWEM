@@ -9,8 +9,9 @@
 */
 
 /* Data viewer, the must-be royal crown */
-function DataBrowser(genview,databrowserId,mimePathDivId) {
+function DataBrowser(genview,databrowserId,mimePathDivId,/*optional*/preprocessId) {
 	this.genview=genview;
+	this.preprocessId=preprocessId;
 	
 	this.databrowserDiv=genview.getElementById(databrowserId);
 	
@@ -115,11 +116,13 @@ DataBrowser.LocatedData.prototype = {
 
 DataBrowser.prototype={
 	openProcessFrame: function () {
-		this.frameId=this.genview.openFrame('preprocessData',1);
+		if(this.preprocessId!=undefined)
+			this.frameId=this.genview.openFrame(this.preprocessId,1);
 	},
 	
 	closeProcessFrame: function() {
-		this.genview.closeFrame(this.frameId);
+		if(this.preprocessId!=undefined)
+			this.genview.closeFrame(this.frameId);
 	},
 	
 	clearView: function () {

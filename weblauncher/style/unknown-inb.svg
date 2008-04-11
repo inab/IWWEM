@@ -21,8 +21,20 @@
    version="1.0">
   <script
      type="text/ecmascript"
-     xlink:href="SVGtrampoline.js"
+     xlink:href="SVGmapApp.js"
+     id="script2" />
+  <script
+     type="text/ecmascript"
+     xlink:href="SVGtooltip.js"
+     id="script2" />
+  <script
+     type="text/ecmascript"
+     xlink:href="SVGzoom.js"
      id="script3" />
+  <script
+     type="text/ecmascript"
+     xlink:href="SVGtrampoline.js"
+     id="script4" />
   <metadata
      id="metadata5">
     <rdf:RDF>

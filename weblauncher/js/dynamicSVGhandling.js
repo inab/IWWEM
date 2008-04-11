@@ -69,9 +69,14 @@ TavernaSVG.prototype = {
 		return this.SVGtramp;
 	},
 	
-	clearSVG: function (/* optional */ thedoc) {
+	clearSVGInternal: function (/* optional */ thedoc) {
 		// Before any creation, clear SVG trampoline and SVG object traces!
-		if(this.svgobj) {
+		if(this.svglink) {
+			this.svglink.parentNode.removeChild(this.svglink);
+			this.svglink=undefined;
+		}
+		var svgobj=this.svgobj;
+		if(svgobj) {
 			if(!thedoc)  thedoc=document;
 			// First, kill timer (if any!)
 			if(this._svgloadtimer) {
@@ -87,21 +92,28 @@ TavernaSVG.prototype = {
 			// Second, remove trampoline
 			this.SVGtramp=undefined;
 			// Third, remove previous SVG
+			this.svgobj.style.display='none';
+			this.svgobj.style.visibility='hidden';
+			/*
 			try {
 				this.svgobj.parentNode.removeChild(this.svgobj);
 			} catch(e) {
 				// Be silent about failures!
 				//alert('What!?!');
-				//alert(e);
 			}
+			*/
 			// And any trace!
 			this.svgobj=undefined;
 			this.asEmbed=undefined;
 			this.current=undefined;
 		}
-		if(this.svglink) {
-			this.svglink.parentNode.removeChild(this.svglink);
-			this.svglink=undefined;
+		return svgobj;
+	},
+	
+	clearSVG: function (/* optional */ thedoc) {
+		var svgobj=this.clearSVGInternal(thedoc);
+		if(svgobj) {
+			svgobj.parentNode.removeChild(svgobj);
 		}
 	},
 
@@ -198,15 +210,6 @@ TavernaSVG.prototype = {
 				node=tmpdoc.getElementById(load[0]);
 				if(node) {
 					none=false;
-					nodeid=load[0];
-					url=load[1];
-					bestScaleW=load[2];
-					bestScaleH=load[3];
-					callOnFinish=load[4];
-					thedoc=tmpdoc;
-					
-					this.clearSVG(thedoc);
-					this.current=load;
 					/*
 					if(!bestScaleW)  bestScaleW='400pt';
 					if(!bestScaleH)  bestScaleH=bestScaleW;
@@ -234,6 +237,17 @@ TavernaSVG.prototype = {
 		}
 		
 		// Let's create!
+		nodeid=load[0];
+		url=load[1];
+		bestScaleW=load[2];
+		bestScaleH=load[3];
+		callOnFinish=load[4];
+		thedoc=tmpdoc;
+		
+		// Needed to free resources later, due a Safari bug!
+		var oldsvgobj=this.clearSVGInternal(thedoc);
+		this.current=load;
+
 		var ahref = thedoc.createElement('a');
 		ahref.href=url;
 		ahref.target='_blank';
@@ -268,7 +282,7 @@ TavernaSVG.prototype = {
 			};
 
 			this.svgobj = objres=thedoc.createElement('object');
-			objres.id=gensvgid;
+			objres.setAttribute('id',gensvgid);
 			objres.setAttribute("type","image/svg+xml");
 			objres.setAttribute("wmode","transparent");
 			//objres.setAttribute("style","overflow: hidden; border: 1px dotted #000;width:0;height:0");
@@ -289,6 +303,7 @@ TavernaSVG.prototype = {
 			objres.setAttribute("data",url);
 		} else {
 			this.svgobj = objres = thedoc.createElement('embed');
+			objres.setAttribute('id',gensvgid);
 			objres.setAttribute("type","image/svg+xml");
 			objres.setAttribute("pluginspage","http://www.adobe.com/svg/viewer/install/");
 			objres.setAttribute("style","overflow: auto;");
@@ -326,5 +341,9 @@ TavernaSVG.prototype = {
 
 		// All starts here!
 		node.appendChild(objres);
+		// And this is needed due a Safari bug! Nuts!
+		if(oldsvgobj) {
+			oldsvgobj.parentNode.removeChild(oldsvgobj);
+		}
 	}
 }

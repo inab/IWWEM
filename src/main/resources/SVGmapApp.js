@@ -138,6 +138,7 @@ function SVGmapApp(/*optional*/thedoc,adjustVBonWindowResize,resizeCallbackFunct
  	try {
   		//browsers with native SVG support
   		window.addEventListener("resize",this,false);
+  		parent.addEventListener("resize",this,false);
   		top.addEventListener("resize",this,false);
  	} catch(er) {
 		//SVG UAs, like Batik and ASV/Iex
@@ -1000,6 +1001,8 @@ SVGmapApp.ViewBox.prototype = {
 			if (this.windowWidth == null) {
 				if (top && top.innerWidth) {
 					this.windowWidth = top.innerWidth;
+				} else if(parent && parent.innerWidth) {
+					this.windowWidth = parent.innerWidth;
 				} else if (window.innerWidth) {
 					this.windowWidth = window.innerWidth;
 				} else {
@@ -1007,9 +1010,11 @@ SVGmapApp.ViewBox.prototype = {
 				}
 			} else {
 				var factor = parseFloat(this.windowWidth.replace(/%/,""))/100;
-				if (top && top.innerWidth) {
+				if(top && top.innerWidth) {
 					this.windowWidth = top.innerWidth * factor;
-				} else if(window.innerWidth) {
+				} else if(parent && parent.innerWidth) {
+					this.windowWidth = parent.innerWidth * factor;
+				} else if (window.innerWidth) {
 					this.windowWidth = window.innerWidth * factor;
 				} else {
 					this.windowWidth = svgRoot.viewport.width * factor;
@@ -1023,6 +1028,8 @@ SVGmapApp.ViewBox.prototype = {
 			if (this.windowHeight == null) {
 				if (top && top.innerHeight) {
 					this.windowHeight = top.innerHeight;
+				} else if (parent && parent.innerHeight) {
+					this.windowHeight = parent.innerHeight;
 				} else if (window.innerHeight) {
 					this.windowHeight = window.innerHeight;
 				} else {
@@ -1032,6 +1039,8 @@ SVGmapApp.ViewBox.prototype = {
 				var factor = parseFloat(this.windowHeight.replace(/%/,""))/100;
 				if (top && top.innerHeight) {
 					this.windowHeight = top.innerHeight * factor;
+				} else if (parent && parent.innerHeight) {
+					this.windowHeight = parent.innerHeight * factor;
 				} else if (window.innerHeight) {
 					this.windowHeight = window.innerHeight * factor;
 				} else {
@@ -1146,6 +1155,9 @@ SVGmapApp.prototype = {
 		if (top && top.innerWidth) {
 			this.innerWidth = top.innerWidth;
 			this.innerHeight = top.innerHeight;
+		} else if (parent && parent.innerWidth) {
+			this.innerWidth = parent.innerWidth;
+			this.innerHeight = parent.innerHeight;
 		} else if (window.innerWidth) {
 			this.innerWidth = window.innerWidth;
 			this.innerHeight = window.innerHeight;
