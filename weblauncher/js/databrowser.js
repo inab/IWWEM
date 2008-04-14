@@ -41,8 +41,12 @@ function DataBrowser(genview,databrowserId,mimePathDivId,/*optional*/preprocessI
 	theform.appendChild(genview.thedoc.createTextNode(' '));
 	
 	// MIME Select
-	this.mimeSelect=genview.createElement('select');
-	theform.appendChild(this.mimeSelect);
+	var mimeSelect = this.mimeSelect = genview.createElement('select');
+	theform.appendChild(mimeSelect);
+	
+	// View Select
+	var viewSelect = this.viewSelect = genview.createElement('select');
+	theform.appendChild(viewSelect);
 	
 	// Appending the form to the parent
 	mimePathDiv.appendChild(theform);
@@ -51,15 +55,20 @@ function DataBrowser(genview,databrowserId,mimePathDivId,/*optional*/preprocessI
 	this.dataObject=undefined;
 	this.mimeList=undefined;
 	this.setCallback=undefined;
+	this.setViewCallback=undefined;
 	this.frameId=undefined;
 	
 	var databrowser=this;
 	// Changed due Internet Explorer
 	this.mimeChangeFunc=function(event) {
-		if(!event)  event=window.event;
-		var target=(event.currentTarget)?event.currentTarget:event.srcElement;
-		if(target.selectedIndex!=-1) {
-			databrowser.applyView(target.options[target.selectedIndex].value);
+		if(mimeSelect.selectedIndex!=-1) {
+			databrowser.applyView(mimeSelect.options[mimeSelect.selectedIndex].value);
+		}
+	};
+	
+	this.viewChangeFunc=function(event) {
+		if(mimeSelect.selectedIndex!=-1 && viewSelect.selectedIndex!=-1) {
+			databrowser.applyView(mimeSelect.options[mimeSelect.selectedIndex].value,viewSelect.options[viewSelect.selectedIndex].value);
 		}
 	};
 }
@@ -95,6 +104,8 @@ DataBrowser.LocatedData = function(jobId,stepName,iteration,IOMode,/*optional*/I
 	this.IOMode=IOMode;
 	this.IOPath=IOPath;
 	this.dataObject=undefined;
+	this.prevSelMime=undefined;
+	this.viewers=undefined;
 };
 
 DataBrowser.LocatedData.prototype = {
@@ -126,15 +137,24 @@ DataBrowser.prototype={
 	},
 	
 	clearView: function () {
-		WidgetCommon.removeEventListener(this.mimeSelect,'change',this.mimeChangeFunc,false);
+		if(this.setCallback) {
+			WidgetCommon.removeEventListener(this.mimeSelect,'change',this.mimeChangeFunc,false);
+			this.setCallback=undefined;
+		}
+		if(this.setViewCallback) {
+			WidgetCommon.removeEventListener(this.viewSelect,'change',this.viewChangeFunc,false);
+			this.setViewCallback=undefined;
+		}
+		this.prevSelMime=undefined;
 		this.locObject=undefined;
 		this.dataObject=undefined;
 		this.mimeList=undefined;
-		this.setCallback=undefined;
+		this.viewers=undefined;
 		GeneralView.freeContainer(this.databrowserDiv);
 		GeneralView.freeContainer(this.IOStepSpan);
 		GeneralView.freeContainer(this.IOPathSpan);
 		GeneralView.freeSelect(this.mimeSelect);
+		GeneralView.freeSelect(this.viewSelect);
 	},
 	
 	show: function(locObject,mimeList) {
@@ -165,6 +185,7 @@ DataBrowser.prototype={
 			this.locObject=locObject;
 			this.dataObject=locObject.dataObject;
 			this.setCallback=undefined;
+			this.setViewCallback=undefined;
 			// base64 processing is delayed to the last momment
 			this.applyView();
 		} else {
@@ -182,7 +203,7 @@ DataBrowser.prototype={
 		}
 	},
 	
-	applyView: function (mime) {
+	applyView: function (/* optional */ mime,viewId) {
 		// Choose the best view
 		if(!mime) {
 			if(this.mimeList) {
@@ -210,7 +231,7 @@ DataBrowser.prototype={
 				this.mimeSelect.selectedIndex=bestIndex;
 			} else {
 				// No data :-(
-				this.databrowserDiv.innerHTML='<i>NO DATA</i>';
+				this.databrowserDiv.innerHTML='<i>NO DATA/NO VIEW</i>';
 				return;
 			}
 		}
@@ -223,35 +244,72 @@ DataBrowser.prototype={
 			selmime = '*';
 		}
 		
-		var fetchURL=this.locObject.genDownloadURL(selmime);
-		var downloadURL=this.locObject.genDownloadURL(selmime,'');
-		this.IOPathSpan.innerHTML='<a href="'+downloadURL+'" target="_blank">'+this.locObject.IOPath+'</a>';
-		var viewers= DataBrowser.Viewers[selmime];
-		if(viewers instanceof Array) {
+		if(this.prevSelMime!=selmime) {
+			this.prevSelMime=selmime;
+			
+			GeneralView.freeSelect(this.viewSelect);
+			
+			// Filling viewSelect
+			var fetchURL=this.locObject.genDownloadURL(selmime);
+			var downloadURL=this.locObject.genDownloadURL(selmime,'');
+			this.IOPathSpan.innerHTML='<a href="'+downloadURL+'" target="_blank">'+this.locObject.IOPath+'</a>';
+			var viewers = this.viewers = DataBrowser.Viewers[selmime];
+			if(viewers instanceof Array) {
+				// Filling viewSelect
+				for(var viewid=0;viewid<viewers.length;viewid++) {
+					var iterM=this.genview.createElement('option');
+					iterM.text=viewers[viewid].name;
+					iterM.value=viewid;
+					try {
+						this.viewSelect.add(iterM,null);
+					} catch(e) {
+						this.viewSelect.add(iterM);
+					}
+					
+				}
+			} else {
+				// Default case, no view
+				var iterM=this.genview.createElement('option');
+				iterM.text=iterM.value='NO ONE';
+				try {
+					this.viewSelect.add(iterM,null);
+				} catch(e) {
+					this.viewSelect.add(iterM);
+				}
+				this.mimeList=undefined;
+				this.locObject=undefined;
+				this.dataObject=undefined;
+				this.databrowserDiv.innerHTML='<i>NO VIEW</i>';
+			}
+		}
+		
+		if(viewId==undefined)  viewId=0;
+		
+		var viewIntId=parseInt(viewId,10);
+		if(!isNaN(viewIntId)) {
+			var viewers = this.viewers;
 			var databrowser=this;
 			var doApplyView = function(/* optional */ doCloseFrame) {
 				if(doCloseFrame) {
 					databrowser.closeProcessFrame();
 				}
 				
-				for(var viewid=0;viewid<viewers.length;viewid++) {
-					var viewer = viewers[viewid];
-					if(viewer) {
-						var dataObject = databrowser.dataObject;
-						var dataValue=undefined;
-						if(viewer.dataSource==DataBrowser.Inline || dataObject.isLink) {
-							dataValue = dataObject.data[(viewer.dataFormat == DataBrowser.Native)?1:0];
-						} else {
-							dataValue=fetchURL;
-							// Left enactproxy base64 case integration
-						}
+				var viewer = viewers[viewIntId];
+				if(viewer) {
+					var dataObject = databrowser.dataObject;
+					var dataValue=undefined;
+					if(viewer.dataSource==DataBrowser.Inline || dataObject.isLink) {
+						dataValue = dataObject.data[(viewer.dataFormat == DataBrowser.Native)?1:0];
+					} else {
+						dataValue=fetchURL;
+						// Left enactproxy base64 case integration
+					}
 
-						// Last, applying view
-						try {
-							viewer.applyView(dataValue,dataObject.genCallParams(mime),databrowser.databrowserDiv,databrowser.genview);
-						} catch(eee) {
-							alert(eee);
-						}
+					// Last, applying view
+					try {
+						viewer.applyView(dataValue,dataObject.genCallParams(mime),databrowser.databrowserDiv,databrowser.genview);
+					} catch(eee) {
+						alert(eee);
 					}
 				}
 				
@@ -261,25 +319,29 @@ DataBrowser.prototype={
 					// Fourth, assign handler
 					WidgetCommon.addEventListener(databrowser.mimeSelect,'change',databrowser.mimeChangeFunc,false);
 				}
+				
+				if(!databrowser.setViewCallback) {
+					databrowser.setViewCallback=true;
+
+					// Fourth, assign handler
+					WidgetCommon.addEventListener(databrowser.viewSelect,'change',databrowser.viewChangeFunc,false);
+				}
 			};
 			
 			var doTranslate=undefined;
 			if(!this.dataObject.data[1] || !this.dataObject.data[0]) {
 				// First, check if we have the information in the proper format
-				for(var viewid=0;viewid<viewers.length;viewid++) {
-					var viewer = viewers[viewid];
-					if(viewer) {
-						if(viewer.dataSource==DataBrowser.Inline) {
-							if(!databrowser.dataObject.data[(viewer.dataFormat == DataBrowser.Native)?1:0]) {
-								doTranslate=viewer.dataFormat;
-								break;
-							}
-						/*
-						} else {
-							// enactproxy does not have this problem
-							// Left enactproxy integration
-						*/
+				var viewer = viewers[viewIntId];
+				if(viewer) {
+					if(viewer.dataSource==DataBrowser.Inline) {
+						if(!databrowser.dataObject.data[(viewer.dataFormat == DataBrowser.Native)?1:0]) {
+							doTranslate=viewer.dataFormat;
 						}
+					/*
+					} else {
+						// IWWEMproxy does not have this problem
+						// Left IWWEMproxy integration
+					*/
 					}
 				}
 			}
@@ -315,38 +377,12 @@ DataBrowser.Link = 'link';
 DataBrowser.Native = 'native';
 DataBrowser.Base64 = 'base64';
 
-DataBrowser.DefaultViewer = {
-	dataSource:	DataBrowser.Inline,
-	dataFormat:	DataBrowser.Native,
-	acceptedMIME:	[
-		'text/plain',
-		'*'
-	],
-	applyView: function(data,paramArray,databrowserDiv,genview) {
-		// Use the prettyfier!
-		var dataCont = genview.createElement('pre');
-		dataCont.className='prettyprint noborder';
-		var tnode = genview.thedoc.createTextNode(data);
-		dataCont.appendChild(tnode);
-		databrowserDiv.appendChild(dataCont);
-
-		// Now, prettyPrint!!!!
-		if(/^\s*</.test(data) && />\s*$/.test(data)) {
-			var htmldata=data.toString();
-			htmldata=htmldata.replace(/&/g,'&amp;');
-			htmldata=htmldata.replace(/</g,'&lt;');
-			htmldata=htmldata.replace(/>/g,'&gt;');
-			htmldata=htmldata.replace(/"/g,'&quot;');
-			dataCont.innerHTML=prettyPrintOne(htmldata);
-		}
-	}
-};
-DataBrowser.addViewer(DataBrowser.DefaultViewer);
-
 DataBrowser.XMLViewer = {
+	name:	'XML PrettyPrint',
 	dataSource:	DataBrowser.Inline,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	[
+		'application/xml',
 		'text/xml',
 	],
 	applyView: function(data,paramArray,databrowserDiv,genview) {
@@ -362,6 +398,7 @@ DataBrowser.XMLViewer = {
 DataBrowser.addViewer(DataBrowser.XMLViewer);
 
 DataBrowser.HTMLViewer = {
+	name:	'Embedded HTML',
 	dataSource:	DataBrowser.Inline,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	[
@@ -384,6 +421,7 @@ DataBrowser.HTMLViewer = {
 DataBrowser.addViewer(DataBrowser.HTMLViewer);
 
 DataBrowser.LinkViewer = {
+	name:	'Link',
 	dataSource:	DataBrowser.Inline,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	['text/x-taverna-web-url'],
@@ -406,6 +444,7 @@ DataBrowser.LinkViewer = {
 DataBrowser.addViewer(DataBrowser.LinkViewer);
 
 DataBrowser.SVGViewer = {
+	name:	'Embedded SVG',
 	dataSource:	DataBrowser.Link,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	['image/svg+xml'],
@@ -429,6 +468,7 @@ DataBrowser.SVGViewer = {
 DataBrowser.addViewer(DataBrowser.SVGViewer);
 
 DataBrowser.OctetStreamViewer = {
+	name:	'Binary info',
 	dataSource:	DataBrowser.Link,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	['application/octet-stream'],
@@ -467,6 +507,7 @@ DataBrowser.ImageViewer = {
 DataBrowser.addViewer(DataBrowser.ImageViewer);
 
 DataBrowser.MolViewer = {
+	name:	'JMol',
 	/*
 	dataSource:	DataBrowser.Inline,
 	*/
@@ -589,6 +630,7 @@ jmolSetCallback('messageCallback','JMolAlert');
 DataBrowser.addViewer(DataBrowser.MolViewer);
 
 DataBrowser.NewickViewer = {
+	name:	'ATV',
 	/*
 	dataSource:	DataBrowser.Inline,
 	*/
@@ -627,6 +669,7 @@ DataBrowser.NewickViewer = {
 DataBrowser.addViewer(DataBrowser.NewickViewer);
 
 DataBrowser.MSAViewer = {
+	name:	'Jalview',
 	/*
 	dataSource:	DataBrowser.Inline,
 	*/
@@ -664,3 +707,36 @@ DataBrowser.MSAViewer = {
 };
 
 DataBrowser.addViewer(DataBrowser.MSAViewer);
+
+// Default view must be the last one to be registered
+// so its priority is the least one
+DataBrowser.DefaultViewer = {
+	name:	'default',
+	dataSource:	DataBrowser.Inline,
+	dataFormat:	DataBrowser.Native,
+	acceptedMIME:	[
+		'text/plain',
+		'text/xml',
+		'application/xml',
+		'*'
+	],
+	applyView: function(data,paramArray,databrowserDiv,genview) {
+		// Use the prettyfier!
+		var dataCont = genview.createElement('pre');
+		dataCont.className='prettyprint noborder';
+		var tnode = genview.thedoc.createTextNode(data);
+		dataCont.appendChild(tnode);
+		databrowserDiv.appendChild(dataCont);
+
+		// Now, prettyPrint!!!!
+		if(/^\s*</.test(data) && />\s*$/.test(data)) {
+			var htmldata=data.toString();
+			htmldata=htmldata.replace(/&/g,'&amp;');
+			htmldata=htmldata.replace(/</g,'&lt;');
+			htmldata=htmldata.replace(/>/g,'&gt;');
+			htmldata=htmldata.replace(/"/g,'&quot;');
+			dataCont.innerHTML=prettyPrintOne(htmldata);
+		}
+	}
+};
+DataBrowser.addViewer(DataBrowser.DefaultViewer);
