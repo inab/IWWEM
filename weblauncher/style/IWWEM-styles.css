@@ -339,8 +339,12 @@ SPAN.branchlabelopen {
 	background-image: url(twisty-open.png);
 }
 
-SPAN.branchlabel, SPAN.leaflabel, .fruit, .seed {
+SPAN.branchlabel, SPAN.leaflabel, .seed {
 	cursor: pointer;
+	-moz-user-select: none;
+}
+
+.fruit {
 	-moz-user-select: none;
 }
 

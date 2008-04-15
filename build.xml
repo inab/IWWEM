@@ -10,9 +10,12 @@
 	<property name="deploy.ssh.user" value="jmfernandez" />
 	<property name="deploy.ssh.dir" value="/home/jmfernandez/public_html/IWWEM-new" />
 	
-	<dirname property="antfile.dir" file="${ant.file}"/>
-	<dirname property="antfile.dir.parent" file="${antfile.dir}"/>
-	<property name="weblauncher.src" location="weblauncher" />
+	<dirname property="iwwem.antfile.dir" file="${ant.file}"/>
+	<dirname property="iwwem.antfile.dir.parent" file="${iwwem.antfile.dir}"/>
+	<property name="iwwem.weblauncher.src" location="weblauncher" />
+	<property name="maven.settings.local" location="" />
+	
+	<property name="taverna.biomoby.src" value="taverna-biomoby"/>
 	
 	<!--
 		Targets
@@ -26,18 +29,56 @@
 		-->
 	</target>
 	
+	<target name="checkout-local-biomoby" depends="init">
+		<delete dir="${taverna.biomoby.src}" includeemptydirs="true">
+		</delete>
+		<exec executable="cvs" failonerror="true">
+			<arg value="-z3"/>
+			<arg value="-d:pserver:anonymous@taverna.cvs.sourceforge.net:/cvsroot/taverna"/>
+			<arg value="co"/>
+			<arg value="-d"/>
+			<arg value="${taverna.biomoby.src}"/>
+			<arg value="taverna1.0/taverna-biomoby"/>
+		</exec>
+	</target>
+	
+	<target name="prepare-local-biomoby" depends="init">
+		<exec dir="${taverna.biomoby.src}" executable="cvs" failonerror="true">
+			<arg value="-z3"/>
+			<arg value="update"/>
+		</exec>
+		
+		<delete dir="${taverna.biomoby.src}/src/test" includeemptydirs="true">
+		</delete>
+		<delete dir="${taverna.biomoby.src}/target" includeemptydirs="true">
+		</delete>
+	</target>
+	
+	<target name="install-local-biomoby" depends="init">
+		<exec dir="${taverna.biomoby.src}" executable="mvn" failonerror="true">
+			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-s"/>
+			<arg value="${iwwem.antfile.dir}/settings-maven.xml"/>
+			<arg value="install"/>
+			<arg value="-Dmaven.test.skip=true"/>
+		</exec>
+	</target>
+	
 	<target depends="init" description="Compilation of Java/Maven backend modules" name="maven-compile">
 		<exec executable="mvn" failonerror="true">
+			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-s"/>
+			<arg value="${iwwem.antfile.dir}/settings-maven.xml"/>
 			<arg value="package"/>
 			<arg value="appassembler:assemble"/>
 		</exec>
 	</target>
 	
 	<target depends="init" description="Checking of Perl frontend modules" name="perl-check">
-		<apply executable="perl" dir="${weblauncher.src}/cgi-bin" failonerror="true">
+		<apply executable="perl" dir="${iwwem.weblauncher.src}/cgi-bin" failonerror="true">
 			<arg value="-c"/>
-			<arg value="-I${weblauncher.src}/cgi-bin/LockNLog"/>
-			<fileset dir="${weblauncher.src}/cgi-bin" followsymlinks="false">
+			<arg value="-I${iwwem.weblauncher.src}/cgi-bin/LockNLog"/>
+			<fileset dir="${iwwem.weblauncher.src}/cgi-bin" followsymlinks="false">
 				<include name="**/*.pl" />
 				<include name="**/*.pm" />
 			</fileset>
@@ -56,7 +97,7 @@
 			command="mkdir -v -p '${deploy.ssh.dir}/cgi-bin'"
 		/>
 		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}/cgi-bin" keyfile="${user.home}/.ssh/id_dsa" passphrase="">
-			<fileset dir="${weblauncher.src}/cgi-bin">
+			<fileset dir="${iwwem.weblauncher.src}/cgi-bin">
 				<include name="inb-maven"/>
 				<include name="inb-maven/**"/>
 				<include name="INBWorkflowLauncher"/>
@@ -86,7 +127,7 @@
 			command="mkdir -v -p '${deploy.ssh.dir}'"
 		/>
 		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}" keyfile="${user.home}/.ssh/id_dsa" passphrase="">
-			<fileset dir="${weblauncher.src}">
+			<fileset dir="${iwwem.weblauncher.src}">
 				<exclude name="**/.svn"/>
 				<exclude name="**/.svn/**"/>
 			</fileset>
@@ -125,6 +166,9 @@
 
 	<target description="Cleaning the project" name="clean">
 		<exec executable="mvn" failonerror="true">
+			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-s"/>
+			<arg value="${iwwem.antfile.dir}/settings-maven.xml"/>
 			<arg value="clean"/>
 		</exec>
 		<exec executable="svn" failonerror="true">

@@ -22,19 +22,27 @@ function DataBrowser(genview,databrowserId,mimePathDivId,/*optional*/preprocessI
 	theform.setAttribute('style','padding:0px;margin:0px;');
 	
 	// IOStep Span
+	var uPan=genview.createElement('u');
+	uPan.innerHTML='Step:';
+	theform.appendChild(uPan);
+	theform.appendChild(genview.thedoc.createTextNode(' '));
 	this.IOStepSpan=genview.createElement('span');
 	theform.appendChild(this.IOStepSpan);
 	
-	theform.appendChild(genview.thedoc.createTextNode(' '));
+	theform.appendChild(genview.createElement('br'));
 	
 	// IOPath Span
+	uPan=genview.createElement('u');
+	uPan.innerHTML='Path:';
+	theform.appendChild(uPan);
+	theform.appendChild(genview.thedoc.createTextNode(' '));
 	this.IOPathSpan=genview.createElement('span');
 	theform.appendChild(this.IOPathSpan);
 	
 	theform.appendChild(genview.createElement('br'));
 	
 	// Text
-	var uPan=genview.createElement('u');
+	uPan=genview.createElement('u');
 	uPan.innerHTML='MIME';
 	theform.appendChild(uPan);
 
@@ -44,6 +52,10 @@ function DataBrowser(genview,databrowserId,mimePathDivId,/*optional*/preprocessI
 	var mimeSelect = this.mimeSelect = genview.createElement('select');
 	theform.appendChild(mimeSelect);
 	
+	// More text
+	uPan=genview.createElement('u');
+	uPan.innerHTML='Viewer';
+	theform.appendChild(uPan);
 	// View Select
 	var viewSelect = this.viewSelect = genview.createElement('select');
 	theform.appendChild(viewSelect);
@@ -168,7 +180,7 @@ DataBrowser.prototype={
 			this.mimeList=mimeList;
 			
 			// Filling data origins
-			this.IOStepSpan.innerHTML=locObject.stepName+((locObject.iteration!=undefined)?('['+locObject.iteration+']'):'')+'('+((locObject.IOMode=='I')?'Input)':'Output)');
+			this.IOStepSpan.innerHTML=locObject.stepName+((locObject.iteration!=undefined)?('['+locObject.iteration+']'):'')+'<i>('+(((locObject.IOMode=='I')?'Input':'Output')+')</i>');
 			//this.IOPathSpan.innerHTML='<a href="'+locObject.genDownloadURL()+'" target="_blank">'+locObject.IOPath+'</a>';
 
 			// Filling MIME type selector
