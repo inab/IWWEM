@@ -48,10 +48,12 @@
 			<arg value="update"/>
 		</exec>
 		
+		<!--
 		<delete dir="${taverna.biomoby.src}/src/test" includeemptydirs="true">
 		</delete>
 		<delete dir="${taverna.biomoby.src}/target" includeemptydirs="true">
 		</delete>
+		-->
 	</target>
 	
 	<target name="install-local-biomoby" depends="init">
