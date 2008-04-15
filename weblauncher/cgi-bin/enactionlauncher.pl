@@ -41,6 +41,9 @@ my($onlySaveAsExample)=undef;
 my($wfilefetched)=undef;
 my($baclavafound)=undef;
 
+my($responsibleMail)=undef;
+my($responsibleName)=undef;
+
 my(@inputdesc)=();
 my(@baclavadesc)=();
 my($inputcount)=0;
@@ -116,6 +119,10 @@ foreach my $param ($query->param()) {
 		$exampleName=$query->param($param);
 	} elsif($param eq $WorkflowCommon::PARAMSAVEEXDESC) {
 		$exampleDesc=$query->param($param);
+	} elsif($param eq $WorkflowCommon::RESPONSIBLEMAIL) {
+		$responsibleMail=$query->param($param);
+	} elsif($param eq $WorkflowCommon::RESPONSIBLENAME) {
+		$responsibleName=$query->param($param);
 	} elsif(length($param)>length($WorkflowCommon::PARAMPREFIX) && index($param,$WorkflowCommon::PARAMPREFIX)==0) {
 		push(@parseParam,$param);
 	}
@@ -127,13 +134,13 @@ my($parser)=XML::LibXML->new();
 my($jobid)=undef;
 my($jobdir)=undef;
 
+$responsibleName=''  unless(defined($responsibleName));
+
 if(defined($hasInputWorkflow)) {
 	$workflowId=undef;
 	
 	my($p_res)=undef;
-	($retval,$retvalmsg,$p_res)=WorkflowCommon::parseInlineWorkflows($query,$parser,$hasInputWorkflowDeps,undef,$WorkflowCommon::JOBDIR);
-	$retval=$p_res->[0];
-	$retvalmsg=$p_res->[1];
+	($retval,$retvalmsg,$p_res)=WorkflowCommon::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,undef,$WorkflowCommon::JOBDIR,1);
 	
 	$jobid=$p_res->[0]  if(scalar(@{$p_res})>0);
 	$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
@@ -289,34 +296,55 @@ if(defined($baclavafound)) {
 # This example node will be used to notify
 # the creation of the example file
 my($example)=undef;
+my($fullexampleuuid)=undef;
+my($penddir)=undef;
+my($penduuid)=undef;
 # Saving as an example
-if(defined($exampleName) && defined($workflowId)) {
-	my($randname);
+if(defined($exampleName) && defined($workflowId) && defined($responsibleMail)) {
+	my($exampleuuid);
 	my($relrandfile);
 	my($randfile);
 	do {
-		$randname=WorkflowCommon::genUUID();
-		$relrandfile=$workflowId.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$randname.'.xml';
+		$exampleuuid=WorkflowCommon::genUUID();
+		$relrandfile=$workflowId.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$exampleuuid.'.xml';
 		$randfile=$WorkflowCommon::WORKFLOWDIR.'/'.$relrandfile;
 	} while(-f $randfile);
 	
-	my($catalogfile)=$WorkflowCommon::WORKFLOWDIR.'/'.$workflowId.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
-	my($catalog)=$parser->parse_file($catalogfile);
-	my($example)=$catalog->createElementNS($WorkflowCommon::WFD_NS,'example');
-	$example->setAttribute('uuid',$randname);
+	my($EXH);
+	close($EXH)  if(open($EXH,'>',$randfile));
+	
+	# Generating a pending operation
+	my($PH);
+	($penduuid,$penddir,$PH)=WorkflowCommon::genPendingOperationsDir($WorkflowCommon::COMMANDADD);
+	$fullexampleuuid=$WorkflowCommon::EXAMPLEPREFIX."$workflowId:$exampleuuid";
+	print $PH "$fullexampleuuid\n";
+	close($PH);
+	
+	# Now, the new files
+	my($pendrandfile)=$penddir.'/'.$exampleuuid.'.xml';
+	my($pendcatalogfile)=$penddir.'/'.$exampleuuid.'_'.$WorkflowCommon::CATALOGFILE;
+
+	close($EXH)  if(open($EXH,'>',$pendrandfile));
+	
+	my($catalog)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+	$example=$catalog->createElementNS($WorkflowCommon::WFD_NS,'example');
+	$example->setAttribute('uuid',$exampleuuid);
 	$example->setAttribute('name',encode('UTF-8',$exampleName));
 	$example->setAttribute('path',$relrandfile);
 	$example->setAttribute('date',LockNLog::getPrintableNow());
+	$example->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+	$example->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 	if(defined($exampleDesc) && length($exampleDesc) > 0) {
 		$example->appendChild($catalog->createCDATASection(encode('UTF-8',$exampleDesc)));
 	}
 	
 	# Save example name and description
-	$catalog->documentElement()->appendChild($example);
-	$catalog->toFile($catalogfile);
+	$catalog->setDocumentElement($example);
+	$catalog->toFile($pendcatalogfile);
 	
 	# Last
-	push(@saveExample,(defined($onlySaveAsExample)?'-onlySaveInputs':'-saveInputs'),$randfile);
+	# push(@saveExample,(defined($onlySaveAsExample)?'-onlySaveInputs':'-saveInputs'),$pendrandfile);
+	push(@saveExample,'-onlySaveInputs',$pendrandfile);
 }
 
 # We must signal here errors and exit
@@ -330,6 +358,7 @@ if($retval!=0 || $query->cgi_error() || !defined($wfilefetched)) {
 		$query->strong($error);
 	
 	rmtree($jobdir);
+	rmtree($penddir)  if(defined($penddir));
 	exit 0;
 }
 
@@ -345,6 +374,7 @@ unless(defined($cpid)) {
 		$query->strong($error);
 	
 	rmtree($jobdir);
+	rmtree($penddir)  if(defined($penddir));
 	exit 0;
 } elsif($cpid!=0) {
 	# I'm the parent, and I have a child!!!!
@@ -417,22 +447,38 @@ unless(defined($cpid)) {
 		} else {
 			# I'm the grandson, which can be killed
 			setsid();
-			my($RUNPID);
-			if(open($RUNPID,'>',$jobdir.'/PID')) {
-				print $RUNPID $$;
-				close($RUNPID);
-			}
-
+			
 			{
-				exec($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
-					'-baseDir',$WorkflowCommon::MAVENDIR,
-					'-workflow',$wfile,
-#					'-expandSubWorkflows',
-					'-statusDir',$jobdir,
-					@baclavadesc,
-					@inputdesc,
-					@saveExample
-				);
+				# Just now, is the moment to send the e-mail
+				if(defined($penduuid)) {
+					system($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
+						'-baseDir',$WorkflowCommon::MAVENDIR,
+						'-workflow',$wfile,
+	#					'-expandSubWorkflows',
+						'-statusDir',$jobdir,
+						@baclavadesc,
+						@inputdesc,
+						@saveExample
+					);
+					WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'example',$WorkflowCommon::COMMANDADD,$fullexampleuuid,$responsibleMail,$exampleName);
+				}
+				unless(defined($onlySaveAsExample)) {
+					my($RUNPID);
+					if(open($RUNPID,'>',$jobdir.'/PID')) {
+						print $RUNPID $$;
+						close($RUNPID);
+					}
+					exec($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
+						'-baseDir',$WorkflowCommon::MAVENDIR,
+						'-workflow',$wfile,
+	#					'-expandSubWorkflows',
+						'-statusDir',$jobdir,
+						@baclavadesc,
+						@inputdesc
+					);
+				} else {
+					exit(0);
+				}
 			};
 			my($FATAL);
 			open($FATAL,'>',$jobdir . '/FATAL');

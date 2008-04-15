@@ -18,6 +18,7 @@ use File::Path;
 use File::Temp;
 use FindBin;
 use LWP::UserAgent;
+use Mail::Sender;
 use POSIX qw(strftime);
 use XML::LibXML;
 
@@ -27,19 +28,30 @@ use vars qw($INPUTSFILE $OUTPUTSFILE);
 
 use vars qw($WORKFLOWRELDIR $WORKFLOWDIR $JOBRELDIR $JOBDIR $MAXJOBS $JOBCHECKDELAY $LAUNCHERDIR $MAVENDIR);
 
+use vars qw($CONFIRMRELDIR $CONFIRMDIR $COMMANDFILE $PENDINGERASEFILE $PENDINGADDFILE);
+
+use vars qw($COMMANDADD $COMMANDERASE);
+
 use vars qw($PATTERNSFILE);
 
 use vars qw($BACLAVAPARAM $PARAMWFID $PARAMWORKFLOWDEP $PARAMWORKFLOW $PARAMISLAND);
 use vars qw($PARAMPREFIX $SNAPSHOTPREFIX $EXAMPLEPREFIX $ENACTIONPREFIX);
 use vars qw($WFD_NS $PAT_NS $XSCUFL_NS $BACLAVA_NS);
 
-use vars qw($PARAMSAVEEX $PARAMSAVEEXDESC $CATALOGFILE);
+use vars qw($PARAMSAVEEX $PARAMSAVEEXDESC $CATALOGFILE $RESPONSIBLEFILE);
 
 use vars qw($COMMENTPRE $COMMENTPOST $COMMENTWM $COMMENTEL $COMMENTES);
 
 use vars qw(%GRAPHREP);
 
+use vars qw($IWWEMmailaddr $RESPONSIBLENAME $RESPONSIBLEMAIL);
+
+$IWWEMmailaddr='jmfernandez@cnio.es';
+
+
 # Workflow files constants
+$RESPONSIBLENAME='responsibleName';
+$RESPONSIBLEMAIL='responsibleMail';
 $WORKFLOWFILE='workflow.xml';
 $SVGFILE='workflow.svg';
 $PDFFILE='workflow.pdf';
@@ -65,7 +77,7 @@ $JOBDIR = $FindBin::Bin . '/../' .$JOBRELDIR;
 # Patterns file
 $PATTERNSFILE = $FindBin::Bin . '/../EVpatterns.xml';
 # Number of concurrent jobs
-$MAXJOBS = 2;
+$MAXJOBS = 10;
 # When a pending job is waiting for a slot,
 # the delay (in seconds) between checks.
 # It is not higher because it is
@@ -76,6 +88,14 @@ $LAUNCHERDIR = $FindBin::Bin.'/INBWorkflowLauncher';
 # Maven directory used by raven instance inside
 # workflowparser and workflowlauncher
 $MAVENDIR = $FindBin::Bin.'/inb-maven';
+
+$PENDINGERASEFILE='eraselist.txt';
+$PENDINGADDFILE='addlist.txt';
+$CONFIRMRELDIR='.pending';
+$CONFIRMDIR=$FindBin::Bin.'/../'.$CONFIRMRELDIR;
+$COMMANDFILE='.command';
+$COMMANDADD='add';
+$COMMANDERASE='erase';
 
 $PARAMWFID='id';
 $PARAMWORKFLOW='workflow';
@@ -90,6 +110,7 @@ $EXAMPLEPREFIX='example:';
 $ENACTIONPREFIX='enaction:';
 
 $CATALOGFILE='catalog.xml';
+$RESPONSIBLEFILE='responsible.xml';
 $INPUTSFILE='Inputs.xml';
 $OUTPUTSFILE='Outputs.xml';
 
@@ -118,7 +139,13 @@ $COMMENTES=$COMMENTPRE.'enactionstatus'.$COMMENTPOST;
 # Method declaration
 sub genUUID();
 sub getCGIBaseURI($);
-sub parseInlineWorkflows($$$;$$);
+sub genPendingOperationsDir($);
+sub createResponsibleFile($$;$);
+sub createMailer();
+sub sendResponsibleConfirmedMail($$$$$$$);
+sub sendResponsiblePendingMail($$$$$$$$);
+
+sub parseInlineWorkflows($$$$$;$$$);
 sub patchWorkflow($$$$$$$;$$$);
 
 # Method bodies
@@ -156,8 +183,114 @@ sub getCGIBaseURI($) {
 	return "$proto://$host:$port$relpath";
 }
 
-sub parseInlineWorkflows($$$;$$) {
-	my($query,$parser,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir)=@_;
+# Generates a pending operation directory structure
+sub genPendingOperationsDir($) {
+	my($oper)=@_;
+	
+	# Generating a unique identifier
+	my($randname);
+	my($randfilexml);
+	my($randdir);
+	do {
+		$randname=WorkflowCommon::genUUID();
+		$randdir=$WorkflowCommon::CONFIRMDIR.'/'.$randname;
+	} while(-d $randdir);
+
+	# Creating workflow directory
+	mkpath($randdir);
+	my($COM);
+	my($FH);
+	if(open($COM,'>',$randdir.'/'.$WorkflowCommon::COMMANDFILE)) {
+		print $COM $oper;
+		close($COM);
+		if($oper eq $WorkflowCommon::COMMANDADD) {
+			# touch
+			open($FH,'>',$randdir.'/'.$WorkflowCommon::PENDINGADDFILE);
+		} elsif($oper eq $WorkflowCommon::COMMANDERASE) {
+			# touch
+			open($FH,'>',$randdir.'/'.$WorkflowCommon::PENDINGADDFILE);
+		}
+	}
+	
+	return ($randname,$randdir,$FH);
+}
+
+sub createResponsibleFile($$;$) {
+	my($basedir,$responsibleMail,$responsibleName)=@_;
+	
+	$responsibleName=''  unless(defined($responsibleName));
+	
+	eval {
+		my($resdoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+		my($resroot)=$resdoc->createElementNS($WorkflowCommon::WFD_NS,'responsible');
+		$resroot->appendChild($resdoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTEL) ));
+		$resroot->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+		$resroot->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+		$resdoc->setDocumentElement($resroot);
+		$resdoc->toFile($basedir.'/'.$WorkflowCommon::RESPONSIBLEFILE);
+	};
+	
+	return $@;
+}
+
+sub createMailer() {
+	my($mailserver)='webmail.cnio.es';
+	my($base64user)='YmlvZGI=';
+	my($base64pass)='Y25pby05OA==';
+	
+	my($smtp) = Mail::Sender->new({smtp=>$mailserver,
+		auth=>'LOGIN',
+		auth_encoded=>1,
+		authid=>$base64user,
+		authpwd=>$base64pass
+	#	subject=>'Prueba4',
+	#	debug=>\*STDERR
+	});
+	
+	return $smtp;
+}
+
+sub sendResponsibleConfirmedMail($$$$$$$) {
+	my($smtp,$code,$kind,$command,$irelpath,$responsibleMail,$prettyname)=@_;
+	
+	$smtp=WorkflowCommon::createMailer()  unless(defined($smtp));
+	my($prettyop)=($command eq $WorkflowCommon::COMMANDADD)?'added':'disposed';
+	
+	return $smtp->MailMsg({
+		from=>"\"INB IWWE&M system\" <$WorkflowCommon::IWWEMmailaddr>",
+		to=>"\"IWWE&M user\" <$responsibleMail>",
+		subject=>"Your $kind $irelpath has just been $prettyop",
+		msg=>"Dear IWWE&M user,\r\n    as you have just confirmed petition ".
+			$code.", your $kind $irelpath".(defined($prettyname)?(" (known as $prettyname)"):'').
+			" has just been $prettyop\r\n\r\n    The INB Interactive Web Workflow Enactor & Manager system"
+	});
+}
+
+sub sendResponsiblePendingMail($$$$$$$$) {
+	my($query,$smtp,$code,$kind,$command,$irelpath,$responsibleMail,$prettyname)=@_;
+	
+	my($prettyop)=($command eq $WorkflowCommon::COMMANDADD)?'addition':'deletion';
+	
+	my($operURL)=WorkflowCommon::getCGIBaseURI($query);
+	$operURL =~ s/cgi-bin\/[^\/]+$//;
+	$operURL.="cgi-bin/IWWEMconfirm?code=$code";
+	
+	return $smtp->MailMsg({
+		from=>"\"INB IWWE&M system\" <$WorkflowCommon::IWWEMmailaddr>",
+		to=>"\"IWWE&M user\" <$responsibleMail>",
+		subject=>"Confirmation for $prettyop of $kind $irelpath",
+		msg=>"Dear IWWE&M user,\r\n    before the $prettyop of $kind $irelpath".
+			(defined($prettyname)?(" (known as $prettyname)"):'').
+			" you must confirm it by visiting\r\n\r\n$operURL\r\n\r\n    The INB Interactive Web Workflow Enactor & Manager system"
+	});
+}
+
+sub parseInlineWorkflows($$$$$;$$$) {
+	my($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
+	
+	unless(defined($responsibleMail) && $responsibleMail =~ /[^\@]+\@[^\@]+\.[^\@]+/) {
+		return (10,(defined($responsibleMail)?"$responsibleMail is not a valid e-mail address":'Responsible mail has not been set using '.$WorkflowCommon::RESPONSIBLEMAIL.' CGI parameter'),[]);
+	}
 	
 	my($isCreation)=undef;
 	unless(defined($basedir)) {
@@ -188,6 +321,12 @@ sub parseInlineWorkflows($$$;$$) {
 		}
 
 		foreach my $UPH (@UPHL) {
+			# Generating a pending operation
+			my($penduuid,$penddir,$PH)=(undef,undef,undef);
+			unless(defined($dontPending)) {
+				($penduuid,$penddir,$PH)=WorkflowCommon::genPendingOperationsDir($WorkflowCommon::COMMANDADD);
+			}
+			
 			# Generating a unique identifier
 			my($randname);
 			my($randfilexml);
@@ -196,9 +335,23 @@ sub parseInlineWorkflows($$$;$$) {
 				$randname=WorkflowCommon::genUUID();
 				$randdir=$basedir.'/'.$randname;
 			} while(-d $randdir);
-
-			# Creating workflow directory
+			
+			# Creating workflow directory so it is reserved
 			mkpath($randdir);
+			my($realranddir)=$randdir;
+			
+			# And now, creating the pending workflow directory!
+			unless(defined($dontPending)) {
+				$randdir=$penddir.'/'.$randname;
+				mkpath($randdir);
+				# And annotate it
+				print $PH "$randname\n";
+				close($PH);
+			}
+			
+			# Responsible file creation
+			WorkflowCommon::createResponsibleFile($randdir,$responsibleMail,$responsibleName);
+			
 			# Saving the workflow data
 			$randfilexml = $randdir . '/' . $WorkflowCommon::WORKFLOWFILE;
 			
@@ -231,9 +384,15 @@ sub parseInlineWorkflows($$$;$$) {
 			
 			($retval,$retvalmsg)=patchWorkflow($query,$parser,$context,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps);
 			
+			# Erasing all...
 			if($retval!=0) {
 				rmtree($randdir);
+				unless(defined($dontPending)) {
+					rmtree($realranddir);
+				}
 				last;
+			} elsif(!defined($dontPending)) {
+				WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'workflow',$WorkflowCommon::COMMANDADD,$randname,$responsibleMail,undef);
 			}
 			
 			push(@goodwf,$randname);

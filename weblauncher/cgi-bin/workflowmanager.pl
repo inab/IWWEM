@@ -39,6 +39,9 @@ my($hasInputWorkflow)=undef;
 my($hasInputWorkflowDeps)=undef;
 my($doFreezeWorkflowDeps)=undef;
 
+my($responsibleMail)=undef;
+my($responsibleName)=undef;
+
 my $parser = XML::LibXML->new();
 my $context = XML::LibXML::XPathContext->new();
 $context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
@@ -64,39 +67,71 @@ foreach my $param ($query->param()) {
 			next  if(length($irelpath)==0 || index($irelpath,'/')==0 || index($irelpath,'../')!=-1);
 			
 			# Checking rules should be inserted here...
+			my($kind)=undef;
+			my($resMail)=undef;
+			my($prettyname)=undef;
 			if($irelpath =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				my($wfsnap)=$1;
 				my($snapId)=$2;
+				$kind='snapshot';
 				eval {
 					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 
 					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$snapId']",$catdoc);
 					foreach my $snap (@eraseSnap) {
-						$snap->parentNode->removeChild($snap);
+						$prettyname=$snap->getAttribute('name');
+						$resMail=$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
 					}
-					$catdoc->toFile($catfile);
 				};
-				rmtree($WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$snapId);
 			} elsif($irelpath =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				my($wfexam)=$1;
 				my($examId)=$2;
+				$kind='example';
 				eval {
 					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 
 					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$examId']",$catdoc);
 					foreach my $exam (@eraseExam) {
-						$exam->parentNode->removeChild($exam);
+						$prettyname=$exam->getAttribute('name');
+						$resMail=$exam->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
 					}
-					$catdoc->toFile($catfile);
 				};
-				unlink($WorkflowCommon::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$examId.'.xml');
-			} elsif($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
-				rmtree($WorkflowCommon::JOBDIR.'/'.$1);
 			} else {
-				# And last, unlink!
-				rmtree($WorkflowCommon::WORKFLOWDIR.'/'.$irelpath);
+				my($jobdir)=undef;
+				
+				if($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+					$jobdir=$WorkflowCommon::JOBDIR.'/'.$1;
+					$kind='enaction';
+				} else {
+					$jobdir=$WorkflowCommon::WORKFLOWDIR.'/'.$irelpath;
+					$kind='workflow';
+				}
+				
+				eval {
+					my($responsiblefile)=$jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE;
+					my($rp)=$parser->parse_file($responsiblefile);
+					$resMail=$rp->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+					
+					my($workflowfile)=$jobdir.'/'.$WorkflowCommon::WORKFLOWFILE;
+					my($wf)=$parser->parse_file($workflowfile);
+					
+					my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+					if(scalar(@nodelist)>0) {
+						$prettyname=$nodelist[0]->getAttribute('title');
+					}
+					
+				};
+			}
+			
+			if(defined($resMail)) {
+				my($penduuid,$penddir,$PH)=WorkflowCommon::genPendingOperationsDir($WorkflowCommon::COMMANDERASE);
+
+				print $PH "$irelpath\n";
+				close($PH);
+				
+				WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,$kind,$WorkflowCommon::COMMANDERASE,$irelpath,$resMail,$prettyname);
 			}
 		}
 	} elsif($param eq $WorkflowCommon::PARAMWORKFLOW) {
@@ -105,6 +140,10 @@ foreach my $param ($query->param()) {
 		$hasInputWorkflowDeps=1;
 	} elsif($param eq $WorkflowCommon::PARAMWFID) {
 		$id=$query->param($param);
+	} elsif($param eq $WorkflowCommon::RESPONSIBLEMAIL) {
+		$responsibleMail=$query->param($param);
+	} elsif($param eq $WorkflowCommon::RESPONSIBLENAME) {
+		$responsibleName=$query->param($param);
 	} elsif($param eq 'freezeWorkflowDeps') {
 		$doFreezeWorkflowDeps=1;
 	}
@@ -112,7 +151,7 @@ foreach my $param ($query->param()) {
 
 # Parsing input workflows
 if(defined($hasInputWorkflow)) {
-	($retval,$retvalmsg)=WorkflowCommon::parseInlineWorkflows($query,$parser,$hasInputWorkflowDeps,$doFreezeWorkflowDeps);
+	($retval,$retvalmsg)=WorkflowCommon::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps);
 }
 
 # We must signal here errors and exit

@@ -268,9 +268,10 @@ sub getStoredEnactionReport($$) {
 			$rep .= $line;
 		}
 		close($ER);
+		return parseEnactionReport($outputDoc,$rep);
+	} else {
+		return undef;
 	}
-	
-	return parseEnactionReport($outputDoc,$rep);
 }
 
 sub parseEnactionReport($$;$) {
@@ -318,6 +319,8 @@ my($dispose)=undef;
 
 my($snapshotName)=undef;
 my($snapshotDesc)=undef;
+my($responsibleMail)=undef;
+my($responsibleName)=undef;
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
@@ -330,6 +333,10 @@ foreach my $param ($query->param()) {
 		$snapshotName=$query->param($param);
 	} elsif($param eq 'snapshotDesc') {
 		$snapshotDesc=$query->param($param);
+	} elsif($param eq $WorkflowCommon::RESPONSIBLEMAIL) {
+		$responsibleMail=$query->param($param);
+	} elsif($param eq $WorkflowCommon::RESPONSIBLENAME) {
+		$responsibleName=$query->param($param);
 	}
 	last  if($query->cgi_error());
 }
@@ -422,7 +429,7 @@ foreach my $jobId (@jobIdList) {
 		} else {
 			# Status report
 			# Disallowed snapshots over snapshots!
-			if(defined($snapshotName) && !defined($wfsnap)) {
+			if(defined($snapshotName) && defined($responsibleMail) && !defined($wfsnap)) {
 				my($workflowId)=undef;
 				# Trying to get the workflowId
 				my($WFID);
@@ -430,46 +437,67 @@ foreach my $jobId (@jobIdList) {
 					$workflowId=<$WFID>;
 					close($WFID);
 				}
-
+				
 				# So, let's take a snapshot!
 				if(defined($workflowId) && index($workflowId,'/')==-1) {
 					# First, read the catalog
 					my($snapbasedir)=$WorkflowCommon::WORKFLOWDIR .'/'.$workflowId.'/'.$WorkflowCommon::SNAPSHOTSDIR;
-					my($catfile)=$snapbasedir.'/'.$WorkflowCommon::CATALOGFILE;
 					my($parser)=XML::LibXML->new();
 					eval {
-						# Read catalog
-						my($catdoc)=$parser->parse_file($catfile);
-
-						# Creating uuid
-						my($uuid)=undef;
-						my($snapdir)=undef;
+						my($uuid);
+						my($snapdir);
 						do {
 							$uuid=WorkflowCommon::genUUID();
 							$snapdir=$snapbasedir.'/'.$uuid;
 						} while(-d $snapdir);
+						mkpath($snapdir);
 
-						# Taking snapshot!
-						if(system("cp","-dpr",$jobdir,$snapdir)==0) {
-							# Last but one, register snapshot
-							my($snapnode)=$catdoc->createElementNS($WorkflowCommon::WFD_NS,'snapshot');
-							# First in unqualified form
-							$snapnode->setAttribute('name',encode('UTF-8',$snapshotName));
-							$snapnode->setAttribute('uuid',$uuid);
-							$snapnode->setAttribute('date',LockNLog::getPrintableNow());
-							if(defined($snapshotDesc) && length($snapshotDesc)>0) {
-								$snapnode->appendChild($catdoc->createCDATASection(encode('UTF-8',$snapshotDesc)));
+						# Generating a pending operation
+						my($penduuid,$penddir,$PH)=WorkflowCommon::genPendingOperationsDir($WorkflowCommon::COMMANDADD);
+						my($fullsnapuuid)=$WorkflowCommon::SNAPSHOTPREFIX."$workflowId:$uuid";
+						print $PH "$fullsnapuuid\n";
+						close($PH);
+						
+						# Now, the new files
+						my($pendsnapdir)=$penddir.'/'.$uuid;
+						my($pendcatalogfile)=$penddir.'/'.$uuid.'_'.$WorkflowCommon::CATALOGFILE;
+						
+						# Partial catalog
+						my($catdoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+
+						# Last but one, register snapshot
+						my($snapnode)=$catdoc->createElementNS($WorkflowCommon::WFD_NS,'snapshot');
+						# First in unqualified form
+						$snapnode->setAttribute('name',encode('UTF-8',$snapshotName));
+						$snapnode->setAttribute('uuid',$uuid);
+						$snapnode->setAttribute('date',LockNLog::getPrintableNow());
+						$snapnode->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+						$snapnode->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+						if(defined($snapshotDesc) && length($snapshotDesc)>0) {
+							$snapnode->appendChild($catdoc->createCDATASection(encode('UTF-8',$snapshotDesc)));
+						}
+
+						$catdoc->setDocumentElement($snapnode);
+						$catdoc->toFile($pendcatalogfile);
+						
+						if(system("cp","-dpr",$jobdir,$pendsnapdir)==0) {
+							# Taking last snapshot info!
+							my($erDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+							my($enactionReport)=getStoredEnactionReport($erDoc,$jobdir);
+							$enactionReport=getFreshEnactionReport($erDoc,$jobdir . '/socket')  unless(defined($enactionReport));
+							if(defined($enactionReport)) {
+								$erDoc->setDocumentElement($enactionReport);
+								$erDoc->toFile($pendsnapdir.'/report.xml');
 							}
-
-							$catdoc->documentElement->appendChild($snapnode);
-
-							# Last step, update catalog!
-							$catdoc->toFile($catfile);
-
+							
+							WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'snapshot',$WorkflowCommon::COMMANDADD,$fullsnapuuid,$responsibleMail,$snapshotName);
 							# And let's add it to the report
 							# in qualified form
-							$snapnode->setAttribute('uuid',$WorkflowCommon::SNAPSHOTPREFIX.$workflowId.':'.$uuid);
+							$snapnode->setAttribute('uuid',$fullsnapuuid);
 							$es->appendChild($outputDoc->importNode($snapnode));
+						} else {
+							rmtree($snapdir);
+							rmtree($penddir);
 						}
 					};
 
