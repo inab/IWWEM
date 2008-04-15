@@ -351,6 +351,8 @@ ManagerView.prototype = {
 										manview.reloadButton.className='button';
 										manview.updateTextSpan.innerHTML='Update';
 										manview.listRequest=undefined;
+										if(wfToErase!=undefined)
+											alert('Workflow erase will be effective when uploader confirms it');
 									});
 									doClose=undefined;
 								}
@@ -927,6 +929,14 @@ NewEnactionView.prototype = {
 					var output='<b>Example name:</b> '+example.name;
 					output += '<p><b>UUID:</b>&nbsp;'+example.uuid+'</p>';
 					output += '<p><b>Date:</b> '+example.date+'</p>';
+					output += '<p><b>Uploader:</b> ';
+					if(example.responsibleMail && example.responsibleMail.length>0) {
+						var email=example.responsibleMail;
+						var ename=(example.responsibleName && example.responsibleName.length>0)?GeneralView.preProcess(example.responsibleName):email;
+						output += '<a href="mailto:'+email+'">'+ename+'</a></p>';
+					} else {
+						output += '<i>(unknown)</i></p>';
+					}
 					output += '<p><i><a href="'+WFBase+'/'+example.path+'">Download example in Baclava format</a></i></p>';
 					output += '<b>Description</b><br>';
 					if(example.description && example.description.length>0) {

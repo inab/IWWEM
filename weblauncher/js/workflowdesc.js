@@ -38,6 +38,8 @@ function InputExample(wfUUID,inEx) {
 	this.uuid=inEx.getAttribute('uuid');
 	this.date=inEx.getAttribute('date');
 	this.path=inEx.getAttribute('path');
+	this.responsibleMail = inEx.getAttribute('responsibleMail');
+	this.responsibleName = inEx.getAttribute('responsibleName');
 	this.description = WidgetCommon.getTextContent(inEx);
 }
 
@@ -62,6 +64,8 @@ function OutputSnapshot(wfUUID,ouSn) {
 	this.name=ouSn.getAttribute('name');
 	this.uuid=ouSn.getAttribute('uuid');
 	this.date=ouSn.getAttribute('date');
+	this.responsibleMail = ouSn.getAttribute('responsibleMail');
+	this.responsibleName = ouSn.getAttribute('responsibleName');
 	this.description = WidgetCommon.getTextContent(ouSn);
 }
 
@@ -88,6 +92,8 @@ function WorkflowDesc(wfD) {
 	this.lsid = wfD.getAttribute('lsid');
 	this.author = wfD.getAttribute('author');
 	this.date = wfD.getAttribute('date');
+	this.responsibleMail = wfD.getAttribute('responsibleMail');
+	this.responsibleName = wfD.getAttribute('responsibleName');
 	this.graph = {};
 	
 	var depends=new Array();

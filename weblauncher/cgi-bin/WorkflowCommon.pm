@@ -208,7 +208,7 @@ sub genPendingOperationsDir($) {
 			open($FH,'>',$randdir.'/'.$WorkflowCommon::PENDINGADDFILE);
 		} elsif($oper eq $WorkflowCommon::COMMANDERASE) {
 			# touch
-			open($FH,'>',$randdir.'/'.$WorkflowCommon::PENDINGADDFILE);
+			open($FH,'>',$randdir.'/'.$WorkflowCommon::PENDINGERASEFILE);
 		}
 	}
 	
@@ -224,8 +224,8 @@ sub createResponsibleFile($$;$) {
 		my($resdoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
 		my($resroot)=$resdoc->createElementNS($WorkflowCommon::WFD_NS,'responsible');
 		$resroot->appendChild($resdoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTEL) ));
-		$resroot->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
-		$resroot->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+		$resroot->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,encode('UTF-8',$responsibleMail));
+		$resroot->setAttribute($WorkflowCommon::RESPONSIBLENAME,encode('UTF-8',$responsibleName));
 		$resdoc->setDocumentElement($resroot);
 		$resdoc->toFile($basedir.'/'.$WorkflowCommon::RESPONSIBLEFILE);
 	};
@@ -269,6 +269,7 @@ sub sendResponsibleConfirmedMail($$$$$$$) {
 sub sendResponsiblePendingMail($$$$$$$$) {
 	my($query,$smtp,$code,$kind,$command,$irelpath,$responsibleMail,$prettyname)=@_;
 	
+	$smtp=WorkflowCommon::createMailer()  unless(defined($smtp));
 	my($prettyop)=($command eq $WorkflowCommon::COMMANDADD)?'addition':'deletion';
 	
 	my($operURL)=WorkflowCommon::getCGIBaseURI($query);

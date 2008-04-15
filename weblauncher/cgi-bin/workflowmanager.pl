@@ -252,6 +252,10 @@ foreach my $wf (@workflowlist) {
 		my($relwffile)=$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
 		my($docfile)=$listDir.'/'.$relwffile;
 		my $doc = $parser->parse_file($docfile);
+		my $res = undef;
+		eval {
+			$res = $parser->parse_file($listDir.'/'.$wf.'/'.$WorkflowCommon::RESPONSIBLEFILE);
+		};
 		# Getting description from workflow definition
 		my @nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
 		if(scalar(@nodelist)>0) {
@@ -261,6 +265,10 @@ foreach my $wf (@workflowlist) {
 			$wfe->setAttribute('date',LockNLog::getPrintableDate((stat($docfile))[9]));
 			
 			$wfe->setAttribute('uuid',$uuidPrefix.$wf);
+			if(defined($res)) {
+				$wfe->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL));
+				$wfe->setAttribute($WorkflowCommon::RESPONSIBLENAME,$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLENAME));
+			}
 			$wfe->setAttribute('lsid',$desc->getAttribute('lsid'));
 			$wfe->setAttribute('author',$desc->getAttribute('author'));
 			$wfe->setAttribute('title',$desc->getAttribute('title'));

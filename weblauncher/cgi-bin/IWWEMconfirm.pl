@@ -155,7 +155,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 			if(defined($email)) {
 				$prettyname=undef  if(defined($prettyname) && length($prettyname)==0);
 				WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname);
-				push(@done,$irelpath);
+				push(@done,[$kind,$irelpath]);
 			}
 		}
 		close($EH);
@@ -283,7 +283,11 @@ rmtree($codedir);
 # And composing something...
 print $query->header(-type=>'text/html',-charset=>'UTF-8',-cache=>'no-cache, no-store',-expires=>'-1');
 
-my($tabledone)='<table border="1" align="center"><tr><td>'.join('</td><td><b>'.$command.'</b></td></tr><tr><td>',@done).'</td><td></td></tr></table>';
+my($tabledone)='<table border="1" align="center">';
+foreach my $doel (@done) {
+	$tabledone .="<tr><td>$doel->[0]</td><td>$doel->[1]</td><td><b>$command</b></td></tr>";
+}
+$tabledone .='</table>';
 
 print <<EOF;
 <html>

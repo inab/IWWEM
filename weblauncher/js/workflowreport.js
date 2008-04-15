@@ -51,6 +51,12 @@ function WorkflowReport(genview,reportDivId) {
 	p.appendChild(b);
 	this.authorContainer=genview.createElement('span');
 	p.appendChild(this.authorContainer);
+	p.appendChild(genview.createElement('br'));
+	b=genview.createElement('b');
+	b.innerHTML='Uploader:&nbsp;';
+	p.appendChild(b);
+	this.uploaderContainer=genview.createElement('span');
+	p.appendChild(this.uploaderContainer);
 	reportDiv.appendChild(p);
 	
 	// Inputs
@@ -95,6 +101,7 @@ WorkflowReport.prototype={
 		GeneralView.freeContainer(this.uuidContainer);
 		GeneralView.freeContainer(this.lsidContainer);
 		GeneralView.freeContainer(this.authorContainer);
+		GeneralView.freeContainer(this.uploaderContainer);
 		GeneralView.freeContainer(this.descContainer);
 		GeneralView.freeContainer(this.snapContainer);
 		GeneralView.freeContainer(this.inContainer);
@@ -108,6 +115,13 @@ WorkflowReport.prototype={
 		this.uuidContainer.innerHTML = workflow.uuid;
 		this.lsidContainer.innerHTML = workflow.lsid;
 		this.authorContainer.innerHTML = (workflow.author && workflow.author.length>0)?GeneralView.preProcess(workflow.author):'<i>(anonymous)</i>';
+		if(workflow.responsibleMail && workflow.responsibleMail.length>0) {
+			var email=workflow.responsibleMail;
+			var ename=(workflow.responsibleName && workflow.responsibleName.length>0)?GeneralView.preProcess(workflow.responsibleName):email;
+			this.uploaderContainer.innerHTML = '<a href="mailto:'+email+'">'+ename+'</a>';
+		} else {
+			this.uploaderContainer.innerHTML = '<i>(unknown)</i>';
+		}
 
 		// Naive detection of rich description
 		if(workflow.description && workflow.description.length>0) {
