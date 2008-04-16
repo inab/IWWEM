@@ -62,7 +62,7 @@ unless(defined($command)) {
 		$query->h2('Request not processed because "code" parameter was not properly provided'),
 		$query->strong($error);
 	
-	return 0;
+	exit 0;
 }
 
 my $parser = XML::LibXML->new();
@@ -155,14 +155,16 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 			if(defined($email)) {
 				$prettyname=undef  if(defined($prettyname) && length($prettyname)==0);
 				WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname);
-				push(@done,[$kind,$irelpath]);
+				push(@done,[$kind,$irelpath,1]);
+			} else {
+				push(@done,[$kind,$irelpath,undef]);
 			}
 		}
 		close($EH);
 	}
 } elsif($command eq $WorkflowCommon::COMMANDADD) {
 	my($EH);
-	if(open($EH,'<',$codedir.'/'.$WorkflowCommon::PENDINGERASEFILE)) {
+	if(open($EH,'<',$codedir.'/'.$WorkflowCommon::PENDINGADDFILE)) {
 		my($irelpath)=undef;
 		while($irelpath=<$EH>) {
 			chomp($irelpath);
@@ -180,10 +182,10 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				$kind='snapshot';
 				
 				my($workflowdir)=$WorkflowCommon::WORKFLOWDIR.'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR;
-				move($codedir.'/'.$snapId,$workflowdir);
+				move($codedir.'/'.$snapId,$workflowdir.'/'.$snapId);
 				
 				eval {
-					my($catfile)=$codedir.'/'.$snapId.'_'.$WorkflowDir::CATALOGFILE;
+					my($catfile)=$codedir.'/'.$snapId.'_'.$WorkflowCommon::CATALOGFILE;
 					my($catres)=$parser->parse_file($catfile);
 					my($snap)=$catres->documentElement();
 					$prettyname=$snap->getAttribute('name');
@@ -214,7 +216,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				move($codedir.'/'.$examId.'.xml',$workflowdir);
 				
 				eval {
-					my($catfile)=$codedir.'/'.$examId.'_'.$WorkflowDir::CATALOGFILE;
+					my($catfile)=$codedir.'/'.$examId.'_'.$WorkflowCommon::CATALOGFILE;
 					my($catres)=$parser->parse_file($catfile);
 					my($exam)=$catres->documentElement();
 					$prettyname=$exam->getAttribute('name');
@@ -237,32 +239,37 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 					unlink($catfile);
 				};
 			} else {
-				my($jobdir)=$codedir.'/';
+				my($jobdir)=$codedir;
 				my($destdir)=undef;
 				
 				if($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
-					$jobdir.=$1;
-					$destdir=$WorkflowCommon::JOBDIR;
+					$jobdir.='/'.$1;
+					$destdir=$WorkflowCommon::JOBDIR.'/'.$1;
 					$kind='enaction';
 				} else {
-					$jobdir.=$irelpath;
-					$destdir=$WorkflowCommon::WORKFLOWDIR;
+					$jobdir.='/'.$irelpath;
+					$destdir=$WorkflowCommon::WORKFLOWDIR.'/'.$irelpath;
 					$kind='workflow';
 				}
 				
 				eval {
-					my($wfres)=$parser->parse_file($jobdir.$WorkflowCommon::RESPONSIBLEFILE);
+					my($wfres)=$parser->parse_file($jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE);
 					
-					$email=$wfres->documentElement()->getAttribute('resposibleMail');
+					$email=$wfres->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
 					
-					my($wf)=$parser->parse_file($jobdir.$WorkflowCommon::WORKFLOWFILE);
+					my($wf)=$parser->parse_file($jobdir.'/'.$WorkflowCommon::WORKFLOWFILE);
 					my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
 					if(scalar(@nodelist)>0) {
 						$prettyname=$nodelist[0]->getAttribute('title');
 					}
 				};
 				
-				move($jobdir,$destdir)  unless($@);
+				if($@) {
+					$email=undef;
+					print STDERR "JOB $jobdir DEST $destdir WTF????? $@\n";
+				} else {
+					move($jobdir,$destdir);
+				}
 			}
 			
 			
@@ -270,7 +277,9 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 			if(defined($email)) {
 				$prettyname=undef  if(defined($prettyname) && length($prettyname)==0);
 				WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname);
-				push(@done,$irelpath);
+				push(@done,[$kind,$irelpath,1]);
+			} else {
+				push(@done,[$kind,$irelpath,undef]);
 			}
 		}
 		close($EH);
@@ -285,16 +294,19 @@ print $query->header(-type=>'text/html',-charset=>'UTF-8',-cache=>'no-cache, no-
 
 my($tabledone)='<table border="1" align="center">';
 foreach my $doel (@done) {
-	$tabledone .="<tr><td>$doel->[0]</td><td>$doel->[1]</td><td><b>$command</b></td></tr>";
+	$tabledone .="<tr><td>$doel->[0]</td><td>$doel->[1]</td><td><b>".((defined($doel->[2]))?'':'not ')."$command</b></td></tr>";
 }
 $tabledone .='</table>';
+
+my($operURL)=WorkflowCommon::getCGIBaseURI($query);
+$operURL =~ s/cgi-bin\/[^\/]+$//;
 
 print <<EOF;
 <html>
 	<head><title>IWWE&amp;M IWWEMconfirm operations report</title></head>
 	<body>
 <div align="center"><h1 style="font-size:32px;"><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a>
-<a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a> v0.6.1 IWWEMconfirm operations report</h1></div>
+<a href="$operURL">IWWE&amp;M</a> v0.6.1 IWWEMconfirm operations report</h1></div>
 $tabledone
 	</body>
 </html>

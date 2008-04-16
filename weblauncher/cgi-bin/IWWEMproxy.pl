@@ -342,7 +342,7 @@ if(defined($IOPath) && (length($IOPath)>0)) {
 		$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
 		my(@facets)=$context->findnodes('/b:dataThingMap/b:dataThing',$bacio);
 		foreach my $facet (@facets) {
-			my($outnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'output');
+			my($outnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,(defined($isExample) || ($IOMode eq 'I'))?'input':'output');
 			$outnode->setAttribute('name',$facet->getAttribute('key'));
 			my(@mimes)=$context->findnodes('.//s:mimeType/text()',$facet);
 			push(@mimes,$outputDoc->createTextNode('text/plain'))  if(scalar(@mimes)==0);

@@ -358,6 +358,11 @@ $outputDoc->setDocumentElement($root);
 
 $root->appendChild($outputDoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTES) ));
 
+my $parser = XML::LibXML->new();
+my $context = XML::LibXML::XPathContext->new();
+$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
+$context->registerNs('sn',$WorkflowCommon::WFD_NS);
+
 # Disposal execution
 foreach my $jobId (@jobIdList) {
 	my($es)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionstatus');
@@ -369,7 +374,8 @@ foreach my $jobId (@jobIdList) {
 	my($state)=undef;
 	my($jobdir)=undef;
 	my($wfsnap)=undef;
-
+	my($origJobId)=undef;
+	
 	if(index($jobId,$WorkflowCommon::SNAPSHOTPREFIX)==0) {
 		if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 			$wfsnap=$1;
@@ -378,17 +384,19 @@ foreach my $jobId (@jobIdList) {
 			# It is an snapshot, so the relative URI changes
 			$es->setAttribute('relURI',$WorkflowCommon::WORKFLOWRELDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR);
 		}
+		$origJobId=$jobId;
 	} else {
 		# For completion, we handle qualified job Ids
 		$jobId =~ s/^$WorkflowCommon::ENACTIONPREFIX//;
 		$jobdir=$WorkflowCommon::JOBDIR . '/' .$jobId;
+		$origJobId=$WorkflowCommon::ENACTIONPREFIX.$jobId;
 	}
 
 	# Is it a valid job id?
 	if(index($jobId,'/')==-1 && defined($jobdir) && -d $jobdir && -r $jobdir) {
 		# Disposal execution
 		if(defined($dispose) && $dispose eq '1') {
-			#
+
 			my($pidfile)=$jobdir . '/PID';
 			my($PID);
 			if(!defined($wfsnap) && ! -f ($jobdir . '/FATAL') && -f $pidfile && open($PID,'<',$pidfile)) {
@@ -405,27 +413,52 @@ foreach my $jobId (@jobIdList) {
 				}
 			}
 			$state = 'disposed';
+			
 
-			# Catalog must be maintained
+			my($kind)=undef;
+			my($resMail)=undef;
+			my($prettyname)=undef;
 			if(defined($wfsnap)) {
-				my($parser)=XML::LibXML->new();
-				my($context)=XML::LibXML::XPathContext->new();
-				$context->registerNs('sn',$WorkflowCommon::WFD_NS);
+				$kind='snapshot';
 				eval {
-					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$jobdir.'/../'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 
 					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$jobId']",$catdoc);
 					foreach my $snap (@eraseSnap) {
-						$snap->parentNode->removeChild($snap);
+						$prettyname=$snap->getAttribute('name');
+						$resMail=$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+						last;
 					}
-					$catdoc->toFile($catfile);
 				};
-
+			} else {
+				$kind='enaction';
+				
+				eval {
+					my($responsiblefile)=$jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE;
+					my($rp)=$parser->parse_file($responsiblefile);
+					$resMail=$rp->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+					
+					my($workflowfile)=$jobdir.'/'.$WorkflowCommon::WORKFLOWFILE;
+					my($wf)=$parser->parse_file($workflowfile);
+					
+					my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+					if(scalar(@nodelist)>0) {
+						$prettyname=$nodelist[0]->getAttribute('title');
+					}
+					
+				};
 			}
+			
+			# Sending e-mail to confirm the pass
+			if(defined($resMail)) {
+				my($penduuid,$penddir,$PH)=WorkflowCommon::genPendingOperationsDir($WorkflowCommon::COMMANDERASE);
 
-			# The job should have passed out, time to erase the working directory!
-			rmtree($jobdir);
+				print $PH "$origJobId\n";
+				close($PH);
+				
+				WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,$kind,$WorkflowCommon::COMMANDERASE,$origJobId,$resMail,$prettyname);
+			}
 		} else {
 			# Status report
 			# Disallowed snapshots over snapshots!
@@ -442,7 +475,6 @@ foreach my $jobId (@jobIdList) {
 				if(defined($workflowId) && index($workflowId,'/')==-1) {
 					# First, read the catalog
 					my($snapbasedir)=$WorkflowCommon::WORKFLOWDIR .'/'.$workflowId.'/'.$WorkflowCommon::SNAPSHOTSDIR;
-					my($parser)=XML::LibXML->new();
 					eval {
 						my($uuid);
 						my($snapdir);
@@ -471,8 +503,8 @@ foreach my $jobId (@jobIdList) {
 						$snapnode->setAttribute('name',encode('UTF-8',$snapshotName));
 						$snapnode->setAttribute('uuid',$uuid);
 						$snapnode->setAttribute('date',LockNLog::getPrintableNow());
-						$snapnode->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
-						$snapnode->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+						$snapnode->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,encode('UTF-8',$responsibleMail));
+						$snapnode->setAttribute($WorkflowCommon::RESPONSIBLENAME,encode('UTF-8',$responsibleName));
 						if(defined($snapshotDesc) && length($snapshotDesc)>0) {
 							$snapnode->appendChild($catdoc->createCDATASection(encode('UTF-8',$snapshotDesc)));
 						}
@@ -591,6 +623,38 @@ foreach my $jobId (@jobIdList) {
 	$state='unknown'  unless(defined($state));
 
 	$es->setAttribute('state',$state);
+	
+	# The title
+	eval {
+		my $wf = $parser->parse_file($jobdir.'/'.$WorkflowCommon::WORKFLOWFILE);
+		my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+		if(scalar(@nodelist)>0) {
+			$es->setAttribute('title',$nodelist[0]->getAttribute('title'));
+		}
+	};
+	
+	# Now, the responsible person
+	my($responsibleMail)='';
+	my($responsibleName)='';
+	eval {
+		if(defined($wfsnap)) {
+			my $cat = $parser->parse_file($jobdir.'/../'.$WorkflowCommon::CATALOGFILE);
+			my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$jobId']",$cat);
+			foreach my $snapNode (@snaps) {
+				$responsibleMail=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+				$responsibleName=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+				last;
+			}
+		} else {
+			my $res = $parser->parse_file($jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE);
+			$responsibleMail=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+			$responsibleName=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+		}
+	};
+	$es->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+	$es->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+	
+	# Last, attach
 	$root->appendChild($es);
 }
 

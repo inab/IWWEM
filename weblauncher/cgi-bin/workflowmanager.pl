@@ -82,6 +82,7 @@ foreach my $param ($query->param()) {
 					foreach my $snap (@eraseSnap) {
 						$prettyname=$snap->getAttribute('name');
 						$resMail=$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+						last;
 					}
 				};
 			} elsif($irelpath =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
@@ -96,6 +97,7 @@ foreach my $param ($query->param()) {
 					foreach my $exam (@eraseExam) {
 						$prettyname=$exam->getAttribute('name');
 						$resMail=$exam->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+						last;
 					}
 				};
 			} else {
@@ -175,6 +177,7 @@ my($baseListDir)=undef;
 my($listDir)=undef;
 my($subId)=undef;
 my($uuidPrefix)=undef;
+my($isSnapshot)=undef;
 if(index($id,$WorkflowCommon::ENACTIONPREFIX)==0) {
 	$baseListDir=$WorkflowCommon::JOBRELDIR;
 	$listDir=$WorkflowCommon::JOBDIR;
@@ -187,6 +190,8 @@ if(index($id,$WorkflowCommon::ENACTIONPREFIX)==0) {
 	$baseListDir=$WorkflowCommon::WORKFLOWRELDIR . '/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
 	$listDir=$WorkflowCommon::WORKFLOWDIR .'/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
 	$uuidPrefix=$WorkflowCommon::SNAPSHOTPREFIX . $1 . ':';
+	
+	$isSnapshot=1;
 	
 	if($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 		$subId=$2;
@@ -252,10 +257,7 @@ foreach my $wf (@workflowlist) {
 		my($relwffile)=$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
 		my($docfile)=$listDir.'/'.$relwffile;
 		my $doc = $parser->parse_file($docfile);
-		my $res = undef;
-		eval {
-			$res = $parser->parse_file($listDir.'/'.$wf.'/'.$WorkflowCommon::RESPONSIBLEFILE);
-		};
+		
 		# Getting description from workflow definition
 		my @nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
 		if(scalar(@nodelist)>0) {
@@ -265,10 +267,28 @@ foreach my $wf (@workflowlist) {
 			$wfe->setAttribute('date',LockNLog::getPrintableDate((stat($docfile))[9]));
 			
 			$wfe->setAttribute('uuid',$uuidPrefix.$wf);
-			if(defined($res)) {
-				$wfe->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL));
-				$wfe->setAttribute($WorkflowCommon::RESPONSIBLENAME,$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLENAME));
-			}
+			
+			# Now, the responsible person
+			my($responsibleMail)='';
+			my($responsibleName)='';
+			eval {
+				if(defined($isSnapshot)) {
+					my $cat = $parser->parse_file($listDir.'/'.$WorkflowCommon::CATALOGFILE);
+					my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$wf']",$cat);
+					foreach my $snapNode (@snaps) {
+						$responsibleMail=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+						$responsibleName=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+						last;
+					}
+				} else {
+					my $res = $parser->parse_file($listDir.'/'.$wf.'/'.$WorkflowCommon::RESPONSIBLEFILE);
+					$responsibleMail=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+					$responsibleName=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+				}
+			};
+
+			$wfe->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+			$wfe->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 			$wfe->setAttribute('lsid',$desc->getAttribute('lsid'));
 			$wfe->setAttribute('author',$desc->getAttribute('author'));
 			$wfe->setAttribute('title',$desc->getAttribute('title'));

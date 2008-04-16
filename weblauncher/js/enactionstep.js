@@ -229,11 +229,11 @@ EnactionStep.prototype = {
 	},
 	
 	fetchBaclava: function(baseJob,genview,gotInputHandler,gotOutputHandler,/* optional */ istep) {
-		var relpath=baseJob+'/'+EnactionStep.getJobDir(this.name);
+		var relpath=this.getRelPath(baseJob);
 		// Determining whether is an example or a true job step
 		if(this.isExample) {
-			if(this.hasOutputs && !(this.output[Baclava.GOT]) && !this.bacOutput) {
-				this.bacOutput=this.fetchBaclavaObject(relpath,this.output,genview,gotOutputHandler,istep);
+			if(this.hasInputs && !(this.input[Baclava.GOT]) && !this.bacInput) {
+				this.bacInput=this.fetchBaclavaObject(relpath,this.input,genview,gotInputHandler,istep);
 			}
 		} else {
 			if(this.hasInputs && !(this.input[Baclava.GOT]) && !this.bacInput) {
@@ -244,14 +244,20 @@ EnactionStep.prototype = {
 				this.bacOutput=this.fetchBaclavaObject(relpath+'/Outputs.xml',this.output,genview,gotOutputHandler,istep);
 			}
 
-			// Now, the iterations
-			if(this.iterations) {
-				var iti = this.iterations;
+			// Now, the iterations, but not always!
+			var iti = this.iterations;
+			if(iti!=undefined && iti.length <=10) {
 				var itil = iti.length;
 				for(var i=0; i<itil ; i++) {
-					iti[i].fetchBaclava(relpath+'/Iterations',genview,gotInputHandler,gotOutputHandler,i);
+					iti[i].fetchBaclava(baseJob,genview,gotInputHandler,gotOutputHandler,i);
 				}
 			}
 		}
+	},
+	
+	getRelPath: function(baseJob) {
+		if(this.parentStep!=undefined)
+			baseJob=this.parentStep.getRelPath(baseJob)+'/Iterations';
+		return baseJob+'/'+EnactionStep.getJobDir(this.name);
 	}
 };

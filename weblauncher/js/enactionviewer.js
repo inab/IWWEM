@@ -25,7 +25,9 @@ function EnactionView(genview) {
 	
 	// Relevant objects, ordered by document appearance
 	this.dateSpan=genview.getElementById('dateSpan');
+	this.responsibleSpan=genview.getElementById('responsibleSpan');
 	this.generalStatusSpan=genview.getElementById('generalStatusSpan');
+	this.wfTitleSpan=genview.getElementById('wfTitleSpan');
 	this.stageSpan=genview.getElementById('stageSpan');
 	this.stageStateSpan=genview.getElementById('stageStateSpan');
 	
@@ -226,7 +228,9 @@ EnactionView.prototype = {
 		// TODO
 		// Some free containers will be here
 		GeneralView.freeContainer(this.dateSpan);
+		GeneralView.freeContainer(this.responsibleSpan);
 		GeneralView.freeContainer(this.generalStatusSpan);
+		GeneralView.freeContainer(this.wfTitleSpan);
 		GeneralView.freeContainer(this.stageSpan);
 		GeneralView.freeContainer(this.stageStateSpan);
 		
@@ -247,6 +251,8 @@ EnactionView.prototype = {
 		this.jobId=undefined;
 		this.JobsBase=undefined;
 		this.jobDir=undefined;
+		this.responsibleName='';
+		this.responsibleMail='';
 		this.domStatus=undefined;
 		this.initializedSVG=undefined;
 		this.waitingSVG=undefined;
@@ -272,10 +278,21 @@ EnactionView.prototype = {
 			if(enStatus.getAttribute('jobId')==this.jobId) {
 				this.jobDir=EnactionStep.getJobDir(this.jobId);
 				this.JobsBase=enStatus.getAttribute('relURI');
+				this.responsibleMail=enStatus.getAttribute('responsibleMail');
+				this.responsibleName=enStatus.getAttribute('responsibleName');
 
 				this.domStatus=enStatus;
 				
 				this.dateSpan.innerHTML=enStatus.getAttribute('time');
+				if(this.responsibleMail!=undefined && this.responsibleMail.length>0) {
+					var email=this.responsibleMail;
+					var ename=(this.responsibleName && this.responsibleName.length>0)?GeneralView.preProcess(this.responsibleName):email;
+					this.responsibleSpan.innerHTML='<a href="mailto:'+email+'">'+ename+'</a>';
+				} else {
+					this.responsibleSpan.innerHTML='<i>(unknown)</i>';
+				}
+				GeneralView.freeContainer(this.wfTitleSpan);
+				this.wfTitleSpan.appendChild(this.genview.thedoc.createTextNode(enStatus.getAttribute('title')));
 				
 				var state = enStatus.getAttribute('state');
 				
@@ -376,23 +393,45 @@ EnactionView.prototype = {
 			for(var child=this.domStatus.firstChild; child; child=child.nextSibling) {
 				// Walking through the steps
 				if(child.nodeType==1 && GeneralView.getLocalName(child)=='step') {
-					var stepName = child.getAttribute('name');
+					var possibleStep=new EnactionStep(child);
 					var update=1;
 					// Is it cached?
-					if(stepName in this.stepCache) {
-						var stepState=child.getAttribute('state');
-						var prevStepState=this.stepCache[stepName].state;
-						if(stepState==prevStepState && !this.stepCache[stepName].iterations) {
-							update=undefined;
+					if(possibleStep.name in this.stepCache) {
+						var currentStep=this.stepCache[possibleStep.name];
+						if(possibleStep.state==currentStep.state) {
+							if(possibleStep.hasInputs==currentStep.hasInputs && possibleStep.hasOutputs==currentStep.hasOutputs) {
+								update=undefined;
+								for(var input in possibleStep.input) {
+									if(!(input in currentStep.input)) {
+										update=1;
+										break;
+									}
+								}
+								if(update==undefined) {
+									for(var output in possibleStep.output) {
+										if(!(output in currentStep.output)) {
+											update=1;
+											break;
+										}
+									}
+								}
+								if(update==undefined) {
+									if((possibleStep.iterations!=undefined && currentStep.iterations==undefined) ||
+										(possibleStep.iterations!=undefined && currentStep.iterations!=undefined
+										&& possibleStep.iterations.length!=currentStep.iterations.length)
+									) {
+										update=1;
+									}
+								}
+							}
 						}
 					}
 					// Updating the step cache
-					if(update) {
-						var step=new EnactionStep(child);
-						this.stepCache[step.name]=step;
-						this.updateStepView(step);
-						if(this.step && step.name==this.step.name) {
-							this.setStep(step);
+					if(update!=undefined) {
+						this.stepCache[possibleStep.name]=possibleStep;
+						this.updateStepView(possibleStep);
+						if(this.step && possibleStep.name==this.step.name) {
+							this.setStep(possibleStep);
 						}
 					}
 				}
@@ -905,8 +944,13 @@ EnactionView.prototype = {
 		this.openReenactFrame();
 		
 		var qsParm = {};
-		qsParm['id']=enUUID;
+		qsParm['id']='enaction:'+enUUID;
 		qsParm['reusePrevInput']='1';
+		
+		// Setting responsible
+		qsParm['responsibleMail']=this.responsibleMail;
+		qsParm['responsibleName']=this.responsibleName;
+		
 		var reenactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionlauncher");
 		var reenactRequest = new XMLHttpRequest();
 		var enactview=this;

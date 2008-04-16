@@ -9,8 +9,11 @@
 */
 
 function DataObject(base64Input,nativeInput,/* optional */ params,mimeList,isLink) {
-	if(!base64Input)  base64Input=undefined;
-	if(!nativeInput)  nativeInput=undefined;
+	if(base64Input=='' && nativeInput==undefined) {
+		nativeInput='';
+	} else if(base64Input==undefined && nativeInput=='') {
+		base64Input='';
+	}
 	
 	this.data=[base64Input,nativeInput];
 	this.dataMatches=undefined;

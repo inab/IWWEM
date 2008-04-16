@@ -150,6 +150,7 @@ if(defined($hasInputWorkflow)) {
 		$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
 	} while (-d $jobdir);
 	mkpath($jobdir);
+	WorkflowCommon::createResponsibleFile($jobdir,$responsibleMail,$responsibleName);
 }
 
 my($wfile)=$jobdir . '/'. $WorkflowCommon::WORKFLOWFILE;
@@ -332,8 +333,8 @@ if(defined($exampleName) && defined($workflowId) && defined($responsibleMail)) {
 	$example->setAttribute('name',encode('UTF-8',$exampleName));
 	$example->setAttribute('path',$relrandfile);
 	$example->setAttribute('date',LockNLog::getPrintableNow());
-	$example->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
-	$example->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+	$example->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,encode('UTF-8',$responsibleMail));
+	$example->setAttribute($WorkflowCommon::RESPONSIBLENAME,encode('UTF-8',$responsibleName));
 	if(defined($exampleDesc) && length($exampleDesc) > 0) {
 		$example->appendChild($catalog->createCDATASection(encode('UTF-8',$exampleDesc)));
 	}
@@ -443,7 +444,12 @@ unless(defined($cpid)) {
 			waitpid($runpid,0);
 
 			# Now, the slot can freed properly
-			rmtree($jobdir)  if(defined($eraseRes));
+			if(defined($eraseRes)) {
+				rmtree($jobdir);
+			} else {
+				# Mail is sent here, just after running!
+				WorkflowCommon::sendEnactionMail($query,$jobid,$responsibleMail,1);
+			}
 		} else {
 			# I'm the grandson, which can be killed
 			setsid();
@@ -468,6 +474,10 @@ unless(defined($cpid)) {
 						print $RUNPID $$;
 						close($RUNPID);
 					}
+					
+					# Mail is sent here, just before running!
+					WorkflowCommon::sendEnactionMail($query,$jobid,$responsibleMail);
+					
 					exec($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
 						'-baseDir',$WorkflowCommon::MAVENDIR,
 						'-workflow',$wfile,

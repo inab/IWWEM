@@ -144,6 +144,7 @@ sub createResponsibleFile($$;$);
 sub createMailer();
 sub sendResponsibleConfirmedMail($$$$$$$);
 sub sendResponsiblePendingMail($$$$$$$$);
+sub sendEnactionMail($$$;$);
 
 sub parseInlineWorkflows($$$$$;$$$);
 sub patchWorkflow($$$$$$$;$$$);
@@ -263,6 +264,23 @@ sub sendResponsibleConfirmedMail($$$$$$$) {
 		msg=>"Dear IWWE&M user,\r\n    as you have just confirmed petition ".
 			$code.", your $kind $irelpath".(defined($prettyname)?(" (known as $prettyname)"):'').
 			" has just been $prettyop\r\n\r\n    The INB Interactive Web Workflow Enactor & Manager system"
+	});
+}
+
+sub sendEnactionMail($$$;$) {
+	my($query,$jobId,$responsibleMail,$hasFinished)=@_;
+	
+	my($smtp)=WorkflowCommon::createMailer();
+	my($operURL)=WorkflowCommon::getCGIBaseURI($query);
+	$operURL =~ s/cgi-bin\/[^\/]+$//;
+	$operURL.="enactionviewer.html?jobId=$jobId";
+	my($status)=defined($hasFinished)?'finished':'started';
+	my($dataStatus)=defined($hasFinished)?'results':'progress';
+	return $smtp->MailMsg({
+		from=>"\"INB IWWE&M system\" <$WorkflowCommon::IWWEMmailaddr>",
+		to=>"\"IWWE&M user\" <$responsibleMail>",
+		subject=>"Your enaction $jobId has just $status",
+		msg=>"Dear IWWE&M user,\r\n    your enaction $jobId has just $status. You can see the $dataStatus at\r\n\r\n$operURL\r\n\r\nThe INB Interactive Web Workflow Enactor & Manager system"
 	});
 }
 

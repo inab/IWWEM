@@ -77,18 +77,20 @@
 	<div class="secondary">
 		<div align="center">Please introduce your workflow and the local workflows it depends on</div>
 		<form id="formNewWF" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data">
-			<div align="center">
-				<table><tr><td>
-					<div class="borderedOption"><span id="newWFStyleText" class="radio left">As text</span>&nbsp;<span id="newWFStyleFile" class="radio left">As file</span></div>
-				</td></tr><tr><td>
+			<table align="center">
+				<tr valign="middle"><td>Uploader e-mail</td><td><input type="text" name="responsibleMail"></td><td align="right"><span style="font-style:italic;color:red">(required)</span></td></tr>
+				<tr valign="middle"><td>Uploader full name</td><td><input type="text" name="responsibleName"></td><td align="right"><span style="font-style:italic;color:red">(optional)</span></td></tr>
+				<tr><td colspan="3">
+					<div class="borderedOption"><span id="newWFStyleFile" class="radio right">Workflow&nbsp;&nbsp;as file</span>&nbsp;<span id="newWFStyleText" class="radio right">as text</span></div>
+				</td></tr><tr><td colspan="3">
 					<div id="newWFContainer"></div>
-				</td></tr><tr><td>
+				</td></tr><tr><td colspan="3">
 					<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img>
 						<iframe src="about:blank" frameborder="0" id="uploadIFRAME" name="uploadIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
 					</div>
 					<div id="newSubWFContainer"></div>
-				</td></tr></table>
-			</div>
+				</td></tr>
+			</table>
 		</form>
 		<div class="button back" onclick="genview.newwfview.closeNewWorkflowFrame()">
 			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
@@ -107,10 +109,12 @@
 		<form id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data">
 			<input id="workflowHiddenInput" type="hidden" name="id"></input>
 		<table align="center" style="width:98%; height:98%;"><tr valign="middle">
-			<td colspan="2" style="text-align:center;">Please introduce your inputs for this workflow</td>
+			<td colspan="2" style="text-align:center;height:5%">Please introduce your inputs for workflow<br><span id="newEnactWFName" style="font-weight:bold"></span></td>
 		</tr><tr><td rowspan="2" style="min-width:40%;width:40%;max-width:40%;min-height:100%;height:100%;max-height:100%;vertical-align:middle;" align="center">
 			<div id="enactsvg" style="width:100%"></div>
 		</td><td style="min-width:60%;width:60%;max-width:60%;height:5%">
+			Uploader mail <input type="text" name="responsibleMail"> <span style="font-style:italic;color:red">(required)</span><br>
+			Uploader name <input type="text" name="responsibleName"> <span style="font-style:italic;color:red">(optional)</span><br>
 			<div id="useDiv" align="center" style="margin: 5px 5px 5px 5px">
 				<span class="borderedOption"><span id="noneExampleSpan" class="radio right">Use inputs</span>&nbsp;<span id="saveAsExampleSpan" class="checkboxgreen checkbox right">Save as example</span></span>
 				<span class="borderedOption"><span id="useExampleSpan" class="radio right">Use example</span></span>

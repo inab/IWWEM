@@ -30,6 +30,10 @@ function DataTreeView(genview,dataTreeDivId,dataBrowserDivId,mimePathDivId, /*op
 	// Iteration selection
 	this.iterationSelect=genview.createElement('select');
 	this.iterDiv.appendChild(this.iterationSelect);
+	this.iterDiv.appendChild(genview.thedoc.createTextNode(' of '));
+	this.iterMaxSpan=genview.createElement('span');
+	this.iterMaxSpan.setAttribute('style','font-weight:bold');
+	this.iterDiv.appendChild(this.iterMaxSpan);
 	theform.appendChild(this.iterDiv);
 
 	// SchedStamp div
@@ -152,15 +156,16 @@ DataTreeView.prototype = {
 		}
 	},
 	
-	tryUpdateInputsStatus: function(jobId,gstep,istep) {
-		this.tryUpdateIOStatus(jobId,gstep,istep,'input',this.inputsSpan,this.inContainer,'hasInputs');
+	tryUpdateInputsStatus: function(jobId,step,istep) {
+		this.tryUpdateIOStatus(jobId,step,istep,'input',this.inputsSpan,this.inContainer,'hasInputs');
 	},
 	
-	tryUpdateOutputsStatus: function(jobId,gstep,istep) {
-		this.tryUpdateIOStatus(jobId,gstep,istep,'output',this.outputsSpan,this.outContainer,'hasOutputs');
+	tryUpdateOutputsStatus: function(jobId,step,istep) {
+		this.tryUpdateIOStatus(jobId,step,istep,'output',this.outputsSpan,this.outContainer,'hasOutputs');
 	},
 	
-	tryUpdateIOStatus: function(jobId,gstep,istep,stepIOFacet,IOSpan,IOContainer,hasIOFacet) {
+	tryUpdateIOStatus: function(jobId,step,istep,stepIOFacet,IOSpan,IOContainer,hasIOFacet) {
+		var gstep=step.parentStep?step.parentStep:step;
 		if(this.step==gstep) {
 			// Update the selection text
 			var tstep;
@@ -175,7 +180,7 @@ DataTreeView.prototype = {
 			
 			// And perhaps the generated tree!
 			if(this.istep==istep) {
-				this.updateIOStatus(gstep[stepIOFacet],IOSpan,IOContainer,gstep[hasIOFacet],new DataBrowser.LocatedData(jobId,gstep.name,s_istep,(stepIOFacet=='input')?'I':'O'));
+				this.updateIOStatus(step[stepIOFacet],IOSpan,IOContainer,step[hasIOFacet],new DataBrowser.LocatedData(jobId,gstep.name,s_istep,(stepIOFacet=='input')?'I':'O'));
 			}
 		}
 	},
@@ -378,6 +383,7 @@ DataTreeView.prototype = {
 	
 	clearSelect: function() {
 		GeneralView.freeSelect(this.iterationSelect);
+		GeneralView.freeContainer(this.iterMaxSpan);
 		this.step=undefined;
 		this.istep=undefined;
 	},
@@ -457,30 +463,26 @@ DataTreeView.prototype = {
 			this.errStepDiv.innerHTML=errHTML;
 		}
 
-		// Filling iterations
-		var iterO=this.genview.createElement('option');
-		iterO.value=-1;
-		iterO.text=(((step.input[Baclava.GOT]) && (step.output[Baclava.GOT]))?'':'* ')+'Whole';
-		this.addToSelect(iterO);
-		
 		// For the global step
 		var datatreeview=this;
 		var gstep=step;
 		// I'm using here absolute paths, because when this function is called from inside SVG
 		// click handlers, base href is the one from the SVG, not the one from this page.
-		var inputSignaler = function(istep) {
-			datatreeview.tryUpdateInputsStatus(jobId,gstep,istep);
-		};
-		var outputSignaler = function(istep) {
-			datatreeview.tryUpdateOutputsStatus(jobId,gstep,istep);
-		};
+		if(prevstep!=gstep) {
+			// Filling iterations
+			var iterO=this.genview.createElement('option');
+			iterO.value=-1;
+			iterO.text=(((gstep.input[Baclava.GOT]) && (gstep.output[Baclava.GOT]))?'':'* ')+'Whole';
+			this.addToSelect(iterO);
+		}
 		
-		if(step.iterations) {
+		if(gstep.iterations) {
 			// Looking this concrete iteration
 			if(iteration!=-1) {
 				step=gstep.iterations[iteration];
 			}
 			if(prevstep!=gstep) {
+				// Filling iterations
 				this.iterDiv.style.display='block';
 				var giter=gstep.iterations;
 				var giterl = giter.length;
@@ -491,6 +493,7 @@ DataTreeView.prototype = {
 					iterO.value=i;
 					this.addToSelect(iterO);
 				}
+				this.iterMaxSpan.appendChild(this.genview.thedoc.createTextNode(giterl));
 			}
 			// Showing the correct position
 			this.removeSelectEventListener();
@@ -506,8 +509,15 @@ DataTreeView.prototype = {
 		} else {
 			this.iterDiv.style.display='none';
 		}
+		var inputSignaler = function(istep) {
+			datatreeview.tryUpdateInputsStatus(jobId,step,istep);
+		};
+		var outputSignaler = function(istep) {
+			datatreeview.tryUpdateOutputsStatus(jobId,step,istep);
+		};
+		
 		// Fetching data after, not BEFORE creating the select
-		gstep.fetchBaclava(baseJob,this.genview,inputSignaler,outputSignaler);
+		step.fetchBaclava(baseJob,this.genview,inputSignaler,outputSignaler,(step!=gstep)?iteration:undefined);
 		
 		// For this concrete (sub)step
 		// Inputs

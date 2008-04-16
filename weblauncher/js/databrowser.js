@@ -23,9 +23,8 @@ function DataBrowser(genview,databrowserId,mimePathDivId,/*optional*/preprocessI
 	
 	// IOStep Span
 	var uPan=genview.createElement('u');
-	uPan.innerHTML='Step:';
+	uPan.innerHTML='Step:&nbsp;';
 	theform.appendChild(uPan);
-	theform.appendChild(genview.thedoc.createTextNode(' '));
 	this.IOStepSpan=genview.createElement('span');
 	theform.appendChild(this.IOStepSpan);
 	

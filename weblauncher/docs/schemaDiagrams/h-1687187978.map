@@ -2,13 +2,19 @@
  <area
   shape='rect'
   alt='h-358993540'
-  coords='279,0,372,40'
+  coords='265,0,350,40'
+  href='IWWEM-messages.xsd.html#h-358993540'/>
+
+ <area
+  shape='rect'
+  alt='h-358993540'
+  coords='265,50,358,90'
   href='IWWEM-messages.xsd.html#h-358993540'/>
 
  <area
   shape='rect'
   alt='h-1179015686'
-  coords='193,50,366,76'
+  coords='193,100,366,126'
   href='IWWEM-messages.xsd.html#h-1179015686'/>
 
 </map>

@@ -352,7 +352,7 @@ ManagerView.prototype = {
 										manview.updateTextSpan.innerHTML='Update';
 										manview.listRequest=undefined;
 										if(wfToErase!=undefined)
-											alert('Workflow erase will be effective when uploader confirms it');
+											alert('Workflow erase will be effective when original uploader confirms it');
 									});
 									doClose=undefined;
 								}
@@ -495,7 +495,7 @@ NewWorkflowView.prototype = {
 	
 	/* Generates a new graphical input */
 	generateSubworkflowSpan: function () {
-		var check=this.genview.generateCheckControl('Embed',undefined,undefined,1);
+		var check=this.genview.generateCheckControl('Embed workflow dependencies',undefined,undefined,1);
 		var checkSpan = this.genview.createElement('span');
 		checkSpan.className='borderedOption';
 		checkSpan.appendChild(check.control);
@@ -590,6 +590,7 @@ NewWorkflowView.prototype = {
 						// Avoiding post messages on page reload
 						iframe.src="about:blank";
 						iframe = undefined;
+						alert('Workflow addition will be effective when original uploader confirms it');
 					});
 				};
 				
@@ -619,6 +620,7 @@ function NewEnactionView(manview) {
 	this.enactSVGContainer = genview.getElementById('enactsvg');
 	this.newEnactUploading = genview.getElementById('newEnactUploading');
 	this.submittedList = genview.getElementById('submittedList');
+	this.newEnactWFName = genview.getElementById('newEnactWFName');
 	
 	var newenactview = this;
 	
@@ -691,6 +693,7 @@ NewEnactionView.prototype = {
 			
 			if(radiocontrol) {
 				radiocontrol.doCheck();
+				this.inputsContainer.className='scrolldatawide';
 				if(radiocontrol==this.noneExampleSpan) {
 					this.inputmode=false;
 					this.generateInputsHandlers();
@@ -803,6 +806,8 @@ NewEnactionView.prototype = {
 			var WFBase = this.manview.WFBase;
 			
 			this.workflow = workflow;
+			GeneralView.freeContainer(this.newEnactWFName);
+			this.newEnactWFName.appendChild(this.genview.thedoc.createTextNode(workflow.title+' ['+workflow.lsid+']'));
 			this.WFBase = WFBase;
 			
 			// Inputs
@@ -930,7 +935,7 @@ NewEnactionView.prototype = {
 					output += '<p><b>UUID:</b>&nbsp;'+example.uuid+'</p>';
 					output += '<p><b>Date:</b> '+example.date+'</p>';
 					output += '<p><b>Uploader:</b> ';
-					if(example.responsibleMail && example.responsibleMail.length>0) {
+					if(example.responsibleMail!=undefined && example.responsibleMail.length>0) {
 						var email=example.responsibleMail;
 						var ename=(example.responsibleName && example.responsibleName.length>0)?GeneralView.preProcess(example.responsibleName):email;
 						output += '<a href="mailto:'+email+'">'+ename+'</a></p>';
@@ -1313,6 +1318,8 @@ NewEnactionView.prototype = {
 				// Avoiding post messages on page reload
 				iframe.src="about:blank";
 				iframe = undefined;
+				if(newenactview.saveAsExample.checked)
+					alert('Example addition will be effective when original uploader confirms it');
 			};
 			WidgetCommon.addEventListener(iframe,'load',iframeLoaded,false);
 
@@ -1336,6 +1343,12 @@ NewEnactionView.prototype = {
 			var qsParm = {};
 			qsParm['id']=enUUID;
 			qsParm['reusePrevInput']='1';
+			
+			// Setting responsible
+			var workflow = this.manview.wfA[enUUID];
+			qsParm['responsibleMail']=workflow.responsibleMail;
+			qsParm['responsibleName']=workflow.responsibleName;
+			
 			var reenactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionlauncher");
 			var reenactRequest = new XMLHttpRequest();
 			var newenact=this;
@@ -1407,26 +1420,29 @@ NewEnactionView.prototype = {
 				enactIdDOM.documentElement.tagName &&
 				(GeneralView.getLocalName(enactIdDOM.documentElement)=='enactionlaunched')
 			) {
-				enactId = enactIdDOM.documentElement.getAttribute('jobId');
-				if(enactId) {
-					if(reenact) {
-						var thewin=(top)?top:((parent)?parent:window);
-						thewin.open('enactionviewer.html?jobId='+enactId,'_top');
-					} else {
-						var time=enactIdDOM.documentElement.getAttribute('time');
-						// Time to open a new window
-						var theURL="enactionviewer.html?jobId="+enactId;
-						var popup=window.open(theURL,'_blank');
-						if(!popup) {
-							alert('Your browser has just blocked the new enaction window.\nYou can find the link under the\nSubmitted Enaction Jobs area');
-						}
+				if(this.saveOnlyCheck==undefined || !this.saveOnlyCheck.checked) {
+					enactId = enactIdDOM.documentElement.getAttribute('jobId');
+					if(enactId) {
+						if(reenact) {
+							var thewin=(top)?top:((parent)?parent:window);
+							thewin.open('enactionviewer.html?jobId='+enactId,'_top');
+						} else {
+							var time=enactIdDOM.documentElement.getAttribute('time');
+							// Time to open a new window
+							var theURL="enactionviewer.html?jobId="+enactId;
+							var popup=window.open(theURL,'_blank');
+							if(!popup) {
+								alert('Your browser has just blocked the new enaction window.\nYou can find the link under the\nSubmitted Enaction Jobs area');
+							}
 
-						// And leave a trace!
-						var theli=this.genview.createElement('li');
-						theli.innerHTML=time+': <a href="'+theURL+'" target="_blank">'+enactId+'</a>';
-						this.submittedList.appendChild(theli);
+							// And leave a trace!
+							var theli=this.genview.createElement('li');
+							theli.innerHTML=time+': <a href="'+theURL+'" target="_blank">'+enactId+'</a>';
+							this.submittedList.appendChild(theli);
+						}
 					}
 				}
+				this.saveOnlyCheck=undefined;
 			} else {
 				this.genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to start the '+
 					((reenact)?'re-':'')+
