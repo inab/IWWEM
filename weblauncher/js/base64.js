@@ -189,7 +189,7 @@ var Base64 = {
 		if(i<ilength) {
 			setTimeout(function() {
 				Base64.streamFromBase64ToByte(input,end_callback,noUTF8,i,output);
-			},50);
+			},100);
 		} else if(noUTF8) {
 			end_callback(output);
 		} else {
@@ -293,7 +293,7 @@ var Base64 = {
 		if(i<ilength) {
 			setTimeout(function() {
 				Base64.streamFromBase64ToUTF8(input,end_callback,i,transientArr,output);
-			},50);
+			},100);
 		} else {
 			// Last transient bytes must be converted
 			var tLength=transientArr.length;
@@ -392,7 +392,7 @@ var Base64 = {
 		if(i<ilength) {
 			setTimeout(function() {
 				Base64.streamFromByte64ToBase64(input,end_callback,i,output);
-			},50);
+			},100);
 		} else {
 			// Next chain
 			end_callback(output);
@@ -460,7 +460,7 @@ var Base64 = {
 		if(n<ulength) {
 			setTimeout(function() {
 				Base64.streamFromUTF8ToByte(utftext,end_callback,n,bytetext);
-			},50);
+			},100);
 		} else {
 			var tLength=transientArr.length;
 			if(tLength>0) {

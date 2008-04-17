@@ -18,8 +18,10 @@
 	right: 0px;
 	bottom: 0px;
 	background-color: black;
-	opacity: 0.5;
 	filter: alpha(opacity=50);
+	KHTMLOpacity: 0.5;
+	MozOpacity: 0.5;
+	opacity: 0.5;
 	z-index: 100;
 }
 
@@ -107,6 +109,7 @@ TD.middle {
 	vertical-align: top;
 	empty-cells: show;
 	display: block;
+	width:100%;
 	height:120mm;
 	overflow: auto;
 	text-align: left;
@@ -381,7 +384,7 @@ SPAN.branchlabel , SPAN.branchlabelopen {
 
 
 /* Selected options */
-.selOption, .selOptionEven {
+.selOption , .selOptionEven {
 	background-color: white;
 	white-space: nowrap;
 	border-color: gray;
@@ -393,7 +396,44 @@ SPAN.branchlabel , SPAN.branchlabelopen {
 	background-color: #F0F0F0;
 }
 
-.selOption.selected, .selOptionEven.selected {
+.selOption.selected , .selOptionEven.selected {
 	background-color: #66CCFF;
 	white-space: normal;
+}
+
+a.inputhelp , a.inputhelpie {
+	text-decoration: none;
+}
+
+a.inputhelp {
+	position:relative;
+	z-index: auto;
+}
+
+a.inputhelp img , a.inputhelpie img {
+	border: none;
+	vertical-align:middle;
+}
+
+a.inputhelp span {
+	display:none;
+	white-space:normal;
+}
+
+
+a.inputhelp:hover , div a.inputhelp.hover {
+	text-decoration: none;
+	position:relative;
+	z-index:1;
+}
+
+a.inputhelp:hover span , div a.inputhelp.hover span {
+	display:block;
+	position:absolute;
+	z-index:auto;
+	top:2em; left:2em; width:15em;
+	border:1px solid #0cf;
+	background-color:#cff; color:#000;
+	text-align: center;
+	white-space:normal;
 }

@@ -1081,7 +1081,28 @@ NewEnactionView.prototype = {
 		var theinput = this.genview.createElement('span');
 		// The addition button
 		theinput.className = 'add';
-		theinput.innerHTML='Input <span style="color:red;">'+input.name+'</span> ';
+		theinput.appendChild(this.genview.thedoc.createTextNode('Input '));
+		var inputname=this.genview.createElement('span');
+		inputname.style.color='red';
+		inputname.appendChild(this.genview.thedoc.createTextNode(input.name));
+		theinput.appendChild(inputname);
+		
+		var theinputhelp=this.genview.createElement('a');
+		theinputhelp.setAttribute('href','javascript:void(0)');
+		var iconhelp=this.genview.createElement('img');
+		iconhelp.setAttribute('src','style/iconhelp.png');
+		iconhelp.setAttribute('alt','?');
+		theinputhelp.appendChild(iconhelp);
+		var helpdesc=(input.description && input.description.length>0)?input.description:'(no available help)';
+		if(BrowserDetect.browser=='Explorer') {
+			theinputhelp.className='inputhelpie';
+			iconhelp.setAttribute('title',helpdesc);
+		} else {
+			theinputhelp.className='inputhelp';
+			var texthelp=this.genview.createElement('span');
+			texthelp.appendChild(this.genview.thedoc.createTextNode(helpdesc));
+			theinputhelp.appendChild(texthelp);
+		}
 		
 		var thechoicetext=this.genview.createElement('span');
 		thechoicetext.className='radio left';
@@ -1187,6 +1208,8 @@ NewEnactionView.prototype = {
 
 		// Last children!
 		thediv.appendChild(theinput);
+		thediv.appendChild(theinputhelp);
+		thediv.appendChild(this.genview.thedoc.createTextNode(''));
 		thediv.appendChild(thechoice);
 
 		thediv.appendChild(containerDiv);

@@ -363,8 +363,22 @@ if($retval!=0 || $query->cgi_error() || !defined($wfilefetched)) {
 	exit 0;
 }
 
-# Second step, workflow launching
+# Just now, is the moment to send the e-mail
+# related to examples
+if(defined($penduuid)) {
+	system($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
+		'-baseDir',$WorkflowCommon::MAVENDIR,
+		'-workflow',$wfile,
+	#	'-expandSubWorkflows',
+		'-statusDir',$jobdir,
+		@baclavadesc,
+		@inputdesc,
+		@saveExample
+	);
+	WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'example',$WorkflowCommon::COMMANDADD,$fullexampleuuid,$responsibleMail,$exampleName);
+}
 
+# Second step, workflow launching
 my($cpid)=fork();
 unless(defined($cpid)) {
 	# Fork failed!
@@ -455,19 +469,6 @@ unless(defined($cpid)) {
 			setsid();
 			
 			{
-				# Just now, is the moment to send the e-mail
-				if(defined($penduuid)) {
-					system($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
-						'-baseDir',$WorkflowCommon::MAVENDIR,
-						'-workflow',$wfile,
-	#					'-expandSubWorkflows',
-						'-statusDir',$jobdir,
-						@baclavadesc,
-						@inputdesc,
-						@saveExample
-					);
-					WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'example',$WorkflowCommon::COMMANDADD,$fullexampleuuid,$responsibleMail,$exampleName);
-				}
 				unless(defined($onlySaveAsExample)) {
 					my($RUNPID);
 					if(open($RUNPID,'>',$jobdir.'/PID')) {
