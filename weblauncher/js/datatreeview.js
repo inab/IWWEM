@@ -30,10 +30,22 @@ function DataTreeView(genview,dataTreeDivId,dataBrowserDivId,mimePathDivId, /*op
 	// Iteration selection
 	this.iterationSelect=genview.createElement('select');
 	this.iterDiv.appendChild(this.iterationSelect);
-	this.iterDiv.appendChild(genview.thedoc.createTextNode(' of '));
+
+	var italspan=genview.createElement('span');
+	italspan.style.fontStyle='italic';
+	italspan.appendChild(genview.thedoc.createTextNode('(done '));
+	this.iterNumberSpan=genview.createElement('span');
+	this.iterNumberSpan.style.fontWeight='bold';
+	italspan.appendChild(this.iterNumberSpan);
+	italspan.appendChild(genview.thedoc.createTextNode(' of '));
 	this.iterMaxSpan=genview.createElement('span');
-	this.iterMaxSpan.setAttribute('style','font-weight:bold');
-	this.iterDiv.appendChild(this.iterMaxSpan);
+	this.iterMaxSpan.style.fontWeight='bold';
+	italspan.appendChild(this.iterMaxSpan);
+	italspan.appendChild(genview.thedoc.createTextNode(', '));
+	this.iterPercentSpan=genview.createElement('span');
+	italspan.appendChild(this.iterPercentSpan);
+	italspan.appendChild(genview.thedoc.createTextNode('%)'));
+	this.iterDiv.appendChild(italspan);
 	theform.appendChild(this.iterDiv);
 
 	// SchedStamp div
@@ -383,7 +395,9 @@ DataTreeView.prototype = {
 	
 	clearSelect: function() {
 		GeneralView.freeSelect(this.iterationSelect);
+		GeneralView.freeContainer(this.iterNumberSpan);
 		GeneralView.freeContainer(this.iterMaxSpan);
+		GeneralView.freeContainer(this.iterPercentSpan);
 		this.step=undefined;
 		this.istep=undefined;
 	},
@@ -493,7 +507,10 @@ DataTreeView.prototype = {
 					iterO.value=i;
 					this.addToSelect(iterO);
 				}
-				this.iterMaxSpan.appendChild(this.genview.thedoc.createTextNode(giterl));
+				this.iterNumberSpan.appendChild(this.genview.thedoc.createTextNode(giterl));
+				this.iterMaxSpan.appendChild(this.genview.thedoc.createTextNode(gstep.iterMax));
+				var perText=giterl*100.0/parseInt(gstep.iterMax,10)+'';
+				this.iterPercentSpan.appendChild(this.genview.thedoc.createTextNode(perText.substr(0,5)));
 			}
 			// Showing the correct position
 			this.removeSelectEventListener();

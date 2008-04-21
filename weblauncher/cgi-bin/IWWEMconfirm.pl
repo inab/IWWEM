@@ -276,7 +276,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 			# Now, we must send an informative e-mail
 			if(defined($email)) {
 				$prettyname=undef  if(defined($prettyname) && length($prettyname)==0);
-				WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname);
+				WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname,$query,($kind eq 'snapshot')?$irelpath:undef);
 				push(@done,[$kind,$irelpath,1]);
 			} else {
 				push(@done,[$kind,$irelpath,undef]);

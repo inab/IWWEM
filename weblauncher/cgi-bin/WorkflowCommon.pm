@@ -26,6 +26,8 @@ use vars qw($WORKFLOWFILE $SVGFILE $PNGFILE $PDFFILE $WFIDFILE $DEPDIR $EXAMPLES
 
 use vars qw($INPUTSFILE $OUTPUTSFILE);
 
+use vars qw($REPORTFILE $STATICSTATUSFILE);
+
 use vars qw($WORKFLOWRELDIR $WORKFLOWDIR $JOBRELDIR $JOBDIR $MAXJOBS $JOBCHECKDELAY $LAUNCHERDIR $MAVENDIR);
 
 use vars qw($CONFIRMRELDIR $CONFIRMDIR $COMMANDFILE $PENDINGERASEFILE $PENDINGADDFILE);
@@ -113,6 +115,8 @@ $CATALOGFILE='catalog.xml';
 $RESPONSIBLEFILE='responsible.xml';
 $INPUTSFILE='Inputs.xml';
 $OUTPUTSFILE='Outputs.xml';
+$REPORTFILE='report.xml';
+$STATICSTATUSFILE='staticstatus.xml';
 
 $WFD_NS = 'http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend';
 $PAT_NS = $WFD_NS . '/patterns';
@@ -142,7 +146,8 @@ sub getCGIBaseURI($);
 sub genPendingOperationsDir($);
 sub createResponsibleFile($$;$);
 sub createMailer();
-sub sendResponsibleConfirmedMail($$$$$$$);
+sub enactionGUIURI($$);
+sub sendResponsibleConfirmedMail($$$$$$$;$$);
 sub sendResponsiblePendingMail($$$$$$$$);
 sub sendEnactionMail($$$;$);
 
@@ -251,11 +256,31 @@ sub createMailer() {
 	return $smtp;
 }
 
-sub sendResponsibleConfirmedMail($$$$$$$) {
-	my($smtp,$code,$kind,$command,$irelpath,$responsibleMail,$prettyname)=@_;
+sub enactionGUIURI($$) {
+	my($query,$jobId)=@_;
+	
+	my($operURL)=undef;
+	
+	if(defined($jobId)) {
+		$operURL = WorkflowCommon::getCGIBaseURI($query);
+		$operURL =~ s/cgi-bin\/[^\/]+$//;
+		$operURL.="enactionviewer.html?jobId=$jobId";
+	}
+	
+	return $operURL;
+}
+
+sub sendResponsibleConfirmedMail($$$$$$$;$$) {
+	my($smtp,$code,$kind,$command,$irelpath,$responsibleMail,$prettyname,$query,$enId)=@_;
 	
 	$smtp=WorkflowCommon::createMailer()  unless(defined($smtp));
 	my($prettyop)=($command eq $WorkflowCommon::COMMANDADD)?'added':'disposed';
+	
+	my($operURL)=WorkflowCommon::enactionGUIURI($query,$enId);
+	my($addmesg)='';
+	if(defined($operURL)) {
+		$addmesg="You can browse it at\r\n\r\n$operURL\r\n";
+	}
 	
 	return $smtp->MailMsg({
 		from=>"\"INB IWWE&M system\" <$WorkflowCommon::IWWEMmailaddr>",
@@ -263,7 +288,7 @@ sub sendResponsibleConfirmedMail($$$$$$$) {
 		subject=>"Your $kind $irelpath has just been $prettyop",
 		msg=>"Dear IWWE&M user,\r\n    as you have just confirmed petition ".
 			$code.", your $kind $irelpath".(defined($prettyname)?(" (known as $prettyname)"):'').
-			" has just been $prettyop\r\n\r\n    The INB Interactive Web Workflow Enactor & Manager system"
+			" has just been $prettyop\r\n$addmesg\r\n    The INB Interactive Web Workflow Enactor & Manager system"
 	});
 }
 
@@ -271,9 +296,7 @@ sub sendEnactionMail($$$;$) {
 	my($query,$jobId,$responsibleMail,$hasFinished)=@_;
 	
 	my($smtp)=WorkflowCommon::createMailer();
-	my($operURL)=WorkflowCommon::getCGIBaseURI($query);
-	$operURL =~ s/cgi-bin\/[^\/]+$//;
-	$operURL.="enactionviewer.html?jobId=$jobId";
+	my($operURL)=WorkflowCommon::enactionGUIURI($query,$jobId);
 	my($status)=defined($hasFinished)?'finished':'started';
 	my($dataStatus)=defined($hasFinished)?'results':'progress';
 	return $smtp->MailMsg({

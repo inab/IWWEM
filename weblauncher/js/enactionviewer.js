@@ -89,6 +89,8 @@ function EnactionView(genview) {
 	
 	this.snapshotEnaction=genview.getElementById('snapshotEnaction');
 	this.snapshotName=genview.getElementById('snapshotName');
+	this.responsibleMailInput=genview.getElementById('responsibleMail');
+	this.responsibleNameInput=genview.getElementById('responsibleName');
 	// formSnapshotEnaction is not needed at this level
 	// snapshotDesc is dynamic, so it is not caught here
 	this.snapshotDescContainer=genview.getElementById('snapshotDescContainer');
@@ -222,7 +224,6 @@ EnactionView.prototype = {
 	clearViewInternal: function () {
 		
 		this.step=undefined;
-		this.istep=undefined;
 		this.setStep();
 		
 		// TODO
@@ -259,7 +260,6 @@ EnactionView.prototype = {
 		this.stepCache={};
 		this.datatreeview.clearSelect();
 		this.step=undefined;
-		this.istep=undefined;
 		this.setStep();
 		this.state='unknown';
 		this.reloadButton.className='button';
@@ -575,7 +575,7 @@ EnactionView.prototype = {
 		return EnactionView.BaseHREF;
 	},
 	
-	setStep: function (step,/*optional*/ iteration) {
+	setStep: function (/* optional */ step) {
 		// To finish
 		if(!step) {
 			step=this.step;
@@ -583,6 +583,12 @@ EnactionView.prototype = {
 		// Unfilling iterations
 
 		if(step) {
+			var iteration=undefined;
+			
+			if(this.step!=undefined && this.step.name==step.name) {
+				iteration=this.datatreeview.istep;
+			}
+			
 			if(!iteration) {
 				iteration=-1;
 			} else {
@@ -593,7 +599,6 @@ EnactionView.prototype = {
 				this.stageStateSpan.innerHTML=this.genGraphicalState(step.state);
 			}
 			this.step=step;
-			this.istep=iteration;
 			
 			// Filling step information
 			var baseJob = this.getBaseHREF()+'/'+this.JobsBase+((step.name!=this.jobId)?('/'+this.jobDir+'/Results'):'');
@@ -602,8 +607,8 @@ EnactionView.prototype = {
 			// Clearing view
 			this.datatreeview.clearSelect();
 			this.datatreeview.clearContainers();
-			this.stageSpan.innerHTML='NONE';
-			this.stageStateSpan.innerHTML='NONE'
+			this.stageSpan.innerHTML='<i>None selected</i>';
+			this.stageStateSpan.innerHTML='N/A'
 		}
 	},
 	
@@ -656,16 +661,18 @@ EnactionView.prototype = {
 		tramp.unsuspendRedraw(susId);
 	},
 	
-	reloadStatus: function(/* optional */ jobId,isFullReload,snapshotName,snapshotDesc,isKill) {
+	reloadStatus: function(/* optional */ jobId,isFullReload,snapshotName,snapshotDesc,isKill,responsibleMail,responsibleName) {
 		// Final states
 		if(
 			this.state=='frozen' ||
-			this.state=='dead' ||
-			this.state=='error' ||
-			this.state=='fatal' ||
-			this.state=='dubious' ||
-			this.state=='killed' ||
-			this.state=='finished'
+			(snapshotName==undefined && (
+				this.state=='dead' ||
+				this.state=='error' ||
+				this.state=='fatal' ||
+				this.state=='dubious' ||
+				this.state=='killed' ||
+				this.state=='finished'
+			))
 		)  return;
 		
 		// In progress request
@@ -689,6 +696,12 @@ EnactionView.prototype = {
 		}
 		if(isKill) {
 			qsParm['dispose']='0';
+		}
+		if(responsibleMail) {
+			qsParm['responsibleMail']=responsibleMail;
+			if(responsibleName) {
+				qsParm['responsibleName']=responsibleName;
+			}
 		}
 		var enactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionstatus");
 		this.genview.clearMessage();
@@ -894,11 +907,19 @@ EnactionView.prototype = {
 			snapshotDesc.name='snapshotDesc';
 			this.snapshotDescContainer.appendChild(snapshotDesc);
 		}
+		this.responsibleMailInput.value=this.responsibleMail;
+		this.responsibleNameInput.value=this.responsibleName;
 		this.frameSnapId=this.genview.openFrame('snapshotEnaction',1);
 	},
 	
 	takeSnapshot: function() {
-		if(this.snapshotName.value && this.snapshotName.value.length>0) {
+		if(this.snapshotName.value==undefined || this.snapshotName.value.length==0) {
+			alert('Please, give a name to the snapshot before taking it');
+		} else if(this.responsibleMailInput.value==undefined || this.responsibleMailInput.value.length==0) {
+			alert('The snapshot must have a responsible.\nYou must write a valid e-mail address,\nto get its approval message.');
+		} else {
+			var responsibleMail=this.responsibleMailInput.value;
+			var responsibleName=this.responsibleNameInput.value;
 			var snapshotName=this.snapshotName.value;
 			var snapshotDesc;
 			if(FCKeditor_IsCompatibleBrowser()) {
@@ -911,9 +932,7 @@ EnactionView.prototype = {
 				snapshotDesc=snapDescInput.value;
 			}
 			this.closeSnapshotFrame();
-			this.reloadStatus(undefined,false,snapshotName,snapshotDesc);
-		} else {
-			alert('Please, give a name to the snapshot before taking it');
+			this.reloadStatus(undefined,false,snapshotName,snapshotDesc,undefined,responsibleMail,responsibleName);
 		}
 	},
 	
@@ -939,12 +958,15 @@ EnactionView.prototype = {
 		if(!this.jobId)  return;
 		
 		var enUUID=this.jobId;
+		if(enUUID.indexOf(':')==-1) {
+			enUUID='enaction:'+enUUID;
+		}
 		
 		// First, locking the window
 		this.openReenactFrame();
 		
 		var qsParm = {};
-		qsParm['id']='enaction:'+enUUID;
+		qsParm['id']=enUUID;
 		qsParm['reusePrevInput']='1';
 		
 		// Setting responsible

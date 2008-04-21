@@ -111,6 +111,9 @@ DataBrowser.addViewer = function (viewerProto) {
 DataBrowser.LocatedData = function(jobId,stepName,iteration,IOMode,/*optional*/IOPath) {
 	this.jobId=jobId;
 	this.stepName=stepName;
+	if(iteration!=undefined) {
+		iteration=parseInt(iteration,10);
+	}
 	this.iteration=(iteration==-1)?undefined:iteration;
 	this.IOMode=IOMode;
 	this.IOPath=IOPath;
@@ -179,8 +182,15 @@ DataBrowser.prototype={
 			this.mimeList=mimeList;
 			
 			// Filling data origins
-			this.IOStepSpan.innerHTML=locObject.stepName+((locObject.iteration!=undefined)?('['+locObject.iteration+']'):'')+'<i>('+(((locObject.IOMode=='I')?'Input':'Output')+')</i>');
-			//this.IOPathSpan.innerHTML='<a href="'+locObject.genDownloadURL()+'" target="_blank">'+locObject.IOPath+'</a>';
+			this.IOStepSpan.appendChild(this.genview.thedoc.createTextNode(locObject.stepName+((locObject.iteration!=undefined)?('['+locObject.iteration+']'):'')));
+			var inode=this.genview.createElement('span');
+			inode.style.fontStyle='italic';
+			inode.appendChild(this.genview.thedoc.createTextNode('('+((locObject.IOMode=='I')?'Input':'Output')+')'));
+			this.IOStepSpan.appendChild(inode);
+			
+			// this.IOStepSpan.innerHTML=locObject.stepName+((locObject.iteration!=undefined)?('['+locObject.iteration+']'):'')+'<i>('+(((locObject.IOMode=='I')?'Input':'Output')+')</i>');
+			
+			// this.IOPathSpan.innerHTML='<a href="'+locObject.genDownloadURL()+'" target="_blank">'+locObject.IOPath+'</a>';
 
 			// Filling MIME type selector
 			for(var i=0;i<mimeList.length;i++) {

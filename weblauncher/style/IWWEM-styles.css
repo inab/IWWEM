@@ -437,3 +437,8 @@ a.inputhelp:hover span , div a.inputhelp.hover span {
 	text-align: center;
 	white-space:normal;
 }
+
+.secyellow {
+	border: 1px solid #cbb945;
+	background-color: #fffadb;
+}

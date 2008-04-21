@@ -46,7 +46,7 @@ sub appendOutputs($$$) {
 sub appendIO($$$$) {
 	my($iofile,$outputDoc,$parent,$iotagname)=@_;
 	
-	if(-f $iofile) {
+	if(-f $iofile && -s $iofile) {
 		my($handler)=EnactionStatusSAX->new($outputDoc,$parent,$iotagname);
 		my($parser)=XML::LibXML->new(Handler=>$handler);
 		eval {
@@ -262,7 +262,7 @@ sub getStoredEnactionReport($$) {
 	my($ER);
 	my($rep)='';
 	
-	if(open($ER,'<',$dir.'/report.xml')) {
+	if(open($ER,'<',$dir.'/'.$WorkflowCommon::REPORTFILE)) {
 		my($line)=undef;
 		while($line=<$ER>) {
 			$rep .= $line;
@@ -377,6 +377,7 @@ foreach my $jobId (@jobIdList) {
 	my($origJobId)=undef;
 	
 	if(index($jobId,$WorkflowCommon::SNAPSHOTPREFIX)==0) {
+		$origJobId=$jobId;
 		if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 			$wfsnap=$1;
 			$jobId=$2;
@@ -384,7 +385,6 @@ foreach my $jobId (@jobIdList) {
 			# It is an snapshot, so the relative URI changes
 			$es->setAttribute('relURI',$WorkflowCommon::WORKFLOWRELDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR);
 		}
-		$origJobId=$jobId;
 	} else {
 		# For completion, we handle qualified job Ids
 		$jobId =~ s/^$WorkflowCommon::ENACTIONPREFIX//;
@@ -393,6 +393,8 @@ foreach my $jobId (@jobIdList) {
 	}
 
 	# Is it a valid job id?
+	my($termstat)=undef;
+	my($doGen)=1;
 	if(index($jobId,'/')==-1 && defined($jobdir) && -d $jobdir && -r $jobdir) {
 		# Disposal execution
 		if(defined($dispose) && $dispose eq '1') {
@@ -460,7 +462,110 @@ foreach my $jobId (@jobIdList) {
 				WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,$kind,$WorkflowCommon::COMMANDERASE,$origJobId,$resMail,$prettyname);
 			}
 		} else {
+			# Getting static info
+			eval {
+				my($staticdoc)=$parser->parse_file($jobdir.'/'.$WorkflowCommon::STATICSTATUSFILE);
+				$es=$outputDoc->importNode($staticdoc->documentElement());
+				$doGen=undef;
+			};
+			
+			if(defined($doGen)) {
+				my($ppidfile)=$jobdir . '/PPID';
+				my($includeSubs)=1;
+				my($PPID);
+				my($enactionReport)=undef;
+				if(defined($wfsnap)) {
+					$state = 'frozen';
+					$termstat=1;
+					$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
+				} elsif(-f $jobdir . '/FATAL' || ! -f $ppidfile) {
+					$state='dead';
+					$termstat=1;
+					$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
+				} elsif(!defined($wfsnap) && open($PPID,'<',$ppidfile)) {
+					my($ppid)=<$PPID>;
+					close($PPID);
+
+					my($pidfile)=$jobdir . '/PID';
+					my($PID);
+					unless(-f $pidfile) {
+						# So it could be queued
+						$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
+						$state = 'queued';
+						$includeSubs=undef;
+					} elsif(open($PID,'<',$pidfile)) {
+						my($pid)=<$PID>;
+						close($PID);
+
+						# Now we have a pid, we can check for the enaction job
+						if( -f $jobdir . '/FINISH') {
+							$state = 'finished';
+							$termstat=1;
+							$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
+						} elsif( -f $jobdir . '/FAILED.txt') {
+							$state = 'error';
+							$termstat=1;
+							$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
+						} elsif(kill(0,$pid) > 0) {
+							# It could be still running...
+							unless(defined($dispose)) {
+								if( -f $jobdir . '/START') {
+									# So, let's fetch the state
+									$enactionReport=getFreshEnactionReport($outputDoc,$jobdir . '/socket');
+
+									$state = 'running';
+								} else {
+									# So it could be queued
+									#$state = 'unknown';
+									$state = 'queued';
+									$includeSubs=undef;
+								}
+							} else {
+								$state = 'killed';
+								$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
+								$enactionReport=getFreshEnactionReport($outputDoc,$jobdir . '/socket')  unless(defined($enactionReport));
+								if(defined($enactionReport) && $enactionReport->localname eq 'enactionReport') {
+									my($erDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+									$erDoc->setDocumentElement($erDoc->importNode($enactionReport->firstChild()));
+									$erDoc->toFile($jobdir.'/'.$WorkflowCommon::REPORTFILE);
+								}
+								$termstat=1;
+								if(kill(TERM => -$pid)) {
+									sleep(1);
+									# You must die!!!!!!!!!!
+									kill(KILL => -$pid)  if(kill(0,$pid));
+								}
+							}
+						} else {
+							$state = 'dead';
+							$termstat=1;
+							$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
+						}
+					} else {
+						$state = 'fatal';
+						$includeSubs=undef;
+					}
+
+					if($state ne 'fatal' && defined($enactionReport) && $enactionReport->localname eq 'enactionReportError') {
+						$state='fatal';
+					}
+				} else {
+					$state = 'fatal';
+					$includeSubs=undef;
+				}
+				
+				if(defined($enactionReport)) {
+					$es->appendChild($enactionReport);
+				}
+				
+				# Now including subinformation...
+				if(defined($includeSubs)) {
+					my($failedSth)=processStep($jobdir,$outputDoc,$es,(defined($enactionReport) && $enactionReport->localname eq 'enactionReport')?$enactionReport:undef);
+					$state='dubious'  if($state eq 'finished' && defined($failedSth));
+				}
+			}
 			# Status report
+			
 			# Disallowed snapshots over snapshots!
 			if(defined($snapshotName) && defined($responsibleMail) && !defined($wfsnap)) {
 				my($workflowId)=undef;
@@ -508,7 +613,7 @@ foreach my $jobId (@jobIdList) {
 						if(defined($snapshotDesc) && length($snapshotDesc)>0) {
 							$snapnode->appendChild($catdoc->createCDATASection(encode('UTF-8',$snapshotDesc)));
 						}
-
+						
 						$catdoc->setDocumentElement($snapnode);
 						$catdoc->toFile($pendcatalogfile);
 						
@@ -517,16 +622,19 @@ foreach my $jobId (@jobIdList) {
 							my($erDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
 							my($enactionReport)=getStoredEnactionReport($erDoc,$jobdir);
 							$enactionReport=getFreshEnactionReport($erDoc,$jobdir . '/socket')  unless(defined($enactionReport));
-							if(defined($enactionReport)) {
-								$erDoc->setDocumentElement($enactionReport);
-								$erDoc->toFile($pendsnapdir.'/report.xml');
+							if(defined($enactionReport) && $enactionReport->localname eq 'enactionReport') {
+								$erDoc->setDocumentElement($enactionReport->firstChild);
+								$erDoc->toFile($pendsnapdir.'/'.$WorkflowCommon::REPORTFILE);
 							}
+							# Static info is erased, so it is regenerated
+							unlink($pendsnapdir.'/'.$WorkflowCommon::STATICSTATUSFILE);
+
 							
 							WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'snapshot',$WorkflowCommon::COMMANDADD,$fullsnapuuid,$responsibleMail,$snapshotName);
 							# And let's add it to the report
 							# in qualified form
 							$snapnode->setAttribute('uuid',$fullsnapuuid);
-							$es->appendChild($outputDoc->importNode($snapnode));
+							$es->insertBefore($outputDoc->importNode($snapnode),$es->firstChild());
 						} else {
 							rmtree($snapdir);
 							rmtree($penddir);
@@ -538,122 +646,55 @@ foreach my $jobId (@jobIdList) {
 					#}
 				}
 			}
-
-			my($ppidfile)=$jobdir . '/PPID';
-			my($includeSubs)=1;
-			my($PPID);
-			my($enactionReport)=undef;
-			if(defined($wfsnap)) {
-				$state = 'frozen';
-			} elsif(-f $jobdir . '/FATAL' || ! -f $ppidfile) {
-				$state='dead';
-			} elsif(!defined($wfsnap) && open($PPID,'<',$ppidfile)) {
-				my($ppid)=<$PPID>;
-				close($PPID);
-				
-				my($pidfile)=$jobdir . '/PID';
-				my($PID);
-				unless(-f $pidfile) {
-					# So it could be queued
-					$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
-					$state = 'queued';
-					$includeSubs=undef;
-				} elsif(open($PID,'<',$pidfile)) {
-					my($pid)=<$PID>;
-					close($PID);
-					
-					# Now we have a pid, we can check for the enaction job
-					if( -f $jobdir . '/FINISH') {
-						$state = 'finished';
-						$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
-					} elsif( -f $jobdir . '/FAILED.txt') {
-						$state = 'error';
-						$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
-					} elsif(kill(0,$pid) > 0) {
-						# It could be still running...
-						unless(defined($dispose)) {
-							if( -f $jobdir . '/START') {
-								# So, let's fetch the state
-								$enactionReport=getFreshEnactionReport($outputDoc,$jobdir . '/socket');
-								
-								$state = 'running';
-							} else {
-								# So it could be queued
-								#$state = 'unknown';
-								$state = 'queued';
-								$includeSubs=undef;
-							}
-						} else {
-							$state = 'killed';
-							if(kill(TERM => -$pid)) {
-								sleep(1);
-								# You must die!!!!!!!!!!
-								kill(KILL => -$pid)  if(kill(0,$pid));
-							}
-						}
-					} else {
-						$state = 'dead';
-						$enactionReport=getStoredEnactionReport($outputDoc,$jobdir);
-					}
-				} else {
-					$state = 'fatal';
-					$includeSubs=undef;
-				}
-				
-				if($state ne 'fatal' && defined($enactionReport) && $enactionReport->localname eq 'enactionReportError') {
-					$state='fatal';
-				}
-			} else {
-				$state = 'fatal';
-				$includeSubs=undef;
-			}
 			
-			if(defined($enactionReport)) {
-				$es->appendChild($enactionReport);
-			}
-			
-			# Now including subinformation...
-			if(defined($includeSubs)) {
-				my($failedSth)=processStep($jobdir,$outputDoc,$es,(defined($enactionReport) && $enactionReport->localname eq 'enactionReport')?$enactionReport:undef);
-				$state='dubious'  if($state eq 'finished' && defined($failedSth));
-			}
 		}
 	}
-
-	$state='unknown'  unless(defined($state));
-
-	$es->setAttribute('state',$state);
 	
-	# The title
-	eval {
-		my $wf = $parser->parse_file($jobdir.'/'.$WorkflowCommon::WORKFLOWFILE);
-		my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
-		if(scalar(@nodelist)>0) {
-			$es->setAttribute('title',$nodelist[0]->getAttribute('title'));
-		}
-	};
-	
-	# Now, the responsible person
-	my($responsibleMail)='';
-	my($responsibleName)='';
-	eval {
-		if(defined($wfsnap)) {
-			my $cat = $parser->parse_file($jobdir.'/../'.$WorkflowCommon::CATALOGFILE);
-			my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$jobId']",$cat);
-			foreach my $snapNode (@snaps) {
-				$responsibleMail=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
-				$responsibleName=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLENAME);
-				last;
+	# Do we have to generate information?
+	if(defined($doGen)) {
+		$state='unknown'  unless(defined($state));
+
+		$es->setAttribute('state',$state);
+
+		# The title
+		eval {
+			my $wf = $parser->parse_file($jobdir.'/'.$WorkflowCommon::WORKFLOWFILE);
+			my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+			if(scalar(@nodelist)>0) {
+				$es->setAttribute('title',$nodelist[0]->getAttribute('title'));
 			}
-		} else {
-			my $res = $parser->parse_file($jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE);
-			$responsibleMail=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
-			$responsibleName=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLENAME);
-		}
-	};
-	$es->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
-	$es->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+		};
+
+		# Now, the responsible person
+		my($responsibleMail)='';
+		my($responsibleName)='';
+		eval {
+			if(defined($wfsnap)) {
+				my $cat = $parser->parse_file($jobdir.'/../'.$WorkflowCommon::CATALOGFILE);
+				my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$jobId']",$cat);
+				foreach my $snapNode (@snaps) {
+					$responsibleMail=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+					$responsibleName=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+					last;
+				}
+			} else {
+				my $res = $parser->parse_file($jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE);
+				$responsibleMail=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+				$responsibleName=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+			}
+		};
+		$es->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+		$es->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+	}
 	
+	# Do we have to save the report as an static one?
+	if(defined($termstat)) {
+		eval {
+			my($staticDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+			$staticDoc->setDocumentElement($staticDoc->importNode($es));
+			$staticDoc->toFile($jobdir.'/'.$WorkflowCommon::STATICSTATUSFILE);
+		};
+	}
 	# Last, attach
 	$root->appendChild($es);
 }
