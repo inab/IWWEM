@@ -186,7 +186,12 @@ sub getCGIBaseURI($) {
 		$relpath=$1;
 	}
 	
-	return "$proto://$host:$port$relpath";
+        if(($proto eq 'http' && $port eq '80') || ($proto eq 'https' && $port eq '443')) {
+		$port='';
+	} else {
+		$port = ':'.$port;
+	}
+	return "$proto://$host$port$relpath";
 }
 
 # Generates a pending operation directory structure
