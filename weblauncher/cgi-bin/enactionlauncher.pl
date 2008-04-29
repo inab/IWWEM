@@ -350,6 +350,7 @@ if(defined($exampleName) && defined($workflowId) && defined($responsibleMail)) {
 
 # We must signal here errors and exit
 if($retval!=0 || $query->cgi_error() || !defined($wfilefetched)) {
+	$retvalmsg=''  unless(defined($retvalmsg));
 	print STDERR "RETVAL  $retval  RETVALMSG $retvalmsg  ".$query->cgi_error()."\n";
 	my $error = $query->cgi_error;
 	$error = '500 Internal Server Error'  unless(defined($error));

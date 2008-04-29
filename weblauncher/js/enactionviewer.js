@@ -589,12 +589,12 @@ EnactionView.prototype = {
 				iteration=this.datatreeview.istep;
 			}
 			
-			if(!iteration) {
+			if(iteration==undefined) {
 				iteration=-1;
 			} else {
 				iteration=parseInt(iteration,10);
 			}
-			if(!this.step || this.step.name!=step.name || this.step!=step) {
+			if(this.step==undefined || this.step.name!=step.name || this.step!=step) {
 				this.stageSpan.innerHTML=step.name;
 				this.stageStateSpan.innerHTML=this.genGraphicalState(step.state);
 			}
