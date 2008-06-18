@@ -123,8 +123,14 @@ DataBrowser.LocatedData = function(jobId,stepName,iteration,IOMode,/*optional*/I
 };
 
 DataBrowser.LocatedData.prototype = {
-	newChild: function(newIOPathStep) {
-		return new DataBrowser.LocatedData(this.jobId,this.stepName,this.iteration,this.IOMode,(this.IOPath!=undefined)?(this.IOPath+'/'+newIOPathStep):newIOPathStep);
+	newChild: function(newIOPathStep,/* optional */ isVirtual) {
+		var stepPiece=newIOPathStep.toString();
+		stepPiece=stepPiece.replace(/&/g,'&amp;');
+		stepPiece=stepPiece.replace(/#/g,'&#35;');
+		stepPiece=stepPiece.replace(/\//g,'&#47;');
+		if(isVirtual)
+			stepPiece = '#'+stepPiece;
+		return new DataBrowser.LocatedData(this.jobId,this.stepName,this.iteration,this.IOMode,(this.IOPath!=undefined)?(this.IOPath+'/'+stepPiece):stepPiece);
 	},
 	
 	setDataObject: function(dataObject) {
@@ -512,6 +518,7 @@ DataBrowser.OctetStreamViewer = {
 DataBrowser.addViewer(DataBrowser.OctetStreamViewer);
 
 DataBrowser.ImageViewer = {
+	name:	'Internal Viewer',
 	dataSource:	DataBrowser.Link,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	[
@@ -772,7 +779,7 @@ DataBrowser.DefaultViewer = {
 		var dataCont = genview.createElement('pre');
 		dataCont.className='prettyprint noborder';
 		databrowserDiv.appendChild(dataCont);
-		var basedata=data;
+		var basedata=data.toString();
 		var baseidx=0;
 		var newidx;
 		var line=undefined;
@@ -802,7 +809,7 @@ DataBrowser.DefaultViewer = {
 		
 		// Now, prettyPrint!!!!
 		if(possibleMarkup && />\s*$/.test(line)) {
-			strdata=data.toString();
+			strdata=basedata;
 			strdata=strdata.replace(/&/g,'&amp;');
 			strdata=strdata.replace(/</g,'&lt;');
 			strdata=strdata.replace(/>/g,'&gt;');

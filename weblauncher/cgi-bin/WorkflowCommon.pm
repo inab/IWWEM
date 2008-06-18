@@ -142,6 +142,9 @@ $COMMENTES=$COMMENTPRE.'enactionstatus'.$COMMENTPOST;
 
 # Method declaration
 sub genUUID();
+sub patchXMLString($);
+sub depatchPath($);
+
 sub getCGIBaseURI($);
 sub genPendingOperationsDir($);
 sub createResponsibleFile($$;$);
@@ -172,6 +175,34 @@ sub genUUID() {
 	}
 	
 	return $randname;
+}
+
+sub patchXMLString($) {
+	my($trans)=@_;
+	
+	$trans =~ s/\&/\&amp;/g;
+	$trans =~ s/'/\&apos;/g;
+	$trans =~ s/"/\&quot;/g;
+	$trans =~ s/</\&lt;/g;
+	$trans =~ s/>/\&gt;/g;
+	
+	return $trans;
+}
+
+sub depatchPath($) {
+	#my($trans)=WorkflowCommon::patchXMLString($_[0]);
+	my($trans)=$_[0];
+	
+	# Deconstructing some work
+	$trans =~ s/\&#35;/#/g;
+	$trans =~ s/\&#x0*23;/#/g;
+	$trans =~ s/\&#47;/\//g;
+	$trans =~ s/\&#x0*2[fF];/\//g;
+	$trans =~ s/\&amp;/\&/g;
+	#$trans =~ s/\&#38;/\&/g;
+	#$trans =~ s/\&#x0*26;/\&/g;
+	
+	return $trans;
 }
 
 sub getCGIBaseURI($) {

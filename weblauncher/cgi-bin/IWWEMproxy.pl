@@ -205,8 +205,16 @@ if(defined($IOPath) && (length($IOPath)>0)) {
 		eval {
 			my($context)=XML::LibXML::XPathContext->new();
 			$context->registerNs('b',$WorkflowCommon::BACLAVA_NS);
-
-			my($xpathfetch)="/b:dataThingMap/b:dataThing[\@key='$facet']/b:myGridDataDocument/";
+			
+			my(%xpathvars)=();
+			my($varbase)='var';
+			my($varnum)=0;
+			my($transfacet)=WorkflowCommon::depatchPath($facet);
+			my($varref)=$varbase.$varnum;
+			$varnum++;
+			$xpathvars{$varref}=$transfacet;
+			
+			my($xpathfetch)="/b:dataThingMap/b:dataThing[\@key=\$$varref]/b:myGridDataDocument/";
 
 			my($pathlength)=scalar(@path);
 			for($pathi=$pathlength-1;$pathi>=0;$pathi--) {
@@ -219,16 +227,31 @@ if(defined($IOPath) && (length($IOPath)>0)) {
 				$xpathfetch .= 'b:partialOrder/b:itemList/';
 				$effpathlength--;
 				for(my $pathidx=0; $pathidx<$effpathlength; $pathidx++) {
-					$xpathfetch .= "b:partialOrder[\@index='$path[$pathidx]']/b:itemList/";
+					my($transpath)=WorkflowCommon::depatchPath($path[$pathidx]);
+					my($varref)=$varbase.$varnum;
+					$varnum++;
+					$xpathvars{$varref}=$transpath;
+					$xpathfetch .= "b:partialOrder[\@index=\$$varref]/b:itemList/";
 				}
-				$xpathfetch .= "b:dataElement[\@index='$path[$effpathlength]']";
+				my($transpath)=WorkflowCommon::depatchPath($path[$effpathlength]);
+				my($varref)=$varbase.$varnum;
+				$varnum++;
+				$xpathvars{$varref}=$transpath;
+				$xpathfetch .= "b:dataElement[\@index=\$$varref]";
 			} else {
 				$xpathfetch .= 'b:dataElement';
 			}
 
 			# Last step
 			$xpathfetch .= '/b:dataElementData';
+			my($callback)=sub($$$) {
+				my($p_xpathvars,$name,$uri)=@_;
+				
+				return exists($p_xpathvars->{$name})?$p_xpathvars->{$name}:undef;
+			};
+			$context->registerVarLookupFunc($callback,\%xpathvars);
 			my(@datanodes)=$context->findnodes($xpathfetch,$bacio);
+			$context->unregisterVarLookupFunc($callback);
 
 			if(scalar(@datanodes)!=0) {
 				$bundle64=$datanodes[0]->textContent();
@@ -270,6 +293,14 @@ if(defined($IOPath) && (length($IOPath)>0)) {
 			$docpat=$parser->parse_file($WorkflowCommon::PATTERNSFILE);
 		};
 		unless($@) {
+			my($varref)='var0';
+			my(%xpathvars)=();
+			my($callback)=sub($$$) {
+				my($p_xpathvars,$name,$uri)=@_;
+
+				return exists($p_xpathvars->{$name})?$p_xpathvars->{$name}:undef;
+			};
+			$context->registerVarLookupFunc($callback,\%xpathvars);
 			my($pathlength)=scalar(@path);
 			for(;$pathi<$pathlength;$pathi++) {
 				if($path[$pathi] =~ /^#([^\[\]]+)\[([0-9]+)\]$/) {
@@ -286,8 +317,9 @@ if(defined($IOPath) && (length($IOPath)>0)) {
 							$dec=undef;
 						}
 					}
-
-					my(@patnodes)=$context->findnodes("//pat:detectionPattern[\@name='$patternName']",$docpat);
+					
+					$xpathvars{$varref}=$patternName;
+					my(@patnodes)=$context->findnodes("//pat:detectionPattern[\@name=\$$varref]",$docpat);
 					last  if(scalar(@patnodes)!=1);
 
 					my($expression)=undef;
@@ -314,6 +346,7 @@ if(defined($IOPath) && (length($IOPath)>0)) {
 			}
 
 			$dec=$dec->textContent()  if(ref($dec));
+			$context->unregisterVarLookupFunc($callback);
 		}
 	}
 } elsif(defined($bundle64)) {

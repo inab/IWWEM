@@ -94,8 +94,9 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				eval {
 					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
-
-					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$snapId']",$catdoc);
+					
+					my($transsnapId)=WorkflowCommon::patchXMLString($snapId);
+					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transsnapId']",$catdoc);
 					foreach my $snap (@eraseSnap) {
 						$prettyname=$snap->getAttribute('name');
 						$email=$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
@@ -111,8 +112,9 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				eval {
 					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
-
-					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$examId']",$catdoc);
+					
+					my($transexamId)=WorkflowCommon::patchXMLString($examId);
+					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$transexamId']",$catdoc);
 					foreach my $exam (@eraseExam) {
 						$prettyname=$exam->getAttribute('name');
 						$email=$exam->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
@@ -196,7 +198,8 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 					# File must exist
 					my($newcatres)=$parser->parse_file($newcatfile);
 					# Are there old entries?
-					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$snapId']",$newcatres);
+					my($transsnapId)=WorkflowCommon::patchXMLString($snapId);
+					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transsnapId']",$newcatres);
 					foreach my $snapNode (@eraseSnap) {
 						$snapNode->parentNode->removeChild($snapNode);
 					}
@@ -227,7 +230,8 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 					# File must exist
 					my($newcatres)=$parser->parse_file($newcatfile);
 					# Are there old entries?
-					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$examId']",$newcatres);
+					my($transexamId)=WorkflowCommon::patchXMLString($examId);
+					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$transexamId']",$newcatres);
 					foreach my $examNode (@eraseExam) {
 						$examNode->parentNode->removeChild($examNode);
 					}

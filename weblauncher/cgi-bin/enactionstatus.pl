@@ -425,8 +425,9 @@ foreach my $jobId (@jobIdList) {
 				eval {
 					my($catfile)=$jobdir.'/../'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
-
-					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$jobId']",$catdoc);
+					
+					my($transjobId)=WorkflowCommon::patchXMLString($jobId);
+					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transjobId']",$catdoc);
 					foreach my $snap (@eraseSnap) {
 						$prettyname=$snap->getAttribute('name');
 						$resMail=$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
@@ -671,7 +672,8 @@ foreach my $jobId (@jobIdList) {
 		eval {
 			if(defined($wfsnap)) {
 				my $cat = $parser->parse_file($jobdir.'/../'.$WorkflowCommon::CATALOGFILE);
-				my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$jobId']",$cat);
+				my($transjobId)=WorkflowCommon::patchXMLString($jobId);
+				my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$transjobId']",$cat);
 				foreach my $snapNode (@snaps) {
 					$responsibleMail=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
 					$responsibleName=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLENAME);

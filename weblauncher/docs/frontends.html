@@ -227,9 +227,11 @@ The virtual path to reach the value to return. These paths are similar to:
 <li><span class="value">PDB_Enriched(structure)/#EnrichedPDB[0]</span>: An input (or output) with the name <span class="value">PDB_Enriched(structure)</span> and a single value, which has an interesting result identified and extracted by <span class="value">EnrichedPDB</span> pattern. The value which is returned is the result <span class="value">0</span> obtained when <span class="value">EnrichedPDB</span> pattern is applied to <span class="value">PDB_Enriched(structure)</span>.</li>
 </ul>
 </li>
+Characters '<span class="value">#</span>' (virtual step), '<span class="value">/</span>' (step separator) and '<span class="value">&amp;</span>' have special meanings. If any step in the <span class="parameter">IOPath</span> contains any of these characters,
+you must substitute occurrences of '<span class="value">#</span>' with '<span class="value">&amp;#35;</span>' or '<span class="value">&amp;#x23;</span>', '<span class="value">/</span>' with '<span class="value">&amp;#47;</span>' or '<span class="value">&amp;#x2F;</span>', and '<span class="value">&amp;</span>' with '<span class="value">&amp;amp;</span>'.
 </ul>
 
-Patterns used in <span class="parameter">IOPath</span> parameter are stored in the IWWE&amp;M server in an XML, which follows the XML Schema <a href="IWWEM-patterns.xsd">IWWEM-patterns.xsd</a> (<a href="IWWEM-patterns.xsd.html">documentation</a>). Currently defined global patterns are available at <a href="../EVpatterns.xml">EVpatterns.xml</a>
+Patterns used in <span class="parameter">IOPath</span> parameter are stored in the IWWE&amp;M server in an XML document, which follows the XML Schema <a href="IWWEM-patterns.xsd">IWWEM-patterns.xsd</a> (<a href="IWWEM-patterns.xsd.html">documentation</a>). Currently defined global patterns are available at <a href="../EVpatterns.xml">EVpatterns.xml</a>
 
 <hr>
 <a name="IWWEMconfirm"><div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend">IWWEMconfirm</span> frontend documentation and call parameters</h2></div></a>

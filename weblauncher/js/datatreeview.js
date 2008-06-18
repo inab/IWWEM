@@ -230,9 +230,10 @@ DataTreeView.prototype = {
 					var virhash={};
 					for(var matchi=0;matchi<data.dataMatches.length;matchi++) {
 						var match=data.dataMatches[matchi];
-						var virfacet='#'+match.pattern+'['+match.numMatch+']';
-						virhash[virfacet]=match.data;
-						this.generateIO(virfacet,virhash,match.data.mimeList,conspan,locObject.newChild(virfacet));
+						var virfacet=match.pattern+'['+match.numMatch+']';
+						var virfacetname='#'+virfacet;
+						virhash[virfacetname]=match.data;
+						this.generateIO(virfacetname,virhash,match.data.mimeList,conspan,locObject.newChild(virfacet,true));
 					}
 
 					span.appendChild(conspan);
@@ -258,9 +259,10 @@ DataTreeView.prototype = {
 								var virhash={};
 								for(var matchi=0;matchi<dataMatches.length;matchi++) {
 									var match=dataMatches[matchi];
-									var virfacet='#'+match.pattern+'['+match.numMatch+']';
-									virhash[virfacet]=match.data;
-									datatreeview.generateIO(virfacet,virhash,match.data.mimeList,conspan,locObject.newChild(virfacet));
+									var virfacet=match.pattern+'['+match.numMatch+']';
+									var virfacetname='#'+virfacet;
+									virhash[virfacetname]=match.data;
+									datatreeview.generateIO(virfacetname,virhash,match.data.mimeList,conspan,locObject.newChild(virfacet,true));
 								}
 
 								span.appendChild(conspan);

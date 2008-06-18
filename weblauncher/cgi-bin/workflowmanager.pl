@@ -78,7 +78,8 @@ foreach my $param ($query->param()) {
 					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 
-					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$snapId']",$catdoc);
+					my($transsnapId)=WorkflowCommon::patchXMLString($snapId);
+					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transsnapId']",$catdoc);
 					foreach my $snap (@eraseSnap) {
 						$prettyname=$snap->getAttribute('name');
 						$resMail=$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
@@ -93,7 +94,8 @@ foreach my $param ($query->param()) {
 					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 
-					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$examId']",$catdoc);
+					my($transexamId)=WorkflowCommon::patchXMLString($examId);
+					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$transexamId']",$catdoc);
 					foreach my $exam (@eraseExam) {
 						$prettyname=$exam->getAttribute('name');
 						$resMail=$exam->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
@@ -274,7 +276,8 @@ foreach my $wf (@workflowlist) {
 			eval {
 				if(defined($isSnapshot)) {
 					my $cat = $parser->parse_file($listDir.'/'.$WorkflowCommon::CATALOGFILE);
-					my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$wf']",$cat);
+					my($transwf)=WorkflowCommon::patchXMLString($wf);
+					my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$transwf']",$cat);
 					foreach my $snapNode (@snaps) {
 						$responsibleMail=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
 						$responsibleName=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLENAME);
