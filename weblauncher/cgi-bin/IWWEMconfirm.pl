@@ -306,7 +306,7 @@ print <<EOF;
 	<head><title>IWWE&amp;M IWWEMconfirm operations report</title></head>
 	<body>
 <div align="center"><h1 style="font-size:32px;"><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a>
-<a href="$operURL">IWWE&amp;M</a> v0.6.1 IWWEMconfirm operations report</h1></div>
+<a href="$operURL">IWWE&amp;M</a> v0.6.2 IWWEMconfirm operations report</h1></div>
 $tabledone
 	</body>
 </html>

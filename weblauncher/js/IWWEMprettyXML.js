@@ -138,7 +138,7 @@ var IWWEMPrettyXML = {
 					nodeValue+=sibling.nodeValue;
 				}
 				
-				nodeValue=nodeValue.replace(/\n/g,"\n\r");
+				nodeValue=nodeValue.split("\n").join("\r\n");
 				thediv=thedoc.createElement('pre');
 				thediv.className = 'text';
 				thediv.appendChild(thedoc.createTextNode(nodeValue));
@@ -149,7 +149,8 @@ var IWWEMPrettyXML = {
 					nodeValue+=sibling.nodeValue;
 				}
 				
-				nodeValue=nodeValue.replace(/\n/g,"\n\r");
+				nodeValue=nodeValue.split("\n").join("\r\n");
+				//nodeValue=nodeValue.replace(/\n/g,"\r\n");
 				thediv=thedoc.createElement('pre');
 				thediv.className = 'cdata';
 				thediv.appendChild(thedoc.createTextNode(nodeValue));

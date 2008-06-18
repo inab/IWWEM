@@ -91,18 +91,85 @@
 	vertical-align: middle;
 }
 
-TD.data {
-	vertical-align: top;
+TD.data , TD.middle, TD.equal, TD.half {
+	vertical-align:middle;
+	
 	empty-cells: show;
-	display: table-cell;
 	overflow: auto;
 }
 
-TD.middle {
+TD.data , TD.middle, TD.half {
+	min-height:85%;
+	height:85%;
+	max-height:85%;
+}
+
+TD.data {
+	min-width:30%;
+	width:30%;
+	max-width:30%;
+	
+	/*
 	vertical-align: top;
-	empty-cells: show;
 	display: table-cell;
-	width: 375;
+	*/
+}
+
+TD.middle {
+	min-width:40%;
+	width:40%;
+	max-width:40%;
+}
+
+TD.equal {
+	min-height:65%;
+	height:65%;
+	max-height:65%;
+	
+	min-width:33%;
+	width:33%;
+	max-width:33%;
+}
+
+TD.half {
+	min-width:50%;
+	width:50%;
+	max-width:50%;
+}
+
+TR.header , TR.message {
+	width:100%;
+	min-height:1%;
+	height:1%;
+	max-height:1%;
+	vertical-align: top;
+}
+
+TABLE.wfdatabrowse {
+	width:100%;
+	height:85%;
+	margin:0px;
+	padding:0px;
+	table-layout:fixed;
+}
+
+TBODY.generictbody {
+	width:100%;
+	height:90%;
+}
+
+.svgdiv , .fulldiv {
+	width:100%;
+	height:100%;
+	vertical-align: middle;
+}
+
+.svgdiv {
+	text-align: center;
+}
+
+.fulldiv {
+	text-align: left;
 }
 
 .scroll {
@@ -110,7 +177,7 @@ TD.middle {
 	empty-cells: show;
 	display: block;
 	width:100%;
-	height:120mm;
+	height:100%;
 	overflow: auto;
 	text-align: left;
 }
@@ -129,7 +196,6 @@ TD.middle {
 
 .scrolldatawide {
 	vertical-align: top;
-	empty-cells: show;
 	display: block;
 	width:100%;
 	height:100%;

@@ -17,13 +17,22 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish
 	this._svgloadtimer = undefined;
 	this.svglink = undefined;
 	this.svgobj = undefined;
-	this.asEmbed=undefined;
 	this.defaultsvg = undefined;
 	this.defaultid = undefined;
 	this.defaultbestScaleW = undefined;
 	this.defaultbestScaleH = undefined;
 	this.defaultCallOnFinish = undefined;
 	this.defaultthedoc = undefined;
+	
+	if(BrowserDetect.browser=='Konqueror' || BrowserDetect.browser=='Explorer') {
+		this.defaultPreStyle="overflow: auto;";
+		this.defaultCreateStyle="";
+		this.asEmbed= BrowserDetect.browser!='Konqueror';
+	} else {
+		this.defaultPreStyle="overflow: hidden;";
+		this.defaultCreateStyle="width:0;height:0;";
+		this.asEmbed=false;
+	}
 	
 	this.loading = undefined;
 	this.queue = new Array();
@@ -34,7 +43,6 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish
 	var me = this;
 	this.timeoutLoad = function() {
 		me.loading=true;
-		//debugger;
 		me.loadQueuedSVG();
 	};
 	
@@ -92,8 +100,12 @@ TavernaSVG.prototype = {
 			// Second, remove trampoline
 			this.SVGtramp=undefined;
 			// Third, remove previous SVG
-			this.svgobj.style.display='none';
-			this.svgobj.style.visibility='hidden';
+			if(this.asEmbed) {
+				this.svgobj.style.display='none';
+				this.svgobj.style.visibility='hidden';
+			} else {
+				this.svgobj.setAttribute("style","display:none;visibility:hidden;");
+			}
 			/*
 			try {
 				this.svgobj.parentNode.removeChild(this.svgobj);
@@ -104,7 +116,6 @@ TavernaSVG.prototype = {
 			*/
 			// And any trace!
 			this.svgobj=undefined;
-			this.asEmbed=undefined;
 			this.current=undefined;
 		}
 		return svgobj;
@@ -160,15 +171,13 @@ TavernaSVG.prototype = {
 				this.SVGtramp.setBestScaleFromConstraintDimensions(lenW,lenH);
 			}
 			
-			//if(!this.asEmbed) {
-			/*
+			if(this.asEmbed) {
 				this.svgobj.style.width  = this.SVGtramp.width;
 				this.svgobj.style.height = this.SVGtramp.height;
 			} else {
-			*/
-				this.svgobj.style.width  = this.SVGtramp.width;
-				this.svgobj.style.height = this.SVGtramp.height;
-			//}
+				//this.svgobj.setAttribute("style",this.defaultPreStyle+" width:"+this.SVGtramp.width+"; height:"+lenH+";");
+				this.svgobj.setAttribute("style",this.defaultPreStyle+" width:"+this.SVGtramp.width+"; height:"+this.SVGtramp.height+";");
+			}
 		}
 	},
 
@@ -256,7 +265,13 @@ TavernaSVG.prototype = {
 		this.svglink=ahref;
 
 		var gensvgid = WidgetCommon.getRandomUUID();
-		var objres = undefined;
+		
+		var objres = this.svgobj = thedoc.createElement(this.asEmbed?"embed":"object");
+		objres.setAttribute('id',gensvgid);
+		objres.setAttribute("type","image/svg+xml");
+		//objres.setAttribute("style","overflow: hidden; border: 1px dotted #000;width:0;height:0");
+		//objres.setAttribute("style","overflow: auto; width:0;height:0;");
+		objres.setAttribute("style",this.defaultPreStyle+this.defaultCreateStyle);
 		
 		var thissvg=this;
 		if(BrowserDetect.browser!='Explorer') {
@@ -281,17 +296,7 @@ TavernaSVG.prototype = {
 				thissvg.loading=setTimeout(thissvg.timeoutLoad,163);
 			};
 
-			this.svgobj = objres=thedoc.createElement('object');
-			objres.setAttribute('id',gensvgid);
-			objres.setAttribute("type","image/svg+xml");
 			objres.setAttribute("wmode","transparent");
-			//objres.setAttribute("style","overflow: hidden; border: 1px dotted #000;width:0;height:0");
-			if(BrowserDetect.browser!='Konqueror') {
-				objres.setAttribute("style","overflow: hidden; width:0;height:0;");
-				//objres.setAttribute("style","overflow: auto; width:0;height:0;");
-			} else {
-				objres.setAttribute("style","overflow: auto;");
-			}
 			objres.onload=finishfunc;
 			/*
 			if(BrowserDetect.browser=='Explorer') {
@@ -299,23 +304,16 @@ TavernaSVG.prototype = {
 				objres.setAttribute('classid', 'clsid:78156a80-c6a1-4bbf-8e6a-3cd390eeb4e2');
 			}
 			*/
-			this.asEmbed=undefined;
 			objres.setAttribute("data",url);
 		} else {
-			this.svgobj = objres = thedoc.createElement('embed');
-			objres.setAttribute('id',gensvgid);
-			objres.setAttribute("type","image/svg+xml");
 			objres.setAttribute("pluginspage","http://www.adobe.com/svg/viewer/install/");
-			objres.setAttribute("style","overflow: auto;");
-			this.asEmbed=true;
 			// This line was killing IE and WebKit js
 			// objres.innerHTML="This browser is not able to show SVG: <a href='http://getfirefox.com'>http://getfirefox.com</a> is free and does it! If you use Internet Explorer, you can also get a plugin: <a href='http://www.adobe.com/svg/viewer/install/main.html'>http://www.adobe.com/svg/viewer/install/main.html</a>";
-
+			
 			objres.setAttribute("src",url);
 			var finishfuncIE = function(evt) {
 				// Transferring the trampoline!
 				if((objres.readyState=='loaded' || objres.readyState=='complete') && window.SVGtrampoline) {
-							//debugger;
 					clearTimeout(thissvg._svgloadtimer);
 					thissvg._svgloadtimer=undefined;
 					// Transferring the trampoline!

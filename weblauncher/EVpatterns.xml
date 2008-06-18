@@ -36,7 +36,7 @@
         <assignMIME type="text/plain"/>
     </detectionPattern>
     <detectionPattern name="FsolvText">
-        <description>FSolv Extractor</description>
+        <description>MOBY FSolv Extractor</description>
         <applyToMIME type="text/xml"/>
         <expression>
             <xpath expression="//moby:FSOLV_Text/moby:String[@articleName='content' or @moby:articleName='content']">
@@ -49,10 +49,36 @@
         <assignMIME type="text/plain"/>
     </detectionPattern>
     <detectionPattern name="GFF">
-        <description>GFF Extractor</description>
+        <description>MOBY GFF Extractor</description>
         <applyToMIME type="text/xml"/>
         <expression>
             <xpath expression="//moby:GFF/moby:String[@articleName='content' or @moby:articleName='content']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="raw">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="text/plain"/>
+    </detectionPattern>
+    <detectionPattern name="Blast">
+        <description>MOBY Blast Extractor</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//moby:BLAST-Text/moby:String[@articleName='content' or @moby:articleName='content']">
+                <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
+            </xpath>
+        </expression>
+        <extractionStep encoding="raw">
+            <reExpression/>
+        </extractionStep>
+        <assignMIME type="text/plain"/>
+    </detectionPattern>
+    <detectionPattern name="ALTBlast">
+        <description>MOBY Blast Extractor</description>
+        <applyToMIME type="text/xml"/>
+        <expression>
+            <xpath expression="//BLAST-Text/String[@articleName='content' or @moby:articleName='content']">
                 <nsMapping prefix="moby" ns="http://www.biomoby.org/moby"/>
             </xpath>
         </expression>
@@ -101,7 +127,7 @@
         <assignMIME type="biotree/newick"/>
         <assignMIME type="text/plain"/>
     </detectionPattern>
-    <detectionPattern name="BADMOBYNewick">
+    <detectionPattern name="ALTMOBYNewick">
         <description>MOBY Newick extractor (Newick format is defined at http://evolution.genetics.washington.edu/phylip/newicktree.html)</description>
         <applyToMIME type="text/xml"/>
         <expression>
@@ -129,7 +155,7 @@
         <assignMIME type="bioinformatics/x-msa"/>
         <assignMIME type="text/plain"/>
     </detectionPattern>
-    <detectionPattern name="BADMOBYMSA">
+    <detectionPattern name="ALTMOBYMSA">
         <description>MOBY Multiple Sequence Alignment Extractor</description>
         <applyToMIME type="text/xml"/>
         <expression>

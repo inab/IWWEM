@@ -54,9 +54,17 @@ function ManagerView(genview) {
 	// this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown.svg','75mm','90mm');
 	this.svgdivid='wfsvgdiv';
 	var parentno=this.genview.getElementById(this.svgdivid).parentNode;
+	/*
+
 	var maxwidth=(parentno.offsetWidth-32)+'px';
 	var maxheight=(parentno.offsetHeight-32)+'px';
+	
 	this.svg=new TavernaSVG(this.svgdivid,'style/unknown-inb.svg',maxwidth,maxheight,function() {
+		manview.updateSVGSize();
+	});
+	*/
+	
+	this.svg=new TavernaSVG(this.svgdivid,'style/unknown-inb.svg',undefined,undefined,function() {
 		manview.updateSVGSize();
 	});
 	
@@ -105,6 +113,8 @@ function ManagerView(genview) {
 	},false);
 	
 	// SVG resize
+	this.tableContainer=this.genview.getElementById("tableContainer");
+	this.formManager=this.genview.getElementById("formManager");
 	WidgetCommon.addEventListener(window,'resize',function() {
 		manview.updateSVGSize();
 	},false);
@@ -135,7 +145,7 @@ function ManagerView(genview) {
 		
 		// Setting up the title
 		var pageTitle=this.genview.getElementById('titleB');
-		pageTitle.innerHTML='Interactive Enaction Inspector v0.6.1';
+		pageTitle.innerHTML='Interactive Enaction Inspector v0.6.2';
 		// Deactivating buttons!!!
 		var useDiv=this.genview.getElementById('useDiv');
 		useDiv.style.display='none';
@@ -760,7 +770,8 @@ NewEnactionView.prototype = {
 						exampleDesc.BasePath='js/FCKeditor/';
 						exampleDesc.Config['CustomConfigurationsPath']=basehref+'/js/fckconfig_IWWEM.js';
 						var fckdiv=this.genview.createElement('div');
-						fckdiv.setAttribute('style','margin:0px;padding:0px;');
+						fckdiv.style.margin='0px';
+						fckdiv.style.padding='0px';
 						fckdiv.innerHTML = exampleDesc.CreateHtml();
 						this.saveExampleDiv.appendChild(fckdiv);
 					} else {
@@ -876,36 +887,47 @@ NewEnactionView.prototype = {
 
 		// Table for data browser
 		var table=this.genview.createElement('table');
-		table.setAttribute('style','width:100%; height:100%;margin:0px;padding:0px;table-layout:fixed;display:none;');
-
+		table.className='wfdatabrowse';
+		var tabledisplay=table.style.display;
+		table.style.display='none';
+		
+		var tbody=this.genview.createElement('tbody');
+		tbody.className='generictbody';
+		table.appendChild(tbody);
+		
 		var tr0=this.genview.createElement('tr');
-		table.appendChild(tr0);
+		tr0.style.height='1%';
+		tbody.appendChild(tr0);
 		var td1=this.genview.createElement('td');
-		td1.setAttribute("rowspan","2");
-		td1.setAttribute('style','width:50%;height:100%;');
+		td1.rowSpan=2;
+		td1.style.width='50%';
+		td1.style.height='100%';
 		tr0.appendChild(td1);
 		var dataTreeDiv=this.genview.createElement('div');
 		var dataTreeDivId=WidgetCommon.getRandomUUID();
 		dataTreeDiv.setAttribute('id',dataTreeDivId);
-		dataTreeDiv.setAttribute('class','scrolldatawide');
+		dataTreeDiv.className='scrolldatawide';
 		td1.appendChild(dataTreeDiv);
 		
 		var mimeInfoSelect=this.genview.createElement('td');
 		mimeInfoSelectId=WidgetCommon.getRandomUUID();
 		mimeInfoSelect.setAttribute('id',mimeInfoSelectId);
-		mimeInfoSelect.setAttribute('style','width:50%;overflow:hidden');
+		mimeInfoSelect.style.width='50%';
+		mimeInfoSelect.style.height='1%';
+		mimeInfoSelect.style.overflow='hidden';
 		tr0.appendChild(mimeInfoSelect);
 		
 		var tr=this.genview.createElement('tr');
-		tr.setAttribute('style','vertical-align:middle');
-		table.appendChild(tr);
+		tr.style.height='100%';
+		tbody.appendChild(tr);
 		var td2=this.genview.createElement('td');
-		td2.setAttribute('style','width:50%;height:100%;');
+		td2.style.width='50%';
+		td2.style.height='100%';
 		tr.appendChild(td2);
 		var databrowser=this.genview.createElement('div');
 		var databrowserId=WidgetCommon.getRandomUUID();
 		databrowser.setAttribute('id',databrowserId);
-		databrowser.setAttribute('class','scroll');
+		databrowser.className='scroll';
 		td2.appendChild(databrowser);
 
 		this.inputsContainer.appendChild(table);
@@ -952,9 +974,9 @@ NewEnactionView.prototype = {
 
 					divdesc.innerHTML=output;
 				} else {
-					newenactview.inputsContainer.className='';
+					newenactview.inputsContainer.className='fulldiv';
 					divdesc.style.display='none';
-					table.style.display='table';
+					table.style.display=tabledisplay;
 					
 					var exampleUUID=example.getQualifiedUUID();
 					if(exampleUUID in stepCache) {
@@ -967,28 +989,80 @@ NewEnactionView.prototype = {
 						var theurl = WidgetCommon.generateQS(qsParm,"cgi-bin/IWWEMproxy");
 						try {
 							request=new XMLHttpRequest();
-							request.onload = function() {
-								var response = request.responseXML;
-								if(!response) {
-									if(request.responseText) {
-										var parser = new DOMParser();
-										response = parser.parseFromString(request.responseText,'application/xml');
-									} else {
-										// Backend error.
-										genview.addMessage(
-											'<blink><h1 style="color:red">FATAL ERROR B: (with '+
-											theurl+
-											') Please notify it to INB Web Workflow Manager developer</h1></blink>'
-										);
+							var requestonload = function() {
+								if(request.parseError && request.parseError.errorCode!=0) {
+									genview.setMessage(
+										'<blink><h1 style="color:red">FATAL ERROR ('+
+										request.parseError.errorCode+
+										") while parsing example at ("+
+										request.parseError.line+
+										","+request.parseError.linePos+
+										"):</h1></blink><pre>"+
+										request.parseError.reason+
+										"</pre>"
+									);
+								} else {
+									var response = request.responseXML;
+									if(!response) {
+										if(request.responseText) {
+											var parser = new DOMParser();
+											response = parser.parseFromString(request.responseText,'application/xml');
+										} else {
+											// Backend error.
+											genview.addMessage(
+												'<blink><h1 style="color:red">FATAL ERROR B: (with '+
+												theurl+
+												') Please notify it to INB Web Workflow Manager developer</h1></blink>'
+											);
+										}
 									}
+									// Only parse when an answer is available
+									stepCache[exampleUUID]=new EnactionStep(response.documentElement);
+									viewExample(exampleUUID);
 								}
-								// Only parse when an answer is available
-								stepCache[exampleUUID]=new EnactionStep(response.documentElement);
-								viewExample(exampleUUID);
-
-								request.onload=function() {};
-								request=undefined;
+								if(request.onload) {
+									request.onload=function() {};
+									requestonload=undefined;
+									request=undefined;
+								}
 							};
+							
+							if(request.onload) {
+								request.onload=requestonload;
+							} else {
+								request.onreadystatechange = function() {
+									if(request.readyState==4) {
+										try {
+											if('status' in request) {
+												if(request.status==200) {
+													requestonload();
+												} else {
+													// Communications error.
+													var statusText='';
+													if(('statusText' in request) && request['statusText']) {
+														statusText=request.statusText;
+													}
+													genview.setMessage(
+														'<blink><h1 style="color:red">FATAL ERROR while collecting example info: '+
+														request.status+' '+statusText+'</h1></blink>'
+													);
+												}
+											} else {
+												genview.addMessage(
+													'<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>'
+												);
+											}
+										} catch(e) {
+											genview.setMessage(
+												'<blink><h1 style="color:red">FATAL ERROR: Unable to complete example load!</h1></blink><pre>'+
+												WidgetCommon.DebugError(e)+'</pre>'
+											);
+										}
+										request.onreadystatechange=function() {};
+										request=undefined;
+									}
+								};
+							}
 
 							// Now it is time to send the query
 							request.open('GET',theurl,true);
@@ -997,7 +1071,7 @@ NewEnactionView.prototype = {
 							genview.addMessage(
 								'<blink><h1 style="color:red">FATAL ERROR: Unable to browse '+
 								theurl+
-								' reload!</h1></blink><pre>'+
+								' example!</h1></blink><pre>'+
 								WidgetCommon.DebugError(e)+
 								'</pre>'
 							);

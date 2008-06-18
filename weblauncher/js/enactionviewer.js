@@ -142,7 +142,9 @@ function EnactionView(genview) {
 	};
 	
 	// At last, getting the enaction id
-	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg');
+	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg',undefined,undefined,function() {
+		enactview.updateSVGSize();
+	});
 	// SVG resize
 	WidgetCommon.addEventListener(window,'resize',function() {
 		enactview.updateSVGSize();
@@ -449,7 +451,8 @@ EnactionView.prototype = {
 	/* This method updates the size of the workflow */
 	updateSVGSize: function () {
 		var parentno=this.genview.getElementById(GeneralView.SVGDivId).parentNode;
-		var maxwidth=(parentno.clientWidth-32)+'px';
+		//var maxwidth=(parentno.clientWidth-32)+'px';
+		var maxwidth=(parentno.offsetWidth-32)+'px';
 		var maxheight=(parentno.offsetHeight-32)+'px';
 		this.svg.SVGrescale(maxwidth,maxheight);
 	},

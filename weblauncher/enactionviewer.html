@@ -1,6 +1,6 @@
 <html>
 <head>
-	<title>INB Interactive Web Workflow Enaction Viewer v0.6.1</title>
+	<title>INB Interactive Web Workflow Enaction Viewer v0.6.2</title>
 	<!--
 		$Id$
 		enactionviewer.html
@@ -39,27 +39,33 @@
 	<script type="text/javascript" src="js/enactionviewer.js"></script>
 </head>
 <body onload="InitIWWEM(EnactionViewerCustomInit)" onunload="DisposeIWWEM(EnactionViewerCustomDispose)">
-<div align="center"><b><a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> Interactive Web Workflow Enaction Viewer v0.6.1</b></div>
-	<table style="width:100%;table-layout:fixed;">
-		<tr><td colspan="2" class="middle">
+	<div style="width:100%;height:90%;">
+	<table align="center" style="height:98%;width:98%;table-layout:fixed;"><tbody style="height:90%;width:98%;table-layout:fixed;">
+		<tr class="header"><td colspan="6" align="center">
+			<b><a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> Interactive Web Workflow Enaction Viewer v0.6.2</b>
+		</td></tr>
+		<tr class="header"><td colspan="2">
 			<u>Report date</u>: <span id="dateSpan"><i>(empty)</i></span><br>
 			<u>Responsible</u>: <span id="responsibleSpan"><i>(empty)</i></span><br>
 			<u>General status</u>: <span id="generalStatusSpan"><marquee behavior="alternate" loop="-1" style="display:inline;"><font color="violet"><b><blink>loading application</blink></b></font> <img src="style/ajaxLoader.gif"></marquee></span>
-		</td><td colspan="2" class="data" style="width:33%;max-width:33%;">
+		</td><td colspan="2">
 			<u>Workflow</u>: <span id="wfTitleSpan"></span><br>
 			<u>Step</u>: <span id="stageSpan"></span><br>
 			<u>State</u>: <span id="stageStateSpan"></span>
-		</td><td colspan="2" style="width:33%;max-width:33%;vertical-align:top" id="mimeInfoSelect">
-		</td></tr><tr><td colspan="2" class="middle">
-			<div align="center" id="svgdiv"></div>
+		</td><td colspan="2" id="mimeInfoSelect">
+		</td></tr>
+		<tr><td colspan="2" class="equal">
+			<div class="svgdiv" id="svgdiv"></div>
 			<!--<select name="workflow" id="workflow" style="width:230px;" size="20"></select>-->
-		</td><td colspan="2" class="data" style="width:33%;max-width:33%;">
-			<div class="scrolldatawide" style="height:120mm;" id="dataTreeDiv"></div>
-		</td><td colspan="2" style="width:33%;max-width:33%;" align="center" valign="top">
+		</td><td colspan="2" class="equal">
+			<div class="scrolldatawide" id="dataTreeDiv"></div>
+		</td><td colspan="2" class="equal" align="center" valign="top">
 			<div id="databrowser" class="scroll"></div>
-		</td></tr><tr><td colspan="6" align="right">
+		</td></tr>
+		<tr><td colspan="6" align="right">
 			<span id="confirm" class='checkboxred checkbox right'>Confirm</span>
-		</td><tr><td class="buttons" align="center">
+		</td></tr>
+		<tr><td class="buttons" align="center">
 			<div id="reloadButton" class="button"><span id="updateTextSpan">Update</span> <img src="style/reload.png"></div>
 		</td><td class="buttons" align="center">
 			<div class="button" onclick="genview.enactview.openOtherEnactionFrame()">Open enaction<img src="style/blueplus.png"></div>
@@ -72,13 +78,13 @@
 		</td><td class="buttons" align="center">
 			<div id="disposeButton" class="button">Dispose <img src="style/recycle.png"></img></div>
 		</td></tr>
-	</table>
 	<!-- Messages table -->
-	<div align="left">
-		<u>Last operation message</u>
-		<div id="messageDiv"></div>
+		<tr class="message"><td colspan="6" style="overflow:auto">
+			<p><u>Last operation message</u></p>
+			<div id="messageDiv"></div>
+		</td></tr>
+	</tbody></table>
 	</div>
-</div>
 <div class="hidden" id="outerAbsDiv">
 </div>
 <div class="hidden" id="viewOtherEnaction">

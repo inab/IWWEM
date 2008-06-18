@@ -18,149 +18,140 @@
 **/
 
 var Base64 = {
-
-    // private property
-    _keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
-
-    // public method for encoding
-    encode : function (input, /* optional */ noUTF8) {
-        var output = "";
-        var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-        var i = 0;
+	// private property
+	_keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
 	
-	if(!noUTF8) {
-	        input = Base64._utf8_encode(input);
-	}
+	// public method for encoding
+	encode : function (input, /* optional */ noUTF8) {
+		var output = new Array();
+		var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+		var i = 0;
+		
+		if(!noUTF8) {
+			input = this._utf8_encode(input);
+		}
+		
+		while (i < input.length) {
+			chr1 = input.charCodeAt(i++);
+			chr2 = input.charCodeAt(i++);
+			chr3 = input.charCodeAt(i++);
 
-        while (i < input.length) {
+			enc1 = chr1 >> 2;
+			enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+			enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+			enc4 = chr3 & 63;
 
-            chr1 = input.charCodeAt(i++);
-            chr2 = input.charCodeAt(i++);
-            chr3 = input.charCodeAt(i++);
+			if (isNaN(chr2)) {
+				enc3 = enc4 = 64;
+			} else if (isNaN(chr3)) {
+				enc4 = 64;
+			}
 
-            enc1 = chr1 >> 2;
-            enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-            enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-            enc4 = chr3 & 63;
+			output.push(
+				this._keyStr.charAt(enc1),
+				this._keyStr.charAt(enc2),
+				this._keyStr.charAt(enc3),
+				this._keyStr.charAt(enc4)
+			);
+		}
 
-            if (isNaN(chr2)) {
-                enc3 = enc4 = 64;
-            } else if (isNaN(chr3)) {
-                enc4 = 64;
-            }
-
-            output = output +
-            this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
-            this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
-
-        }
-
-        return output;
-    },
-
-    // public method for decoding
-    decode : function (input, /* optional */ noUTF8) {
-        var output = "";
-        var chr1, chr2, chr3;
-        var enc1, enc2, enc3, enc4;
-        var i = 0;
+		return output.join("");
+	},
 	
-        input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+	// public method for decoding
+	decode : function (input, /* optional */ noUTF8) {
+		var output = new Array();
+		var chr1, chr2, chr3;
+		var enc1, enc2, enc3, enc4;
+		var i = 0;
 
-        while (i < input.length) {
+		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
-            enc1 = this._keyStr.indexOf(input.charAt(i++));
-            enc2 = this._keyStr.indexOf(input.charAt(i++));
-            enc3 = this._keyStr.indexOf(input.charAt(i++));
-            enc4 = this._keyStr.indexOf(input.charAt(i++));
+		while (i < input.length) {
+			enc1 = this._keyStr.indexOf(input.charAt(i++));
+			enc2 = this._keyStr.indexOf(input.charAt(i++));
+			enc3 = this._keyStr.indexOf(input.charAt(i++));
+			enc4 = this._keyStr.indexOf(input.charAt(i++));
 
-            chr1 = (enc1 << 2) | (enc2 >> 4);
-            chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-            chr3 = ((enc3 & 3) << 6) | enc4;
+			chr1 = (enc1 << 2) | (enc2 >> 4);
+			chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+			chr3 = ((enc3 & 3) << 6) | enc4;
 
-            output = output + String.fromCharCode(chr1);
+			output.push(String.fromCharCode(chr1));
 
-            if (enc3 != 64) {
-                output = output + String.fromCharCode(chr2);
-            }
-            if (enc4 != 64) {
-                output = output + String.fromCharCode(chr3);
-            }
+			if (enc3 != 64) {
+				output.push(String.fromCharCode(chr2));
+			}
+			if (enc4 != 64) {
+				output.push(String.fromCharCode(chr3));
+			}
+		}
 
-        }
+		if(!noUTF8) {
+			output = this._utf8_decode(output);
+		}
+
+		return output.join("");
+	},
 	
-	if(!noUTF8) {
-	        output = Base64._utf8_decode(output);
-	}
+	// private method for UTF-8 encoding
+	_utf8_encode : function (str) {
+		str = str.replace(/\r\n/g,"\n");
+		var utftext = new Array();
+		
+		for (var n = 0; n < str.length; n++) {
+			var c = str.charCodeAt(n);
 
-        return output;
+			if (c < 128) {
+				utftext.push(String.fromCharCode(c));
+			} else if((c > 127) && (c < 2048)) {
+				utftext.push(String.fromCharCode((c >> 6) | 192));
+				utftext.push(String.fromCharCode((c & 63) | 128));
+			} else {
+				utftext.push(String.fromCharCode((c >> 12) | 224));
+				utftext.push(String.fromCharCode(((c >> 6) & 63) | 128));
+				utftext.push(String.fromCharCode((c & 63) | 128));
+			}
+		}
 
-    },
+		return utftext.join("");
+	},
+	
+	// private method for UTF-8 decoding
+	_utf8_decode : function (utftext) {
+		var str = new Array();
+		var i = 0;
+		var c = c1 = c2 = 0;
+		
+		var utfarr=(utftext instanceof Array)?utftext:utftext.split("");
 
-    // private method for UTF-8 encoding
-    _utf8_encode : function (string) {
-        string = string.replace(/\r\n/g,"\n");
-        var utftext = "";
+		while (i < utfarr.length) {
+			c = utfarr[i].charCodeAt(0);
 
-        for (var n = 0; n < string.length; n++) {
+			if (c < 128) {
+				str.push(String.fromCharCode(c));
+				i++;
+			} else if((c > 191) && (c < 224)) {
+				c2 = utfarr[i+1].charCodeAt(0);
+				str.push(String.fromCharCode(((c & 31) << 6) | (c2 & 63)));
+				i += 2;
+			} else {
+				c2 = utfarr[i+1].charCodeAt(0);
+				c3 = utfarr[i+2].charCodeAt(0);
+				str.push(String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63)));
+				i += 3;
+			}
+		}
 
-            var c = string.charCodeAt(n);
-
-            if (c < 128) {
-                utftext += String.fromCharCode(c);
-            }
-            else if((c > 127) && (c < 2048)) {
-                utftext += String.fromCharCode((c >> 6) | 192);
-                utftext += String.fromCharCode((c & 63) | 128);
-            }
-            else {
-                utftext += String.fromCharCode((c >> 12) | 224);
-                utftext += String.fromCharCode(((c >> 6) & 63) | 128);
-                utftext += String.fromCharCode((c & 63) | 128);
-            }
-
-        }
-
-        return utftext;
-    },
-
-    // private method for UTF-8 decoding
-    _utf8_decode : function (utftext) {
-        var string = "";
-        var i = 0;
-        var c = c1 = c2 = 0;
-
-        while ( i < utftext.length ) {
-
-            c = utftext.charCodeAt(i);
-
-            if (c < 128) {
-                string += String.fromCharCode(c);
-                i++;
-            }
-            else if((c > 191) && (c < 224)) {
-                c2 = utftext.charCodeAt(i+1);
-                string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
-                i += 2;
-            }
-            else {
-                c2 = utftext.charCodeAt(i+1);
-                c3 = utftext.charCodeAt(i+2);
-                string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-                i += 3;
-            }
-
-        }
-
-        return string;
-    },
+		return (utftext instanceof Array)?str:str.join("");
+	},
     
 	// public method for Base64 stream decoding
 	streamFromBase64ToByte: function (input, end_callback, /* optional */ noUTF8, i, output) {
 		if(!i) {
 			i=0;
         		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-			if(!output)  output="";
+			if(output==undefined || output==null)  output=new Array();
 		}
 		
 		var _keyStr = this._keyStr;
@@ -176,13 +167,13 @@ var Base64 = {
 			var chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
 			var chr3 = ((enc3 & 3) << 6) | enc4;
 
-			output += String.fromCharCode(chr1);
+			output.push(String.fromCharCode(chr1));
 
 			if (enc3 != 64) {
-				output += String.fromCharCode(chr2);
+				output.push(String.fromCharCode(chr2));
 			}
 			if (enc4 != 64) {
-				output += String.fromCharCode(chr3);
+				output.push(String.fromCharCode(chr3));
 			}
 		}
 		
@@ -191,36 +182,35 @@ var Base64 = {
 				Base64.streamFromBase64ToByte(input,end_callback,noUTF8,i,output);
 			},100);
 		} else if(noUTF8) {
-			end_callback(output);
+			end_callback(output.join(""));
 		} else {
 			// Next chain
 			setTimeout(function() {
-				Base64.streamFromByteToUTF8(output,end_callback);
+				Base64.streamFromByteToUTF8(output.join(""),end_callback);
 			},100);
 		}
 	},
 	
 	// private method for UTF8 stream decoding
 	streamFromByteToUTF8: function (bytetext, end_callback, /* optional */ i, utftext) {
-		if(!utftext)  utftext="";
+		if(utftext==undefined || utftext==null)  utftext=new Array();
 		if(!i)  i = 0;
 		
 		var blength=bytetext.length;
 		for(var ilocal=0 ; ilocal < 8192 && i < blength ; ilocal++) {
-
 			var c = bytetext.charCodeAt(i);
 
 			if (c < 128) {
-				utftext += String.fromCharCode(c);
+				utftext.push(String.fromCharCode(c));
 				i++;
 			} else if((c > 191) && (c < 224)) {
 				var c2 = bytetext.charCodeAt(i+1);
-				utftext += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+				utftext.push(String.fromCharCode(((c & 31) << 6) | (c2 & 63)));
 				i += 2;
 			} else {
 				var c2 = bytetext.charCodeAt(i+1);
 				var c3 = bytetext.charCodeAt(i+2);
-				utftext += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+				utftext.push(String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63)));
 				i += 3;
 			}
 		}
@@ -230,7 +220,7 @@ var Base64 = {
 				Base64.streamFromByteToUTF8(bytetext,end_callback,i,utftext);
 			},100);
 		} else {
-			end_callback(utftext);
+			end_callback(utftext.join(""));
 		}
 	},
 	
@@ -240,10 +230,12 @@ var Base64 = {
 			i=0;
         		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 			transientArr=new Array();
-			if(!output)  output="";
+			if(output==undefined || output==null)  output=new Array();
 		}
 		var _keyStr = this._keyStr;
 		var ilength = input.length;
+		
+		var outarr=new Array();
 		
 		for(var ilocal=0 ; ilocal<4096 && i<ilength ; ilocal++) {
 			var enc1 = _keyStr.indexOf(input.charAt(i++));
@@ -256,15 +248,12 @@ var Base64 = {
 			var chr3 = ((enc3 & 3) << 6) | enc4;
 
 			transientArr.push(chr1);
-			//output += String.fromCharCode(chr1);
 
 			if (enc3 != 64) {
 				transientArr.push(chr2);
-				//output += String.fromCharCode(chr2);
 			}
 			if (enc4 != 64) {
 				transientArr.push(chr3);
-				//output += String.fromCharCode(chr3);
 			}
 			
 			var toRemove=0;
@@ -273,22 +262,27 @@ var Base64 = {
 				while(toRemove < tLength) {
 					var c=transientArr[toRemove];
 					if(c < 128) {
-						output += String.fromCharCode(c);
+						//output += String.fromCharCode(c);
+						outarr.push(String.fromCharCode(c));
 						toRemove++;
 					} else if((c > 191) && (c < 224)) {
 						if((toRemove+1)>=tLength)  break;
-						output += String.fromCharCode(((c & 31) << 6) | (transientArr[toRemove+1] & 63));
+						//output += String.fromCharCode(((c & 31) << 6) | (transientArr[toRemove+1] & 63));
+						outarr.push(String.fromCharCode(((c & 31) << 6) | (transientArr[toRemove+1] & 63)));
 						toRemove+=2;
 					} else if((toRemove+1)>=tLength) {
 						break;
 					} else {
-						output += String.fromCharCode(((c & 15) << 12) | ((transientArr[toRemove+1] & 63) << 6) | (transientArr[toRemove+2] & 63));
+						//output += String.fromCharCode(((c & 15) << 12) | ((transientArr[toRemove+1] & 63) << 6) | (transientArr[toRemove+2] & 63));
+						outarr.push(String.fromCharCode(((c & 15) << 12) | ((transientArr[toRemove+1] & 63) << 6) | (transientArr[toRemove+2] & 63)));
 						toRemove+=3;
 					}
 				}
 				transientArr.splice(0,toRemove);
 			}
 		}
+		
+		output.push(outarr.join(""));
 		
 		if(i<ilength) {
 			setTimeout(function() {
@@ -298,27 +292,32 @@ var Base64 = {
 			// Last transient bytes must be converted
 			var tLength=transientArr.length;
 			if(tLength>0) {
+				outarr=new Array();
 				var toRemove=0;
 				while(toRemove < tLength) {
 					var c=transientArr[toRemove];
 					if(c < 128) {
-						output += String.fromCharCode(c);
+						//output += String.fromCharCode(c);
+						outarr.push(String.fromCharCode(c));
 						toRemove++;
 					} else if((c > 191) && (c < 224)) {
 						// An exception should be fired, instead a break
 						if((toRemove+1)>=tLength)  break;
-						output += String.fromCharCode(((c & 31) << 6) | (transientArr[toRemove+1] & 63));
+						//output += String.fromCharCode(((c & 31) << 6) | (transientArr[toRemove+1] & 63));
+						outarr.push(String.fromCharCode(((c & 31) << 6) | (transientArr[toRemove+1] & 63)));
 						toRemove+=2;
 					} else if((toRemove+1)>=tLength) {
 						// An exception should be fired, instead a break
 						break;
 					} else {
-						output += String.fromCharCode(((c & 15) << 12) | ((transientArr[toRemove+1] & 63) << 6) | (transientArr[toRemove+2] & 63));
+						//output += String.fromCharCode(((c & 15) << 12) | ((transientArr[toRemove+1] & 63) << 6) | (transientArr[toRemove+2] & 63));
+						outarr.push(String.fromCharCode(((c & 15) << 12) | ((transientArr[toRemove+1] & 63) << 6) | (transientArr[toRemove+2] & 63)));
 						toRemove+=3;
 					}
 				}
+				output.push(outarr.join(""));
 			}
-			end_callback(output);
+			end_callback(output.join(""));
 		}
 	},
 
@@ -331,8 +330,8 @@ var Base64 = {
 	
 	// private method for UTF-8 stream encoding
 	streamFromUTF8ToByte: function (utftext, end_callback, /* optional */ n, bytetext) {
-		if(!bytetext) {
-			bytetext="";
+		if(bytetext==undefined || bytetext==null) {
+			bytetext=new Array();
 			utftext = utftext.replace(/\r\n/g,"\n");
 		}
 		if(!n)  n = 0;
@@ -344,11 +343,11 @@ var Base64 = {
 			var c = utftext.charCodeAt(n);
 
 			if (c < 128) {
-				bytetext += String.fromCharCode(c);
+				bytetext.push(String.fromCharCode(c));
 			} else if((c > 127) && (c < 2048)) {
-				bytetext += String.fromCharCode((c >> 6) | 192 , (c & 63) | 128);
+				bytetext.push(String.fromCharCode((c >> 6) | 192 , (c & 63) | 128));
 			} else {
-				bytetext += String.fromCharCode((c >> 12) | 224 , ((c >> 6) & 63) | 128 , (c & 63) | 128);
+				bytetext.push(String.fromCharCode((c >> 12) | 224 , ((c >> 6) & 63) | 128 , (c & 63) | 128));
 			}
 		}
 		
@@ -357,14 +356,14 @@ var Base64 = {
 				Base64.streamFromUTF8ToByte(utftext,end_callback,n,bytetext);
 			},100);
 		} else {
-			end_callback(bytetext);
+			end_callback(bytetext.join(""));
 		}
 	},
 
 	streamFromByteToBase64 : function (input, end_callback, /* optional */ i , output) {
 		if(!i) {
 			i=0;
-			if(!output)  output="";
+			if(output==null || output==undefined)  output=new Array();
 		}
 		
 		var _keyStr = this._keyStr;
@@ -386,7 +385,7 @@ var Base64 = {
 				enc4 = 64;
 			}
 
-			output += _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+			output.push(_keyStr.charAt(enc1),_keyStr.charAt(enc2),_keyStr.charAt(enc3),_keyStr.charAt(enc4));
 		}
 		
 		if(i<ilength) {
@@ -395,7 +394,7 @@ var Base64 = {
 			},100);
 		} else {
 			// Next chain
-			end_callback(output);
+			end_callback(output.join(""));
 		}
 	},
 	
@@ -404,7 +403,7 @@ var Base64 = {
 			n = 0;
 			utftext = utftext.replace(/\r\n/g,"\n");
 			transientArr=new Array();
-			if(!base64text)  base64text="";
+			if(base64text==undefined || base64text==null)  base64text=new Array();
 		}
 		
 		var _keyStr = this._keyStr;
@@ -416,13 +415,10 @@ var Base64 = {
 
 			if (c < 128) {
 				transientArr.push(c);
-				//bytetext += String.fromCharCode(c);
 			} else if((c > 127) && (c < 2048)) {
 				transientArr.push((c >> 6) | 192 , (c & 63) | 128);
-				//bytetext += String.fromCharCode((c >> 6) | 192 , (c & 63) | 128);
 			} else {
 				transientArr.push((c >> 12) | 224 , ((c >> 6) & 63) | 128 , (c & 63) | 128);
-				//bytetext += String.fromCharCode((c >> 12) | 224 , ((c >> 6) & 63) | 128 , (c & 63) | 128);
 			}
 			
 			var tLength=transientArr.length;
@@ -450,7 +446,7 @@ var Base64 = {
 					
 					*/
 
-					base64text += _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+					base64text.push(_keyStr.charAt(enc1),_keyStr.charAt(enc2),_keyStr.charAt(enc3),_keyStr.charAt(enc4));
 
 				}
 				transientArr.splice(0,toRemove);
@@ -483,7 +479,7 @@ var Base64 = {
 					var enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
 					var enc4 = chr3 & 63;
 
-					base64text += _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+					base64text.push(_keyStr.charAt(enc1),_keyStr.charAt(enc2),_keyStr.charAt(enc3),_keyStr.charAt(enc4));
 				}
 				if(restLength>0) {
 					var chr1 = transientArr[toRemove++];
@@ -501,10 +497,10 @@ var Base64 = {
 						enc4 = 64;
 					}
 
-					base64text += _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+					base64text.push(_keyStr.charAt(enc1),_keyStr.charAt(enc2),_keyStr.charAt(enc3),_keyStr.charAt(enc4));
 				}
 			}
-			end_callback(bytetext);
+			end_callback(bytetext.join(""));
 		}
 	}
 

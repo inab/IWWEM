@@ -273,7 +273,14 @@ DataBrowser.prototype={
 			// Filling viewSelect
 			var fetchURL=this.locObject.genDownloadURL(selmime);
 			var downloadURL=this.locObject.genDownloadURL(selmime,'');
-			this.IOPathSpan.innerHTML='<a href="'+downloadURL+'" target="_blank">'+this.locObject.IOPath+'</a>';
+			
+			GeneralView.freeContainer(this.IOPathSpan);
+			var ioLink=this.genview.createElement('a');
+			ioLink.setAttribute('href',downloadURL);
+			ioLink.setAttribute('target','_blank');
+			ioLink.appendChild(genview.thedoc.createTextNode(this.locObject.IOPath));
+			this.IOPathSpan.appendChild(ioLink);
+
 			var viewers = this.viewers = DataBrowser.Viewers[selmime];
 			if(viewers instanceof Array) {
 				// Filling viewSelect
@@ -666,7 +673,7 @@ DataBrowser.NewickViewer = {
 		var basehref = fullhref.substring(0,fullhref.lastIndexOf('/')+1);
 		var applet = genview.createElement('applet');
 		
-		// Embedded JalView
+		// Embedded ATV
 		var param = genview.createElement("param");
 		param.setAttribute("name","config_file");
 		param.setAttribute("value",basehref+"js/atv.conf");
@@ -678,12 +685,25 @@ DataBrowser.NewickViewer = {
 		applet.appendChild(param);
 		
 		applet.name=DataBrowser.MolViewer.jmolId;
-		applet.setAttribute("archive","js/forester-4.00_alpha10.jar");
+		applet.setAttribute("archive","js/forester-4.00_alpha13.jar");
 		applet.setAttribute("mayscript","true");
 		applet.setAttribute("style","width:100%;height:100%");
+		applet.setAttribute('width','100%');
+		applet.setAttribute('height','100%');
+		/*
+		applet.width='100%';
+		applet.height='100%';
+		*/
 		applet.setAttribute("code","org.forester.atv.ATVapplet");
 
 		databrowserDiv.appendChild(applet);
+		/*
+		var appletstr="<applet name='"+DataBrowser.MolViewer.jmolId+"' archive='js/forester-4.00_alpha13.jar' mayscript='true' style='width:100%;height:100%' code='org.forester.atv.ATVapplet'>"
+			+"<param name='config_file' value='"+basehref+"js/atv.conf'>"
+			+"<param name='url_of_tree_to_load' value='"+basehref+data+"'>"
+			+"</applet>";
+		databrowserDiv.innerHTML=appletstr;
+		*/
 	}
 };
 
@@ -722,6 +742,12 @@ DataBrowser.MSAViewer = {
 		applet.setAttribute("mayscript","true");
 		applet.setAttribute("style","width:100%;height:100%");
 		applet.setAttribute("code","jalview.bin.JalviewLite");
+		applet.setAttribute('width','100%');
+		applet.setAttribute('height','100%');
+		/*
+		applet.width='100%';
+		applet.height='100%';
+		*/
 
 		databrowserDiv.appendChild(applet);
 	}
@@ -745,18 +771,43 @@ DataBrowser.DefaultViewer = {
 		// Use the prettyfier!
 		var dataCont = genview.createElement('pre');
 		dataCont.className='prettyprint noborder';
-		var tnode = genview.thedoc.createTextNode(data);
-		dataCont.appendChild(tnode);
 		databrowserDiv.appendChild(dataCont);
-
+		var basedata=data;
+		var baseidx=0;
+		var newidx;
+		var line=undefined;
+		var getfirst=true;
+		var possibleMarkup=false;
+		var lines=new Array();
+		do {
+			newidx=basedata.indexOf("\n",baseidx);
+			if(baseidx!=0) {
+				//strdata += "\r\n";
+				lines.push("\r\n");
+			}
+			if(baseidx!=newidx) {
+				var endidx=(newidx==-1)?basedata.length:newidx;
+				line=basedata.substring(baseidx,endidx);
+				if(getfirst) {
+					possibleMarkup=/^\s*</.test(line);
+					getfirst=false;
+				}
+				//strdata += line;
+				lines.push(line);
+			}
+			baseidx=newidx+1;
+		} while(newidx!=-1);
+		var strdata=lines.join("");
+		dataCont.appendChild(genview.thedoc.createTextNode(strdata));
+		
 		// Now, prettyPrint!!!!
-		if(/^\s*</.test(data) && />\s*$/.test(data)) {
-			var htmldata=data.toString();
-			htmldata=htmldata.replace(/&/g,'&amp;');
-			htmldata=htmldata.replace(/</g,'&lt;');
-			htmldata=htmldata.replace(/>/g,'&gt;');
-			htmldata=htmldata.replace(/"/g,'&quot;');
-			dataCont.innerHTML=prettyPrintOne(htmldata);
+		if(possibleMarkup && />\s*$/.test(line)) {
+			strdata=data.toString();
+			strdata=strdata.replace(/&/g,'&amp;');
+			strdata=strdata.replace(/</g,'&lt;');
+			strdata=strdata.replace(/>/g,'&gt;');
+			strdata=strdata.replace(/"/g,'&quot;');
+			dataCont.innerHTML=prettyPrintOne(strdata);
 		}
 	}
 };

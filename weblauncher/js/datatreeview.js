@@ -16,14 +16,14 @@ function DataTreeView(genview,dataTreeDivId,dataBrowserDivId,mimePathDivId, /*op
 	this.databrowser=new DataBrowser(genview,dataBrowserDivId,mimePathDivId,preprocFrameId);
 	
 	// Let's go!
-	var dataBrowserDiv=genview.getElementById(dataTreeDivId);
+	var dataTreeDiv=genview.getElementById(dataTreeDivId);
 	
 	// Form creation
 	var theform = genview.createElement('form');
-
+	
 	// Iteration Div
 	this.iterDiv=genview.createElement('div');
-	this.iterDiv.setAttribute('style','display:none');
+	this.iterDiv.style.display='none';
 	var bIter=genview.createElement('b');
 	bIter.appendChild(genview.thedoc.createTextNode('Iteration '));
 	this.iterDiv.appendChild(bIter);
@@ -50,7 +50,7 @@ function DataTreeView(genview,dataTreeDivId,dataBrowserDivId,mimePathDivId, /*op
 
 	// SchedStamp div
 	this.schedStampDiv=genview.createElement('div');
-	this.schedStampDiv.setAttribute('style','display:none');
+	this.schedStampDiv.style.display='none';
 	bIter=genview.createElement('b');
 	bIter.appendChild(genview.thedoc.createTextNode('Scheduled: '));
 	this.schedStampDiv.appendChild(bIter);
@@ -62,7 +62,7 @@ function DataTreeView(genview,dataTreeDivId,dataBrowserDivId,mimePathDivId, /*op
 
 	// StartStamp div
 	this.startStampDiv=genview.createElement('div');
-	this.startStampDiv.setAttribute('style','display:none');
+	this.startStampDiv.style.display='none';
 	bIter=genview.createElement('b');
 	bIter.appendChild(genview.thedoc.createTextNode('Started: '));
 	this.startStampDiv.appendChild(bIter);
@@ -74,7 +74,7 @@ function DataTreeView(genview,dataTreeDivId,dataBrowserDivId,mimePathDivId, /*op
 
 	// StopStamp div
 	this.stopStampDiv=genview.createElement('div');
-	this.stopStampDiv.setAttribute('style','display:none');
+	this.stopStampDiv.style.display='none';
 	bIter=genview.createElement('b');
 	bIter.appendChild(genview.thedoc.createTextNode('Stopped: '));
 	this.stopStampDiv.appendChild(bIter);
@@ -122,7 +122,7 @@ function DataTreeView(genview,dataTreeDivId,dataBrowserDivId,mimePathDivId, /*op
 	theform.appendChild(this.outContainer);
 
 	// Last, appending the form to the parent
-	dataBrowserDiv.appendChild(theform);
+	dataTreeDiv.appendChild(theform);
 	
 	this.step=undefined;
 	this.istep=undefined;
@@ -240,9 +240,11 @@ DataTreeView.prototype = {
 				} else if(beMatched=='maybe') {
 					var seed=this.genview.createElement('img');
 					seed.src='style/seed-small.png';
-					seed.setAttribute('style','margin-left:5px; cursor:pointer;');
+					seed.style.marginLeft='5px';
+					seed.style.cursor='pointer';
 					
 					var seedgrow = function (event) {
+						seed.src='style/seed-growing-test.gif';
 						var frameId=undefined;
 						if(datatreeview.procFrameId!=undefined) {
 							frameId=datatreeview.genview.openFrame(datatreeview.procFrameId,1);
