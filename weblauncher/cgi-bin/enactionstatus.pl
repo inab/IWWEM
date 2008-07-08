@@ -311,7 +311,7 @@ my($query)=CGI->new();
 # Web applications do need this!
 $|=1;
 	
-my($retval)=0;
+my($retval)='0';
 
 my(@jobIdList)=();
 
@@ -323,31 +323,50 @@ my($responsibleMail)=undef;
 my($responsibleName)=undef;
 
 # First step, parameter storage (if any!)
+PARAMPARSE:
 foreach my $param ($query->param()) {
+	my(@paramvalarr)=();
+	
 	if($param eq 'jobId') {
-		@jobIdList=$query->param($param);
+		@paramvalarr = @jobIdList = $query->param($param);
 	} elsif($param eq 'dispose') {
 		$dispose=$query->param($param);
 		$dispose=($dispose ne '1')?0:1;
 	} elsif($param eq 'snapshotName') {
-		$snapshotName=$query->param($param);
+		$snapshotName = $query->param($param);
+		@paramvalarr = ( $snapshotName );
 	} elsif($param eq 'snapshotDesc') {
-		$snapshotDesc=$query->param($param);
+		$snapshotDesc = $query->param($param);
+		@paramvalarr = ( $snapshotDesc );
 	} elsif($param eq $WorkflowCommon::RESPONSIBLEMAIL) {
-		$responsibleMail=$query->param($param);
+		$responsibleMail = $query->param($param);
+		@paramvalarr = ( $responsibleMail );
 	} elsif($param eq $WorkflowCommon::RESPONSIBLENAME) {
-		$responsibleName=$query->param($param);
+		$responsibleName = $query->param($param);
+		@paramvalarr = ( $responsibleName );
 	}
 	last  if($query->cgi_error());
+	
+	# Let's check at UTF-8 level!
+	foreach my $paramval (@paramvalarr) {
+		eval {
+			decode('UTF-8',$paramval,Encode::FB_CROAK);
+		};
+		
+		if($@) {
+			$retval="Param $param does not contain a valid UTF-8 string!";
+			last PARAMPARSE;
+		}
+	}
 }
 
 # We must signal here errors and exit
-if($retval!=0 || $query->cgi_error()) {
+if($retval ne '0' || $query->cgi_error()) {
 	my $error = $query->cgi_error;
 	$error = '500 Internal Server Error'  unless(defined($error));
 	print $query->header(-status=>$error),
 		$query->start_html('Problems'),
-		$query->h2('Request not processed because no jobId was properly provided'),
+		$query->h2('Request not processed because some parameter was not properly provided: '.$retval),
 		$query->strong($error);
 	exit 0;
 }
@@ -606,13 +625,13 @@ foreach my $jobId (@jobIdList) {
 						# Last but one, register snapshot
 						my($snapnode)=$catdoc->createElementNS($WorkflowCommon::WFD_NS,'snapshot');
 						# First in unqualified form
-						$snapnode->setAttribute('name',encode('UTF-8',$snapshotName));
+						$snapnode->setAttribute('name',$snapshotName);
 						$snapnode->setAttribute('uuid',$uuid);
 						$snapnode->setAttribute('date',LockNLog::getPrintableNow());
-						$snapnode->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,encode('UTF-8',$responsibleMail));
-						$snapnode->setAttribute($WorkflowCommon::RESPONSIBLENAME,encode('UTF-8',$responsibleName));
+						$snapnode->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+						$snapnode->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 						if(defined($snapshotDesc) && length($snapshotDesc)>0) {
-							$snapnode->appendChild($catdoc->createCDATASection(encode('UTF-8',$snapshotDesc)));
+							$snapnode->appendChild($catdoc->createCDATASection($snapshotDesc));
 						}
 						
 						$catdoc->setDocumentElement($snapnode);

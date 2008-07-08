@@ -61,6 +61,8 @@ my(@parseParam)=();
 # First step, parameter and workflow storage (if any!)
 PARAMPROC:
 foreach my $param ($query->param()) {
+	my($paramval)=undef;
+
 	# We are skipping all unknown params
 	if($param eq $WorkflowCommon::PARAMISLAND) {
 		$dataisland=$query->param($param);
@@ -116,15 +118,31 @@ foreach my $param ($query->param()) {
 	} elsif($param eq 'onlySaveAsExample') {
 		$onlySaveAsExample=1;
 	} elsif($param eq $WorkflowCommon::PARAMSAVEEX) {
-		$exampleName=$query->param($param);
+		$paramval = $exampleName = $query->param($param);
 	} elsif($param eq $WorkflowCommon::PARAMSAVEEXDESC) {
-		$exampleDesc=$query->param($param);
+		$paramval = $exampleDesc = $query->param($param);
 	} elsif($param eq $WorkflowCommon::RESPONSIBLEMAIL) {
-		$responsibleMail=$query->param($param);
+		$paramval = $responsibleMail = $query->param($param);
 	} elsif($param eq $WorkflowCommon::RESPONSIBLENAME) {
-		$responsibleName=$query->param($param);
+		$paramval = $responsibleName = $query->param($param);
 	} elsif(length($param)>length($WorkflowCommon::PARAMPREFIX) && index($param,$WorkflowCommon::PARAMPREFIX)==0) {
 		push(@parseParam,$param);
+	}
+	
+	# Error checking
+	last  if($query->cgi_error());
+	
+	# Let's check at UTF-8 level!
+	if(defined($paramval)) {
+		eval {
+			decode('UTF-8',$paramval,Encode::FB_CROAK);
+		};
+		
+		if($@) {
+			$retval=-1;
+			$retvalmsg="Param $param does not contain a valid UTF-8 string!";
+			last;
+		}
 	}
 }
 
@@ -136,21 +154,23 @@ my($jobdir)=undef;
 
 $responsibleName=''  unless(defined($responsibleName));
 
-if(defined($hasInputWorkflow)) {
-	$workflowId=undef;
-	
-	my($p_res)=undef;
-	($retval,$retvalmsg,$p_res)=WorkflowCommon::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,undef,$WorkflowCommon::JOBDIR,1);
-	
-	$jobid=$p_res->[0]  if(scalar(@{$p_res})>0);
-	$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
-} else {
-	do {
-		$jobid = WorkflowCommon::genUUID();
+if($retval==0 && !$query->cgi_error()) {
+	if(defined($hasInputWorkflow)) {
+		$workflowId=undef;
+
+		my($p_res)=undef;
+		($retval,$retvalmsg,$p_res)=WorkflowCommon::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,undef,$WorkflowCommon::JOBDIR,1);
+
+		$jobid=$p_res->[0]  if(scalar(@{$p_res})>0);
 		$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
-	} while (-d $jobdir);
-	mkpath($jobdir);
-	WorkflowCommon::createResponsibleFile($jobdir,$responsibleMail,$responsibleName);
+	} else {
+		do {
+			$jobid = WorkflowCommon::genUUID();
+			$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
+		} while (-d $jobdir);
+		mkpath($jobdir);
+		WorkflowCommon::createResponsibleFile($jobdir,$responsibleMail,$responsibleName);
+	}
 }
 
 my($wfile)=$jobdir . '/'. $WorkflowCommon::WORKFLOWFILE;
@@ -158,68 +178,80 @@ my($efile)=$jobdir . '/joberrlog.txt';
 my($inputdir)=$jobdir . '/jobinput';
 mkdir($inputdir);
 
-foreach my $param (@parseParam) {
-	# Single param handling
-	my $paramName = substr($param,length($WorkflowCommon::PARAMPREFIX));
-	my $paramPath = $inputdir . '/' . $inputcount;
+if($retval==0 && !$query->cgi_error()) {
+	foreach my $param (@parseParam) {
+		# Single param handling
+		my $paramName = substr($param,length($WorkflowCommon::PARAMPREFIX));
+		my $paramPath = $inputdir . '/' . $inputcount;
 
-	my(@PFH)=$query->upload($param);
+		my(@PFH)=$query->upload($param);
 
-	last  if($query->cgi_error());
+		last  if($query->cgi_error());
 
-	my($isfh)=1;
+		my($isfh)=1;
 
-	if(scalar(@PFH)==0) {
-		@PFH=$query->param($param);
-		$isfh=undef;
-	}
-
-	my($many)=undef;
-
-	my($fcount)=0;
-	my($destfile);
-	if(scalar(@PFH)>1) {
-		$many = 1;
-		mkdir($paramPath);
-		$destfile=$paramPath . '/' . $fcount;
-	} else {
-		$destfile=$paramPath;
-	}
-
-	foreach my $PH (@PFH) {
-		my($PARH);
-		if(open($PARH,'>',$destfile)) {
-			if(defined($isfh)) {
-				my($line);
-				# We hope the file will be in UTF-8
-				while($line=<$PH>) {
-					print $PARH $line;
-				}
-			} else {
-				print $PARH encode('UTF-8',$PH);
-			}
-			close($PARH);
-		} else {
-			$retval = 4;
-			last PARAMPROC;
+		if(scalar(@PFH)==0) {
+			@PFH=$query->param($param);
+			$isfh=undef;
 		}
-		$fcount++;
-		$destfile=$paramPath . '/' . $fcount;
+
+		my($many)=undef;
+
+		my($fcount)=0;
+		my($destfile);
+		if(scalar(@PFH)>1) {
+			$many = 1;
+			mkdir($paramPath);
+			$destfile=$paramPath . '/' . $fcount;
+		} else {
+			$destfile=$paramPath;
+		}
+
+		foreach my $PH (@PFH) {
+			my($PARH);
+			if(open($PARH,'>',$destfile)) {
+				if(defined($isfh)) {
+					my($block);
+					# We hope the file will be in UTF-8
+					while(read($PH,$block,4096)) {
+						print $PARH $block;
+					}
+				} else {
+					# Content should be already in UTF-8!
+					eval {
+						decode('UTF-8',$PH,Encode::FB_CROAK);
+					};
+					if($@) {
+						$retval = 4;
+						$retvalmsg="Param $param does not contain a valid UTF-8 string!";
+						last PARAMPROC;
+					}
+					
+					print $PARH $PH;
+				}
+				close($PARH);
+			} else {
+				$retval = 4;
+				last PARAMPROC;
+			}
+			$fcount++;
+			$destfile=$paramPath . '/' . $fcount;
+		}
+
+		push(@inputdesc,(defined($many)?'-inputArrayDir':'-inputFile'),$paramName,$paramPath);
+
+		$inputcount++;
 	}
-
-	push(@inputdesc,(defined($many)?'-inputArrayDir':'-inputFile'),$paramName,$paramPath);
-
-	$inputcount++;
 }
 
-if(defined($workflowId)) {
+if($retval==0 && !$query->cgi_error() && defined($workflowId)) {
 	# Copying and patching input workflow
 	my($WFmaindoc)=$parser->parse_file($wabspath);
 	
 	($retval,$retvalmsg)=WorkflowCommon::patchWorkflow($query,$parser,undef,$jobid,$jobdir,undef,$WFmaindoc,$hasInputWorkflowDeps,1,1);
 }
 
-if(defined($baclavafound)) {
+if($retval==0 && !$query->cgi_error() && defined($baclavafound)) {
 	my($param)=$WorkflowCommon::BACLAVAPARAM;
 	# Whole baclava files handling
 	my $paramPath = $inputdir . '/' . $inputcount . '-baclava';
@@ -282,7 +314,7 @@ if(defined($baclavafound)) {
 	}
 	
 	$inputcount++;
-} elsif(defined($originalInput) && defined($reusePrevInput)) {
+} elsif($retval==0 && !$query->cgi_error() && defined($originalInput) && defined($reusePrevInput)) {
 	my $paramPath = $inputdir . '/' . $inputcount . '-baclava';
 	mkpath($paramPath);
 	my($baclavaname)=$paramPath.'/'.'original.xml';
@@ -301,7 +333,7 @@ my($fullexampleuuid)=undef;
 my($penddir)=undef;
 my($penduuid)=undef;
 # Saving as an example
-if(defined($exampleName) && defined($workflowId) && defined($responsibleMail)) {
+if($retval==0 && !$query->cgi_error() && defined($exampleName) && defined($workflowId) && defined($responsibleMail)) {
 	my($exampleuuid);
 	my($relrandfile);
 	my($randfile);
@@ -330,13 +362,13 @@ if(defined($exampleName) && defined($workflowId) && defined($responsibleMail)) {
 	my($catalog)=XML::LibXML::Document->createDocument('1.0','UTF-8');
 	$example=$catalog->createElementNS($WorkflowCommon::WFD_NS,'example');
 	$example->setAttribute('uuid',$exampleuuid);
-	$example->setAttribute('name',encode('UTF-8',$exampleName));
+	$example->setAttribute('name',$exampleName);
 	$example->setAttribute('path',$relrandfile);
 	$example->setAttribute('date',LockNLog::getPrintableNow());
-	$example->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,encode('UTF-8',$responsibleMail));
-	$example->setAttribute($WorkflowCommon::RESPONSIBLENAME,encode('UTF-8',$responsibleName));
+	$example->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+	$example->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 	if(defined($exampleDesc) && length($exampleDesc) > 0) {
-		$example->appendChild($catalog->createCDATASection(encode('UTF-8',$exampleDesc)));
+		$example->appendChild($catalog->createCDATASection($exampleDesc));
 	}
 	
 	# Save example name and description
@@ -358,6 +390,10 @@ if($retval!=0 || $query->cgi_error() || !defined($wfilefetched)) {
 		$query->start_html('Problems'),
 		$query->h2('Request not processed because '.(($retval!=0)?'there was an internal input/output error':(($query->cgi_error())?'uploaded contents were malformed':'no workflow was uploaded'))),
 		$query->strong($error);
+	
+	if(defined($retvalmsg) && $retvalmsg ne '') {
+		print $query->strong($retvalmsg);
+	}
 	
 	rmtree($jobdir);
 	rmtree($penddir)  if(defined($penddir));
@@ -428,7 +464,7 @@ unless(defined($cpid)) {
 	unless(defined($dataisland) && $dataisland eq '2') {
 		$outputDoc->toFH(\*STDOUT);
 	} else {
-		print encode('UTF-8', $outputDoc->createTextNode($root->toString())->toString());
+		print $outputDoc->createTextNode($root->toString())->toString();
 	}
 	
 	if(defined($dataisland)) {

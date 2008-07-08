@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>INB IWWE&amp;M v0.6.2 frontends call parameters ($Rev$, $Date$)</title>
+<title>INB IWWE&amp;M v0.6.3 frontends call parameters ($Rev$, $Date$)</title>
 </head>
 <style type="text/css">
 .frontend {
@@ -23,7 +23,7 @@
 <td style="text-align:left;font-style:italic;">$Date$</td>
 <td style="text-align:right;font-style:italic;">$Rev$</td>
 </tr></table>
-<div align="center"><h1 style="font-size:32px;"><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a> v0.6.2 frontends</h1></div>
+<div align="center"><h1 style="font-size:32px;"><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a> v0.6.3 frontends</h1></div>
 Currently, IWWE&amp;M has 5 frontends, used by AJAX GUIs:
 <ul>
 <li><span class="frontend"><a href="#workflowmanager">workflowmanager</a></span></li>
@@ -32,8 +32,8 @@ Currently, IWWE&amp;M has 5 frontends, used by AJAX GUIs:
 <li><span class="frontend"><a href="#IWWEMproxy">IWWEMproxy</a></span></li>
 <li><span class="frontend"><a href="#IWWEMconfirm">IWWEMconfirm</a></span></li>
 </ul>
-
-<p>All these frontends use the concept of Ids: workflow Ids, example Ids, enaction Ids, snapshot Ids and confirmation Ids. All the unqualified Ids have the format of an <a href="http://en.wikipedia.org/wiki/UUID">UUID</a>, but there are some differences when the IDs are fully quilified:</p>
+<p>First of all, all these frontends have lots of parameters, and some of them may contain international characters, like spanish &ntilde; or french and catalonian &cedilla;. So, all these frontends expect that any one of their parameters <b>are encoded in UTF-8</b>, no more, no less.</p>
+<p>All these frontends use the concept of Ids: workflow Ids, example Ids, enaction Ids, snapshot Ids and confirmation Ids. All the unqualified Ids have the format of an <a href="http://en.wikipedia.org/wiki/UUID">UUID</a>, but there are some differences when the IDs are fully qualified:</p>
 <ul>
 <li>Any workflow Id has the format of an UUID, for instance <span class="value">2365b91b-b7ae-4aa9-ae70-e8be4f40c0b3</span>. So, workflow Ids have the same qualified and unqualified representation.</li>
 <li>As an example Id depends on a workflow, a fully qualified example Id has the format of <span class="value">example:{wUUID}:{eUUID}</span>, where <span class="value">wUUID</span> is the workflow Id and <span class="value">eUUID</span> is the example Id.

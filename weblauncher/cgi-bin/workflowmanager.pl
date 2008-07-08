@@ -49,6 +49,8 @@ $context->registerNs('sn',$WorkflowCommon::WFD_NS);
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
+	my($paramval)=undef;
+
 	# We are skipping all unknown params
 	if($param eq $WorkflowCommon::PARAMISLAND) {
 		$dataisland=$query->param($param);
@@ -143,28 +145,44 @@ foreach my $param ($query->param()) {
 	} elsif($param eq $WorkflowCommon::PARAMWORKFLOWDEP) {
 		$hasInputWorkflowDeps=1;
 	} elsif($param eq $WorkflowCommon::PARAMWFID) {
-		$id=$query->param($param);
+		$paramval = $id = $query->param($param);
 	} elsif($param eq $WorkflowCommon::RESPONSIBLEMAIL) {
-		$responsibleMail=$query->param($param);
+		$paramval = $responsibleMail = $query->param($param);
 	} elsif($param eq $WorkflowCommon::RESPONSIBLENAME) {
-		$responsibleName=$query->param($param);
+		$paramval = $responsibleName = $query->param($param);
 	} elsif($param eq 'freezeWorkflowDeps') {
 		$doFreezeWorkflowDeps=1;
+	}
+	
+	# Error checking
+	last  if($query->cgi_error());
+	
+	# Let's check at UTF-8 level!
+	if(defined($paramval)) {
+		eval {
+			decode('UTF-8',$paramval,Encode::FB_CROAK);
+		};
+		
+		if($@) {
+			$retval=-1;
+			$retvalmsg="Param $param does not contain a valid UTF-8 string!";
+			last;
+		}
 	}
 }
 
 # Parsing input workflows
-if(defined($hasInputWorkflow)) {
+if($retval==0 && !$query->cgi_error() && defined($hasInputWorkflow)) {
 	($retval,$retvalmsg)=WorkflowCommon::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps);
 }
 
 # We must signal here errors and exit
-if($query->cgi_error()) {
+if($retval!=0 || $query->cgi_error()) {
 	my $error = $query->cgi_error;
 	$error = '500 Internal Server Error'  unless(defined($error));
 	print $query->header(-status=>$error),
 		$query->start_html('Problems'),
-		$query->h2('Request not processed because upload was interrupted'),
+		$query->h2('Request not processed because '.(($retval!=0 && defined($retvalmsg))?$retvalmsg:'upload was interrupted')),
 		$query->strong($error);
 	exit 0;
 }
@@ -429,7 +447,7 @@ if(defined($dataisland)) {
 unless(defined($dataisland) && $dataisland eq '2') {
 	$outputDoc->toFH(\*STDOUT);
 } else {
-	print encode('UTF-8', $outputDoc->createTextNode($root->toString())->toString());
+	print $outputDoc->createTextNode($root->toString())->toString();
 }
 
 if(defined($dataisland)) {

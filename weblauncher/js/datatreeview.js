@@ -20,6 +20,7 @@ function DataTreeView(genview,dataTreeDivId,dataBrowserDivId,mimePathDivId, /*op
 	
 	// Form creation
 	var theform = genview.createElement('form');
+	theform.acceptEncoding='UTF-8';
 	
 	// Iteration Div
 	this.iterDiv=genview.createElement('div');

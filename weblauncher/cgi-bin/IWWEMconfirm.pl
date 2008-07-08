@@ -28,11 +28,28 @@ $|=1;
 	
 my($query)=CGI->new();
 my($code)=undef;
+my($retval)='0';
 
 # First step, getting code
 foreach my $param ($query->param()) {
+	my($paramval)=undef;
 	if($param eq 'code') {
-		$code=$query->param('code');
+		$paramval = $code = $query->param('code');
+	}
+	
+	# Error checking
+	last  if($query->cgi_error());
+	
+	# Let's check at UTF-8 level!
+	if(defined($paramval)) {
+		eval {
+			decode('UTF-8',$paramval,Encode::FB_CROAK);
+		};
+		
+		if($@) {
+			$retval="Param $param does not contain a valid UTF-8 string!";
+			last;
+		}
 	}
 }
 
@@ -41,7 +58,7 @@ foreach my $param ($query->param()) {
 my($codedir)=$WorkflowCommon::CONFIRMDIR.'/'.$code;
 my($commandfile)=$codedir.'/'.$WorkflowCommon::COMMANDFILE;
 my($command)=undef;
-if(defined($code) && index($code,'/')==-1 && -d $codedir && -r $commandfile) {
+if($retval eq '0' && !$query->cgi_error() && defined($code) && index($code,'/')==-1 && -d $codedir && -r $commandfile) {
 	my($FH);
 	if(open($FH,'<',$commandfile)) {
 		$command=<$FH>;
@@ -310,7 +327,7 @@ print <<EOF;
 	<head><title>IWWE&amp;M IWWEMconfirm operations report</title></head>
 	<body>
 <div align="center"><h1 style="font-size:32px;"><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a>
-<a href="$operURL">IWWE&amp;M</a> v0.6.2 IWWEMconfirm operations report</h1></div>
+<a href="$operURL">IWWE&amp;M</a> v0.6.3 IWWEMconfirm operations report</h1></div>
 $tabledone
 	</body>
 </html>

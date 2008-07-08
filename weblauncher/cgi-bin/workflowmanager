@@ -16,7 +16,8 @@ if [ -z "$JAVA_HOME" -a -f /etc/bash.bashrc ] ; then
 fi
 
 LC_ALL=C
-export LC_ALL
+LANG=C
+export LC_ALL LANG
 
 # Then, go!
 exec perl "${0}.pl" "$@"

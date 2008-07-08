@@ -31,6 +31,7 @@ sub applyExpression($$;$);
 $|=1;
 	
 my($query)=CGI->new();
+my($retval)='0';
 
 my($jobId)=undef;
 my($asMime)=undef;
@@ -44,40 +45,52 @@ my($charset)=undef;
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
+	my($paramval)=undef;
 	if($param eq 'jobId') {
-		$jobId=$query->param($param);
+		$paramval = $jobId = $query->param($param);
 	} elsif($param eq 'asMime') {
-		$asMime=$query->param($param);
+		$paramval = $asMime = $query->param($param);
 	} elsif($param eq 'step') {
-		$step=$query->param($param);
+		$paramval = $step = $query->param($param);
 	} elsif($param eq 'iteration') {
-		$iteration=$query->param($param);
+		$paramval = $iteration = $query->param($param);
 	} elsif($param eq 'IOMode') {
-		$IOMode=$query->param($param);
+		$paramval = $IOMode = $query->param($param);
 	} elsif($param eq 'IOPath') {
-		$IOPath=$query->param($param);
-		$IOPath=undef  unless(length($IOPath)>0);
+		$paramval = $IOPath = $query->param($param);
+		$paramval = $IOPath = undef  unless(length($IOPath)>0);
 	} elsif($param eq 'charset') {
-		$charset=$query->param($param);
-		$charset=undef  unless(length($charset)>0);
+		$paramval = $charset = $query->param($param);
+		$paramval = $charset = undef  unless(length($charset)>0);
 	} elsif($param eq 'bundle64') {
-		$bundle64=$query->param($param);
+		$paramval = $bundle64 = $query->param($param);
 	} elsif($param eq 'withName') {
-		$withName=$query->param($param);
+		$paramval = $withName = $query->param($param);
 	}
 	
 	# Error checking
 	last  if($query->cgi_error());
+	
+	# Let's check at UTF-8 level!
+	if(defined($paramval)) {
+		eval {
+			decode('UTF-8',$paramval,Encode::FB_CROAK);
+		};
+		
+		if($@) {
+			$retval="Param $param does not contain a valid UTF-8 string!";
+			last;
+		}
+	}
 }
 
 # Second, parameter parsing
-my($retval)=0;
 my($bacio)=undef;
 my(@path)=();
 my($facet)=undef;
 my($isExample)=undef;
 my($origJobId)=$jobId;
-if((!defined($IOPath) ||defined($asMime)) && defined($jobId)) {
+if($retval eq '0' && !$query->cgi_error() && (!defined($IOPath) || defined($asMime)) && defined($jobId)) {
 	# Time to know the overall status of this enaction
 	my($jobdir)=undef;
 	my($wfsnap)=undef;
@@ -404,7 +417,7 @@ if(defined($IOPath) && (length($IOPath)>0)) {
 $dec=''  unless(defined($dec));
 
 my(@headerPars)=(-type=>$asMime,-expires=>'+60s');
-push(@headerPars,-charset=>'UTF-8')  if(defined($charset));
+push(@headerPars,-charset=>$charset)  if(defined($charset));
 
 # Guessing the extension
 if(defined($withName)) {

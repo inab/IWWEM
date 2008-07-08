@@ -19,7 +19,10 @@ function DataBrowser(genview,databrowserId,mimePathDivId,/*optional*/preprocessI
 	
 	// mime and others form creation
 	var theform=genview.createElement('form');
-	theform.setAttribute('style','padding:0px;margin:0px;');
+	theform.style.padding='0px';
+	theform.style.margin='0px';
+	theform.acceptEncoding='UTF-8';
+	//theform.setAttribute('style','padding:0px;margin:0px;');
 	
 	// IOStep Span
 	var uPan=genview.createElement('u');

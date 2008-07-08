@@ -48,6 +48,8 @@ use vars qw(%GRAPHREP);
 
 use vars qw($IWWEMmailaddr $RESPONSIBLENAME $RESPONSIBLEMAIL);
 
+use vars qw(%HARDHOST);
+
 $IWWEMmailaddr='jmfernandez@cnio.es';
 
 
@@ -140,6 +142,11 @@ $COMMENTWM=$COMMENTPRE.'workflowmanager'.$COMMENTPOST;
 $COMMENTEL=$COMMENTPRE.'enactionlauncher'.$COMMENTPOST;
 $COMMENTES=$COMMENTPRE.'enactionstatus'.$COMMENTPOST;
 
+%HARDHOST=(
+	'ubio.bioinfo.cnio.es' => '/biotools/IWWEM/cgi-bin',
+	'iwwem.bioinfo.cnio.es' => '/cgi-bin',
+);
+
 # Method declaration
 sub genUUID();
 sub patchXMLString($);
@@ -213,8 +220,12 @@ sub getCGIBaseURI($) {
 	my($port)=$query->virtual_port();
 	my($relpath)=$query->script_name();
 	my($virtualrel)=$ENV{'HTTP_VIA'} || $ENV{'HTTP_FORWARDED'} || $ENV{'HTTP_X_FORWARDED_FOR'};
-	if(defined($virtualrel) && $virtualrel =~ /^(?:https?:\/\/[^:\/]+)?(?::[0-9]+)?(\/.*)/) {
-		$relpath=$1;
+	if(defined($virtualrel)) {
+		if($virtualrel =~ /^(?:https?:\/\/[^:\/]+)?(?::[0-9]+)?(\/.*)/) {
+			$relpath=$1;
+		} elsif(exists($ENV{HTTP_X_FORWARDED_HOST}) && exists($HARDHOST{$ENV{HTTP_X_FORWARDED_HOST}})) {
+			$relpath=$HARDHOST{$ENV{HTTP_X_FORWARDED_HOST}}.substr($relpath,rindex($relpath,'/'));
+		}
 	}
 	
         if(($proto eq 'http' && $port eq '80') || ($proto eq 'https' && $port eq '443')) {
@@ -257,6 +268,7 @@ sub genPendingOperationsDir($) {
 	return ($randname,$randdir,$FH);
 }
 
+# Responsible name and mail must be already in UTF-8!
 sub createResponsibleFile($$;$) {
 	my($basedir,$responsibleMail,$responsibleName)=@_;
 	
@@ -266,8 +278,8 @@ sub createResponsibleFile($$;$) {
 		my($resdoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
 		my($resroot)=$resdoc->createElementNS($WorkflowCommon::WFD_NS,'responsible');
 		$resroot->appendChild($resdoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTEL) ));
-		$resroot->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,encode('UTF-8',$responsibleMail));
-		$resroot->setAttribute($WorkflowCommon::RESPONSIBLENAME,encode('UTF-8',$responsibleName));
+		$resroot->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+		$resroot->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 		$resdoc->setDocumentElement($resroot);
 		$resdoc->toFile($basedir.'/'.$WorkflowCommon::RESPONSIBLEFILE);
 	};

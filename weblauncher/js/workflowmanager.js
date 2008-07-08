@@ -145,7 +145,7 @@ function ManagerView(genview) {
 		
 		// Setting up the title
 		var pageTitle=this.genview.getElementById('titleB');
-		pageTitle.innerHTML='Interactive Enaction Inspector v0.6.2';
+		pageTitle.innerHTML='Interactive Enaction Inspector v0.6.3';
 		// Deactivating buttons!!!
 		var useDiv=this.genview.getElementById('useDiv');
 		useDiv.style.display='none';
