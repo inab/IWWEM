@@ -138,8 +138,10 @@ function SVGmapApp(/*optional*/thedoc,adjustVBonWindowResize,resizeCallbackFunct
  	try {
   		//browsers with native SVG support
   		window.addEventListener("resize",this,false);
-  		parent.addEventListener("resize",this,false);
-  		top.addEventListener("resize",this,false);
+		if(window.parent)
+			window.parent.addEventListener("resize",this,false);
+		else if(window.top)
+	  		window.top.addEventListener("resize",this,false);
  	} catch(er) {
 		//SVG UAs, like Batik and ASV/Iex
 		thedoc.documentElement.addEventListener("SVGResize",this,false);
@@ -999,10 +1001,10 @@ SVGmapApp.ViewBox.prototype = {
 		this.windowWidth = svgRoot.getAttributeNS(null,"width");
 		if (this.windowWidth.match(/%/) || this.windowWidth == null) {
 			if (this.windowWidth == null) {
-				if (top && top.innerWidth) {
-					this.windowWidth = top.innerWidth;
-				} else if(parent && parent.innerWidth) {
-					this.windowWidth = parent.innerWidth;
+				if(window.parent && window.parent.innerWidth) {
+					this.windowWidth = window.parent.innerWidth;
+				} else if (window.top && window.top.innerWidth) {
+					this.windowWidth = window.top.innerWidth;
 				} else if (window.innerWidth) {
 					this.windowWidth = window.innerWidth;
 				} else {
@@ -1010,10 +1012,10 @@ SVGmapApp.ViewBox.prototype = {
 				}
 			} else {
 				var factor = parseFloat(this.windowWidth.replace(/%/,""))/100;
-				if(top && top.innerWidth) {
-					this.windowWidth = top.innerWidth * factor;
-				} else if(parent && parent.innerWidth) {
-					this.windowWidth = parent.innerWidth * factor;
+				if(window.parent && window.parent.innerWidth) {
+					this.windowWidth = window.parent.innerWidth * factor;
+				} else if(window.top && window.top.innerWidth) {
+					this.windowWidth = window.top.innerWidth * factor;
 				} else if (window.innerWidth) {
 					this.windowWidth = window.innerWidth * factor;
 				} else {
@@ -1026,10 +1028,10 @@ SVGmapApp.ViewBox.prototype = {
 		this.windowHeight = svgRoot.getAttributeNS(null,"height");
 		if (this.windowHeight.match(/%/) || this.windowHeight == null) {
 			if (this.windowHeight == null) {
-				if (top && top.innerHeight) {
-					this.windowHeight = top.innerHeight;
-				} else if (parent && parent.innerHeight) {
-					this.windowHeight = parent.innerHeight;
+				if (window.parent && window.parent.innerHeight) {
+					this.windowHeight = window.parent.innerHeight;
+				} else if (window.top && window.top.innerHeight) {
+					this.windowHeight = window.top.innerHeight;
 				} else if (window.innerHeight) {
 					this.windowHeight = window.innerHeight;
 				} else {
@@ -1037,10 +1039,10 @@ SVGmapApp.ViewBox.prototype = {
 				}
 			} else {
 				var factor = parseFloat(this.windowHeight.replace(/%/,""))/100;
-				if (top && top.innerHeight) {
-					this.windowHeight = top.innerHeight * factor;
-				} else if (parent && parent.innerHeight) {
-					this.windowHeight = parent.innerHeight * factor;
+				if (window.parent && window.parent.innerHeight) {
+					this.windowHeight = window.parent.innerHeight * factor;
+				} else if (window.top && window.top.innerHeight) {
+					this.windowHeight = window.top.innerHeight * factor;
 				} else if (window.innerHeight) {
 					this.windowHeight = window.innerHeight * factor;
 				} else {
@@ -1152,12 +1154,12 @@ SVGmapApp.prototype = {
 
 	resetFactors: function() {
 		//set inner width and height
-		if (top && top.innerWidth) {
-			this.innerWidth = top.innerWidth;
-			this.innerHeight = top.innerHeight;
-		} else if (parent && parent.innerWidth) {
-			this.innerWidth = parent.innerWidth;
-			this.innerHeight = parent.innerHeight;
+		if (window.parent && window.parent.innerWidth) {
+			this.innerWidth = window.parent.innerWidth;
+			this.innerHeight = window.parent.innerHeight;
+		} else if (window.top && window.top.innerWidth) {
+			this.innerWidth = window.top.innerWidth;
+			this.innerHeight = window.top.innerHeight;
 		} else if (window.innerWidth) {
 			this.innerWidth = window.innerWidth;
 			this.innerHeight = window.innerHeight;

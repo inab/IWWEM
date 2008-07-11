@@ -158,10 +158,10 @@ function SVGtramp(LoadEvent) {
 	}
 	
 	// And at last, the hooks
-	if(parent) {
-		parent.SVGtrampoline = this;
-	} else if(top) {
-		top.SVGtrampoline = this;
+	if(window.parent) {
+		window.parent.SVGtrampoline = this;
+	} else if(window.top) {
+		window.top.SVGtrampoline = this;
 	}
 }
 
@@ -904,7 +904,7 @@ SVGtramp.callHashHandler = function(theid,eventType) {
 };
 
 SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
-	if(!top) {
+	if(navigator.vendor && navigator.vendor.indexOf('KDE')!=-1) {
 		// KDE aberrations
 		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 			try {
@@ -922,7 +922,7 @@ SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 				// IgnoreIt!(R)
 			}
 		};
-	} else if(top.addEventListener || (navigator.appName && navigator.appName.indexOf('Adobe')!=-1)) {
+	} else if(window.addEventListener || (navigator.appName && navigator.appName.indexOf('Adobe')!=-1)) {
 		// Adobe and W3C DOM compatible browsers
 		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
@@ -932,15 +932,11 @@ SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 				// IgnoreIt!(R)
 			}
 		};
-	} else if(top.attachEvent) {
+	} else if(window.attachEvent) {
 		// Internet Explorer ???? (no native implementation yet)
 		SVGtramp.addEventListener = function (object, eventType, listener, useCapture) {
 			try {
-				if(object.attachEvent) {
-					object.attachEvent("on"+eventType,listener);
-				} else {
-					object["on"+eventType]=listener;
-				}
+				object.attachEvent("on"+eventType,listener);
 			} catch(e) {
 				// IgnoreIt!(R)
 			}
@@ -964,7 +960,7 @@ SVGtramp.addEventListenerToId = function (objectId, eventType, listener, useCapt
 };
 
 SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
-	if(!top) {
+	if(navigator.vendor && navigator.vendor.indexOf('KDE')!=-1) {
 		// KDE aberrations
 		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
 			try {
@@ -991,7 +987,7 @@ SVGtramp.removeEventListener = function (object, eventType, listener, useCapture
 				// IgnoreIt!(R)
 			}
 		};
-	} else if(top.removeEventListener || (navigator.appName && navigator.appName.indexOf('Adobe')!=-1)) {
+	} else if(window.removeEventListener || (navigator.appName && navigator.appName.indexOf('Adobe')!=-1)) {
 		// Adobe & W3C DOM compatible browsers
 		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
 			if(!useCapture)  useCapture=false;
@@ -1001,15 +997,11 @@ SVGtramp.removeEventListener = function (object, eventType, listener, useCapture
 				// IgnoreIt!(R)
 			}
 		};
-	} else if(top.detachEvent) {
+	} else if(window.detachEvent) {
 		// Internet Explorer ???? (no native implementation yet)
 		SVGtramp.removeEventListener = function (object, eventType, listener, useCapture) {
 			try {
-				if(object.detachEvent) {
-					object.detachEvent("on"+eventType,listener);
-				} else if(object["on"+eventType] && object["on"+eventType]==listener) {
-					object["on"+eventType]=undefined;
-				}
+				object.detachEvent("on"+eventType,listener);
 			} catch(e) {
 				// IgnoreIt!(R)
 			}
