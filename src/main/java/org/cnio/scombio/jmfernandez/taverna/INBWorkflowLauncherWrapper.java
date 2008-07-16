@@ -9,39 +9,20 @@
 */
 package org.cnio.scombio.jmfernandez.taverna;
 
-import java.io.BufferedOutputStream;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import java.net.MalformedURLException;
 import java.net.URL;
-
-import java.nio.channels.FileChannel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-
-import net.sf.taverna.raven.repository.Artifact;
-import net.sf.taverna.raven.repository.BasicArtifact;
-import net.sf.taverna.raven.repository.Repository;
-import net.sf.taverna.raven.repository.impl.LocalRepository;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
@@ -51,21 +32,13 @@ import org.embl.ebi.escience.baclava.DataThing;
 import org.embl.ebi.escience.baclava.factory.DataThingFactory;
 
 import org.embl.ebi.escience.scufl.enactor.WorkflowSubmissionException;
-import org.embl.ebi.escience.scufl.parser.XScuflParser;
-import org.embl.ebi.escience.scufl.Processor;
 import org.embl.ebi.escience.scufl.ScuflModel;
 import org.embl.ebi.escience.scufl.tools.WorkflowLauncher;
-import org.embl.ebi.escience.scufl.view.DotView;
-import org.embl.ebi.escience.scuflui.ScuflSVGDiagram;
-
-import org.embl.ebi.escience.utils.TavernaSPIRegistry;
 
 import org.jdom.JDOMException;
 
 // SVGDocument is a Document!!!
 //import org.w3c.dom.svg.SVGDocument;
-
-import org.w3c.dom.Document;
 
 import uk.ac.soton.itinnovation.freefluo.main.InvalidInputException;
 
@@ -79,6 +52,7 @@ public class INBWorkflowLauncherWrapper
 		{"-input","2","A single pair input name / value"},
 		{"-inputFile","2","A single pair input name / file where the value is stored"},
 		{"-inputURL","2","A single pair input name / URL where the value can be fetched"},
+		{"-inputMap","1","A file containing tuples of input name / file encoding / one or more files. Each field is tab-separated"},
 		{"-inputArray","2","A single pair input name / file where a list of values are stored"},
 		{"-inputArrayFile","2","A single pair input name / file which contains a list of file names which contain the values"},
 		{"-inputArrayDir","2","A single pair input name / directory where files with the values are stored"},
@@ -294,31 +268,140 @@ public class INBWorkflowLauncherWrapper
 			baseInputs.put(values.get(0),DataThingFactory.bake(content.toString()));
 		} else if (param.equals("-inputURL")) {
 			baseInputs.put(values.get(0),DataThingFactory.fetchFromURL(new URL(values.get(1))));
+		} else if (param.equals("-inputMap")) {
+			File ifile=NewFile(values.get(0));
+			
+			// Reading input file
+			FileInputStream fis = new FileInputStream(ifile);
+			InputStreamReader isr=new InputStreamReader(fis,"UTF-8");
+			BufferedReader br = new BufferedReader(isr);
+			String line;
+			int lineNumber=0;
+			while((line=br.readLine())!=null) {
+				lineNumber++;
+				if(line.charAt(0)=='#')  continue;
+				String[] fields=line.split("\t");
+				if(fields.length < 3) {
+					throw new IOException(ifile.getAbsolutePath()+" is garbled at line "+lineNumber+": expected at least 3 fields, found only "+fields.length);
+				}
+				String encoding=fields[1];
+				DataThing dt=null;
+				boolean isBinary = "binary".equals(encoding);
+				if("".equals(encoding))  encoding="UTF-8";
+				ArrayList<byte[]> valueBArr=new ArrayList<byte[]>();
+				ArrayList<String> valueArr=new ArrayList<String>();
+				for(int ifield=2;ifield<fields.length;ifield++) {
+					File[] files=null;
+
+					File fbase = NewFile(fields[ifield]);
+
+					if(!fbase.exists())
+						throw new IOException(fbase.getAbsolutePath()+" is not a directory or it is not readable");
+					
+					// Setting up the file list
+					if(fbase.isDirectory()) {
+						files = fbase.listFiles();
+						if(files==null) {
+							throw new IOException(fbase.getAbsolutePath()+" is not a readable directory");
+						}
+					} else {
+						files = new File[] { fbase };
+					}
+
+					for(File filefield: files) {
+						if(filefield.isDirectory() || ! filefield.isFile() || filefield.isHidden()) {
+							logger.debug("Entry "+filefield.getAbsolutePath()+" was skipped");
+							continue;
+						}
+						logger.debug("Loading file "+filefield.getAbsolutePath()+" for input "+fields[0]);
+
+						if(!filefield.exists())
+							throw new IOException(filefield.getAbsolutePath()+" is not a directory or it is not readable");
+
+						FileInputStream fisfield = new FileInputStream(filefield);
+						if(isBinary) {
+							BufferedInputStream bisfield=new BufferedInputStream(fisfield);
+							byte[] buffer=new byte[(int)filefield.length()];
+							int bpos=0;
+							int read;
+							while((read=bisfield.read(buffer,bpos,buffer.length-bpos))!=-1) {
+								bpos+=read;
+							}
+							bisfield.close();
+							valueBArr.add(buffer);
+						} else {
+							InputStreamReader isrfield=new InputStreamReader(fisfield,encoding);
+							BufferedReader filebr=new BufferedReader(isrfield);
+							char[] buffer=new char[16384];
+							StringBuilder content=new StringBuilder();
+							int read;
+							while((read=filebr.read(buffer,0,buffer.length))!=-1) {
+								content.append(buffer,0,read);
+							}
+							filebr.close();
+							isrfield.close();
+							valueArr.add(content.toString());
+						}
+						fisfield.close();
+					}
+				}
+				
+				if(isBinary) {
+					if(valueBArr.size()>1) {
+						dt=DataThingFactory.bake(valueBArr.toArray(new byte[0][0]));
+					} else {
+						dt=DataThingFactory.bake(valueBArr.get(0));
+					}
+				} else {
+					if(valueArr.size()>1) {
+						dt=DataThingFactory.bake(valueArr.toArray(new String[0]));
+					} else {
+						dt=DataThingFactory.bake(valueArr.get(0));
+					}
+				}
+				baseInputs.put(fields[0],dt);
+			}
+			br.close();
+			isr.close();
+			fis.close();
 		} else if (param.equals("-inputArray")) {
 			File farr=NewFile(values.get(1));
-			BufferedReader br=new BufferedReader(new FileReader(farr));
+			// Reading input values file
+			FileInputStream fis = new FileInputStream(farr);
+			InputStreamReader isr=new InputStreamReader(fis,"UTF-8");
+			BufferedReader br=new BufferedReader(isr);
 			ArrayList<String> valueArr=new ArrayList<String>();
 			String line;
 			while((line=br.readLine())!=null) {
 				valueArr.add(line);
 			}
 			br.close();
+			isr.close();
+			fis.close();
 			baseInputs.put(values.get(0),DataThingFactory.bake(valueArr.toArray(new String[0])));
 		} else if (param.equals("-inputArrayFile")) {
 			File farr = NewFile(values.get(1));
-			BufferedReader br=new BufferedReader(new FileReader(farr));
+			// Reading input values file
+			FileInputStream fis = new FileInputStream(farr);
+			InputStreamReader isr=new InputStreamReader(fis,"UTF-8");
+			BufferedReader br=new BufferedReader(isr);
 			ArrayList<String> valueArr=new ArrayList<String>();
 			String line;
 			while((line=br.readLine())!=null) {
-				String linecontent;
-				String content="";
 				File filei = NewFile(line);
-				BufferedReader filebr=new BufferedReader(new FileReader(filei));
-				while((linecontent=filebr.readLine())!=null) {
-					content += "\n" + linecontent;
+				FileInputStream fisi = new FileInputStream(filei);
+				InputStreamReader isri=new InputStreamReader(fisi,"UTF-8");
+				BufferedReader filebr=new BufferedReader(isri);
+				char[] buffer=new char[16384];
+				StringBuilder content=new StringBuilder();
+				int read;
+				while((read=filebr.read(buffer,0,buffer.length))!=-1) {
+					content.append(buffer,0,read);
 				}
 				filebr.close();
-				valueArr.add(content);
+				isri.close();
+				fisi.close();
+				valueArr.add(content.toString());
 			}
 			br.close();
 			baseInputs.put(values.get(0),DataThingFactory.bake(valueArr.toArray(new String[0])));
@@ -335,14 +418,19 @@ public class INBWorkflowLauncherWrapper
 					continue;
 				}
 				logger.debug("Loading file "+filei.getAbsolutePath()+" for input "+values.get(0));
-				String linecontent;
-				String content="";
-				BufferedReader filebr=new BufferedReader(new FileReader(filei));
-				while((linecontent=filebr.readLine())!=null) {
-					content += "\n" + linecontent;
+				FileInputStream fisi = new FileInputStream(filei);
+				InputStreamReader isri=new InputStreamReader(fisi,"UTF-8");
+				BufferedReader filebr=new BufferedReader(isri);
+				char[] buffer=new char[16384];
+				StringBuilder content=new StringBuilder();
+				int read;
+				while((read=filebr.read(buffer,0,buffer.length))!=-1) {
+					content.append(buffer,0,read);
 				}
 				filebr.close();
-				valueArr.add(content);
+				isri.close();
+				fisi.close();
+				valueArr.add(content.toString());
 			}
 			baseInputs.put(values.get(0),DataThingFactory.bake(valueArr.toArray(new String[0])));
 		} else {
