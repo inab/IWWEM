@@ -50,7 +50,8 @@ public class INBWorkflowLauncherWrapper
 	private static final String[][] ParamDescs={
 		{"-inputDoc","1","A bunch of workflow inputs, encoded in a Baclava document"},
 		{"-input","2","A single pair input name / value"},
-		{"-inputFile","2","A single pair input name / file where the value is stored"},
+		{"-inputFile","2","A single pair input name / text file in UTF-8 where the value is stored"},
+		{"-inputBFile","2","A single pair input name / binary file where the value is stored"},
 		{"-inputURL","2","A single pair input name / URL where the value can be fetched"},
 		{"-inputMap","1","A file containing tuples of input name / file encoding / one or more files. Each field is tab-separated"},
 		{"-inputArray","2","A single pair input name / file where a list of values are stored"},
@@ -266,6 +267,21 @@ public class INBWorkflowLauncherWrapper
 			isr.close();
 			fis.close();
 			baseInputs.put(values.get(0),DataThingFactory.bake(content.toString()));
+		} else if (param.equals("-inputBFile")) {
+			File ifile=NewFile(values.get(1));
+			
+			// Reading input file
+			FileInputStream fis = new FileInputStream(ifile);
+			BufferedInputStream bis = new BufferedInputStream(fis);
+			byte[] buffer=new byte[(int)ifile.length()];
+			int bpos=0;
+			int read;
+			while((read=bis.read(buffer,bpos,buffer.length-bpos))!=-1) {
+				bpos+=read;
+			}
+			bis.close();
+			fis.close();
+			baseInputs.put(values.get(0),DataThingFactory.bake(buffer));
 		} else if (param.equals("-inputURL")) {
 			baseInputs.put(values.get(0),DataThingFactory.fetchFromURL(new URL(values.get(1))));
 		} else if (param.equals("-inputMap")) {

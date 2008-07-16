@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cnio.scombio.jmfernandez.taverna</groupId>
 	<artifactId>workflowlauncher</artifactId>
-	<version>0.2.0</version>
+	<version>0.3.0</version>
 	<name>INB workflow launcher, based on Taverna's workflow launcher example</name>
 	<description>
 		A workflow launcher which is able to instantiate a workflow
