@@ -27,6 +27,7 @@ var Base64 = {
 		var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
 		var i = 0;
 		
+		input = ''+input;
 		if(!noUTF8) {
 			input = this._utf8_encode(input);
 		}
@@ -64,7 +65,8 @@ var Base64 = {
 		var chr1, chr2, chr3;
 		var enc1, enc2, enc3, enc4;
 		var i = 0;
-
+		
+		input = ''+input;
 		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
 		while (i < input.length) {
@@ -96,6 +98,7 @@ var Base64 = {
 	
 	// private method for UTF-8 encoding
 	_utf8_encode : function (str) {
+		str = ''+str;
 		str = str.replace(/\r\n/g,"\n");
 		var utftext = new Array();
 		
@@ -119,6 +122,7 @@ var Base64 = {
 	
 	// private method for UTF-8 decoding
 	_utf8_decode : function (utftext) {
+		utftext = ''+utftext;
 		var str = new Array();
 		var i = 0;
 		var c = c1 = c2 = 0;
@@ -150,6 +154,7 @@ var Base64 = {
 	streamFromBase64ToByte: function (input, end_callback, /* optional */ noUTF8, i, output) {
 		if(!i) {
 			i=0;
+			input = ''+input;
         		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 			if(output==undefined || output==null)  output=new Array();
 		}
@@ -194,7 +199,10 @@ var Base64 = {
 	// private method for UTF8 stream decoding
 	streamFromByteToUTF8: function (bytetext, end_callback, /* optional */ i, utftext) {
 		if(utftext==undefined || utftext==null)  utftext=new Array();
-		if(!i)  i = 0;
+		if(!i) {
+			bytetext = ''+bytetext;
+			i = 0;
+		}
 		
 		var blength=bytetext.length;
 		for(var ilocal=0 ; ilocal < 8192 && i < blength ; ilocal++) {
@@ -228,6 +236,7 @@ var Base64 = {
 	streamFromBase64ToUTF8: function (input, end_callback, /* optional */ i, transientArr, output) {
 		if(!i) {
 			i=0;
+			input = ''+input;
         		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 			transientArr=new Array();
 			if(output==undefined || output==null)  output=new Array();
@@ -332,6 +341,7 @@ var Base64 = {
 	streamFromUTF8ToByte: function (utftext, end_callback, /* optional */ n, bytetext) {
 		if(bytetext==undefined || bytetext==null) {
 			bytetext=new Array();
+			utftext = ''+utftext;
 			utftext = utftext.replace(/\r\n/g,"\n");
 		}
 		if(!n)  n = 0;
@@ -363,6 +373,7 @@ var Base64 = {
 	streamFromByteToBase64 : function (input, end_callback, /* optional */ i , output) {
 		if(!i) {
 			i=0;
+			input = ''+input;
 			if(output==null || output==undefined)  output=new Array();
 		}
 		
@@ -401,6 +412,7 @@ var Base64 = {
 	streamFromUTF8ToBase64: function (utftext, end_callback, /* optional */ n, transientArr, base64text) {
 		if(!n) {
 			n = 0;
+			utftext = ''+utftext;
 			utftext = utftext.replace(/\r\n/g,"\n");
 			transientArr=new Array();
 			if(base64text==undefined || base64text==null)  base64text=new Array();

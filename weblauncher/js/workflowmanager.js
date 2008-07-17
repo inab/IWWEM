@@ -136,7 +136,7 @@ function ManagerView(genview) {
 	// Parsing id param
 	var qsParm={};
 	WidgetCommon.parseQS(qsParm);
-	if(('id' in qsParm) && qsParm['id'] && qsParm['id'].length > 0) {
+	if(('id' in qsParm) && qsParm['id']!=undefined && qsParm['id']!=null && qsParm['id'].length > 0) {
 		this.restrictId=qsParm['id'];
 		
 		WidgetCommon.addEventListener(this.openEnactionButton,'click',function() {
@@ -283,7 +283,7 @@ ManagerView.prototype = {
 				return 0;
 			};
 			
-			if(this.restrictId) {
+			if(this.restrictId!=undefined) {
 				sortFunc=function (a,b) {
 					if(a.date < b.date)  return 1;
 					if(a.date > b.date)  return -1;
