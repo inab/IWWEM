@@ -395,7 +395,7 @@ if($retval!=0 || $query->cgi_error() || !defined($wfilefetched)) {
 		print $query->strong($retvalmsg);
 	}
 	
-	rmtree($jobdir);
+	rmtree($jobdir)  if(defined($jobdir));
 	rmtree($penddir)  if(defined($penddir));
 	exit 0;
 }
