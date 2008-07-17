@@ -689,21 +689,22 @@ EnactionView.prototype = {
 		
 		// Getting the enaction information
 		if(!jobId)  jobId=this.jobId;
-		var qsParm = {};
-		qsParm['jobId']=jobId;
+		var qsParm = {
+			jobId: Base64._utf8_encode(jobId)
+		};
 		if(snapshotName) {
-			qsParm['snapshotName']=snapshotName;
+			qsParm['snapshotName']=Base64._utf8_encode(snapshotName);
 			if(snapshotDesc) {
-				qsParm['snapshotDesc']=snapshotDesc;
+				qsParm['snapshotDesc']=Base64._utf8_encode(snapshotDesc);
 			}
 		}
 		if(isKill) {
 			qsParm['dispose']='0';
 		}
 		if(responsibleMail) {
-			qsParm['responsibleMail']=responsibleMail;
+			qsParm['responsibleMail']=Base64._utf8_encode(responsibleMail);
 			if(responsibleName) {
-				qsParm['responsibleName']=responsibleName;
+				qsParm['responsibleName']=Base64._utf8_encode(responsibleName);
 			}
 		}
 		var enactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionstatus");
@@ -852,9 +853,10 @@ EnactionView.prototype = {
 			if(this.jobId) {
 				if(isFullDispose) {
 					var dispo=new XMLHttpRequest();
-					var qsParm={};
-					qsParm['jobId']=this.jobId;
-					qsParm['dispose']='1';
+					var qsParm={
+						jobId: Base64._utf8_encode(this.jobId),
+						dispose: '1'
+					};
 					var disposeQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionstatus");
 					dispo.open('GET',disposeQuery);
 					dispo.send(null);
@@ -968,13 +970,13 @@ EnactionView.prototype = {
 		// First, locking the window
 		this.openReenactFrame();
 		
-		var qsParm = {};
-		qsParm['id']=enUUID;
-		qsParm['reusePrevInput']='1';
-		
-		// Setting responsible
-		qsParm['responsibleMail']=this.responsibleMail;
-		qsParm['responsibleName']=this.responsibleName;
+		var qsParm = {
+			id: Base64._utf8_encode(enUUID),
+			reusePrevInput: '1',
+			// Setting responsible
+			responsibleMail: Base64._utf8_encode(this.responsibleMail),
+			responsibleName: Base64._utf8_encode(this.responsibleName)
+		};
 		
 		var reenactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionlauncher");
 		var reenactRequest = new XMLHttpRequest();

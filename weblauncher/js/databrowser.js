@@ -141,9 +141,17 @@ DataBrowser.LocatedData.prototype = {
 	},
 
 	genDownloadURL: function(mime,/* optional */ withName) {
-		var qsParm={jobId: this.jobId , step: this.stepName , IOMode: this.IOMode , IOPath: this.IOPath , asMime: mime};
-		if(this.iteration!=undefined)  qsParm['iteration']=this.iteration;
-		if(withName!=undefined)  qsParm['withName']=withName;
+		var qsParm={
+			jobId: Base64._utf8_encode(this.jobId),
+			step: Base64._utf8_encode(this.stepName),
+			IOMode: Base64._utf8_encode(this.IOMode),
+			IOPath: Base64._utf8_encode(this.IOPath),
+			asMime: Base64._utf8_encode(mime)
+		};
+		if(this.iteration!=undefined)
+			qsParm['iteration']=Base64._utf8_encode(this.iteration);
+		if(withName!=undefined)
+			qsParm['withName']=Base64._utf8_encode(withName);
 		return WidgetCommon.generateQS(qsParm,"cgi-bin/IWWEMproxy");
 	}
 };

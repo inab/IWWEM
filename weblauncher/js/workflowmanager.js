@@ -318,10 +318,10 @@ ManagerView.prototype = {
 		
 		var qsParm = {};
 		if(this.restrictId!=undefined) {
-			qsParm['id']=this.restrictId;
+			qsParm['id']=Base64._utf8_encode(this.restrictId);
 		}
 		if(wfToErase!=undefined) {
-			qsParm['eraseId']=wfToErase;
+			qsParm['eraseId']=Base64._utf8_encode(wfToErase);
 		}
 		var listQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/workflowmanager");
 		var listRequest = this.listRequest = new XMLHttpRequest();
@@ -984,8 +984,9 @@ NewEnactionView.prototype = {
 					} else {
 						var request;
 						var genview=this.genview;
-						var qsParm = {};
-						qsParm['jobId']=example.getQualifiedUUID();
+						var qsParm = {
+							jobId: Base64._utf8_encode(example.getQualifiedUUID())
+						};
 						var theurl = WidgetCommon.generateQS(qsParm,"cgi-bin/IWWEMproxy");
 						try {
 							request=new XMLHttpRequest();
@@ -1437,14 +1438,14 @@ NewEnactionView.prototype = {
 			// First, locking the window
 			this.openSubmitFrame(1);
 			
-			var qsParm = {};
-			qsParm['id']=enUUID;
-			qsParm['reusePrevInput']='1';
-			
-			// Setting responsible
 			var workflow = this.manview.wfA[enUUID];
-			qsParm['responsibleMail']=workflow.responsibleMail;
-			qsParm['responsibleName']=workflow.responsibleName;
+			var qsParm = {
+				id: Base64._utf8_encode(enUUID),
+				reusePrevInput: '1',
+				// Setting responsible
+				responsibleMail: Base64._utf8_encode(workflow.responsibleMail),
+				responsibleName: Base64._utf8_encode(workflow.responsibleName)
+			};
 			
 			var reenactQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/enactionlauncher");
 			var reenactRequest = new XMLHttpRequest();
