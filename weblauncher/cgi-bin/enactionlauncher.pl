@@ -15,6 +15,7 @@ use Encode;
 use File::Copy;
 use File::Path;
 use FindBin;
+use IO::Handle;
 use POSIX qw(setsid);
 use XML::LibXML;
 
@@ -135,6 +136,7 @@ foreach my $param ($query->param()) {
 	# Let's check at UTF-8 level!
 	if(defined($paramval)) {
 		eval {
+			# Beware decode!
 			decode('UTF-8',$paramval,Encode::FB_CROAK);
 		};
 		
@@ -219,7 +221,9 @@ if($retval==0 && !$query->cgi_error()) {
 				} else {
 					# Content should be already in UTF-8!
 					eval {
-						decode('UTF-8',$PH,Encode::FB_CROAK);
+						# Beware decode!
+						my($crap)=$PH;
+						decode('UTF-8',$crap,Encode::FB_CROAK);
 					};
 					if($@) {
 						$retval = 4;
@@ -227,9 +231,10 @@ if($retval==0 && !$query->cgi_error()) {
 						last PARAMPROC;
 					}
 					
-					print $PARH $PH;
+					print $PARH ($PH);
 				}
 				close($PARH);
+				system("ls -l $destfile 1>&2");
 			} else {
 				$retval = 4;
 				last PARAMPROC;

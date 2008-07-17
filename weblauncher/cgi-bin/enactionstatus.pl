@@ -283,7 +283,9 @@ sub parseEnactionReport($$;$) {
 	
 	if(!defined($enactionReportError) && defined($enactionReport)) {
 		eval {
-			my($er)=$parser->parse_string(decode('UTF-8', $enactionReport));
+			# Beware decode!
+			my($crap)=$enactionReport;
+			my($er)=$parser->parse_string(decode('UTF-8', $crap));
 			$repnode=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReport');
 			$repnode->appendChild($outputDoc->importNode($er->documentElement));
 		};
@@ -350,6 +352,7 @@ foreach my $param ($query->param()) {
 	# Let's check at UTF-8 level!
 	foreach my $paramval (@paramvalarr) {
 		eval {
+			# Beware decode!
 			decode('UTF-8',$paramval,Encode::FB_CROAK);
 		};
 		

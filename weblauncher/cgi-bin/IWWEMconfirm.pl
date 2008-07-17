@@ -43,6 +43,7 @@ foreach my $param ($query->param()) {
 	# Let's check at UTF-8 level!
 	if(defined($paramval)) {
 		eval {
+			# Beware decode!
 			decode('UTF-8',$paramval,Encode::FB_CROAK);
 		};
 		
