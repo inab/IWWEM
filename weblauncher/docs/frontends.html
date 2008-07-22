@@ -32,7 +32,7 @@ Currently, IWWE&amp;M has 5 frontends, used by AJAX GUIs:
 <li><span class="frontend"><a href="#IWWEMproxy">IWWEMproxy</a></span></li>
 <li><span class="frontend"><a href="#IWWEMconfirm">IWWEMconfirm</a></span></li>
 </ul>
-<p>First of all, all these frontends have lots of parameters, and some of them may contain international characters, like spanish <span class="value">&ntilde;</span> or french and catalonian <span class="value">&ccedil;</span>. So, all these frontends expect that any one of their parameters <b>are encoded in UTF-8</b>, no more, no less.</p>
+<p>First of all, all these frontends have lots of parameters, and some of them may contain international characters, like spanish <span class="value">&ntilde;</span> or french and catalonian <span class="value">&ccedil;</span>. So, all these frontends expect that must of their parameters <b>are encoded in UTF-8</b>, no more, no less. The only exceptions are <span class="parameter">PARAM_</span> prefixed parameters, whose encoding can be driven by their corresponding <span class="parameter">ENCODING_</span> prefixed parameters</p>
 <p>All these frontends use the concept of Ids: workflow Ids, example Ids, enaction Ids, snapshot Ids and confirmation Ids. All the unqualified Ids have the format of an <a href="http://en.wikipedia.org/wiki/UUID">UUID</a>, but there are some differences when the IDs are fully qualified:</p>
 <ul>
 <li>Any workflow Id has the format of an UUID, for instance <span class="value">2365b91b-b7ae-4aa9-ae70-e8be4f40c0b3</span>. So, workflow Ids have the same qualified and unqualified representation.</li>

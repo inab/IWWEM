@@ -22,7 +22,7 @@ function SVGtramp(LoadEvent) {
 	// First, let's detect the accuracy of convertToSpecifiedUnits!
 	// Bad implementation :-(
 	var DPI=72;
-	if(screen && screen.logicalXDPI) {
+	if(window.screen && window.screen.logicalXDPI) {
 		DPI=screen.logicalXDPI;
 	}
 	var defaultmmPerPixel=25.4/DPI;
