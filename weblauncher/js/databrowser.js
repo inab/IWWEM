@@ -436,8 +436,12 @@ DataBrowser.XMLViewer = {
 			var parser = new DOMParser();
 			xmldata = parser.parseFromString(data,'application/xml');
 		}
-		var xmldiv=IWWEMPrettyXML.generateBrowsableXML(xmldata,genview.thedoc);
-		databrowserDiv.appendChild(xmldiv);
+		if(xmldata && GeneralView.getLocalName(xmldata.documentElement)!='parsererror') {
+			var xmldiv=IWWEMPrettyXML.generateBrowsableXML(xmldata,genview.thedoc);
+			databrowserDiv.appendChild(xmldiv);
+		} else {
+			databrowserDiv.appendChild(genview.thedoc.createTextNode("Unable to parse as XML"));
+		}
 	}
 };
 DataBrowser.addViewer(DataBrowser.XMLViewer);
