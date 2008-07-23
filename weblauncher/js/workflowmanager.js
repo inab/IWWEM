@@ -1138,7 +1138,7 @@ NewEnactionView.prototype = {
 		var newenactview=this;
 		var onclickHandler=function(event) {
 			if(!event)  event=window.event;
-			var target=(event.currentTarget)?event.currentTarget:event.srcElement;
+			var target=(event.currentTarget!=undefined)?event.currentTarget:event.srcElement;
 			if(!radiostatecontrol || radiostatecontrol.control!=target) {
 				if(radiostatecontrol) {
 					radiostatecontrol.doUncheck();
