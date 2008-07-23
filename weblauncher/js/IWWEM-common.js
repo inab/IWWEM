@@ -693,7 +693,7 @@ GeneralView.prototype = {
 	parseRequest: function(request,labelMessage) {
 		var response=undefined;
 		// Beware parsing errors in Explorer
-		if('status' in matcherRequest) {
+		if('status' in request) {
 			if(request.status==200) {
 				// Beware parsing errors in Explorer
 				if(request.parseError && request.parseError.errorCode!=0) {
