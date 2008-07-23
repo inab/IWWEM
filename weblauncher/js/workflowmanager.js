@@ -334,64 +334,30 @@ ManagerView.prototype = {
 					manview.openReloadFrame();
 					var doClose=1;
 					try {
-						if('status' in listRequest) {
-							if(listRequest.status==200) {
-								// Beware parsing errors in Explorer
-								if(listRequest.parseError && listRequest.parseError.errorCode!=0) {
-									genview.setMessage('<blink><h1 style="color:red">FATAL ERROR ('+
-										listRequest.parseError.errorCode+
-										") while parsing list at ("+
-										listRequest.parseError.line+
-										","+listRequest.parseError.linePos+
-										"):</h1></blink><pre>"+listRequest.parseError.reason+"</pre>"
-									);
-								} else {
-									var response = listRequest.responseXML;
-									if(!response) {
-										if(listRequest.responseText) {
-											var parser = new DOMParser();
-											response = parser.parseFromString(listRequest.responseText,'application/xml');
-										} else {
-											// Backend error.
-											genview.setMessage('<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>');
-										}
-									}
-									manview.fillWorkflowList(response.documentElement.cloneNode(true),function() {
-										manview.closeReloadFrame();
-										manview.reloadButton.className='button';
-										manview.updateTextSpan.innerHTML='Update';
-										manview.listRequest=undefined;
-										if(wfToErase!=undefined)
-											alert('Workflow erase will be effective when original uploader confirms it');
-									});
-									doClose=undefined;
-								}
-							} else {
-								// Communications error.
-								var statusText='';
-								if(('statusText' in listRequest) && listRequest['statusText']) {
-									statusText=listRequest.statusText;
-								}
-								genview.setMessage('<blink><h1 style="color:red">FATAL ERROR while fetching list: '+
-									listRequest.status+' '+statusText+'</h1></blink>'
-								);
-							}
-						} else {
-							genview.setMessage('<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>');
+						var response = genview.parseRequest(listRequest,"fetching workflow repository status");
+						if(response!=undefined) {
+							manview.fillWorkflowList(response.documentElement.cloneNode(true),function() {
+								manview.closeReloadFrame();
+								manview.reloadButton.className='button';
+								manview.updateTextSpan.innerHTML='Update';
+								manview.listRequest=undefined;
+								if(wfToErase!=undefined)
+									alert('Workflow erase will be effective when original uploader confirms it');
+							});
+							doClose=undefined;
 						}
 					} catch(e) {
 						genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>');
-					} finally {
-						// Removing 'Loading...' frame
-						if(doClose) {
-							manview.closeReloadFrame();
-							manview.reloadButton.className='button';
-							manview.updateTextSpan.innerHTML='Update';
-							manview.listRequest=undefined;
-						}
-						listRequest.onreadystatechange=function() {};
-						listRequest=undefined;
 					}
+					// Removing 'Loading...' frame
+					if(doClose) {
+						manview.closeReloadFrame();
+						manview.reloadButton.className='button';
+						manview.updateTextSpan.innerHTML='Update';
+						manview.listRequest=undefined;
+					}
+					listRequest.onreadystatechange=function() {};
+					listRequest=undefined;
 				}
 			};
 			this.reloadButton.className="buttondisabled";
@@ -579,6 +545,8 @@ NewWorkflowView.prototype = {
 							var CDATAIsland = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
 							if(CDATAIsland) {
 								var islandContent=WidgetCommon.getTextContent(CDATAIsland);
+								
+								// No error detection method was added, because next functions must be strong enough 
 								var parser = new DOMParser();
 								xdoc = parser.parseFromString(islandContent,'application/xml');
 							}
@@ -676,6 +644,8 @@ function NewEnactionView(manview) {
 		newenactview.updateSVGSize();
 	},false);
 }
+
+NewEnactionView.Encodings=['ISO-8859-1','binary','UTF-8'];
 
 NewEnactionView.prototype = {
 	setInputMode: function(control) {
@@ -991,32 +961,8 @@ NewEnactionView.prototype = {
 						try {
 							request=new XMLHttpRequest();
 							var requestonload = function() {
-								if(request.parseError && request.parseError.errorCode!=0) {
-									genview.setMessage(
-										'<blink><h1 style="color:red">FATAL ERROR ('+
-										request.parseError.errorCode+
-										") while parsing example at ("+
-										request.parseError.line+
-										","+request.parseError.linePos+
-										"):</h1></blink><pre>"+
-										request.parseError.reason+
-										"</pre>"
-									);
-								} else {
-									var response = request.responseXML;
-									if(!response) {
-										if(request.responseText) {
-											var parser = new DOMParser();
-											response = parser.parseFromString(request.responseText,'application/xml');
-										} else {
-											// Backend error.
-											genview.addMessage(
-												'<blink><h1 style="color:red">FATAL ERROR B: (with '+
-												theurl+
-												') Please notify it to INB Web Workflow Manager developer</h1></blink>'
-											);
-										}
-									}
+								var response=genview.parseRequest(request,"parsing examples list");
+								if(response!=undefined) {
 									// Only parse when an answer is available
 									stepCache[exampleUUID]=new EnactionStep(response.documentElement);
 									viewExample(exampleUUID);
@@ -1034,25 +980,7 @@ NewEnactionView.prototype = {
 								request.onreadystatechange = function() {
 									if(request.readyState==4) {
 										try {
-											if('status' in request) {
-												if(request.status==200) {
-													requestonload();
-												} else {
-													// Communications error.
-													var statusText='';
-													if(('statusText' in request) && request['statusText']) {
-														statusText=request.statusText;
-													}
-													genview.setMessage(
-														'<blink><h1 style="color:red">FATAL ERROR while collecting example info: '+
-														request.status+' '+statusText+'</h1></blink>'
-													);
-												}
-											} else {
-												genview.addMessage(
-													'<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>'
-												);
-											}
+											requestonload();
 										} catch(e) {
 											genview.setMessage(
 												'<blink><h1 style="color:red">FATAL ERROR: Unable to complete example load!</h1></blink><pre>'+
@@ -1190,6 +1118,18 @@ NewEnactionView.prototype = {
 		thechoicefile.innerHTML='as file';
 		var radiothechoicefile=new GeneralView.Check(thechoicefile);
 		
+		var encodingSelect=newenactview.genview.createElement('select');
+		encodingSelect.name='ENCODING_'+input.name;
+		for(var i=0;i<NewEnactionView.Encodings.length;i++) {
+			var iterM=this.genview.createElement('option');
+			iterM.text=iterM.value=NewEnactionView.Encodings[i];
+			try {
+				encodingSelect.add(iterM,null);
+			} catch(e) {
+				encodingSelect.add(iterM);
+			}
+		}
+
 		var radiostatecontrol=radiothechoicetext;
 		
 		var newenactview=this;
@@ -1200,7 +1140,16 @@ NewEnactionView.prototype = {
 				if(radiostatecontrol) {
 					radiostatecontrol.doUncheck();
 				}
-				radiostatecontrol=(target==radiothechoicefile.control)?radiothechoicefile:radiothechoicetext;
+				
+				var parent = radiostatecontrol.parentNode;
+				if(target==radiothechoicefile.control) {
+					radiostatecontrol=radiothechoicefile;
+					parent.parentNode.insertBefore(parent.nextSibling,encodingSelect);
+				} else {
+					radiostatecontrol=radiothechoicetext;
+					parent.parentNode.removeChild(encodingSelect);
+				}
+				
 				radiostatecontrol.doCheck();
 				
 				// Keeping an accurate number of inputs
@@ -1214,7 +1163,7 @@ NewEnactionView.prototype = {
 		var addlistener = function() {
 			var newinput;
 			var glass;
-			var controlname='PARAM_'+input.name
+			var controlname='PARAM_'+input.name;
 			if(radiostatecontrol == radiothechoicefile) {
 				newinput=newenactview.genview.createCustomizedFileControl(controlname);
 
@@ -1390,6 +1339,8 @@ NewEnactionView.prototype = {
 						var CDATAIsland = WidgetCommon.getElementById(GeneralView.dataIslandMarker,xdoc);
 						if(CDATAIsland) {
 							var islandContent=WidgetCommon.getTextContent(CDATAIsland);
+							
+							// No error detection method was added, because next functions must be strong enough 
 							var parser = new DOMParser();
 							xdoc = parser.parseFromString(islandContent,'application/xml');
 						}
@@ -1455,50 +1406,16 @@ NewEnactionView.prototype = {
 				reenactRequest.onreadystatechange = function() {
 					if(reenactRequest.readyState==4) {
 						try {
-							if('status' in reenactRequest) {
-								if(reenactRequest.status==200) {
-									// Beware parsing errors in Explorer
-									if(reenactRequest.parseError && reenactRequest.parseError.errorCode!=0) {
-										genview.setMessage('<blink><h1 style="color:red">FATAL ERROR ('+
-											reenactRequest.parseError.errorCode+
-											") while parsing reenaction submission at ("+
-											reenactRequest.parseError.line+
-											","+reenactRequest.parseError.linePos+
-											"):</h1></blink><pre>"+reenactRequest.parseError.reason+"</pre>");
-									} else {
-										var response = reenactRequest.responseXML;
-										if(!response) {
-											if(reenactRequest.responseText) {
-												var parser = new DOMParser();
-												response = parser.parseFromString(reenactRequest.responseText,'application/xml');
-											} else {
-												// Backend error.
-												genview.setMessage('<blink><h1 style="color:red">FATAL ERROR BRE: Please notify it to INB Web Workflow Manager developer</h1></blink>');
-											}
-										}
-
-										newenact.parseEnactionIdAndLaunch(response,1);
-									}
-								} else {
-									// Communications error.
-									var statusText='';
-									if(('statusText' in reenactRequest) && reenactRequest['statusText']) {
-										statusText=reenactRequest.statusText;
-									}
-									genview.setMessage('<blink><h1 style="color:red">FATAL ERROR while reenacting '+
-										enUUID+': '+reenactRequest.status+' '+statusText+'</h1></blink>');
-								}
-							} else {
-								genview.setMessage('<blink><h1 style="color:red">FATAL ERROR FRE: Please notify it to INB Web Workflow Manager developer</h1></blink>');
-							}
+							var response = genview.parseRequest(reenactRequest,"finishing reenaction startup");
+							if(response!=undefined)
+								newenact.parseEnactionIdAndLaunch(response,1);
 						} catch(e) {
 							genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to complete reenaction!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>');
-						} finally {
-							// Removing 'Loading...' frame
-							newenact.closeSubmitFrame();
-							reenactRequest.onreadystatechange=function() {};
-							reenactRequest=undefined;
 						}
+						// Removing 'Loading...' frame
+						newenact.closeSubmitFrame();
+						reenactRequest.onreadystatechange=function() {};
+						reenactRequest=undefined;
 					}
 				};
 				reenactRequest.open('GET',reenactQuery,true);

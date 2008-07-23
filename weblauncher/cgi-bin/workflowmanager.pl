@@ -49,6 +49,19 @@ $context->registerNs('sn',$WorkflowCommon::WFD_NS);
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
+	# Let's check at UTF-8 level!
+	my($tmpparamname)=$param;
+	eval {
+		# Beware decode in croak mode!
+		decode('UTF-8',$tmpparamname,Encode::FB_CROAK);
+	};
+	
+	if($@) {
+		$retval=-1;
+		$retvalmsg="Param name $param is not a valid UTF-8 string!";
+		last;
+	}
+	
 	my($paramval)=undef;
 
 	# We are skipping all unknown params

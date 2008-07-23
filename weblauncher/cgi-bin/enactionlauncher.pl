@@ -46,6 +46,7 @@ my($responsibleMail)=undef;
 my($responsibleName)=undef;
 
 my(@inputdesc)=();
+my(@inputMap)=();
 my(@baclavadesc)=();
 my($inputcount)=0;
 my($retval)=0;
@@ -58,12 +59,26 @@ my($exampleDesc)=undef;
 my(@saveExample)=();
 
 my(@parseParam)=();
+my(%encodingHash)=();
 
 # First step, parameter and workflow storage (if any!)
 PARAMPROC:
 foreach my $param ($query->param()) {
 	my($paramval)=undef;
 
+	# Let's check at UTF-8 level!
+	my($tmpparamname)=$param;
+	eval {
+		# Beware decode in croak mode!
+		decode('UTF-8',$tmpparamname,Encode::FB_CROAK);
+	};
+	
+	if($@) {
+		$retval=-1;
+		$retvalmsg="Param name $param is not a valid UTF-8 string!";
+		last;
+	}
+	
 	# We are skipping all unknown params
 	if($param eq $WorkflowCommon::PARAMISLAND) {
 		$dataisland=$query->param($param);
@@ -128,6 +143,10 @@ foreach my $param ($query->param()) {
 		$paramval = $responsibleName = $query->param($param);
 	} elsif(length($param)>length($WorkflowCommon::PARAMPREFIX) && index($param,$WorkflowCommon::PARAMPREFIX)==0) {
 		push(@parseParam,$param);
+	} elsif(length($param)>length($WorkflowCommon::ENCODINGPREFIX) && index($param,$WorkflowCommon::ENCODINGPREFIX)==0) {
+		my $paramName = substr($param,length($WorkflowCommon::ENCODINGPREFIX));
+		$paramval = $query->param($param);
+		$encodingHash{$paramName} = decode('UTF-8',$paramval);
 	}
 	
 	# Error checking
@@ -136,7 +155,7 @@ foreach my $param ($query->param()) {
 	# Let's check at UTF-8 level!
 	if(defined($paramval)) {
 		eval {
-			# Beware decode!
+			# Beware decode in croak mode!
 			decode('UTF-8',$paramval,Encode::FB_CROAK);
 		};
 		
@@ -185,6 +204,7 @@ if($retval==0 && !$query->cgi_error()) {
 		# Single param handling
 		my $paramName = substr($param,length($WorkflowCommon::PARAMPREFIX));
 		my $paramPath = $inputdir . '/' . $inputcount;
+		my $encoding = undef;
 
 		my(@PFH)=$query->upload($param);
 
@@ -195,8 +215,13 @@ if($retval==0 && !$query->cgi_error()) {
 		if(scalar(@PFH)==0) {
 			@PFH=$query->param($param);
 			$isfh=undef;
+		} elsif(exists($encodingHash{$paramName})) {
+			$encoding = $encodingHash{$paramName};
 		}
+		
+		$encoding = 'UTF-8'  unless(defined($encoding) && length($encoding)>0);
 
+		my(@inputFiles)=($paramName,$encoding);
 		my($many)=undef;
 
 		my($fcount)=0;
@@ -208,7 +233,7 @@ if($retval==0 && !$query->cgi_error()) {
 		} else {
 			$destfile=$paramPath;
 		}
-
+		
 		foreach my $PH (@PFH) {
 			my($PARH);
 			if(open($PARH,'>',$destfile)) {
@@ -234,7 +259,8 @@ if($retval==0 && !$query->cgi_error()) {
 					print $PARH ($PH);
 				}
 				close($PARH);
-				system("ls -l $destfile 1>&2");
+				
+				push(@inputFiles,$destfile);
 			} else {
 				$retval = 4;
 				last PARAMPROC;
@@ -242,8 +268,9 @@ if($retval==0 && !$query->cgi_error()) {
 			$fcount++;
 			$destfile=$paramPath . '/' . $fcount;
 		}
-
-		push(@inputdesc,(defined($many)?'-inputArrayDir':'-inputFile'),$paramName,$paramPath);
+		
+		push(@inputMap,\@inputFiles);
+		#push(@inputdesc,(defined($many)?'-inputArrayDir':'-inputFile'),$paramName,$paramPath);
 
 		$inputcount++;
 	}
@@ -320,6 +347,7 @@ if($retval==0 && !$query->cgi_error() && defined($baclavafound)) {
 	
 	$inputcount++;
 } elsif($retval==0 && !$query->cgi_error() && defined($originalInput) && defined($reusePrevInput)) {
+	# Re-enaction
 	my $paramPath = $inputdir . '/' . $inputcount . '-baclava';
 	mkpath($paramPath);
 	my($baclavaname)=$paramPath.'/'.'original.xml';
@@ -383,6 +411,22 @@ if($retval==0 && !$query->cgi_error() && defined($exampleName) && defined($workf
 	# Last
 	# push(@saveExample,(defined($onlySaveAsExample)?'-onlySaveInputs':'-saveInputs'),$pendrandfile);
 	push(@saveExample,'-onlySaveInputs',$pendrandfile);
+}
+
+# Let's generate the input map
+if($retval==0 && !$query->cgi_error() && scalar(@inputMap)>0) {
+	my($inputFileMap)=$inputdir . '/' .'inputmap.txt';
+	my($IMAP);
+	if(open($IMAP,'>',$inputFileMap)) {
+		foreach my $p_inputMap (@inputMap) {
+			print $IMAP join("\t",@{$p_inputMap}),"\n";
+		}
+		close($IMAP);
+		push(@inputdesc,'-inputMap',$inputFileMap);
+	} else {
+		$retval=5;
+		$retvalmsg="Error while saving input maps file";
+	}
 }
 
 # We must signal here errors and exit

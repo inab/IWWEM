@@ -113,22 +113,11 @@ EnactionStep.prototype = {
 		try {
 			request=new XMLHttpRequest();
 			var onload = function() {
-				var response = request.responseXML;
-				if(!response) {
-					if(request.responseText) {
-						var parser = new DOMParser();
-						response = parser.parseFromString(request.responseText,'application/xml');
-					} else {
-						// Backend error.
-						genview.addMessage(
-							'<blink><h1 style="color:red">FATAL ERROR B: (with '+
-							theurl+
-							') Please notify it to INB Web Workflow Manager developer</h1></blink>'
-						);
-					}
+				var response=genview.parseRequest(request,"parsing examples list");
+				if(response!=undefined) {
+					// Only parse when an answer is available
+					Baclava.Parser(response.documentElement.cloneNode(true),thehash,genview);
 				}
-				// Only parse when an answer is available
-				Baclava.Parser(response.documentElement.cloneNode(true),thehash,genview);
 				try {
 					if(thenotify)  thenotify(istep);
 				} catch(noti) {
@@ -140,63 +129,17 @@ EnactionStep.prototype = {
 				//genview.addMessage(request.readyState + '<br>');
 				if(request.readyState==4) {
 					try {
-						if('status' in request) {
-							if(request.status == 200 || request.status == 304) {
-								if(request.parseError && request.parseError.errorCode!=0) {
-									genview.addMessage('<blink><h1 style="color:red">FATAL ERROR ('+
-										request.parseError.errorCode+
-										") while parsing list at ("+
-										request.parseError.line+
-										","+request.parseError.linePos+
-										"):</h1></blink><pre>"+request.parseError.reason+"</pre>"
-									);
-								} else {
-									var response = request.responseXML;
-									if(!response) {
-										if(request.responseText) {
-											var parser = new DOMParser();
-											response = parser.parseFromString(request.responseText,'application/xml');
-										} else {
-											// Backend error.
-											genview.addMessage(
-												'<blink><h1 style="color:red">FATAL ERROR B: (with '+
-												theurl+
-												') Please notify it to INB Web Workflow Manager developer</h1></blink>'
-											);
-										}
-									}
-									// Only parse when an answer is available
-									Baclava.Parser(response.documentElement.cloneNode(true),thehash,genview);
-									try {
-										if(thenotify)  thenotify(istep);
-									} catch(noti) {
-										alert(WidgetCommon.DebugError(noti));
-										// IgnoreIT(R)
-									}
-								}
-								
-							} else {
-								// Communications error.
-								var statusText='';
-								if(('statusText' in request) && request.statusText) {
-									statusText=request.statusText;
-								}
-								genview.addMessage(
-									'<blink><h1 style="color:red">FATAL ERROR while fetching '+
-									theurl+
-									': '+
-									request.status+
-									' '+
-									statusText+
-									'</h1></blink>'
-								);
-							}
-						} else {
-							genview.addMessage(
-								'<blink><h1 style="color:red">FATAL ERROR F: (with '+
-								theurl+
-								') Please notify it to INB Web Workflow Manager developer</h1></blink>'
-							);
+						var response = genview.parseRequest(request,"parsing enaction step");
+						
+						// Only parse when an answer is available
+						if(response!=undefined) {
+							Baclava.Parser(response.documentElement.cloneNode(true),thehash,genview);
+						}
+						try {
+							if(thenotify)  thenotify(istep);
+						} catch(noti) {
+							alert(WidgetCommon.DebugError(noti));
+							// IgnoreIT(R)
 						}
 					} catch(e) {
 						genview.addMessage(

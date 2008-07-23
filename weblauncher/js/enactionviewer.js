@@ -727,82 +727,39 @@ EnactionView.prototype = {
 				if(enactQueryReq.readyState==4) {
 					//enactview.closeReloadFrame();
 					try {
-						if('status' in enactQueryReq) {
-							if(enactQueryReq.status==200) {
-								if(enactQueryReq.parseError && enactQueryReq.parseError.errorCode!=0) {
-									genview.setMessage(
-										'<blink><h1 style="color:red">FATAL ERROR ('+
-										enactQueryReq.parseError.errorCode+
-										") while parsing list at ("+
-										enactQueryReq.parseError.line+
-										","+enactQueryReq.parseError.linePos+
-										"):</h1></blink><pre>"+
-										enactQueryReq.parseError.reason+
-										"</pre>"
-									);
-								} else {
-									var response = enactQueryReq.responseXML;
-									if(!response) {
-										if(enactQueryReq.responseText) {
-											var parser = new DOMParser();
-											response = parser.parseFromString(enactQueryReq.responseText,'application/xml');
-										} else {
-											// TODO
-											genview.setMessage(
-												'<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>'
-											);
-											// Backend error.
-										}
+						var response = genview.parseRequest(enactQueryReq,"collecting enaction status");
+						var me=enactview;
+						me.fillEnactionStatus(response.documentElement.cloneNode(true),function() {
+							var state=me.state;
+							// Only run timer when 
+							if(
+								state!='frozen' &&
+								state!='dead' &&
+								state!='error' &&
+								state!='dubious' &&
+								state!='killed' &&
+								state!='finished'
+							) {
+								var timeout=11;
+								var timeoutFunc=undefined;
+								timeoutFunc=function() {
+									timeout--;
+									if(timeout>0) {
+										me.updateTextSpan.innerHTML='Update in '+timeout;
+										me.updateTimer=setTimeout(timeoutFunc,1000);
+									} else {
+										me.updateTextSpan.innerHTML='Update';
+										me.reloadStatus();
+										me=undefined;
+										timeoutFunc=undefined;
 									}
-									var me=enactview;
-									me.fillEnactionStatus(response.documentElement.cloneNode(true),function() {
-										var state=me.state;
-										// Only run timer when 
-										if(
-											state!='frozen' &&
-											state!='dead' &&
-											state!='error' &&
-											state!='dubious' &&
-											state!='killed' &&
-											state!='finished'
-										) {
-											var timeout=11;
-											var timeoutFunc=undefined;
-											timeoutFunc=function() {
-												timeout--;
-												if(timeout>0) {
-													me.updateTextSpan.innerHTML='Update in '+timeout;
-													me.updateTimer=setTimeout(timeoutFunc,1000);
-												} else {
-													me.updateTextSpan.innerHTML='Update';
-													me.reloadStatus();
-													me=undefined;
-													timeoutFunc=undefined;
-												}
-											};
-											timeoutFunc();
-										} else {
-											me.updateTextSpan.innerHTML='Update';
-										}
-										// Removing 'Loading...' frame
-									});
-								}
+								};
+								timeoutFunc();
 							} else {
-								// Communications error.
-								var statusText='';
-								if(('statusText' in enactQueryReq) && enactQueryReq['statusText']) {
-									statusText=enactQueryReq.statusText;
-								}
-								genview.setMessage(
-									'<blink><h1 style="color:red">FATAL ERROR while collecting enaction status: '+
-									enactQueryReq.status+' '+statusText+'</h1></blink>'
-								);
+								me.updateTextSpan.innerHTML='Update';
 							}
-						} else {
-							genview.setMessage(
-								'<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>'
-							);
-						}
+							// Removing 'Loading...' frame
+						});
 					} catch(e) {
 						genview.setMessage(
 							'<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+
@@ -987,50 +944,16 @@ EnactionView.prototype = {
 			reenactRequest.onreadystatechange = function() {
 				if(reenactRequest.readyState==4) {
 					try {
-						if('status' in reenactRequest) {
-							if(reenactRequest.status==200) {
-								// Beware parsing errors in Explorer
-								if(reenactRequest.parseError && reenactRequest.parseError.errorCode!=0) {
-									genview.setMessage('<blink><h1 style="color:red">FATAL ERROR ('+
-										reenactRequest.parseError.errorCode+
-										") while parsing reenaction submission at ("+
-										reenactRequest.parseError.line+
-										","+reenactRequest.parseError.linePos+
-										"):</h1></blink><pre>"+reenactRequest.parseError.reason+"</pre>");
-								} else {
-									var response = reenactRequest.responseXML;
-									if(!response) {
-										if(reenactRequest.responseText) {
-											var parser = new DOMParser();
-											response = parser.parseFromString(reenactRequest.responseText,'application/xml');
-										} else {
-											// Backend error.
-											genview.setMessage('<blink><h1 style="color:red">FATAL ERROR BRE: Please notify it to INB Web Workflow Manager developer</h1></blink>');
-										}
-									}
-
-									enactview.parseEnactionIdAndRelaunch(response);
-								}
-							} else {
-								// Communications error.
-								var statusText='';
-								if(('statusText' in reenactRequest) && reenactRequest['statusText']) {
-									statusText=reenactRequest.statusText;
-								}
-								genview.setMessage('<blink><h1 style="color:red">FATAL ERROR while reenacting '+
-									enUUID+': '+reenactRequest.status+' '+statusText+'</h1></blink>');
-							}
-						} else {
-							genview.setMessage('<blink><h1 style="color:red">FATAL ERROR FRE: Please notify it to INB Web Workflow Manager developer</h1></blink>');
-						}
+						var response = genview.parseRequest(reenactRequest,"completing reenaction startup");
+						if(response!=undefined)
+							enactview.parseEnactionIdAndRelaunch(response);
 					} catch(e) {
 						genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to complete reenaction!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>');
-					} finally {
-						// Removing 'Loading...' frame
-						enactview.closeReenactFrame();
-						reenactRequest.onreadystatechange=function() {};
-						reenactRequest=undefined;
 					}
+					// Removing 'Loading...' frame
+					enactview.closeReenactFrame();
+					reenactRequest.onreadystatechange=function() {};
+					reenactRequest=undefined;
 				}
 			};
 			reenactRequest.open('GET',reenactQuery,true);

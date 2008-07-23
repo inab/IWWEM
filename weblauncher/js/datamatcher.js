@@ -24,64 +24,22 @@ DataMatcher.prototype = {
 				matcherRequest.onreadystatechange = function() {
 					if(matcherRequest.readyState==4) {
 						try {
-							if('status' in matcherRequest) {
-								if(matcherRequest.status==200) {
-									// Beware parsing errors in Explorer
-									if(matcherRequest.parseError && matcherRequest.parseError.errorCode!=0) {
-										genview.addMessage(
-											'<blink><h1 style="color:red">FATAL ERROR ('+
-											matcherRequest.parseError.errorCode+
-											") while parsing list at ("+
-											matcherRequest.parseError.line+
-											","+matcherRequest.parseError.linePos+
-											"):</h1></blink><pre>"+
-											matcherRequest.parseError.reason+"</pre>"
-										);
-									} else {
-										var response = matcherRequest.responseXML;
-										if(!response) {
-											if(matcherRequest.responseText) {
-												var parser = new DOMParser();
-												response = parser.parseFromString(matcherRequest.responseText,'application/xml');
-											} else {
-												// Backend error.
-												genview.addMessage(
-													'<blink><h1 style="color:red">FATAL ERROR B: Please notify it to INB Web Workflow Manager developer</h1></blink>'
-												);
-											}
-										}
-										thismatcher.matcherParser(response.documentElement.cloneNode(true));
-									}
-								} else {
-									// Communications error.
-									var statusText='';
-									if(('statusText' in listRequest) && listRequest['statusText']) {
-										statusText=matcherRequest.statusText;
-									}
-									genview.addMessage(
-										'<blink><h1 style="color:red">FATAL ERROR while fetching list: '+
-										matcherRequest.status+' '+statusText+'</h1></blink>'
-									);
-								}
-							} else {
-								genview.addMessage(
-									'<blink><h1 style="color:red">FATAL ERROR F: Please notify it to INB Web Workflow Manager developer</h1></blink>'
-								);
-							}
+							var response=genview.parseRequest(matcherRequest,"parsing matchers list");
+							if(response!=undefined && response!=null)
+								thismatcher.matcherParser(response.documentElement.cloneNode(true));
 						} catch(e) {
 							genview.addMessage(
 								'<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+
 								WidgetCommon.DebugError(e)+'</pre>'
 							);
-						} finally {
-							// Removing 'Loading...' frame
-							//enactview.closeReloadFrame();
-							matcherRequest.onreadystatechange=function() {};
-							matcherRequest=undefined;
-							
-							// And calling next step
-							thismatcher.addMatchers(matcherURLArray,genview,callbackFunc,mI+1);
 						}
+						// Removing 'Loading...' frame
+						//enactview.closeReloadFrame();
+						matcherRequest.onreadystatechange=function() {};
+						matcherRequest=undefined;
+						
+						// And calling next step
+						thismatcher.addMatchers(matcherURLArray,genview,callbackFunc,mI+1);
 					}
 				};
 				//enactview.openReloadFrame();
@@ -341,10 +299,13 @@ DataMatcher.Expression.prototype = {
 					} else {
 						xmldata=data;
 					}
-					matchRes=WidgetCommon.xpathEvaluate(this.xpath,xmldata,this.nsMapping);
-					if(this.dontExtract && matchRes && matchRes.length>0) {
-						matchRes=new Array();
-						matchRes.push(xmldata);
+					// We are only searching on those case where we are handling XML content!
+					if(xmldata && GeneralView.getLocalName(xmldata.documentElement)!='parsererror') {
+						matchRes=WidgetCommon.xpathEvaluate(this.xpath,xmldata,this.nsMapping);
+						if(this.dontExtract && matchRes && matchRes.length>0) {
+							matchRes=new Array();
+							matchRes.push(xmldata);
+						}
 					}
 				} catch(e) {
 					//IgnoreIT(R)

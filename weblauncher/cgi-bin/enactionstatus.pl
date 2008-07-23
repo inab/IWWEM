@@ -327,6 +327,18 @@ my($responsibleName)=undef;
 # First step, parameter storage (if any!)
 PARAMPARSE:
 foreach my $param ($query->param()) {
+	# Let's check at UTF-8 level!
+	my($tmpparamname)=$param;
+	eval {
+		# Beware decode in croak mode!
+		decode('UTF-8',$tmpparamname,Encode::FB_CROAK);
+	};
+	
+	if($@) {
+		$retval="Param name $param is not a valid UTF-8 string!";
+		last;
+	}
+	
 	my(@paramvalarr)=();
 	
 	if($param eq 'jobId') {

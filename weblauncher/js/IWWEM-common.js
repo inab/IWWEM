@@ -682,7 +682,89 @@ GeneralView.prototype = {
 		input.value=thevalue;
 		
 		return input;
-	}
+	},
+	
+	/**
+	 * This method returns the fetched XML content, or fires an error message,
+	 * so it does the error handling task!
+	 * 
+	 * It returns undefined on error
+	 */
+	parseRequest: function(request,labelMessage) {
+		var response=undefined;
+		// Beware parsing errors in Explorer
+		if('status' in matcherRequest) {
+			if(request.status==200) {
+				// Beware parsing errors in Explorer
+				if(request.parseError && request.parseError.errorCode!=0) {
+					this.addMessage(
+						'<blink><h1 style="color:red">FATAL ERROR ('+
+						request.parseError.errorCode+
+						") while "+labelMessage+" at ("+
+						request.parseError.line+
+						","+request.parseError.linePos+
+						"):</h1></blink><pre>"+
+						request.parseError.reason+"</pre>"
+					);
+				} else {
+					response = request.responseXML;
+					if(response==undefined || response==null) {
+						if(request.responseText!=undefined && request.responseText!=null) {
+							var parser = new DOMParser();
+							response = parser.parseFromString(request.responseText,'application/xml');
+							var reason=undefined;
+							var place=undefined;
+							if(response!=null && response!=undefined && GeneralView.getLocalName(response.documentElement)=='parsererror') {
+								for(var child=response.documentElement.firstChild;child;child=child.nextSibling) {
+									if(child.nodeType==1 && GeneralView.getLocalName(child)=='sourcetext') {
+										place=WidgetCommon.getTextContent(child);
+									} else if(child.nodeType==3 || child.nodeType==4) {
+										if(reason==undefined) {
+											reason=WidgetCommon.getTextContent(child);
+										} else {
+											reason += WidgetCommon.getTextContent(child);
+										}
+									}
+								}
+								response=undefined;
+							}
+							if(response==undefined) {
+								if(reason==undefined)
+									reason="an unknown reason";
+								if(place==undefined)
+									place="<i>unknown place</i>";
+								this.addMessage(
+									'<blink><h1 style="color:red">FATAL ERROR while '+labelMessage+' due "+' +
+									reason+":</h1></blink><pre>"+
+									place+"</pre>"
+								);
+							}
+						} else {
+							// Backend error.
+							this.addMessage(
+								'<blink><h1 style="color:red">FATAL ERROR B('+labelMessage+'): Please notify it to INB IWWE&amp;M developer</h1></blink>'
+							);
+						}
+					}
+				}
+			} else {
+				// Communications error.
+				var statusText='';
+				if(('statusText' in request) && request['statusText']) {
+					statusText=request.statusText;
+				}
+				this.addMessage(
+					'<blink><h1 style="color:red">FATAL ERROR C('+labelMessage+'): '+
+					request.status+' '+statusText+'</h1></blink>'
+				);
+			}
+		} else {
+			this.addMessage(
+				'<blink><h1 style="color:red">FATAL ERROR F('+labelMessage+'): Please notify it to INB Web Workflow Manager developer</h1></blink>'
+			);
+		}
+		return response;
+	}	
 };
 	
 var genview;
