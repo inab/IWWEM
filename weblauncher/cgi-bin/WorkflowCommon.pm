@@ -236,9 +236,9 @@ sub getCGIBaseURI($) {
 	#	$virtualrel=$ENV{'HTTP_FORWARDED'};
 	}
 	
-	foreach my $key ('HTTP_VIA','HTTP_FORWARDED','HTTP_X_FORWARDED_FOR','HTTP_X_FORWARDED_HOST') {
-		print STDERR "$key IS ",$ENV{$key},"\n"  if(exists($ENV{$key}));
-	}
+	#foreach my $key ('HTTP_VIA','HTTP_FORWARDED','HTTP_X_FORWARDED_FOR','HTTP_X_FORWARDED_HOST') {
+	#	print STDERR "$key IS ",$ENV{$key},"\n"  if(exists($ENV{$key}));
+	#}
 	
         if(($proto eq 'http' && $port eq '80') || ($proto eq 'https' && $port eq '443')) {
 		$port='';
@@ -247,7 +247,7 @@ sub getCGIBaseURI($) {
 	}
 	
 	if(defined($virtualrel)) {
-		print STDERR "VIRTUALREL IS $virtualrel\n";
+		# print STDERR "VIRTUALREL IS $virtualrel\n";
 		if($virtualrel =~ /^(?:https?:\/\/[^:\/]+)?(?::[0-9]+)?(\/.*)/) {
 			$relpath=$1;
 		} elsif(exists($HARDHOST{$virtualrel})) {
@@ -255,7 +255,7 @@ sub getCGIBaseURI($) {
 		}
 	}
 	
-	print STDERR "GIVEN URL IS '$proto://$host$port$relpath'\n";
+	# print STDERR "GIVEN URL IS '$proto://$host$port$relpath'\n";
 	
 	return "$proto://$host$port$relpath";
 }
