@@ -219,13 +219,25 @@ sub getCGIBaseURI($) {
 	my($host)=$query->virtual_host();
 	my($port)=$query->virtual_port();
 	my($relpath)=$query->script_name();
-	my($virtualrel)=$ENV{'HTTP_VIA'} || $ENV{'HTTP_FORWARDED'} || $ENV{'HTTP_X_FORWARDED_FOR'};
-	if(defined($virtualrel)) {
-		if($virtualrel =~ /^(?:https?:\/\/[^:\/]+)?(?::[0-9]+)?(\/.*)/) {
-			$relpath=$1;
-		} elsif(exists($ENV{HTTP_X_FORWARDED_HOST}) && exists($HARDHOST{$ENV{HTTP_X_FORWARDED_HOST}})) {
-			$relpath=$HARDHOST{$ENV{HTTP_X_FORWARDED_HOST}}.substr($relpath,rindex($relpath,'/'));
-		}
+	my($virtualrel)=undef;
+	
+	$host =~ s/[, ]+.*$//;
+	if(exists($ENV{'HTTP_X_FORWARDED_HOST'})) {
+		$virtualrel=(split(/[ ,]+/,$ENV{'HTTP_X_FORWARDED_HOST'},2))[0];
+	} elsif(exists($ENV{'HTTP_VIA'})) {
+		$virtualrel=$ENV{'HTTP_VIA'};
+		$virtualrel =~ tr/\n/ /;
+		$virtualrel =~ s/^[ \t]+//;
+		my(@virparts)=split(/[ \t\n]+/,$virtualrel,3);
+		$virtualrel= $virparts[(scalar(@virparts)>1)?1:0];
+	#} elsif(exists($ENV{'HTTP_X_FORWARDED_FOR'})) {
+	#	
+	#} elsif(exists($ENV{'HTTP_FORWARDED'})) {
+	#	$virtualrel=$ENV{'HTTP_FORWARDED'};
+	}
+	
+	foreach my $key ('HTTP_VIA','HTTP_FORWARDED','HTTP_X_FORWARDED_FOR','HTTP_X_FORWARDED_HOST') {
+		print STDERR "$key IS ",$ENV{$key},"\n"  if(exists($ENV{$key}));
 	}
 	
         if(($proto eq 'http' && $port eq '80') || ($proto eq 'https' && $port eq '443')) {
@@ -233,6 +245,18 @@ sub getCGIBaseURI($) {
 	} else {
 		$port = ':'.$port;
 	}
+	
+	if(defined($virtualrel)) {
+		print STDERR "VIRTUALREL IS $virtualrel\n";
+		if($virtualrel =~ /^(?:https?:\/\/[^:\/]+)?(?::[0-9]+)?(\/.*)/) {
+			$relpath=$1;
+		} elsif(exists($HARDHOST{$virtualrel})) {
+			$relpath=$HARDHOST{$virtualrel}.substr($relpath,rindex($relpath,'/'));
+		}
+	}
+	
+	print STDERR "GIVEN URL IS '$proto://$host$port$relpath'\n";
+	
 	return "$proto://$host$port$relpath";
 }
 
