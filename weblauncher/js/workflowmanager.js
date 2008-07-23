@@ -1138,7 +1138,7 @@ NewEnactionView.prototype = {
 		var newenactview=this;
 		var onclickHandler=function(event) {
 			if(!event)  event=window.event;
-			var target=(event.currentTarget!=undefined)?event.currentTarget:event.srcElement;
+			var target=(event.currentTarget)?event.currentTarget:event.srcElement;
 			if(!radiostatecontrol || radiostatecontrol.control!=target) {
 				if(radiostatecontrol) {
 					radiostatecontrol.doUncheck();
@@ -1146,10 +1146,9 @@ NewEnactionView.prototype = {
 				
 				if(target==radiothechoicefile.control) {
 					radiostatecontrol=radiothechoicefile;
-					thechoice.parentNode.insertBefore(thechoice.nextSibling,encodingSelect);
+					thechoice.parentNode.insertBefore(encodingSelect,thechoice.nextSibling);
 				} else {
 					radiostatecontrol=radiothechoicetext;
-					var parent = radiostatecontrol.parentNode;
 					thechoice.parentNode.removeChild(encodingSelect);
 				}
 				
