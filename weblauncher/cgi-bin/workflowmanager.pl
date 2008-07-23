@@ -191,7 +191,7 @@ if($retval==0 && !$query->cgi_error() && defined($hasInputWorkflow)) {
 }
 
 # We must signal here errors and exit
-if($retval!=0 || $query->cgi_error()) {
+if($retval==-1 || $query->cgi_error()) {
 	my $error = $query->cgi_error;
 	$error = '500 Internal Server Error'  unless(defined($error));
 	print $query->header(-status=>$error),
