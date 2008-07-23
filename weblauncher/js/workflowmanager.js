@@ -1141,12 +1141,13 @@ NewEnactionView.prototype = {
 					radiostatecontrol.doUncheck();
 				}
 				
-				var parent = radiostatecontrol.parentNode;
 				if(target==radiothechoicefile.control) {
 					radiostatecontrol=radiothechoicefile;
+					var parent = radiostatecontrol.parentNode;
 					parent.parentNode.insertBefore(parent.nextSibling,encodingSelect);
 				} else {
 					radiostatecontrol=radiothechoicetext;
+					var parent = radiostatecontrol.parentNode;
 					parent.parentNode.removeChild(encodingSelect);
 				}
 				
