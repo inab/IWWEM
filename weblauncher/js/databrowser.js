@@ -440,7 +440,7 @@ DataBrowser.XMLViewer = {
 			var xmldiv=IWWEMPrettyXML.generateBrowsableXML(xmldata,genview.thedoc);
 			databrowserDiv.appendChild(xmldiv);
 		} else {
-			databrowserDiv.appendChild(genview.thedoc.createTextNode("Unable to parse as XML"));
+			databrowserDiv.appendChild(genview.thedoc.createTextNode("Unable to parse as XML. Please try a different mime/type or viewer"));
 		}
 	}
 };
