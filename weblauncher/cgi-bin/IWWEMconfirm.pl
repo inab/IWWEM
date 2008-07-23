@@ -380,7 +380,7 @@ print $query->header(-type=>'text/html',-charset=>'UTF-8',-cache=>'no-cache, no-
 
 my($tabledone)='<table border="1" align="center">';
 foreach my $doel (@done) {
-	my($prett)=$doel->[3];
+	my($prett)=$doel->[4];
 	$prett="<i>(empty)</i>"  unless(defined($prett) && length($prett)>0);
 	$tabledone .="<tr><td>$doel->[0]</td><td>$doel->[1]</td><td><b>".((defined($doel->[2]))?'':'not ')."$command</b></td><td>$doel->[3]</td><td>$prett</td></tr>";
 }
@@ -394,7 +394,7 @@ print <<EOF;
 	<head><title>IWWE&amp;M IWWEMconfirm operations report</title></head>
 	<body>
 <div align="center"><h1 style="font-size:32px;"><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a>
-<a href="$operURL">IWWE&amp;M</a> v0.6.3 IWWEMconfirm operations report</h1></div>
+<a href="$operURL">IWWE&amp;M</a> v0.6.4 IWWEMconfirm operations report</h1></div>
 $tabledone
 	</body>
 </html>
