@@ -397,6 +397,9 @@ function NewWorkflowView(genview,restrictId) {
 	this.newWFUploading=genview.getElementById('newWFUploading');
 	var newWFButton=genview.getElementById('newWFButton');
 	
+	this.responsibleMail = genview.getElementById('NWresponsibleMail');
+	this.responsibleName = genview.getElementById('NWresponsibleName');
+	
 	// Either text or file
 	var newwfview = this;
 	this.newWFStyleText=new GeneralView.Check(genview.getElementById('newWFStyleText'), function() { newwfview.setTextControl(); });
@@ -492,7 +495,13 @@ NewWorkflowView.prototype = {
 	
 	upload: function () {
 		if(!this.uploading) {
-			if(this.newWFControl && this.newWFControl.value && this.newWFControl.value.length > 0) {
+			if(this.responsibleMail.value.indexOf('@')==-1) {
+				alert('You must introduce a valid workflow responsible e-mail address');
+			} else if(this.responsibleName.value.length==0) {
+				alert('You must introduce a workflow responsible name');
+			} else if(!this.newWFControl || !this.newWFControl.value || this.newWFControl.value.length == 0) {
+				alert('Please introduce the new workflow before submitting it!');
+			} else {
 				if(this.embedCheck.checked) {
 					var freeze = this.genview.createHiddenInput('freezeWorkflowDeps','1');
 					this.newSubWFContainer.appendChild(freeze);
@@ -579,8 +588,6 @@ NewWorkflowView.prototype = {
 				// Let's go!
 				this.uploading=true;
 				this.newWFForm.submit();
-			} else {
-				alert('Please introduce the new workflow before submitting it!');
 			}
 		}
 	}
@@ -599,6 +606,9 @@ function NewEnactionView(manview) {
 	this.newEnactUploading = genview.getElementById('newEnactUploading');
 	this.submittedList = genview.getElementById('submittedList');
 	this.newEnactWFName = genview.getElementById('newEnactWFName');
+	
+	this.responsibleMail = genview.getElementById('NEresponsibleMail');
+	this.responsibleName = genview.getElementById('NEresponsibleName');
 	
 	var newenactview = this;
 	
@@ -1288,7 +1298,11 @@ NewEnactionView.prototype = {
 	},
 	
 	enact: function () {
-		if(this.workflow.hasInputs && !this.inputmode && this.inputCounter<=0) {
+		if(this.responsibleMail.value.indexOf('@')==-1) {
+			alert('You must introduce a valid enaction responsible e-mail address');
+		} else if(this.responsibleName.value.length==0) {
+			alert('You must introduce an enaction responsible name');
+		} else if(this.workflow.hasInputs && !this.inputmode && this.inputCounter<=0) {
 			alert('You must introduce an input before trying to\nstart the enaction process');
 		} else {
 			// Creating the hidden value for 

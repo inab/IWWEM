@@ -114,6 +114,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 			next  if(length($irelpath)==0 || index($irelpath,'/')==0 || index($irelpath,'../')!=-1);
 
 			# Checking rules should be inserted here...
+			my(@predone)=();
 			my($email)=undef;
 			my($kind)=undef;
 			my($prettyname)=undef;
@@ -154,6 +155,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				};
 				unlink($WorkflowCommon::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$examId.'.xml');
 			} else {
+				# Workflows and enactions
 				my($jobdir)=undef;
 				
 				if($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
@@ -162,6 +164,39 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				} else {
 					$jobdir=$WorkflowCommon::WORKFLOWDIR.'/'.$irelpath;
 					$kind='workflow';
+					
+					# Let's gather information about what is going to be destroyed
+					eval {
+						my($excatfile) = $jobdir.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
+						my($excatdoc)=$parser->parse_file($excatfile);
+						my(@eraseExam)=$context->findnodes("//sn:example",$excatdoc);
+						
+						foreach my $exam (@eraseExam) {
+							push(@predone,[
+								'example',
+								$WorkflowCommon::EXAMPLEPREFIX.$exam->getAttribute('uuid'),
+								1,
+								$exam->getAttribute($WorkflowCommon::RESPONSIBLEMAIL),
+								$exam->getAttribute('name')
+							]);
+						}
+					};
+					eval {
+						my($sncatfile) = $jobdir.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
+						my($sncatdoc)=$parser->parse_file($sncatfile);
+						my(@eraseSnap)=$context->findnodes("//sn:snapshot",$sncatdoc);
+						
+						foreach my $snap (@eraseSnap) {
+							push(@predone,[
+								'snapshot',
+								$WorkflowCommon::SNAPSHOTPREFIX.$snap->getAttribute('uuid'),
+								1,
+								$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL),
+								$snap->getAttribute('name')
+							]);
+						}
+					};
+					
 				}
 				
 				eval {
@@ -182,14 +217,24 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				# And last, unlink!
 				rmtree($jobdir);
 			}
+			push(@predone,[
+				$kind,
+				$irelpath,
+				1,
+				$email,
+				$prettyname
+			]);
 			
 			# Now, we must send an informative e-mail
 			if(defined($email)) {
-				$prettyname=undef  if(defined($prettyname) && length($prettyname)==0);
-				WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname);
-				push(@done,[$kind,$irelpath,1]);
+				foreach my $p_done (@predone) {
+					my($prett)=$p_done->[4];
+					$prett=undef  if(defined($prett) && length($prett)==0);
+					WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$p_done->[0],$command,$p_done->[1],$p_done->[3],$prett);
+				}
+				push(@done,@predone);
 			} else {
-				push(@done,[$kind,$irelpath,undef]);
+				push(@done,[$kind,$irelpath,undef,$email,$prettyname]);
 			}
 		}
 		close($EH);
@@ -305,15 +350,22 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 					move($jobdir,$destdir);
 				}
 			}
-			
+			my(@predone)=();
+			push(@predone,[
+				$kind,
+				$irelpath,
+				1,
+				$email,
+				$prettyname
+			]);
 			
 			# Now, we must send an informative e-mail
 			if(defined($email)) {
 				$prettyname=undef  if(defined($prettyname) && length($prettyname)==0);
 				WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname,$query,($kind eq 'snapshot')?$irelpath:undef);
-				push(@done,[$kind,$irelpath,1]);
+				push(@done,@predone);
 			} else {
-				push(@done,[$kind,$irelpath,undef]);
+				push(@done,[$kind,$irelpath,undef,$email,$prettyname]);
 			}
 		}
 		close($EH);
@@ -328,7 +380,9 @@ print $query->header(-type=>'text/html',-charset=>'UTF-8',-cache=>'no-cache, no-
 
 my($tabledone)='<table border="1" align="center">';
 foreach my $doel (@done) {
-	$tabledone .="<tr><td>$doel->[0]</td><td>$doel->[1]</td><td><b>".((defined($doel->[2]))?'':'not ')."$command</b></td></tr>";
+	my($prett)=$doel->[3];
+	$prett="<i>(empty)</i>"  unless(defined($prett) && length($prett)>0);
+	$tabledone .="<tr><td>$doel->[0]</td><td>$doel->[1]</td><td><b>".((defined($doel->[2]))?'':'not ')."$command</b></td><td>$doel->[3]</td><td>$prett</td></tr>";
 }
 $tabledone .='</table>';
 
