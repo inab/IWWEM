@@ -1130,6 +1130,9 @@ NewEnactionView.prototype = {
 			}
 		}
 
+		// Now, it is time to create the selection
+		var thechoice = this.genview.createElement('span');
+		thechoice.className='borderedOption';
 		var radiostatecontrol=radiothechoicetext;
 		
 		var newenactview=this;
@@ -1143,12 +1146,11 @@ NewEnactionView.prototype = {
 				
 				if(target==radiothechoicefile.control) {
 					radiostatecontrol=radiothechoicefile;
-					var parent = radiostatecontrol.parentNode;
-					parent.parentNode.insertBefore(parent.nextSibling,encodingSelect);
+					thechoice.parentNode.insertBefore(thechoice.nextSibling,encodingSelect);
 				} else {
 					radiostatecontrol=radiothechoicetext;
 					var parent = radiostatecontrol.parentNode;
-					parent.parentNode.removeChild(encodingSelect);
+					thechoice.parentNode.removeChild(encodingSelect);
 				}
 				
 				radiostatecontrol.doCheck();
@@ -1225,9 +1227,7 @@ NewEnactionView.prototype = {
 		};
 		WidgetCommon.addEventListener(theinput, 'click', addlistener, false);
 
-		// Now, it is time to create the selection
-		var thechoice = this.genview.createElement('span');
-		thechoice.className='borderedOption';
+		// Now, it is time to create the option selection
 		thechoice.appendChild(thechoicetext);
 		thechoice.appendChild(thechoicefile);
 
