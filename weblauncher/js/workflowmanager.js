@@ -1118,7 +1118,7 @@ NewEnactionView.prototype = {
 		thechoicefile.innerHTML='as file';
 		var radiothechoicefile=new GeneralView.Check(thechoicefile);
 		
-		var encodingSelect=newenactview.genview.createElement('select');
+		var encodingSelect=this.genview.createElement('select');
 		encodingSelect.name='ENCODING_'+input.name;
 		for(var i=0;i<NewEnactionView.Encodings.length;i++) {
 			var iterM=this.genview.createElement('option');
