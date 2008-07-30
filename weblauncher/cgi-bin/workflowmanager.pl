@@ -24,172 +24,226 @@ use WorkflowCommon;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
+use LockNLog::SimpleMutex;
 
 # Method prototypes
-sub getWorkflowInfo($$$$$$$);
+sub getWorkflowInfo($$$$$$);
 
 # Method declarations
-sub getWorkflowInfo($$$$$$$) {
-	my($parser,$context,$outputDoc,$listDir,$wf,$uuidPrefix,$isSnapshot)=@_;
+sub getWorkflowInfo($$$$$$) {
+	my($parser,$context,$listDir,$wf,$uuidPrefix,$isSnapshot)=@_;
+	
+	my($outputDoc)=XML::LibXML::Document->new('1.0','UTF-8');
 	
 	my($retnode)=undef;
 	eval {
 		my($relwffile)=$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
-		my($docfile)=$listDir.'/'.$relwffile;
-		my $doc = $parser->parse_file($docfile);
+		my($wfdir)=$listDir.'/'.$wf;
 		
-		# Getting description from workflow definition
-		my @nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
-		if(scalar(@nodelist)>0) {
-			my $wfe = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflow');
-			my($desc)=$nodelist[0];
-			
-			$wfe->setAttribute('date',LockNLog::getPrintableDate((stat($docfile))[9]));
-			
-			$wfe->setAttribute('uuid',$uuidPrefix.$wf);
-			
-			# Now, the responsible person
-			my($responsibleMail)='';
-			my($responsibleName)='';
-			eval {
-				if(defined($isSnapshot)) {
-					my $cat = $parser->parse_file($listDir.'/'.$WorkflowCommon::CATALOGFILE);
-					my($transwf)=WorkflowCommon::patchXMLString($wf);
-					my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$transwf']",$cat);
-					foreach my $snapNode (@snaps) {
-						$responsibleMail=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
-						$responsibleName=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLENAME);
-						last;
-					}
-				} else {
-					my $res = $parser->parse_file($listDir.'/'.$wf.'/'.$WorkflowCommon::RESPONSIBLEFILE);
-					$responsibleMail=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
-					$responsibleName=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLENAME);
-				}
-			};
+		my($wffile)=$listDir.'/'.$relwffile;
+		
+		my($wfcat)=$wfdir.'/'.$WorkflowCommon::CATALOGFILE;
+		my($examplescat) = $wfdir .'/'. $WorkflowCommon::EXAMPLESDIR . '/' . $WorkflowCommon::CATALOGFILE;
+		my($snapshotscat) = $wfdir .'/'. $WorkflowCommon::SNAPSHOTSDIR . '/' . $WorkflowCommon::CATALOGFILE;
+		my($wfresp)=$wfdir.'/'.$WorkflowCommon::RESPONSIBLEFILE;
 
-			$wfe->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
-			$wfe->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
-			$wfe->setAttribute('lsid',$desc->getAttribute('lsid'));
-			$wfe->setAttribute('author',$desc->getAttribute('author'));
-			$wfe->setAttribute('title',$desc->getAttribute('title'));
-			my($wffile)=$listDir.'/'.$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
-			$wfe->setAttribute('path',$relwffile);
-			my $svg = $wf.'/'.$WorkflowCommon::SVGFILE;
-			$wfe->setAttribute('svg',$svg);
+		my(@stat_wffile)=stat($wffile);
+		my(@stat_wfcat)=stat($wfcat);
+
+		my($regen)=undef;
+		
+		if(scalar(@stat_wfcat)==0 || (scalar(@stat_wffile)>0 && $stat_wfcat[9]<$stat_wffile[9])) {
+			# Catalog is outdated related to workflow
+			$regen=1;
+		} else {
+			my(@stat_examplescat)=stat($examplescat);
 			
-			# Getting the workflow description
-			my($wdesc)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
-			$wdesc->appendChild($outputDoc->createCDATASection($desc->textContent()));
-			$wfe->appendChild($wdesc);
-			
-			# Adding links to its graphical representations
-			my($gfile,$gmime);
-			while(($gfile,$gmime)=each(%WorkflowCommon::GRAPHREP)) {
-				my $rfile = $wf.'/'.$gfile;
-				# Only include what has been generated!
-				if( -f $listDir.'/'.$rfile) {
-					my($gchild)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'graph');
-					$gchild->setAttribute('mime',$gmime);
-					$gchild->appendChild($outputDoc->createTextNode($rfile));
-					$wfe->appendChild($gchild);
-				}
-			}
-			
-			# Now, including dependencies
-			my($DEPDIRH);
-			my($depreldir)=$wf.'/'.$WorkflowCommon::DEPDIR;
-			my($depdir)=$listDir.'/'.$depreldir;
-			if(opendir($DEPDIRH,$depdir)) {
-				my($entry);
-				while($entry=readdir($DEPDIRH)) {
-					next  if(index($entry,'.')==0);
+			if(scalar(@stat_examplescat)>0 &&  $stat_wfcat[9]<$stat_examplescat[9]) {
+				# Catalog is outdated related to examples
+				$regen=1;
+			} else {
+				my(@stat_snapshotscat)=stat($snapshotscat);
+				
+				if(scalar(@stat_snapshotscat)>0 &&  $stat_wfcat[9]<$stat_snapshotscat[9]) {
+					# Catalog is outdated related to snapshots
+					$regen=1;
+				} else {
+					my(@stat_wfresp)=stat($wfresp);
 					
-					my($fentry)=$depdir.'/'.$entry;
-					if(-f $fentry && $fentry =~ /\.xml$/) {
-						my($depnode) = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'dependsOn');
-						$depnode->setAttribute('sub',$depreldir.'/'.$entry);
-						$wfe->appendChild($depnode);
+					if(scalar(@stat_snapshotscat)>0 && $stat_wfcat[9]<$stat_wfresp[9]) {
+						# Catalog is outdated related to snapshots
+						$regen=1;
 					}
 				}
-				
-				closedir($DEPDIRH);
 			}
-			
-			# Getting Inputs
-			@nodelist = $context->findnodes('/s:scufl/s:source',$doc);
-			foreach my $source (@nodelist) {
-				my $input = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'input');
-				$input->setAttribute('name',$source->getAttribute('name'));
+		}
+		
+		#my($wfcatmutex)=LockNLog::SimpleMutex->new($wfdir.'/'.$WorkflowCommon::LOCKFILE,$regen);
+		if(defined($regen)) {
+			#$wfcatmutex->mutex(sub {
+				my $doc = $parser->parse_file($wffile);
 				
-				# Description
-				my(@sourcedesc)=$source->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'description');
-				if(scalar(@sourcedesc)>0) {
-					my($descnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
-					$descnode->appendChild($outputDoc->createCDATASection($sourcedesc[0]->textContent()));
-					$input->appendChild($descnode);
+				# Getting description from workflow definition
+				my @nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+				if(scalar(@nodelist)>0) {
+					my $wfe = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflow');
+					$outputDoc->setDocumentElement($wfe);
+					
+					my($desc)=$nodelist[0];
+					
+					$wfe->setAttribute('date',LockNLog::getPrintableDate((stat($wffile))[9]));
+					
+					$wfe->setAttribute('uuid',$uuidPrefix.$wf);
+					
+					# Now, the responsible person
+					my($responsibleMail)='';
+					my($responsibleName)='';
+					eval {
+						if(defined($isSnapshot)) {
+							my $cat = $parser->parse_file($listDir.'/'.$WorkflowCommon::CATALOGFILE);
+							my($transwf)=WorkflowCommon::patchXMLString($wf);
+							my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$transwf']",$cat);
+							foreach my $snapNode (@snaps) {
+								$responsibleMail=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+								$responsibleName=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+								last;
+							}
+						} else {
+							my $res = $parser->parse_file($listDir.'/'.$wf.'/'.$WorkflowCommon::RESPONSIBLEFILE);
+							$responsibleMail=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+							$responsibleName=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+						}
+					};
+		
+					$wfe->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+					$wfe->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+					$wfe->setAttribute('lsid',$desc->getAttribute('lsid'));
+					$wfe->setAttribute('author',$desc->getAttribute('author'));
+					$wfe->setAttribute('title',$desc->getAttribute('title'));
+					$wfe->setAttribute('path',$relwffile);
+					my $svg = $wf.'/'.$WorkflowCommon::SVGFILE;
+					$wfe->setAttribute('svg',$svg);
+					
+					# Getting the workflow description
+					my($wdesc)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
+					$wdesc->appendChild($outputDoc->createCDATASection($desc->textContent()));
+					$wfe->appendChild($wdesc);
+					
+					# Adding links to its graphical representations
+					my($gfile,$gmime);
+					while(($gfile,$gmime)=each(%WorkflowCommon::GRAPHREP)) {
+						my $rfile = $wf.'/'.$gfile;
+						# Only include what has been generated!
+						if( -f $listDir.'/'.$rfile) {
+							my($gchild)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'graph');
+							$gchild->setAttribute('mime',$gmime);
+							$gchild->appendChild($outputDoc->createTextNode($rfile));
+							$wfe->appendChild($gchild);
+						}
+					}
+					
+					# Now, including dependencies
+					my($DEPDIRH);
+					my($depreldir)=$wf.'/'.$WorkflowCommon::DEPDIR;
+					my($depdir)=$listDir.'/'.$depreldir;
+					if(opendir($DEPDIRH,$depdir)) {
+						my($entry);
+						while($entry=readdir($DEPDIRH)) {
+							next  if(index($entry,'.')==0);
+							
+							my($fentry)=$depdir.'/'.$entry;
+							if(-f $fentry && $fentry =~ /\.xml$/) {
+								my($depnode) = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'dependsOn');
+								$depnode->setAttribute('sub',$depreldir.'/'.$entry);
+								$wfe->appendChild($depnode);
+							}
+						}
+						
+						closedir($DEPDIRH);
+					}
+					
+					# Getting Inputs
+					@nodelist = $context->findnodes('/s:scufl/s:source',$doc);
+					foreach my $source (@nodelist) {
+						my $input = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'input');
+						$input->setAttribute('name',$source->getAttribute('name'));
+						
+						# Description
+						my(@sourcedesc)=$source->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'description');
+						if(scalar(@sourcedesc)>0) {
+							my($descnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
+							$descnode->appendChild($outputDoc->createCDATASection($sourcedesc[0]->textContent()));
+							$input->appendChild($descnode);
+						}
+						
+						# MIME types handling
+						my(@mimetypes)=$source->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'mimetype');
+						# Taverna default mime type
+						push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
+						foreach my $mime (@mimetypes) {
+							my $mtype = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'mime');
+							$mtype->setAttribute('type',$mime);
+							$input->appendChild($mtype);
+						}
+						
+						# At last, appending this input
+						$wfe->appendChild($input);
+					}
+					
+					# And Outputs
+					@nodelist = $context->findnodes('/s:scufl/s:sink',$doc);
+					foreach my $sink (@nodelist) {
+						my $output = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'output');
+						$output->setAttribute('name',$sink->getAttribute('name'));
+						
+						# Description
+						my(@sinkdesc)=$sink->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'description');
+						if(scalar(@sinkdesc)>0) {
+							my($descnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
+							$descnode->appendChild($outputDoc->createCDATASection($sinkdesc[0]->textContent()));
+							$output->appendChild($descnode);
+						}
+						
+						# MIME types handling
+						my(@mimetypes)=$sink->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'mimetype');
+						# Taverna default mime type
+						push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
+						foreach my $mime (@mimetypes) {
+							my $mtype = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'mime');
+							$mtype->setAttribute('type',$mime);
+							$output->appendChild($mtype);
+						}
+						
+						# At last, appending this output
+						$wfe->appendChild($output);
+					}
+					
+					# Now importing the examples catalog
+					eval {
+						my($examples)=$parser->parse_file($examplescat);
+						for my $child ($examples->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'example')) {
+							$wfe->appendChild($outputDoc->importNode($child));
+						}
+					};
+					
+					# And the snapshots one!
+					eval {
+						my($snapshots)=$parser->parse_file($snapshotscat);
+						for my $child ($snapshots->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'snapshot')) {
+							$wfe->appendChild($outputDoc->importNode($child));
+						}
+					};
+					
+					$outputDoc->toFile($wfcat);
+					
+					# At last, appending the new workflow entry
+					$retnode=$wfe;
 				}
-				
-				# MIME types handling
-				my(@mimetypes)=$source->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'mimetype');
-				# Taverna default mime type
-				push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
-				foreach my $mime (@mimetypes) {
-					my $mtype = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'mime');
-					$mtype->setAttribute('type',$mime);
-					$input->appendChild($mtype);
-				}
-				
-				# At last, appending this input
-				$wfe->appendChild($input);
-			}
-			
-			# And Outputs
-			@nodelist = $context->findnodes('/s:scufl/s:sink',$doc);
-			foreach my $sink (@nodelist) {
-				my $output = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'output');
-				$output->setAttribute('name',$sink->getAttribute('name'));
-				
-				# Description
-				my(@sinkdesc)=$sink->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'description');
-				if(scalar(@sinkdesc)>0) {
-					my($descnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
-					$descnode->appendChild($outputDoc->createCDATASection($sinkdesc[0]->textContent()));
-					$output->appendChild($descnode);
-				}
-				
-				# MIME types handling
-				my(@mimetypes)=$sink->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'mimetype');
-				# Taverna default mime type
-				push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
-				foreach my $mime (@mimetypes) {
-					my $mtype = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'mime');
-					$mtype->setAttribute('type',$mime);
-					$output->appendChild($mtype);
-				}
-				
-				# At last, appending this output
-				$wfe->appendChild($output);
-			}
-			
-			# Now importing the examples catalog
-			eval {
-				my($examples)=$parser->parse_file($listDir.'/'.$wf.'/'.$WorkflowCommon::EXAMPLESDIR . '/' . $WorkflowCommon::CATALOGFILE);
-				for my $child ($examples->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'example')) {
-					$wfe->appendChild($outputDoc->importNode($child));
-				}
-			};
-			
-			# And the snapshots one!
-			eval {
-				my($snapshots)=$parser->parse_file($listDir.'/'.$wf.'/'.$WorkflowCommon::SNAPSHOTSDIR . '/' . $WorkflowCommon::CATALOGFILE);
-				for my $child ($snapshots->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'snapshot')) {
-					$wfe->appendChild($outputDoc->importNode($child));
-				}
-			};
-			
-			# At last, appending the new workflow entry
-			$retnode=$wfe;
+			#});
+		} else {
+			#$wfcatmutex->mutex(sub {
+				$retnode=$parser->parse_file($wfcat)->documentElement();
+			#});
 		}
 	};
 	
@@ -463,7 +517,7 @@ if($retval!=0) {
 }
 
 foreach my $wf (@workflowlist) {
-	$root->appendChild(getWorkflowInfo($parser,$context,$outputDoc,$listDir,$wf,$uuidPrefix,$isSnapshot));
+	$root->appendChild($outputDoc->importNode(getWorkflowInfo($parser,$context,$listDir,$wf,$uuidPrefix,$isSnapshot)));
 }
 
 print $query->header(-type=>(defined($dataisland)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store',-expires=>'-1');
