@@ -22,6 +22,7 @@ use XML::LibXML;
 # And now, my own libraries!
 use lib "$FindBin::Bin";
 use WorkflowCommon;
+use workflowmanager;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -60,6 +61,7 @@ my(@saveExample)=();
 
 my(@parseParam)=();
 my(%encodingHash)=();
+my(%mimeHash)=();
 
 # First step, parameter and workflow storage (if any!)
 PARAMPROC:
@@ -147,6 +149,17 @@ foreach my $param ($query->param()) {
 		my $paramName = substr($param,length($WorkflowCommon::ENCODINGPREFIX));
 		$paramval = $query->param($param);
 		$encodingHash{$paramName} = decode('UTF-8',$paramval);
+	} elsif(length($param)>length($WorkflowCommon::MIMEPREFIX) && index($param,$WorkflowCommon::MIMEPREFIX)==0) {
+		my $paramName = substr($param,length($WorkflowCommon::MIMEPREFIX));
+		$paramval = $query->param($param);
+		$paramval =~ s/^[ \t]+//;
+		$paramval =~ s/[ \t]+$//;
+		my(@splitparams)=split(/ *, */,$paramval);
+		if(exists($mimeHash{$paramName})) {
+			push(@{$mimeHash{$paramName}},@splitparams);
+		} else {
+			$mimeHash{$paramName}=\@splitparams;
+		}
 	}
 	
 	# Error checking
@@ -180,7 +193,7 @@ if($retval==0 && !$query->cgi_error()) {
 		$workflowId=undef;
 
 		my($p_res)=undef;
-		($retval,$retvalmsg,$p_res)=WorkflowCommon::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,undef,$WorkflowCommon::JOBDIR,1);
+		($retval,$retvalmsg,$p_res)=workflowmanager::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,undef,$WorkflowCommon::JOBDIR,1);
 
 		$jobid=$p_res->[0]  if(scalar(@{$p_res})>0);
 		$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
@@ -211,17 +224,48 @@ if($retval==0 && !$query->cgi_error()) {
 		last  if($query->cgi_error());
 
 		my($isfh)=1;
-
+		my(@mime)=();
+		
+		# Getting obtained mime types
+		if(exists($mimeHash{$paramName})) {
+			push(@mime,@{$mimeHash{$paramName}});
+		}
+		
 		if(scalar(@PFH)==0) {
 			@PFH=$query->param($param);
 			$isfh=undef;
-		} elsif(exists($encodingHash{$paramName})) {
-			$encoding = $encodingHash{$paramName};
+		} else {
+			if(exists($encodingHash{$paramName})) {
+				$encoding = $encodingHash{$paramName};
+			}
+			
+			# Now, the ones associated by the browser
+			foreach my $pfile ($query->param($param)) {
+				my($uinfo)=$query->uploadInfo($pfile);
+				if(exists($uinfo->{'Content-Type'})) {
+					my($ctype)=$uinfo->{'Content-Type'};
+					# Removing the possible tail to the content type
+					$ctype =~ s/[ \t]*;.*$//;
+					$ctype =~ s/^[  \t]+//;
+					
+					# And pushing the obtained mime!
+					push(@mime,$ctype)  if(length($ctype)>0);
+				}
+			}
 		}
 		
+		# Setting default encoding (if needed)
 		$encoding = 'UTF-8'  unless(defined($encoding) && length($encoding)>0);
-
-		my(@inputFiles)=($paramName,$encoding);
+		
+		# Removing duplicate mime/types
+		if(scalar(@mime)>1) {
+			my(%dup);
+			@dup{@mime}=();
+			@mime=keys(%dup);
+		}
+		
+		# The tuple
+		my(@inputFiles)=($paramName,$encoding,join(",",@mime));
 		my($many)=undef;
 
 		my($fcount)=0;
@@ -280,7 +324,7 @@ if($retval==0 && !$query->cgi_error() && defined($workflowId)) {
 	# Copying and patching input workflow
 	my($WFmaindoc)=$parser->parse_file($wabspath);
 	
-	($retval,$retvalmsg)=WorkflowCommon::patchWorkflow($query,$parser,undef,$jobid,$jobdir,undef,$WFmaindoc,$hasInputWorkflowDeps,1,1);
+	($retval,$retvalmsg)=workflowmanager::patchWorkflow($query,$parser,undef,$jobid,$jobdir,undef,$WFmaindoc,$hasInputWorkflowDeps,1,1);
 }
 
 if($retval==0 && !$query->cgi_error() && defined($baclavafound)) {

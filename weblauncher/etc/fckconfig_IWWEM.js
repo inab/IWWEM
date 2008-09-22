@@ -19,7 +19,7 @@
  *
  * == END LICENSE ==
  *
- * Custom Editor configuration settings for IWWEM
+ * Custom Editor configuration settings for IWWE&M
  *
  * Follow this link for more information:
  * http://wiki.fckeditor.net/Developer%27s_Guide/Configuration/Configurations_Settings

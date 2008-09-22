@@ -2,11 +2,13 @@
 	$Id$
 	enactionviewer.js
 	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
-	Author: JosÈ MarÌa Fern·ndez Gonz·lez (C) 2007-2008
+	Author: Jos√© Mar√≠a Fern√°ndez Gonz√°lez (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
 */
+
+var ENDEPS=[];
 
 function EnactionViewerCustomInit() {
 	this.enactview=new EnactionView(this);
@@ -95,6 +97,12 @@ function EnactionView(genview) {
 	// snapshotDesc is dynamic, so it is not caught here
 	this.snapshotDescContainer=genview.getElementById('snapshotDescContainer');
 	
+	var pageTitle=this.genview.getElementById('titleB');
+	var newTitle='Interactive Web Workflow Enaction/Snapshot Viewer v'+IWWEM.Version;
+	this.genview.thedoc.title=newTitle;
+	pageTitle.innerHTML='';
+	pageTitle.appendChild(this.genview.thedoc.createTextNode(newTitle));
+
 	// Important update facets
 	this.enactQueryReq=undefined;
 	this.updateTimer=undefined;
@@ -142,7 +150,7 @@ function EnactionView(genview) {
 	};
 	
 	// At last, getting the enaction id
-	this.svg=new TavernaSVG(GeneralView.SVGDivId,'style/unknown-inb.svg',undefined,undefined,function() {
+	this.svg=new TavernaSVG(GeneralView.SVGDivId,IWWEM.Logo,undefined,undefined,function() {
 		enactview.updateSVGSize();
 	});
 	// SVG resize
@@ -190,7 +198,7 @@ EnactionView.prototype = {
 		var enactview=this;
 		var genview=this.genview;
 		this.svg.removeSVG(function() {
-			datatreeview.matcher.addMatchers(['EVpatterns.xml'],genview,function() {
+			datatreeview.matcher.addMatchers(['etc/EVpatterns.xml'],genview,function() {
 				enactview.internalDispose(function() {
 					var qsParm={};
 					WidgetCommon.parseQS(qsParm);
@@ -280,6 +288,9 @@ EnactionView.prototype = {
 			if(enStatus.getAttribute('jobId')==this.jobId) {
 				this.jobDir=EnactionStep.getJobDir(this.jobId);
 				this.JobsBase=enStatus.getAttribute('relURI');
+				if(this.JobsBase.charAt(0)!='/' && IWWEM.FSBase!=undefined) {
+					this.JobsBase = IWWEM.FSBase + '/'+ this.JobsBase; 
+				}
 				this.responsibleMail=enStatus.getAttribute('responsibleMail');
 				this.responsibleName=enStatus.getAttribute('responsibleName');
 
@@ -854,12 +865,14 @@ EnactionView.prototype = {
 		// No snapshots over already taken snapshots
 		if(this.state=='frozen')  return;
 		
+		this.genview.createFCKEditor(this.snapshotDescContainer,'snapshotDesc');
+		/*
 		if(FCKeditor_IsCompatibleBrowser()) {
 			// Rich-Text Editor
 			var snapshotDesc=new FCKeditor('snapshotDesc',undefined,'250','IWWEM');
 			var basehref = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
 			snapshotDesc.BasePath='js/FCKeditor/';
-			snapshotDesc.Config['CustomConfigurationsPath']=basehref+'/js/fckconfig_IWWEM.js';
+			snapshotDesc.Config['CustomConfigurationsPath']=basehref+'/etc/fckconfig_IWWEM.js';
 			this.snapshotDescContainer.innerHTML = snapshotDesc.CreateHtml();
 		} else {
 			// I prefer my own defaults
@@ -869,6 +882,7 @@ EnactionView.prototype = {
 			snapshotDesc.name='snapshotDesc';
 			this.snapshotDescContainer.appendChild(snapshotDesc);
 		}
+		*/
 		this.responsibleMailInput.value=this.responsibleMail;
 		this.responsibleNameInput.value=this.responsibleName;
 		this.frameSnapId=this.genview.openFrame('snapshotEnaction',1);

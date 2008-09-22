@@ -2,7 +2,7 @@
 	$Id$
 	IWWEM-common.js
 	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
-	Author: JosÈ MarÌa Fern·ndez Gonz·lez (C) 2007-2008
+	Author: Jos√© Mar√≠a Fern√°ndez Gonz√°lez (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
@@ -451,7 +451,6 @@ GeneralView.preProcess = function (thedesc) {
 	return thedesc;
 };
 
-
 /* Now, the instance methods */
 GeneralView.prototype = {
 	setMessage: function(message) {
@@ -764,22 +763,59 @@ GeneralView.prototype = {
 			);
 		}
 		return response;
-	}	
-};
+	},
 	
-var genview;
-function InitIWWEM(customInit, /* optional */ thedoc) {
-	if (('WidgetCommon' in window) && ('_loaded' in window['WidgetCommon']) && window['WidgetCommon']['_loaded']) {
-		genview=new GeneralView(customInit,thedoc);
-	} else {
-		GeneralView._loadtimer = setInterval(function() {
-			if (('WidgetCommon' in window) && ('_loaded' in window['WidgetCommon']) && window['WidgetCommon']['_loaded']) {
-				clearInterval(GeneralView._loadtimer);
-				genview=new GeneralView(customInit,thedoc);
-				GeneralView._loadtimer=undefined;
-			}
-		}, 10);
+	createFCKEditor: function (divContainer,fckObjectName,/* optional */fckHeight,fakeCols,fakeRows) {
+		if(FCKeditor_IsCompatibleBrowser()) {
+			// Rich-Text Editor
+			if(fckHeight==undefined)
+				fckHeight='250';
+			
+			var fckObject=new FCKeditor(fckObjectName,undefined,fckHeight,'IWWEM');
+			var basehref = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
+			fckObject.BasePath='js/FCKeditor/';
+			fckObject.Config['CustomConfigurationsPath']=basehref+'/etc/fckconfig_IWWEM.js';
+			var fckdiv=this.createElement('div');
+			fckdiv.style.margin='0px';
+			fckdiv.style.padding='0px';
+			fckdiv.innerHTML = fckObject.CreateHtml();
+			divContainer.appendChild(fckdiv);
+		} else {
+			if(fakeCols==undefined)
+				fakeCols=60;
+			if(fakeRows==undefined)
+				fakeRows=10;
+			
+			// I prefer my own defaults
+			var fakeFckObject=this.createElement('textarea');
+			fakeFckObject.cols=fakeCols;
+			fakeFckObject.rows=fakeRows;
+			fakeFckObject.name=fckObjectName;
+			divContainer.appendChild(fakeFckObject);
+		}
 	}
+};
+
+var genview;
+
+function InitIWWEM(customInit, customJSARR, /* optional */ thedoc) {
+	//WidgetCommon.DebugMSG("Initializing IWWE&M");
+	WidgetCommon.widgetCommonInit(IWWEM.Plugins,function() {
+		//WidgetCommon.DebugMSG("IWWE&M plugins loaded");
+		WidgetCommon.widgetCommonInit(IWWEM.CommonDeps,function() {
+			//WidgetCommon.DebugMSG("IWWE&M common dependencies loaded");
+			var lastfunc = function() {
+				//WidgetCommon.DebugMSG("IWWE&M was loaded");
+				genview=new GeneralView(customInit,thedoc);
+				IWWEM.Loaded=true;
+			};
+			if(customJSARR==undefined) {
+				lastfunc();
+			} else {
+				WidgetCommon.widgetCommonInit(customJSARR,lastfunc,'');
+			}
+		},'');
+	},'');
 }
 
 function DisposeIWWEM(customDispose) {

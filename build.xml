@@ -139,14 +139,14 @@
 			username="${deploy.ssh.user}"
 			keyfile="${user.home}/.ssh/id_dsa"
 			passphrase=""
-			command="cd '${deploy.ssh.dir}' &amp;&amp; chmod -v go+w workflows jobs .pending cgi-bin/logs cgi-bin/inb-maven"
+			command="cd '${deploy.ssh.dir}' &amp;&amp; chmod -v go+w cgi-bin/Storage/workflows cgi-bin/Storage/jobs cgi-bin/Storage/.pending cgi-bin/logs cgi-bin/inb-maven"
 		/>
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
 			keyfile="${user.home}/.ssh/id_dsa"
 			passphrase=""
-			command="cd '${deploy.ssh.dir}'/cgi-bin &amp;&amp; chmod -v ugo+x workflowmanager enactionlauncher enactionstatus IWWEMproxy IWWEMconfirm INBWorkflowLauncher/bin/inbworkflow*"
+			command="cd '${deploy.ssh.dir}'/cgi-bin &amp;&amp; chmod -v ugo+x workflowmanager enactionlauncher enactionstatus IWWEMproxy IWWEMfs IWWEMconfirm INBWorkflowLauncher/bin/inbworkflow*"
 		/>
 	</target>
 	<target depends="deploy" description="Fresh regeneration of Maven repository" name="freshdeploy">

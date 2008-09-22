@@ -1,8 +1,8 @@
 /*
-	$Id: workflowmanager.js 1277 2008-04-08 21:14:22Z jmfernandez $
+	$Id$
 	workflowreport.js
 	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
-	Author: JosÈ MarÌa Fern·ndez Gonz·lez (C) 2007-2008
+	Author: Jos√© Mar√≠a Fern√°ndez Gonz√°lez (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)

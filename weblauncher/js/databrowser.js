@@ -2,7 +2,7 @@
 	$Id$
 	databrowser.js
 	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
-	Author: JosÈ MarÌa Fern·ndez Gonz·lez (C) 2007-2008
+	Author: Jos√© Mar√≠a Fern√°ndez Gonz√°lez (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
@@ -152,7 +152,8 @@ DataBrowser.LocatedData.prototype = {
 			qsParm['iteration']=Base64._utf8_encode(this.iteration);
 		if(withName!=undefined)
 			qsParm['withName']=Base64._utf8_encode(withName);
-		return WidgetCommon.generateQS(qsParm,"cgi-bin/IWWEMproxy");
+		
+		return WidgetCommon.generateQS(qsParm,IWWEM.ProxyBase);
 	}
 };
 
@@ -631,7 +632,7 @@ DataBrowser.MolViewer = {
 				applet.appendChild(param);
 				applet.name=DataBrowser.MolViewer.jmolId;
 				applet.setAttribute("archive","JmolApplet0.jar");
-				applet.setAttribute("codebase","js/jmol");
+				applet.setAttribute("codebase","applets/jmol");
 				applet.setAttribute("mayscript","true");
 				applet.setAttribute("style","width:300;height:450");
 				applet.setAttribute("code","JmolApplet");
@@ -674,7 +675,7 @@ function JMolAlert(appname,info,addi) {
 };
 	
 
-jmolInitialize('js/jmol');
+jmolInitialize('applets/jmol');
 jmolSetDocument(false);
 jmolSetCallback('messageCallback','JMolAlert');
 DataBrowser.addViewer(DataBrowser.MolViewer);
@@ -698,7 +699,7 @@ DataBrowser.NewickViewer = {
 		// Embedded ATV
 		var param = genview.createElement("param");
 		param.setAttribute("name","config_file");
-		param.setAttribute("value",basehref+"js/atv.conf");
+		param.setAttribute("value",basehref+"etc/atv.conf");
 		applet.appendChild(param);
 		
 		param = genview.createElement("param");
@@ -706,8 +707,8 @@ DataBrowser.NewickViewer = {
 		param.setAttribute("value",basehref+data);
 		applet.appendChild(param);
 		
-		applet.name=DataBrowser.MolViewer.jmolId;
-		applet.setAttribute("archive","js/forester-4.00_alpha13.jar");
+		applet.name=DataBrowser.NewickViewer.name;
+		applet.setAttribute("archive","applets/forester-4.00_alpha13.jar");
 		applet.setAttribute("mayscript","true");
 		applet.setAttribute("style","width:100%;height:100%");
 		applet.setAttribute('width','100%');
@@ -720,8 +721,8 @@ DataBrowser.NewickViewer = {
 
 		databrowserDiv.appendChild(applet);
 		/*
-		var appletstr="<applet name='"+DataBrowser.MolViewer.jmolId+"' archive='js/forester-4.00_alpha13.jar' mayscript='true' style='width:100%;height:100%' code='org.forester.atv.ATVapplet'>"
-			+"<param name='config_file' value='"+basehref+"js/atv.conf'>"
+		var appletstr="<applet name='"+DataBrowser.NewickViewer.name+"' archive='applets/forester-4.00_alpha13.jar' mayscript='true' style='width:100%;height:100%' code='org.forester.atv.ATVapplet'>"
+			+"<param name='config_file' value='"+basehref+"etc/atv.conf'>"
 			+"<param name='url_of_tree_to_load' value='"+basehref+data+"'>"
 			+"</applet>";
 		databrowserDiv.innerHTML=appletstr;
@@ -759,8 +760,8 @@ DataBrowser.MSAViewer = {
 		param.setAttribute("value",data);
 		applet.appendChild(param);
 		
-		applet.name=DataBrowser.MolViewer.jmolId;
-		applet.setAttribute("archive","js/jalviewApplet-2.3.jar");
+		applet.name=DataBrowser.MSAViewer.name;
+		applet.setAttribute("archive","applets/jalviewApplet-2.3.jar");
 		applet.setAttribute("mayscript","true");
 		applet.setAttribute("style","width:100%;height:100%");
 		applet.setAttribute("code","jalview.bin.JalviewLite");

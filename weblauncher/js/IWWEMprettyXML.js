@@ -1,3 +1,12 @@
+/*
+	$Id$
+	IWWEMprettyXML.js
+	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
+	Author: José María Fernández González (C) 2007-2008
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+*/
 var IWWEMPrettyXML = {
 	expandClick: function(event) {
 		if(!event)  event=window.event;

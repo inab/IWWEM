@@ -2,11 +2,16 @@
 	$Id$
 	workflowmanager.js
 	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
-	Author: José María Fernández González (C) 2007-2008
+	Author: JosÃ© MarÃ­a FernÃ¡ndez GonzÃ¡lez (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
 */
+
+var WFDEPS=[
+	"js/workflowdesc.js",
+	"js/workflowreport.js",
+];
 
 function WorkflowManagerCustomInit() {
 	var manview = this.manview=new ManagerView(this);
@@ -59,12 +64,12 @@ function ManagerView(genview) {
 	var maxwidth=(parentno.offsetWidth-32)+'px';
 	var maxheight=(parentno.offsetHeight-32)+'px';
 	
-	this.svg=new TavernaSVG(this.svgdivid,'style/unknown-inb.svg',maxwidth,maxheight,function() {
+	this.svg=new TavernaSVG(this.svgdivid,IWWEM.Logo,maxwidth,maxheight,function() {
 		manview.updateSVGSize();
 	});
 	*/
 	
-	this.svg=new TavernaSVG(this.svgdivid,'style/unknown-inb.svg',undefined,undefined,function() {
+	this.svg=new TavernaSVG(this.svgdivid,IWWEM.Logo,undefined,undefined,function() {
 		manview.updateSVGSize();
 	});
 	
@@ -134,8 +139,10 @@ function ManagerView(genview) {
 	this.restrictId=undefined;
 	
 	// Parsing id param
+	var pageTitle=this.genview.getElementById('titleB');
 	var qsParm={};
 	WidgetCommon.parseQS(qsParm);
+	var newTitle='';
 	if(('id' in qsParm) && qsParm['id']!=undefined && qsParm['id']!=null && qsParm['id'].length > 0) {
 		this.restrictId=qsParm['id'];
 		
@@ -144,8 +151,7 @@ function ManagerView(genview) {
 		},false);
 		
 		// Setting up the title
-		var pageTitle=this.genview.getElementById('titleB');
-		pageTitle.innerHTML='Interactive Enaction Inspector v0.6.4';
+		var newTitle='Interactive Enaction Inspector v'+IWWEM.Version;
 		// Deactivating buttons!!!
 		var useDiv=this.genview.getElementById('useDiv');
 		useDiv.style.display='none';
@@ -153,7 +159,12 @@ function ManagerView(genview) {
 		// Deactivating buttons!!!
 		this.openEnactionButton.style.display='none';
 		this.relaunchButton.style.display='none';
+		// Setting up the title
+		var newTitle='Interactive Web Workflow Enactor & Manager v'+IWWEM.Version;
 	}
+	this.genview.thedoc.title=newTitle;
+	pageTitle.innerHTML='';
+	pageTitle.appendChild(this.genview.thedoc.createTextNode(newTitle));
 }
 
 
@@ -252,6 +263,9 @@ ManagerView.prototype = {
 		) {
 			var sortArr=new Array();
 			this.WFBase = listDOM.getAttribute('relURI');
+			if(this.WFBase.charAt(0)!='/' && IWWEM.FSBase!=undefined) {
+				this.WFBase = IWWEM.FSBase + '/'+ this.WFBase; 
+			}
 			for(var child=listDOM.firstChild ; child ; child=child.nextSibling) {
 				if(child.nodeType==1) {
 					 switch(GeneralView.getLocalName(child)) {
@@ -743,25 +757,7 @@ NewEnactionView.prototype = {
 					this.saveExampleDiv.appendChild(spanDesc);
 					this.saveExampleDiv.appendChild(brDesc);
 					
-					if(FCKeditor_IsCompatibleBrowser()) {
-						// Rich-Text Editor
-						var exampleDesc=new FCKeditor('exampleDesc',undefined,'250','IWWEM');
-						var basehref = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
-						exampleDesc.BasePath='js/FCKeditor/';
-						exampleDesc.Config['CustomConfigurationsPath']=basehref+'/js/fckconfig_IWWEM.js';
-						var fckdiv=this.genview.createElement('div');
-						fckdiv.style.margin='0px';
-						fckdiv.style.padding='0px';
-						fckdiv.innerHTML = exampleDesc.CreateHtml();
-						this.saveExampleDiv.appendChild(fckdiv);
-					} else {
-						// I prefer my own defaults
-						var exampleDesc=this.genview.createElement('textarea');
-						exampleDesc.cols=60;
-						exampleDesc.rows=10;
-						exampleDesc.name='exampleDesc';
-						this.saveExampleDiv.appendChild(exampleDesc);
-					}
+					this.genview.createFCKEditor(this.saveExampleDiv,'exampleDesc');
 				}
 			}
 		}
@@ -964,10 +960,7 @@ NewEnactionView.prototype = {
 					} else {
 						var request;
 						var genview=this.genview;
-						var qsParm = {
-							jobId: Base64._utf8_encode(example.getQualifiedUUID())
-						};
-						var theurl = WidgetCommon.generateQS(qsParm,"cgi-bin/IWWEMproxy");
+						var theurl = IWWEM.FSBase + '/' + Base64._utf8_encode(example.getQualifiedUUID());
 						try {
 							request=new XMLHttpRequest();
 							var requestonload = function() {

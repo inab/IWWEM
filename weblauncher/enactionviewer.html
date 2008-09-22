@@ -1,6 +1,6 @@
 <html>
 <head>
-	<title>INB Interactive Web Workflow Enaction Viewer v0.6.4</title>
+	<title>INB Interactive Web Workflow Enaction Viewer (loading)</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 	<!--
@@ -36,25 +36,18 @@ if(BrowserDetect.browser=='Explorer') {
 	</script>
 
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/widgetCommon.js"></script>
-	<script type="text/javascript" src="js/prettify/prettify.js"></script>
-	<script type="text/javascript" src="js/jmol/Jmol.js"></script>
-	<script type="text/javascript" src="js/FCKeditor/fckeditor.js"></script>
-	<script type="text/javascript" src="js/dynamicSVGhandling.js"></script>
+	
+	<script type="text/javascript" src="etc/IWWEM-config.js"></script>
+	
 	<script type="text/javascript" src="js/IWWEM-common.js"></script>
-	<script type="text/javascript" src="js/base64.js"></script>
-	<script type="text/javascript" src="js/baclavahandling.js"></script>
-	<script type="text/javascript" src="js/IWWEMprettyXML.js"></script>
-	<script type="text/javascript" src="js/databrowser.js"></script>
-	<script type="text/javascript" src="js/datamatcher.js"></script>
-	<script type="text/javascript" src="js/datatreeview.js"></script>
-	<script type="text/javascript" src="js/enactionstep.js"></script>
+	
 	<script type="text/javascript" src="js/enactionviewer.js"></script>
 </head>
-<body onload="InitIWWEM(EnactionViewerCustomInit)" onunload="DisposeIWWEM(EnactionViewerCustomDispose)">
+<body onload="InitIWWEM(EnactionViewerCustomInit,ENDEPS)" onunload="DisposeIWWEM(EnactionViewerCustomDispose)">
 	<div style="width:100%;height:90%;">
 	<table align="center" style="height:98%;width:98%;table-layout:fixed;"><tbody style="height:90%;width:98%;table-layout:fixed;">
 		<tr class="header"><td colspan="6" align="center">
-			<b><a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> Interactive Web Workflow Enaction Viewer v0.6.4</b>
+			<a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <b id="titleB">Interactive Web Workflow Enaction Viewer <i><blink>(loading)</blink></i></b>
 		</td></tr>
 		<tr class="header"><td colspan="2">
 			<u>Report date</u>: <span id="dateSpan"><i>(empty)</i></span><br>
