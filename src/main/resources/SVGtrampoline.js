@@ -262,7 +262,7 @@ SVGtramp.prototype = {
 		var realLengthUnits;
 		
 		// Default behavior
-		if(lenstr==undefined) {
+		if(lenstr==undefined || lenstr=='') {
 			if(thevalue==undefined)
 				thevalue='0';
 			lenstr=thevalue+"px";

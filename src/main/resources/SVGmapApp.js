@@ -999,8 +999,8 @@ SVGmapApp.ViewBox.prototype = {
 		var matrix       = svgRoot.createSVGMatrix();
 		//case width/height contains percent
 		this.windowWidth = svgRoot.getAttributeNS(null,"width");
-		if (this.windowWidth.match(/%/) || this.windowWidth == null) {
-			if (this.windowWidth == null) {
+		if (this.windowWidth.match(/%/) || this.windowWidth == null || this.windowWidth == '') {
+			if (this.windowWidth == null || this.windowWidth == '') {
 				if(window.parent && window.parent.innerWidth) {
 					this.windowWidth = window.parent.innerWidth;
 				} else if (window.top && window.top.innerWidth) {
@@ -1026,8 +1026,8 @@ SVGmapApp.ViewBox.prototype = {
 			this.windowWidth = parseFloat(this.windowWidth);
 		}
 		this.windowHeight = svgRoot.getAttributeNS(null,"height");
-		if (this.windowHeight.match(/%/) || this.windowHeight == null) {
-			if (this.windowHeight == null) {
+		if (this.windowHeight.match(/%/) || this.windowHeight == null || this.windowHeight == '') {
+			if (this.windowHeight == null || this.windowHeight == '') {
 				if (window.parent && window.parent.innerHeight) {
 					this.windowHeight = window.parent.innerHeight;
 				} else if (window.top && window.top.innerHeight) {
