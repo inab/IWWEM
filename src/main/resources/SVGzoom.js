@@ -55,8 +55,8 @@ function SVGzoom(doc,gElem,myMapApp,/*optional*/ scaleX, scaleY) {
 	
 	var zoomTextNode = doc.createTextNode("To use embedded zoom function press Z or Ctrl+click");
 	var zoomText=doc.createElementNS(SVGNS,"text");
-	zoomText.setAttribute("x","2");
-	zoomText.setAttribute("y","12");
+	zoomText.setAttribute("x","2px");
+	zoomText.setAttribute("y","12px");
 	zoomText.setAttribute("text-anchor","start");
 	zoomText.setAttribute("style", "font-family:Arial; font-size:8px;fill:red;");
 	zoomText.appendChild(zoomTextNode);

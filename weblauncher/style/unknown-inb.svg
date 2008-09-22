@@ -16,13 +16,13 @@
    sodipodi:docname="unknown-inb.svg"
    sodipodi:version="0.32"
    width="375"
-   onload="RunScript(evt)"
+   onload="RunScript(evt,2)"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    version="1.0">
   <script
      type="text/ecmascript"
      xlink:href="SVGmapApp.js"
-     id="script2" />
+     id="script1" />
   <script
      type="text/ecmascript"
      xlink:href="SVGtooltip.js"

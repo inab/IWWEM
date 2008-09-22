@@ -2,7 +2,7 @@
 	$Id$
 	dynamicSVGhandling.js
 	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
-	Author: JosÈ MarÌa Fern·ndez Gonz·lez (C) 2007-2008
+	Author: Jos√© Mar√≠a Fern√°ndez Gonz√°lez (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
@@ -38,6 +38,7 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish
 	this.queue = new Array();
 	this.current = undefined;
 	this.SVGtramp = undefined;
+	this.once=1;
 	this.noloaded = 0;
 	
 	var me = this;
@@ -99,6 +100,7 @@ TavernaSVG.prototype = {
 			*/
 			// Second, remove trampoline
 			this.SVGtramp=undefined;
+			this.once=1;
 			// Third, remove previous SVG
 			if(this.asEmbed) {
 				this.svgobj.style.display='none';
@@ -164,19 +166,31 @@ TavernaSVG.prototype = {
 
 	SVGrescale: function (lenW, /* optional */ lenH, thedoc) {
 		if(this.SVGtramp) {
-			if(!thedoc && this.current instanceof Array)  thedoc=this.current[5];
-			if(!thedoc)  thedoc=document;
-			
-			if(lenW && lenH) {
-				this.SVGtramp.setBestScaleFromConstraintDimensions(lenW,lenH);
-			}
-			
-			if(this.asEmbed) {
-				this.svgobj.style.width  = this.SVGtramp.width;
-				this.svgobj.style.height = this.SVGtramp.height;
+			if(this.SVGtramp.isAutoResizing && this.SVGtramp.isAutoResizing()) {
+				if(this.once) {
+					this.once=undefined;
+					if(this.asEmbed) {
+						this.svgobj.style.width  = '100%';
+						this.svgobj.style.height = '100%';
+					} else {
+						this.svgobj.setAttribute("style",this.defaultPreStyle+" width:100%;height:100%;");					
+					}
+				}
 			} else {
-				//this.svgobj.setAttribute("style",this.defaultPreStyle+" width:"+this.SVGtramp.width+"; height:"+lenH+";");
-				this.svgobj.setAttribute("style",this.defaultPreStyle+" width:"+this.SVGtramp.width+"; height:"+this.SVGtramp.height+";");
+				if(thedoc==undefined && this.current instanceof Array)  thedoc=this.current[5];
+				if(thedoc==undefined)  thedoc=document;
+				
+				if(lenW && lenH) {
+					this.SVGtramp.setBestScaleFromConstraintDimensions(lenW,lenH);
+				}
+				
+				if(this.asEmbed) {
+					this.svgobj.style.width  = this.SVGtramp.width;
+					this.svgobj.style.height = this.SVGtramp.height;
+				} else {
+					//this.svgobj.setAttribute("style",this.defaultPreStyle+" width:"+this.SVGtramp.width+"; height:"+lenH+";");
+					this.svgobj.setAttribute("style",this.defaultPreStyle+" width:"+this.SVGtramp.width+"; height:"+this.SVGtramp.height+";");
+				}
 			}
 		}
 	},
@@ -276,10 +290,12 @@ TavernaSVG.prototype = {
 		var thissvg=this;
 		if(BrowserDetect.browser!='Explorer') {
 			var finishfunc = function(evt) {
-				((evt.currentTarget)?evt.currentTarget:evt.srcElement).onload=function() {};
+				//((evt.currentTarget)?evt.currentTarget:evt.srcElement).onload=function() {};
+				((evt.currentTarget)?evt.currentTarget:evt.srcElement).removeEventListener('load',finishfunc,false);
 				// Transferring the trampoline!
 				if ('SVGtrampoline' in window && window.SVGtrampoline) {
 					thissvg.SVGtramp=window.SVGtrampoline;
+					thissvg.once=1;
 					window.SVGtrampoline=undefined;
 					if(BrowserDetect.browser!='Konqueror') {
 						delete window['SVGtrampoline'];
@@ -297,7 +313,18 @@ TavernaSVG.prototype = {
 			};
 
 			objres.setAttribute("wmode","transparent");
-			objres.onload=finishfunc;
+			//objres.onload=finishfunc;
+			objres.addEventListener('load',finishfunc,false);
+			
+			/* Trying to add some error control path, with no success :-(
+			objres.addEventListener('error',function(evt) {alert("CUA CUA CUA CUA");},false);
+			var fallback=thedoc.createElement('script');
+			fallback.type="text/javascript";
+			fallback.appendChild(thedoc.createTextNode("<!--\n"+"alert('ALARMA');"+"\n// -->"));
+			
+			objres.appendChild(fallback);
+			*/
+			
 			/*
 			if(BrowserDetect.browser=='Explorer') {
 				objres.setAttribute('codebase', 'http://www.adobe.com/svg/viewer/install/');
@@ -318,6 +345,7 @@ TavernaSVG.prototype = {
 					thissvg._svgloadtimer=undefined;
 					// Transferring the trampoline!
 					thissvg.SVGtramp=window.SVGtrampoline;
+					thissvg.once=1;
 					thissvg.SVGrescale(bestScaleW,bestScaleH);
 					window.SVGtrampoline=undefined;
 					try {

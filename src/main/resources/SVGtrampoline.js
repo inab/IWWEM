@@ -12,9 +12,11 @@
 	This class contains the trampoline used to manipulate
 	and access this SVG from outside
 */
-function SVGtramp(LoadEvent) {
+function SVGtramp(LoadEvent,/* optional */autoResize) {
 	this.SVGDoc    = LoadEvent.target.ownerDocument;
 	this.SVGroot   = this.SVGDoc.documentElement;
+	this.autoResize = autoResize;
+	
 	// Setting up SVGNS to the value associated to the document
 	if(this.SVGroot.namespaceURI)
 		SVGtramp.SVGNS=this.SVGroot.namespaceURI;
@@ -97,33 +99,64 @@ function SVGtramp(LoadEvent) {
 		this.g_element = nodes.item(0);
 	}
 	
+	this.x=this.SVGroot.getAttribute("x");
+	if(this.x==undefined)  this.x="0";
+	this.y=this.SVGroot.getAttribute("y");
+	if(this.y==undefined)  this.y="0";
 	this.width=this.SVGroot.getAttribute("width");
+	if(this.width==undefined) { 
+		this.width="1";
+		if(!this.autoResize)
+			this.autoResize = 1;
+	}
 	this.height=this.SVGroot.getAttribute("height");
+	if(this.height==undefined) { 
+		this.height="1";
+		if(!this.autoResize)
+			this.autoResize = 1;
+	}
+	
 	this.realWidth  = this.createTypedLength(this.width);
 	this.realHeight = this.createTypedLength(this.height);
+	this.realX = this.createTypedLength(this.x);
+	this.realY = this.createTypedLength(this.y);
 	
 	// Default scale value
 	this.realScaleH=this.realScaleW=1.0;
 	
-	if(this.g_element) {
-		var baseTransform=this.g_element.getAttribute("transform");
-		if(baseTransform) {
-			var scales = /scale\( *([0-9.]+) *,? *([0-9.]+) *\)/.exec(baseTransform);
-			if(scales && scales.length>0) {
-				this.realScaleW=parseFloat(scales[1]);
-				this.realScaleH=parseFloat(scales[2]);
-			} else {
-				var scale = /scale\( *([0-9.]+) *\)/.exec(baseTransform);
-				if(scale && scale.length>0) {
-					this.realScaleH=this.realScaleW=parseFloat(scale[1]);
+	if(!this.autoResize) {
+		if(this.g_element) {
+			var baseTransform=this.g_element.getAttribute("transform");
+			if(baseTransform) {
+				var scales = /scale\( *([0-9.]+) *,? *([0-9.]+) *\)/.exec(baseTransform);
+				if(scales && scales.length>0) {
+					this.realScaleW=parseFloat(scales[1]);
+					this.realScaleH=parseFloat(scales[2]);
+				} else {
+					var scale = /scale\( *([0-9.]+) *\)/.exec(baseTransform);
+					if(scale && scale.length>0) {
+						this.realScaleH=this.realScaleW=parseFloat(scale[1]);
+					}
 				}
 			}
 		}
 	}
+	
 	// To allow zooming of content
+	var susId = this.suspendRedraw();
 	var viewbox=this.SVGroot.getAttribute('viewBox');
 	if(!viewbox) {
-		this.SVGroot.setAttribute('viewBox','0 0 '+this.width+' '+this.height);
+		var vWidth  = this.createTypedLength(this.width);
+		var vHeight = this.createTypedLength(this.height);
+		var vX = this.createTypedLength(this.x);
+		var vY = this.createTypedLength(this.y);
+		
+		vWidth.convertToSpecifiedUnits(vWidth.SVG_LENGTHTYPE_PX);
+		vHeight.convertToSpecifiedUnits(vHeight.SVG_LENGTHTYPE_PX);
+		vX.convertToSpecifiedUnits(vX.SVG_LENGTHTYPE_PX);
+		vY.convertToSpecifiedUnits(vY.SVG_LENGTHTYPE_PX);
+		
+		this.SVGroot.setAttribute('viewBox',vX.valueInSpecifiedUnits+' '+vY.valueInSpecifiedUnits+' '+vWidth.valueInSpecifiedUnits+' '+vHeight.valueInSpecifiedUnits);
 	}
 	var zoompan=this.SVGroot.getAttribute('zoomAndPan');
 	if(!zoompan) {
@@ -133,28 +166,39 @@ function SVGtramp(LoadEvent) {
 	if(!preserve) {
 		this.SVGroot.setAttribute('preserveAspectRatio','xMidYMid meet');
 	}
+	if(this.autoResize) {
+		var eraseAttrs=['width','height','x','y'];
+		for(var ei=0;ei<eraseAttrs.length;ei++) {
+			if(this.SVGroot.getAttribute(eraseAttrs[ei])!=undefined) {
+				this.SVGroot.removeAttribute(eraseAttrs[ei]);
+			}
+		}
+	}
+	this.unsuspendRedraw(susId);
 	
-	// The MapApp, used by the code
 	this.myMapApp=undefined;
-	try {
-		this.myMapApp=new SVGmapApp(this.SVGDoc);
-	} catch(e) {
-		// IgnoreIT!(R)
-	}
-	
-	// The tooltips
-	try {
-	        new Title(this.SVGDoc, this.myMapApp, 12);
-	} catch(e) {
-		// IgnoreIT!(R)
-	}
-	
-	// And the zoom
 	this.zoom=undefined;
-	try {
-		this.zoom=new SVGzoom(this.SVGDoc,this.g_element,this.myMapApp);
-	} catch(e) {
-		// IgnoreIT!(R)
+	if(this.autoResize!=2) {
+		// The MapApp, used by the code
+		try {
+			this.myMapApp=new SVGmapApp(this.SVGDoc);
+		} catch(e) {
+			// IgnoreIT!(R)
+		}
+		
+		// The tooltips
+		try {
+		        new Title(this.SVGDoc, this.myMapApp, 12);
+		} catch(e) {
+			// IgnoreIT!(R)
+		}
+		
+		// And the zoom
+		try {
+			this.zoom=new SVGzoom(this.SVGDoc,this.g_element,this.myMapApp);
+		} catch(e) {
+			// IgnoreIT!(R)
+		}
 	}
 	
 	// And at last, the hooks
@@ -215,6 +259,15 @@ SVGtramp.prototype = {
 		var realLength;
 		var realLengthUnitsStr;
 		var realLengthUnits;
+		
+		// Default behavior
+		if(lenstr==undefined) {
+			if(thevalue==undefined)
+				thevalue='0';
+			lenstr=thevalue+"px";
+			
+			thevalue=undefined;
+		}
 		
 		if(thevalue) {
 			realLengthUnits=lenstr;
@@ -282,7 +335,14 @@ SVGtramp.prototype = {
 		return typedLength;
 	},
 	
+	isAutoResizing: function() {
+		return this.autoResize;
+	},
+	
 	setDimensionFromScale: function (sw,sh) {
+		// When autoResize is enable, don't touch SVG dimensions!
+		if(this.autoResize)  return;
+		
 		var newWidth = this.createTypedLength(this.realWidth.unitType,this.realWidth.valueInSpecifiedUnits*sw);
 		var newHeight = this.createTypedLength(this.realHeight.unitType,this.realHeight.valueInSpecifiedUnits*sh);
 		
@@ -302,6 +362,9 @@ SVGtramp.prototype = {
 	},
 	
 	setScale: function (sw, sh) {
+		// When autoResize is enable, don't touch SVG dimensions!
+		if(this.autoResize)  return;
+
 		// Now it is time to apply the correction factor
 		// to avoid blank borders
 		sw *= this.realScaleW;
@@ -322,6 +385,9 @@ SVGtramp.prototype = {
 	},
 	
 	setScaleFromDimension: function (w,h) {
+		// When autoResize is enable, don't touch SVG dimensions!
+		if(this.autoResize)  return;
+
 		var wLength=this.createTypedLength(w);
 		var hLength=this.createTypedLength(h);
 		
@@ -344,6 +410,9 @@ SVGtramp.prototype = {
 	},
 	
 	setBestScaleFromConstraintDimensions: function (w,h,/*optional*/ isWorst) {
+		// When autoResize is enable, don't touch SVG dimensions!
+		if(this.autoResize)  return;
+
 		var wLength=this.createTypedLength(w);
 		var hLength=this.createTypedLength(h);
 		
@@ -873,7 +942,7 @@ SVGtramp.SVGLength.prototype = {
 	
 	convertToSpecifiedUnits: function (lengthType) {
 		var transVal=this.getTransformedValue(lengthType);
-		if(transVal) {
+		if(transVal!=undefined) {
 			this.newValueSpecifiedUnits(lengthType,transVal);
 		}
 	}
@@ -1030,6 +1099,6 @@ SVGtramp.removeEventListenerFromId = function (objectId, eventType, listener, us
 	This SVG script is used to init the trampoline
 	from an onload event from the SVG
 */
-function RunScript(LoadEvent) {
-	new SVGtramp(LoadEvent);
+function RunScript(LoadEvent, /*optional*/ autoResize) {
+	new SVGtramp(LoadEvent,autoResize);
 }
