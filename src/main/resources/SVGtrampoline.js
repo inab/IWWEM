@@ -100,17 +100,17 @@ function SVGtramp(LoadEvent,/* optional */autoResize) {
 	}
 	
 	this.x=this.SVGroot.getAttribute("x");
-	if(this.x==undefined)  this.x="0";
+	if(this.x==undefined || this.x=='')  this.x="0";
 	this.y=this.SVGroot.getAttribute("y");
-	if(this.y==undefined)  this.y="0";
+	if(this.y==undefined || this.y=='')  this.y="0";
 	this.width=this.SVGroot.getAttribute("width");
-	if(this.width==undefined) { 
+	if(this.width==undefined || this.width=='') { 
 		this.width="1";
 		if(!this.autoResize)
 			this.autoResize = 1;
 	}
 	this.height=this.SVGroot.getAttribute("height");
-	if(this.height==undefined) { 
+	if(this.height==undefined || this.height=='') { 
 		this.height="1";
 		if(!this.autoResize)
 			this.autoResize = 1;
@@ -169,7 +169,8 @@ function SVGtramp(LoadEvent,/* optional */autoResize) {
 	if(this.autoResize) {
 		var eraseAttrs=['width','height','x','y'];
 		for(var ei=0;ei<eraseAttrs.length;ei++) {
-			if(this.SVGroot.getAttribute(eraseAttrs[ei])!=undefined) {
+			var aval=this.SVGroot.getAttribute(eraseAttrs[ei]);
+			if(aval!=undefined && aval!='') {
 				this.SVGroot.removeAttribute(eraseAttrs[ei]);
 			}
 		}
