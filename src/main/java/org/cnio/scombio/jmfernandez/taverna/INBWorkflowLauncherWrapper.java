@@ -33,6 +33,7 @@ import org.embl.ebi.escience.baclava.factory.DataThingFactory;
 
 import org.embl.ebi.escience.scufl.enactor.WorkflowSubmissionException;
 import org.embl.ebi.escience.scufl.ScuflModel;
+import org.embl.ebi.escience.scufl.SemanticMarkup;
 import org.embl.ebi.escience.scufl.tools.WorkflowLauncher;
 
 import org.jdom.JDOMException;
@@ -53,7 +54,7 @@ public class INBWorkflowLauncherWrapper
 		{"-inputFile","2","A single pair input name / text file in UTF-8 where the value is stored"},
 		{"-inputBFile","2","A single pair input name / binary file where the value is stored"},
 		{"-inputURL","2","A single pair input name / URL where the value can be fetched"},
-		{"-inputMap","1","A file containing tuples of input name / file encoding / one or more files. Each field is tab-separated"},
+		{"-inputMap","1","A file containing tuples of input name / file encoding / comma-separated mime-types / one or more files. Each field is tab-separated"},
 		{"-inputArray","2","A single pair input name / file where a list of values are stored"},
 		{"-inputArrayFile","2","A single pair input name / file which contains a list of file names which contain the values"},
 		{"-inputArrayDir","2","A single pair input name / directory where files with the values are stored"},
@@ -297,16 +298,22 @@ public class INBWorkflowLauncherWrapper
 				lineNumber++;
 				if(line.charAt(0)=='#')  continue;
 				String[] fields=line.split("\t");
-				if(fields.length < 3) {
+				if(fields.length < 4) {
 					throw new IOException(ifile.getAbsolutePath()+" is garbled at line "+lineNumber+": expected at least 3 fields, found only "+fields.length);
 				}
+				// Encoding treatment
 				String encoding=fields[1];
 				DataThing dt=null;
 				boolean isBinary = "binary".equals(encoding);
 				if("".equals(encoding))  encoding="UTF-8";
+				
+				// Mime-types treatment
+				String mimeTypes=fields[2];
+				mimeTypes = mimeTypes.trim();
+				
 				ArrayList<byte[]> valueBArr=new ArrayList<byte[]>();
 				ArrayList<String> valueArr=new ArrayList<String>();
-				for(int ifield=2;ifield<fields.length;ifield++) {
+				for(int ifield=3;ifield<fields.length;ifield++) {
 					File[] files=null;
 
 					File fbase = NewFile(fields[ifield]);
@@ -373,6 +380,16 @@ public class INBWorkflowLauncherWrapper
 						dt=DataThingFactory.bake(valueArr.toArray(new String[0]));
 					} else {
 						dt=DataThingFactory.bake(valueArr.get(0));
+					}
+				}
+				
+				// At last, attaching mime types
+				if(mimeTypes.length()>0) {
+					SemanticMarkup sm_dt=dt.getMetadata();
+					for(String mimeType: mimeTypes.split(" *, *")) {
+						mimeType = mimeType.trim();
+						if(mimeType.length()>0)
+							sm_dt.addMIMEType(mimeType);
 					}
 				}
 				baseInputs.put(fields[0],dt);

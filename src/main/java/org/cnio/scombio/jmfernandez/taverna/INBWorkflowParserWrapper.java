@@ -4,19 +4,16 @@
 	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 	Author: José María Fernández González (C) 2008
 	Institutions:
-	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
-	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
-*/
+ *	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+ *	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+ */
 package org.cnio.scombio.jmfernandez.taverna;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -36,8 +33,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
 
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -49,10 +50,10 @@ import net.sf.taverna.raven.repository.BasicArtifact;
 import net.sf.taverna.raven.repository.Repository;
 import net.sf.taverna.raven.repository.impl.LocalRepository;
 
-import net.sf.taverna.raven.repository.impl.LocalArtifactClassLoader;
-
-import net.sf.taverna.update.plugin.PluginManager;
-
+import org.apache.batik.bridge.BridgeContext;
+import org.apache.batik.bridge.GVTBuilder;
+import org.apache.batik.bridge.UserAgentAdapter;
+import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.batik.transcoder.image.ImageTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
@@ -65,39 +66,29 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
 
-import org.embl.ebi.escience.baclava.DataThing;
 import org.embl.ebi.escience.scufl.Processor;
-import org.embl.ebi.escience.scufl.tools.WorkflowLauncher;
-import org.embl.ebi.escience.utils.TavernaSPIRegistry;
-
-import org.embl.ebi.escience.baclava.factory.DataThingFactory;
-
+import org.embl.ebi.escience.scufl.ScuflException;
 import org.embl.ebi.escience.scufl.ScuflModel;
+import org.embl.ebi.escience.scufl.parser.XScuflFormatException;
 import org.embl.ebi.escience.scufl.parser.XScuflParser;
-
-import org.embl.ebi.escience.scuflui.ScuflSVGDiagram;
 import org.embl.ebi.escience.scufl.view.DotView;
 
-import org.jdom.JDOMException;
+import org.embl.ebi.escience.scuflui.ScuflSVGDiagram;
+import org.embl.ebi.escience.utils.TavernaSPIRegistry;
 
-
-// SVGDocument is a Document!!!
-//import org.w3c.dom.svg.SVGDocument;
-
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.svg.SVGAnimatedLength;
+import org.w3c.dom.svg.SVGAnimatedRect;
+import org.w3c.dom.svg.SVGDocument;
+import org.w3c.dom.svg.SVGLength;
+import org.w3c.dom.svg.SVGRect;
+import org.w3c.dom.svg.SVGSVGElement;
 
-import org.embl.ebi.escience.scufl.parser.XScuflFormatException;
-import org.embl.ebi.escience.scufl.ScuflException;
 
 /**
  * <p>
@@ -243,14 +234,15 @@ public class INBWorkflowParserWrapper {
 	private static final String SVG_ZOOM="SVGzoom.js";
 	private static final String SVG_TOOLTIP="SVGtooltip.js";
 	private static final String SVG_TRAMPOLINE="SVGtrampoline.js";
-	private static final String SVG_JSINIT="RunScript(evt)";
-	
+	private static final String SVG_JSINIT="RunScript(evt,1)";
+
 	private static final String[][] ParamDescs={
 		{"-h","0","Shows this help"},
 		{"-help","0","Shows this help"},
 		{"--help","0","Shows this help"},
 		{"-debug","0","Turns on debugging"},
 		{"-workflow","1","Workflow to be processed/run"},
+		{"-offline","0","Workflow processing will be done in Taverna offline mode"},
 		{"-svggraph","1","File where to save workflow graph in SVG format"},
 		{"-dotgraph","1","File where to save workflow graph in DOT format"},
 		{"-pnggraph","1","File where to save workflow graph in PNG format"},
@@ -262,14 +254,14 @@ public class INBWorkflowParserWrapper {
 		{"-baseDir","1","Maven repository dirname"},
 		{"-onlyUpdateBaseDir","0","Only update Maven repository"},
 	};
-	
+
 	private static final String TAVERNA_GROUP_ID="uk.org.mygrid.taverna";
 	private static final String TAVERNA_PROCESSORS_GROUP_ID = TAVERNA_GROUP_ID + ".processors";
 	private static final String TAVERNA_BACLAVA_GROUP_ID = TAVERNA_GROUP_ID + ".baclava";
 	private static final String TAVERNA_SCUFL_GROUP_ID = TAVERNA_GROUP_ID + ".scufl";
 	private static final String TAVERNA_SCUFL_UI_COMPONENTS_GROUP_ID = TAVERNA_SCUFL_GROUP_ID + ".scufl-ui-componets";
 	private static final String TAVERNA_RAVEN_GROUP_ID = TAVERNA_GROUP_ID + ".raven";
-	
+
 	private static final String[][] SystemArtifactList={
 		{TAVERNA_RAVEN_GROUP_ID,"raven",TAVERNA_BASE_VERSION},
 		{TAVERNA_GROUP_ID,"taverna-core",TAVERNA_BASE_VERSION},
@@ -311,8 +303,8 @@ public class INBWorkflowParserWrapper {
 		{TAVERNA_GROUP_ID,"taverna-contrib",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
 	};
-	*/
-	
+	 */
+
 	private static final String[][] ExternalArtifactList={
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-biomart-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-localworkers",TAVERNA_BASE_VERSION},
@@ -326,7 +318,7 @@ public class INBWorkflowParserWrapper {
 		{TAVERNA_GROUP_ID,"taverna-contrib",TAVERNA_BASE_VERSION},
 //		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
 	};
-	
+
 	private static final String[] RepositoryLocationList={
 		"http://www.mygrid.org.uk/maven/repository/",
 		"http://moby.ucalgary.ca/moby_maven/",
@@ -336,60 +328,61 @@ public class INBWorkflowParserWrapper {
 		"http://www.ibiblio.org/maven2/",
 		"http://www.mygrid.org.uk/maven/snapshot-repository/",
 	};
-	
+
 	private static HashMap<String,Integer> OptionHash=new HashMap<String,Integer>();
-	
+
 	private static ArrayList<String[][]> OptionArray=new ArrayList<String[][]>();
-	
+
 	private static Logger logger;
-	
+
 	private static File OriginalDir;
-	
+
 	// Filling the parameters hash!
 	static {
 		// Living the headless way!
 		System.setProperty("java.awt.headless", "true");
-		
+
 		// Setting up Taverna HOME from appassembler script info
 		System.setProperty("taverna.home", System.getProperty("basedir"));
-		
+
 		// Now, setting up originaldir from envvars
 		Map<String,String> envvars = System.getenv();
-		
+
 		// Unix world!
 		if(envvars.containsKey("OLDPWD")) {
 			OriginalDir=new File(envvars.get("OLDPWD"));
 		} else {
 			OriginalDir=null;
 		}
-		
+
 		// Some checks should be put here for these system properties...
 		File log4j=new File(new File(System.getProperty("basedir"),"conf"),"log4j.properties");
 		PropertyConfigurator.configure(log4j.getAbsolutePath());
 		logger = Logger.getLogger(INBWorkflowParserWrapper.class);
-		
+
 		// Now, hash filling
 		FillHashMap(ParamDescs);
 	};
-	
+
 	protected File workflowFile;
-	
+
 	File baseDir;
-	
+
 	File dotFile;
-	
+
 	protected File SVGFile;
 
 	protected File PNGFile;
-	
+
 	protected File PDFFile;
-	
+
 	boolean alignmentParam=false;
 	boolean expandWorkflowParam=false;
 	boolean onlyMavenUpdate=false;
-	
+	boolean isOfflineMode=false;
+
 	protected boolean debugMode=false;
-	
+
 	protected ClassLoader lcl=null;
 
 	public static void main(String[] args) {
@@ -416,20 +409,20 @@ public class INBWorkflowParserWrapper {
 			}
 			f=f.getCanonicalFile();
 		}
-		
+
 		return f;
 	}
-	
+
 	protected static void FillHashMap(String[][] ParamDescs) {
 		// Saving the reference to the hash
 		OptionArray.add(ParamDescs);
-		
+
 		// Now, hash filling
 		for(String[] param: ParamDescs) {
 			OptionHash.put(param[0],Integer.parseInt(param[1]));
 		}
 	}
-	
+
 	/**
 	 * The execution entry point, called by {@link #main(String[])}
 	 *
@@ -445,24 +438,28 @@ public class INBWorkflowParserWrapper {
 
 		logger.debug("Param processing has finished. Starting repository initialization");
 		//TavernaSPIRegistry.setRepository(((LocalArtifactClassLoader)getClass().getClassLoader()).getRepository());
-		
+
 		Repository repository = initialiseRepository();
 		logger.debug("Repository initialization has finished. Starting TavernaSPI");
 		TavernaSPIRegistry.setRepository(repository);
 		//PluginManager.setRepository(repository);
 		//PluginManager.getInstance();
-		
+
 		logger.debug("TavernaSPI has finished.");
-		
+
 		ScuflModel model = null;
 		if(!onlyMavenUpdate) {
 			logger.debug("Starting Workflow Handling.");
 
-                	model = new ScuflModel();
+			model = new ScuflModel();
+			// First, mark it as offline
+			if(isOfflineMode)
+				model.setOffline(true);
+			
 			try {
 				InputStream workflowInputStream = new FileInputStream(workflowFile);
-	                	XScuflParser.populate(workflowInputStream, model, null);
-//			} catch (IOException e) {
+				XScuflParser.populate(workflowInputStream, model, null);
+//				} catch (IOException e) {
 //				logger.error("Could not read workflow " + workflowFile.getAbsolutePath(),e);
 //				System.exit(6);
 			} catch (XScuflFormatException e) {
@@ -476,7 +473,7 @@ public class INBWorkflowParserWrapper {
 			// Now it is time to generate workflow SVG (if it is possible!)
 			generateWorkflowGraph(model);
 		}
-		
+
 		return model;
 	}
 
@@ -521,7 +518,7 @@ public class INBWorkflowParserWrapper {
 			logger.debug("Adding external artifact "+artifact.getArtifactId());
 			repository.addArtifact(artifact);
 		}
-		
+
 		for (URL location : repositoryLocations) {
 			logger.debug("Adding external location "+location.toString());
 			repository.addRemoteRepository(location);
@@ -575,7 +572,7 @@ public class INBWorkflowParserWrapper {
 			logger.debug("Setting up repository "+repository);
 			result.add(new URL(repository));
 		}
-		
+
 		return result;
 	}
 
@@ -595,11 +592,11 @@ public class INBWorkflowParserWrapper {
 	protected Set<Artifact> buildSystemArtifactSet() {
 
 		Set<Artifact> systemArtifacts = new HashSet<Artifact>();
-		
+
 		for(String[] systemArtifact: SystemArtifactList) {
 			logger.debug("Setting up system artifact "+systemArtifact[1]);
 			systemArtifacts.add(new BasicArtifact(systemArtifact[0],
-				systemArtifact[1], systemArtifact[2]));
+					systemArtifact[1], systemArtifact[2]));
 		}
 
 		return systemArtifacts;
@@ -628,11 +625,11 @@ public class INBWorkflowParserWrapper {
 	 */
 	protected Set<Artifact> buildExternalArtifactSet() {
 		Set<Artifact> externalArtifacts = new HashSet<Artifact>();
-		
+
 		for(String[] externalArtifact: ExternalArtifactList) {
 			logger.debug("Setting up external artifact "+externalArtifact[1]);
 			externalArtifacts.add(new BasicArtifact(externalArtifact[0],
-				externalArtifact[1], externalArtifact[2]));
+					externalArtifact[1], externalArtifact[2]));
 		}
 
 		return externalArtifacts;
@@ -659,11 +656,11 @@ public class INBWorkflowParserWrapper {
 			File temp = new File(System.getProperty("user.home"),".inb-maven");
 			temp.mkdirs();
 			logger.warn("No -baseDir defined, so using default location of: "
-				+ temp.getAbsolutePath());
+					+ temp.getAbsolutePath());
 			return temp;
 		}
 	}
-	
+
 	/**
 	 * Process command line argument and set attributes for input/output
 	 * document, basedir and workflow.
@@ -677,7 +674,7 @@ public class INBWorkflowParserWrapper {
 			showHelp(0);
 			//throw new Exception("");
 		}
-		
+
 		// TODO: Use org.apache.commons.cli instead of manual parsing
 		String param=null;
 		int leftpars=0;
@@ -695,30 +692,30 @@ public class INBWorkflowParserWrapper {
 				values.add(arg);
 				leftpars--;
 			}
-			
+
 			// Time to process the parameter
 			if(param!=null && leftpars==0) {
 				processParam(param,values);
-				
+
 				// Freeing resources
 				param=null;
 				values.clear();
 			}
 		}
-		
+
 		if(param!=null && leftpars>0) {
 			String errstr="Argument" + param + " needs " + leftpars + " additional parameter"+((leftpars>1)?"s":"");
 			showHelp(errstr);
 		}
-		
+
 		checkSetParams();
 	}
-	
+
 	protected void setDebugMode() {
 		debugMode=true;
 		logger.setLevel(Level.DEBUG);
 	}
-	
+
 	protected void processParam(String param, ArrayList<String> values)
 		throws Exception
 	{
@@ -749,15 +746,17 @@ public class INBWorkflowParserWrapper {
 			expandWorkflowParam=false;
 		} else if (param.equals("-onlyUpdateBaseDir")) {
 			onlyMavenUpdate=true;
+		} else if (param.equals("-offline")) {
+			isOfflineMode=true;
 		} else {
 			logger.warn("Argument "+param+" has not been processed because this parsing code is incomplete!");
 		}
 	}
-	
+
 	/**
 		Post-processing, like additional checks or
 		post-loading modifications.
-	*/
+	 */
 	protected void checkSetParams()
 		throws Exception
 	{
@@ -768,12 +767,12 @@ public class INBWorkflowParserWrapper {
 			showHelp(2);
 		}
 	}
-	
+
 	protected String getScriptName()
 	{
 		return SCRIPT_NAME;
 	}
-	
+
 	protected void internalShowHelp()
 	{
 		String usage="Usage: "+getScriptName()+" {param}*\n\n  where {param} can be:";
@@ -787,13 +786,13 @@ public class INBWorkflowParserWrapper {
 			}
 		}
 	}
-	
+
 	protected void showHelp(int exitval)
 	{
 		internalShowHelp();
 		System.exit(exitval);
 	}
-	
+
 	protected void showHelp(String exceptionMessage)
 		throws Exception
 	{
@@ -803,8 +802,8 @@ public class INBWorkflowParserWrapper {
 			throw new Exception(exceptionMessage);
 		}
 	}
-	
-	
+
+
 	private void generateWorkflowGraph(ScuflModel model)
 		throws FileNotFoundException,IOException
 	{
@@ -814,12 +813,12 @@ public class INBWorkflowParserWrapper {
 			dotView.setPortDisplay(DotView.BOUND);
 			dotView.setAlignment(alignmentParam);
 			dotView.setExpandWorkflow(expandWorkflowParam);
-			
+
 			// And here, getting the dot
 			String dotContent=dotView.getDot();
 			// Freeing resources
 			dotView=null;
-			
+
 			// At last, saving!!!
 			if(dotFile!=null) {
 				//PrintStream ps=new PrintStream(new BufferedOutputStream(new FileOutputStream(dotFile)));
@@ -828,13 +827,13 @@ public class INBWorkflowParserWrapper {
 				ps.print(dotContent);
 
 				ps.close();
-				
+
 			}
-			
+
 			if(SVGFile!=null || PNGFile!=null || PDFFile!=null) {
 				// Translating to SVG!!!!!
-				Document svg=ScuflSVGDiagram.getSVG(dotContent);
-				
+				SVGDocument svg=ScuflSVGDiagram.getSVG(dotContent);
+
 				// Now, it is time to patch styles, so Firefox bug
 				// about font sizes is avoided.
 				XPathFactory xpf=XPathFactory.newInstance();
@@ -856,20 +855,83 @@ public class INBWorkflowParserWrapper {
 					// Do Nothing(R)!
 				}
 				
-				// And this patch is needed by SVG zoom code
-				Element SVGroot=svg.getDocumentElement();
+				// And next patch is needed by automatic SVG zoom code
+				// But it cannot be applied until some Batik initialization
+				// constrains have been overcome.
+				DumbUserAgent dua=new DumbUserAgent();
+				GVTBuilder builder = new GVTBuilder();
+				BridgeContext ctx = new BridgeContext(dua);
+				ctx.setDynamic(true);
+				GraphicsNode gn = builder.build(ctx, svg);
+				
+				SVGSVGElement SVGroot = svg.getRootElement();
+				
+				
+				// We have to setup a valid viewBox rect
+				// in order to have a resizable SVG
+				if(!SVGroot.hasAttribute("viewBox")) {
+					// And we will build a viewBox based on other values...
+					SVGAnimatedRect sar = SVGroot.getViewBox();
+					SVGRect sr = sar.getBaseVal();
+					
+					float vX=0.0f;
+					if(SVGroot.hasAttribute("x")) {
+						SVGAnimatedLength aX = SVGroot.getX();
+						SVGLength sX = aX.getBaseVal();
+						sX.convertToSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_PX);
+						vX=sX.getValueInSpecifiedUnits();
+					}
+					sr.setX(vX);
+					
+					float vY=0.0f;
+					if(SVGroot.hasAttribute("y")) {
+						SVGAnimatedLength aY = SVGroot.getY();
+						SVGLength sY = aY.getBaseVal();
+						sY.convertToSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_PX);
+						vY=sY.getValueInSpecifiedUnits();
+					}
+					sr.setY(vY);
+					
+					float vW=1.0f;
+					if(SVGroot.hasAttribute("width")) {
+						SVGAnimatedLength aWidth=SVGroot.getWidth();
+						SVGLength sWidth=aWidth.getBaseVal();
+						sWidth.convertToSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_PX);
+						vW=sWidth.getValueInSpecifiedUnits();
+					}
+					sr.setWidth(vW);
+					
+					float vH=1.0f;
+					if(SVGroot.hasAttribute("height")) {
+						SVGAnimatedLength aHeight=SVGroot.getHeight();
+						SVGLength sHeight=aHeight.getBaseVal();
+						sHeight.convertToSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_PX);
+						vH=sHeight.getValueInSpecifiedUnits();
+					}
+					sr.setHeight(vH);
+				}
+				
+				// These attributes take precedence over viewBox
+				// on all SVG viewers but Mozilla-based ones.
+				// So remove them to avoid misbehaviors
+				String[] misattrs={"width","height","x","y"};
+				for(String misattr: misattrs) {
+					if(SVGroot.hasAttribute(misattr))
+						SVGroot.removeAttribute(misattr);
+				}
+				
 				/*
 				Pattern sizepat = Pattern.compile("([0-9]+\\.?[0-9]*)[a-z]*");
 				Matcher mval;
-				
+
 				mval = sizepat.matcher(SVGroot.getAttribute("width"));
 				SVGroot.setAttribute("width",mval.replaceAll("$1px"));
 				mval = sizepat.matcher(SVGroot.getAttribute("height"));
 				SVGroot.setAttribute("height",mval.replaceAll("$1px"));
 				sizepat=null;
 				mval=null;
-				*/
-				
+				 */
+
 				if(SVGFile!=null) {
 					// Adding the ECMAscript trampoline needed to
 					// manipulate SVG from outside
@@ -882,13 +944,13 @@ public class INBWorkflowParserWrapper {
 
 					// Then, we can fetch it!
 					Node originalFirstChild = SVGroot.getFirstChild();
-					
+
 					int bufferSize=16384;
 					char[] buffer=new char[bufferSize];
 					String[] trampres = {"SVGmapApp.js",SVG_TOOLTIP,SVG_ZOOM,SVG_TRAMPOLINE};
 					for(String svgres:trampres) {
 						StringBuilder trampcode=new StringBuilder();
-						
+
 						InputStream SVGResHandler=cl.getResourceAsStream(svgres);
 						if(SVGResHandler==null) {
 							throw new IOException("Unable to find/fetch SVG ECMAscript trampoline code stored at "+svgres);
@@ -905,11 +967,11 @@ public class INBWorkflowParserWrapper {
 						while((readBytes=SVGResReader.read(buffer,0,bufferSize))!=-1) {
 							trampcode.append(buffer,0,readBytes);
 						}
-						
+
 						// Now we have the content of the trampoline, let's create a CDATA with it!
 						CDATASection cdata=svg.createCDATASection(trampcode.toString());
 						// Freeing up some resources
-						
+
 						// The trampoline content lives inside a script tag
 						Element script=svg.createElementNS(SVGroot.getNamespaceURI(),"script");
 						script.setAttribute("type","text/ecmascript");
@@ -918,7 +980,7 @@ public class INBWorkflowParserWrapper {
 						// Injecting the script inside the root
 						SVGroot.insertBefore(script,originalFirstChild);
 					}
-					
+
 					buffer=null;
 					// Last, setting up the initialization hook
 					SVGroot.setAttribute("onload",SVG_JSINIT);
@@ -943,7 +1005,7 @@ public class INBWorkflowParserWrapper {
 						System.exit(1);
 					}
 				}
-				
+
 				if(PDFFile!=null) {
 					// Create a PDF transcoder
 					PDFTranscoder pdft = new PDFTranscoder();
@@ -966,7 +1028,7 @@ public class INBWorkflowParserWrapper {
 						foe.close();
 					}
 				}
-				
+
 				if(PNGFile!=null) {
 					// Create a PNG transcoder
 					PNGTranscoder pngt = new PNGTranscoder();
@@ -998,4 +1060,12 @@ public class INBWorkflowParserWrapper {
 			}
 		}
 	}
+	
+    class DumbUserAgent extends UserAgentAdapter {
+        boolean failed;
+
+        public void displayError(Exception e) {
+            failed = true;
+        }
+    }
 }
