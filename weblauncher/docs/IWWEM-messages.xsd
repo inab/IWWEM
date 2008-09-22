@@ -112,6 +112,39 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
         </xsd:attribute>
     </xsd:complexType>
     
+    <xsd:complexType name="labelledType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Labelled tree node]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute name="index" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[The index attribute must appear on leaf nodes which are not direct children from IOBundleDesc]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    
+    <xsd:element name="leaf" type="iwwem:labelledType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[A final leaf node which has a parent, used to describe I/O topology]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="branch">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[An intermediate branch node used to describe I/O topology]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="iwwem:labelledType">
+                    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <xsd:element ref="iwwem:leaf"/>
+                        <xsd:element ref="iwwem:branch"/>
+                    </xsd:choice>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+    
     <xsd:complexType name="IODesc">
         <xsd:annotation>
             <xsd:documentation><![CDATA[Generic complex type for described inputs & outputs]]></xsd:documentation>
@@ -124,7 +157,42 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
                             <xsd:documentation><![CDATA[Available documentation related to this input/output. It might be in HTML]]></xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="mime" type="xsd:string" minOccurs="1" maxOccurs="unbounded">
+                    <xsd:element name="mime" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[The associated mime/types to this input/output]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="IOBundleDesc">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Generic complex type for described inputs & outputs]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="iwwem:IORepType">
+                <xsd:sequence>
+                    <xsd:choice minOccurs="1" maxOccurs="1">
+                        <xsd:element name="branch">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[Root branches have no name]]></xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:complexType>
+                                <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                                    <xsd:element ref="iwwem:leaf"/>
+                                    <xsd:element ref="iwwem:branch"/>
+                                </xsd:choice>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="leaf">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[Root leafs have no name]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:choice>
+                    <xsd:element name="mime" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation><![CDATA[The associated mime/types to this input/output]]></xsd:documentation>
                         </xsd:annotation>
@@ -338,7 +406,7 @@ results.]]></xsd:documentation>
     <xsd:attributeGroup name="RelURIAttr">
         <xsd:attribute name="relURI" type="xsd:anyURI" use="required">
             <xsd:annotation>
-                <xsd:documentation><![CDATA[A relative URI, base for linked resources]]></xsd:documentation>
+                <xsd:documentation><![CDATA[A relative URI, base for linked resources, and relative to IWWEMfs CGI]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
     </xsd:attributeGroup>
@@ -573,19 +641,19 @@ this element is included to tell that it was done properly.
             <xsd:documentation><![CDATA[The description of a data bundle]]></xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
-            <xsd:choice minOccurs="1" maxOccurs="1">
-                <xsd:element name="input" type="iwwem:IODesc" minOccurs="0" maxOccurs="unbounded">
+            <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element name="input" type="iwwem:IOBundleDesc" minOccurs="0" maxOccurs="unbounded">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[The inputs available in the data bundle, along with their MIME types. This happens with input flows and examples]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="output" type="iwwem:IODesc" minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="output" type="iwwem:IOBundleDesc" minOccurs="0" maxOccurs="unbounded">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[The outputs available in the data bundle, along with their MIME types. This happens with output flows]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-            </xsd:choice>
-            <xsd:attributeGroup ref="iwwem:TimeAttr"></xsd:attributeGroup>
+            </xsd:sequence>
+            <xsd:attributeGroup ref="iwwem:TimeAttr"/>
             <xsd:attribute name="uuid" use="required" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[The id (example, enaction, snapshot) needed to locate the bundle]]></xsd:documentation>
@@ -593,12 +661,13 @@ this element is included to tell that it was done properly.
             </xsd:attribute>
             <xsd:attribute name="flow" use="optional">
                 <xsd:annotation>
-                    <xsd:documentation><![CDATA[When @uuid is either an enaction or snapshot Id and the bundle is from an step, the data flow (either Inputs or Outputs) where the dataBundle is attached]]></xsd:documentation>
+                    <xsd:documentation><![CDATA[When @uuid is either an enaction or snapshot Id and the bundle is from an step, the data flow (either Inputs, Outputs or Both) where the dataBundle is attached]]></xsd:documentation>
                 </xsd:annotation>
                 <xsd:simpleType>
                     <xsd:restriction base="xsd:string">
                         <xsd:enumeration value="Inputs"/>
                         <xsd:enumeration value="Outputs"/>
+                        <xsd:enumeration value="Both"/>
                     </xsd:restriction>
                 </xsd:simpleType>
             </xsd:attribute>

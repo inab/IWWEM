@@ -1,0 +1,549 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY iwwem "http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#" >
+    <!ENTITY jtarraga "http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#jtarraga@" >
+]>
+
+
+<rdf:RDF xmlns="http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#"
+     xml:base="http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:iwwem="http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:jtarraga="&iwwem;jtarraga@"
+     xmlns:owl="http://www.w3.org/2002/07/owl#">
+    <owl:Ontology rdf:about=""/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#alsoContains -->
+
+    <owl:ObjectProperty rdf:about="#alsoContains">
+        <rdf:type rdf:resource="&owl;InverseFunctionalProperty"/>
+        <rdfs:domain rdf:resource="#IWWEMRepository"/>
+        <rdfs:subPropertyOf rdf:resource="#contains"/>
+        <rdfs:range>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Enaction"/>
+                    <rdf:Description rdf:about="#WorkflowExample"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:range>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#contains -->
+
+    <owl:ObjectProperty rdf:about="#contains">
+        <rdf:type rdf:resource="&owl;InverseFunctionalProperty"/>
+        <rdfs:range rdf:resource="#Workflow"/>
+        <rdfs:domain rdf:resource="#WorkflowRepository"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#dependsOn -->
+
+    <owl:ObjectProperty rdf:about="#dependsOn">
+        <rdf:type rdf:resource="&owl;AntisymmetricProperty"/>
+        <rdf:type rdf:resource="&owl;IrreflexiveProperty"/>
+        <rdf:type rdf:resource="&owl;TransitiveProperty"/>
+        <rdfs:range rdf:resource="#Workflow"/>
+        <rdfs:domain rdf:resource="#Workflow"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#hasAssociatedMime -->
+
+    <owl:ObjectProperty rdf:about="#hasAssociatedMime">
+        <rdfs:domain rdf:resource="#WorkflowIO"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#hasExample -->
+
+    <owl:ObjectProperty rdf:about="#hasExample">
+        <rdf:type rdf:resource="&owl;InverseFunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Workflow"/>
+        <rdfs:range rdf:resource="#WorkflowExample"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#hasGraphicalRepresentation -->
+
+    <owl:ObjectProperty rdf:about="#hasGraphicalRepresentation">
+        <rdf:type rdf:resource="&owl;InverseFunctionalProperty"/>
+        <rdfs:range rdf:resource="#GraphicalWorkflowRepresentation"/>
+        <rdfs:domain rdf:resource="#Workflow"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#isResponsibleOf -->
+
+    <owl:ObjectProperty rdf:about="#isResponsibleOf">
+        <rdf:type rdf:resource="&owl;InverseFunctionalProperty"/>
+        <rdfs:range rdf:resource="#Intel"/>
+        <rdfs:domain rdf:resource="#Resposible"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#models -->
+
+    <owl:ObjectProperty rdf:about="#models">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:range rdf:resource="#Workflow"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#WorkflowRepresentation"/>
+                    <owl:Class>
+                        <owl:complementOf rdf:resource="#GraphicalWorkflowRepresentation"/>
+                    </owl:Class>
+                </owl:intersectionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#usedExample -->
+
+    <owl:ObjectProperty rdf:about="#usedExample">
+        <rdfs:domain rdf:resource="#Enaction"/>
+        <rdfs:range rdf:resource="#WorkflowExample"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#usedWorkflow -->
+
+    <owl:ObjectProperty rdf:about="#usedWorkflow">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Enaction"/>
+        <rdfs:range rdf:resource="#Workflow"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#author -->
+
+    <owl:DatatypeProperty rdf:about="#author">
+        <rdfs:domain rdf:resource="#Workflow"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#date -->
+
+    <owl:DatatypeProperty rdf:about="#date">
+        <rdfs:domain rdf:resource="#Intel"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#description -->
+
+    <owl:DatatypeProperty rdf:about="#description">
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#EnactionSnapshot"/>
+                    <rdf:Description rdf:about="#Workflow"/>
+                    <rdf:Description rdf:about="#WorkflowExample"/>
+                    <rdf:Description rdf:about="#WorkflowIO"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#iwwemId -->
+
+    <owl:DatatypeProperty rdf:about="#iwwemId">
+        <owl:equivalentProperty rdf:resource="#uuid"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#lsid -->
+
+    <owl:DatatypeProperty rdf:about="#lsid">
+        <rdfs:domain rdf:resource="#Workflow"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#mime -->
+
+    <owl:DatatypeProperty rdf:about="#mime">
+        <rdfs:comment rdf:datatype="&xsd;string">A MIME type</rdfs:comment>
+        <rdfs:domain rdf:resource="#GraphicalWorkflowRepresentation"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#WorkflowIO"/>
+                    <owl:Class>
+                        <owl:complementOf rdf:resource="#WorkflowSecondaryInput"/>
+                    </owl:Class>
+                </owl:intersectionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#name -->
+
+    <owl:DatatypeProperty rdf:about="#name">
+        <owl:equivalentProperty rdf:resource="#responsibleName"/>
+        <owl:equivalentProperty rdf:resource="#title"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#EnactionSnapshot"/>
+                    <rdf:Description rdf:about="#WorkflowExample"/>
+                    <rdf:Description rdf:about="#WorkflowIO"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#responsibleMail -->
+
+    <owl:DatatypeProperty rdf:about="#responsibleMail">
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >The e-mail address of the responsible</rdfs:comment>
+        <rdfs:domain rdf:resource="#Resposible"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#responsibleName -->
+
+    <owl:DatatypeProperty rdf:about="#responsibleName">
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >The full name of the responsible</rdfs:comment>
+        <rdfs:domain rdf:resource="#Resposible"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#title -->
+
+    <owl:DatatypeProperty rdf:about="#title">
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >The title of the workflow</rdfs:comment>
+        <rdfs:domain rdf:resource="#Workflow"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#uri -->
+
+    <owl:DatatypeProperty rdf:about="#uri">
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >The workflow representation URI</rdfs:comment>
+        <rdfs:domain rdf:resource="#WorkflowRepresentation"/>
+        <rdfs:range rdf:resource="&xsd;anyURI"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#uuid -->
+
+    <owl:DatatypeProperty rdf:about="#uuid">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Intel"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#Enaction -->
+
+    <owl:Class rdf:about="#Enaction">
+        <rdfs:subClassOf rdf:resource="#Intel"/>
+        <owl:disjointWith rdf:resource="#Workflow"/>
+        <owl:disjointWith rdf:resource="#WorkflowExample"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >(From Wikipedia)Enaction is one of the possible ways of organizing knowledge and one of the forms of interaction with the world. The first definition of Enaction has been introduced by (Bruner 1966,1968) in association with the other two ways of knowledge organization: Iconic and Symbolic. The second was by Francisco Varela and Humberto Maturana.
+
+Enactive knowledge is knowledge that comes through action and it is constructed on motor skills, such as manipulating objects, riding a bicycle or playing a sport. The Enactive knowledges of entities are the ones acquired by doing.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#EnactionSnapshot -->
+
+    <owl:Class rdf:about="#EnactionSnapshot">
+        <rdfs:subClassOf rdf:resource="#Enaction"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >When a workflow is being enacted with a set of inputs, snapshots about the process status can be taken along its lifetime, so they can be watched later.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#GraphicalWorkflowRepresentation -->
+
+    <owl:Class rdf:about="#GraphicalWorkflowRepresentation">
+        <rdfs:subClassOf rdf:resource="#WorkflowRepresentation"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >A graphical workflow representation is usually a graph model drawing in a well known graphical format, like PNG, PDG or SVG.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#IWWEMRepository -->
+
+    <owl:Class rdf:about="#IWWEMRepository">
+        <rdfs:subClassOf rdf:resource="#WorkflowRepository"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >An IWWEM repository is a workflow repository which is also able to host examples, enactions and enaction snapshots.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#Intel -->
+
+    <owl:Class rdf:about="#Intel">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <owl:disjointWith rdf:resource="#Resposible"/>
+        <owl:disjointWith rdf:resource="#WorkflowIO"/>
+        <owl:disjointWith rdf:resource="#WorkflowRepository"/>
+        <owl:disjointWith rdf:resource="#WorkflowRepresentation"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >A piece of valuable, cared or curated information.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#Resposible -->
+
+    <owl:Class rdf:about="#Resposible">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <owl:disjointWith rdf:resource="#WorkflowIO"/>
+        <owl:disjointWith rdf:resource="#WorkflowRepository"/>
+        <owl:disjointWith rdf:resource="#WorkflowRepresentation"/>
+        <rdfs:comment
+            >A &quot;responsible&quot; is a person which takes care of a piece of information, and it is a role different from the &quot;owner&quot; one.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#Workflow -->
+
+    <owl:Class rdf:about="#Workflow">
+        <rdfs:subClassOf rdf:resource="#Intel"/>
+        <owl:disjointWith rdf:resource="#WorkflowExample"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >(From Wikipedia)A workflow is a depiction of a sequence of operations, declared as work of a person, work of a simple or complex mechanism, work of a group of persons,[1] work of an organization of staff, or machines. Workflow may be seen as any abstraction of real work, segregated in workshare, work split or whatever types of ordering. For control purposes, workflow may be a view on real work under a chosen aspect,[2] thus serving as a virtual representation of actual work.
+
+A workflow is a model to represent real work for further assessment, e.g., for describing a reliably repeatable sequence of operations. More abstractly, a workflow is a pattern of activity enabled by a systematic organization of resources, defined roles and mass, energy and information flows, into a work process that can be documented and learned.[3][4] Workflows are designed to achieve processing intents of some sort, such as physical transformation, service provision, or information processing.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#WorkflowExample -->
+
+    <owl:Class rdf:about="#WorkflowExample">
+        <rdfs:subClassOf rdf:resource="#Intel"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >A workflow example  is an example input for a workflow which has an
+associated description about what it is supposed to generate show when an enaction is issued using this WorkflowExample.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#WorkflowIO -->
+
+    <owl:Class rdf:about="#WorkflowIO">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <owl:disjointWith rdf:resource="#WorkflowRepository"/>
+        <owl:disjointWith rdf:resource="#WorkflowRepresentation"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >A workflow input or output</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#WorkflowInput -->
+
+    <owl:Class rdf:about="#WorkflowInput">
+        <rdfs:subClassOf rdf:resource="#WorkflowIO"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >One input for a workflow</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#WorkflowOutput -->
+
+    <owl:Class rdf:about="#WorkflowOutput">
+        <rdfs:subClassOf rdf:resource="#WorkflowIO"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >One output for a workflow</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#WorkflowRepository -->
+
+    <owl:Class rdf:about="#WorkflowRepository">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <owl:disjointWith rdf:resource="#WorkflowRepresentation"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >A workflow repository is a public web site where workflows are hosted by their authors (or similar).</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#WorkflowRepresentation -->
+
+    <owl:Class rdf:about="#WorkflowRepresentation">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >A workflow representation is either a textual or graphical depiction of the conceptual workflow behavior.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#WorkflowSecondaryInput -->
+
+    <owl:Class rdf:about="#WorkflowSecondaryInput">
+        <rdfs:subClassOf rdf:resource="#WorkflowInput"/>
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >A secondary input for a workflow is a parameter which cannot be fed with information from another process when this workflow is embedded, but which tweaks the behavior of the workflow.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.w3.org/2002/07/owl#Thing -->
+
+    <owl:Class rdf:about="&owl;Thing"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#bd7c0e35-8749-45d9-9340-50f40d72de2f -->
+
+    <Workflow rdf:about="#bd7c0e35-8749-45d9-9340-50f40d72de2f">
+        <date rdf:datatype="&xsd;dateTime"
+            >2007-11-29T11:45:00+01:00</date>
+        <author rdf:datatype="&xsd;string"
+            >Joaquin Tarraga Gimenez, jtarraga@cipf.es</author>
+        <uuid rdf:datatype="&xsd;string"
+            >bd7c0e35-8749-45d9-9340-50f40d72de2f</uuid>
+        <lsid rdf:datatype="&xsd;string"
+            >urn:lsid:net.sf.taverna:wfDefinition:40139d61-dedc-459d-a8d3-2e7a3ac1c7ba</lsid>
+        <title
+            >Preprocessing and clustering of gene expression data</title>
+        <description
+            >You can use this workflow, if you have DNA microarray data and you want to find the groups of co-expressing genes.</description>
+    </Workflow>
+    
+
+
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#jtarraga@cipf.es -->
+
+    <Resposible rdf:about="#jtarraga@cipf.es">
+        <responsibleName rdf:datatype="&xsd;string"
+            >Joaquin Tarraga Gimenez</responsibleName>
+        <responsibleMail rdf:datatype="&xsd;string"
+            >jtarraga@cipf.es</responsibleMail>
+        <isResponsibleOf rdf:resource="#bd7c0e35-8749-45d9-9340-50f40d72de2f"/>
+    </Resposible>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description>
+        <rdf:type rdf:resource="&owl;AllDifferent"/>
+        <owl:distinctMembers rdf:parseType="Collection">
+            <rdf:Description rdf:about="#bd7c0e35-8749-45d9-9340-50f40d72de2f"/>
+            <rdf:Description rdf:about="#jtarraga@cipf.es"/>
+        </owl:distinctMembers>
+    </rdf:Description>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.842) http://owlapi.sourceforge.net -->
+

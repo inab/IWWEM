@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>INB IWWE&amp;M v0.6.4 frontends call parameters ($Rev$, $Date$)</title>
+<title>INB IWWE&amp;M v0.7.0 frontends call parameters ($Rev$, $Date$)</title>
 </head>
 <style type="text/css">
 .frontend {
@@ -23,7 +23,7 @@
 <td style="text-align:left;font-style:italic;">$Date$</td>
 <td style="text-align:right;font-style:italic;">$Rev$</td>
 </tr></table>
-<div align="center"><h1 style="font-size:32px;"><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a> v0.6.4 frontends</h1></div>
+<div align="center"><h1 style="font-size:32px;"><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a> v0.7.0 frontends</h1></div>
 Currently, IWWE&amp;M has 5 frontends, used by AJAX GUIs:
 <ul>
 <li><span class="frontend"><a href="#workflowmanager">workflowmanager</a></span></li>
@@ -31,6 +31,7 @@ Currently, IWWE&amp;M has 5 frontends, used by AJAX GUIs:
 <li><span class="frontend"><a href="#enactionstatus">enactionstatus</a></span></li>
 <li><span class="frontend"><a href="#IWWEMproxy">IWWEMproxy</a></span></li>
 <li><span class="frontend"><a href="#IWWEMconfirm">IWWEMconfirm</a></span></li>
+<li><span class="frontend"><a href="#IWWEMfs">IWWEMfs</a></span></li>
 </ul>
 <p>First of all, all these frontends have lots of parameters, and some of them may contain international characters, like spanish <span class="value">&ntilde;</span> or french and catalonian <span class="value">&ccedil;</span>. So, all these frontends expect that must of their parameters <b>are encoded in UTF-8</b>, no more, no less. The only exceptions are <span class="parameter">PARAM_</span> prefixed parameters passed as files, whose encoding can be driven by their corresponding <span class="parameter">ENCODING_</span> prefixed parameters</p>
 <p>All these frontends use the concept of Ids: workflow Ids, example Ids, enaction Ids, snapshot Ids and confirmation Ids. All the unqualified Ids have the format of an <a href="http://en.wikipedia.org/wiki/UUID">UUID</a>, but there are some differences when the IDs are fully qualified:</p>
@@ -132,7 +133,9 @@ These parameters were designed to upload new workflows to the workflow repositor
 </li>
 <li><u><span class="parameter">PARAM_</span> prefixed parameters <i>(optional, multiple)</i></u>: These parameters are used to set values for the inputs of the workflow to be enacted. The text after the <span class="parameter">PARAM_</span> prefix sets the name of the input to be assigned. As <span class="parameter">BACLAVA_FILE</span> parameter, these parameters can be used in two different ways: when any of these parameters has been passed as a value, then its content is interpreted as the raw value; when this parameter has been passed using a POST transfer in multipart/form-data style and it has been marked as a file, then the content of this transferred file is interpreted as the raw content assigned to the parameter.
 </li>
-<li><u><span class="parameter">ENCODING_</span> prefixed parameters <i>(optional, multiple)</i></u>: These parameters are used to tell the encodings of the values for the inputs of the workflow to be enacted, and they must be legal ones. They way to tell that an input is binary is using the illegal encoding <span class="value">"binary"</span>. The text after the <span class="parameter">ENCODING_</span> prefix sets the name of the input to be assigned. If there is no prefixed <span class="parameter">PARAM_</span> parameter corresponding to an encoding one, then it is discarded. If there is no prefixed <span class="parameter">ENCODING_</span> parameter corresponding to a parameter one, then it is assumed that its encoding is UTF-8.
+<li><u><span class="parameter">ENCODING_</span> prefixed parameters <i>(optional, multiple)</i></u>: These parameters are used to tell the encodings of the values for the inputs of the workflow to be enacted, and they must be legal ones. They way to tell that an input is binary is using the illegal encoding <span class="value">"binary"</span>. The text after the <span class="parameter">ENCODING_</span> prefix sets the name of the input to be assigned to. If there is no prefixed <span class="parameter">PARAM_</span> parameter corresponding to an encoding one, then it is discarded. If there is no prefixed <span class="parameter">ENCODING_</span> parameter corresponding to a parameter one, then it is assumed that its encoding is UTF-8.
+</li>
+<li><u><span class="parameter">MIME_</span> prefixed parameters <i>(optional, multiple)</i></u>: These parameters are used to tell the MIME types of the values for the inputs of the workflow to be enacted, and they should be legal ones. The text after the <span class="parameter">MIME_</span> prefix sets the name of the input to be assigned to. If there is no prefixed <span class="parameter">PARAM_</span> parameter corresponding to a MIME type one, then it is discarded. Other supplementary way to send a MIME type is through the Content-Type header associated to a file transfer in multipart/form-data style.
 </li>
 <li><u><span class="parameter">exampleName</span> and <span class="parameter">exampleDesc</span> <i>(optional)</i></u>: These parameters are used to save and describe the input to this workflow enaction as an input example associated to the original workflow. These parameters do not work with inline workflow definitions. <span class="parameter">exampleName</span> has no restrictions in its value, and at the moment it should be encoded in ISO-8859-1. <span class="parameter">exampleDesc</span> is the description of the input example which is being created, and it can be HTML content (also encoded in ISO-8859-1). The example addition operation is not effective until it is confirmed (see <span class="frontend"><a href="#IWWEMconfirm">IWWEMconfirm</a></span> and <span class="parameter">responsibleMail</span> parameter).
 </li>
@@ -186,7 +189,7 @@ Parameter <span class="parameter">responsibleName</span> can be set to the name 
 <a name="IWWEMproxy"><div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend">IWWEMproxy</span> frontend documentation and call parameters</h2></div></a>
 
 <div align="justify">
-<p>This frontend module was created to overcome some of the limitations of current browsers. Enaction process launched with <span class="frontend"><a href="#enactionlauncher">enactionlauncher</a></span> save both inputs and ouputs of the whole process, intermediate steps and iterations in Baclava XML format. <a href="../enactionviewer.html">AJAX GUI Enaction Viewer</a> allows the end user to browse this information, but some data viewers it uses are only able to handle information coming from an URL. <span class="frontend">IWWEMproxy</span> is responsible of decoding, extracting and streaming this information under demand. It also provides a limited listing of the data bundles when <span class="parameter">bundle64</span> and <span class="parameter">IOPath</span> parameters are unset.
+<p>This frontend module was created to overcome some of the limitations of current browsers. Enaction process launched with <span class="frontend"><a href="#enactionlauncher">enactionlauncher</a></span> save both inputs and ouputs of the whole process, intermediate steps and iterations in Baclava XML format. <a href="../enactionviewer.html">AJAX GUI Enaction Viewer</a> allows the end user to browse this information, but some data viewers it uses are only able to handle information coming from an URL. <span class="frontend">IWWEMproxy</span> is responsible of decoding, extracting and streaming this information under demand. Data bundles can be accessed in listing or raw modes when <span class="parameter">bundle64</span> and <span class="parameter">IOPath</span> parameters are unset. Data bundles listing shows the backbone of the data bundle (i.e. its tree structure), meanwhile raw mode access gives full access to the raw storage format (Baclava).
 </div>
 
 <h3>Call parameters</h3>
@@ -218,8 +221,11 @@ The name of the workflow step which took this input or generated this output. Th
 <li><u><span class="parameter">iteration</span> <i>(optional)</i></u>:
 If we have set the workflow step and the workflow step iterated, the iteration number. Otherwise, the whole step is taken into account.
 </li>
-<li><u><span class="parameter">IOMode</span> <i>(optional, either <span class="value">I</span> or <span class="value">O</span>)</i></u>:
-This parameter only makes sense with enaction job and snapshot identifiers. If this parameter is set to <span class="value">I</span>, then <span class="parameter">IOPath</span> is referring to an input. If this parameter is set to <span class="value">O</span>, then <span class="parameter">IOPath</span> is referring to an output.
+<li><u><span class="parameter">IOMode</span> <i>(optional, either <span class="value">I</span>, <span class="value">O</span> or <span class="value">B</span>)</i></u>:
+This parameter only makes sense with enaction job and snapshot identifiers. If this parameter is set to <span class="value">I</span>, then <span class="parameter">IOPath</span> is referring to an input. If this parameter is set to <span class="value">O</span>, then <span class="parameter">IOPath</span> is referring to an output. Parameter can only be set to <span class="value">B</span> when <span class="frontend">IWWEMproxy</span> is used either in listing or raw modes.
+</li>
+<li><u><span class="parameter">raw</span> <i>(optional)</i></u>:
+When requested information is in list mode, this parameter switches to its raw representation.
 </li>
 <li><u><span class="parameter">IOPath</span> <i>(required)</i></u>:
 The virtual path to reach the value to return. These paths are similar to:
@@ -233,7 +239,7 @@ Characters '<span class="value">#</span>' (virtual step), '<span class="value">/
 you must substitute occurrences of '<span class="value">#</span>' with '<span class="value">&amp;#35;</span>' or '<span class="value">&amp;#x23;</span>', '<span class="value">/</span>' with '<span class="value">&amp;#47;</span>' or '<span class="value">&amp;#x2F;</span>', and '<span class="value">&amp;</span>' with '<span class="value">&amp;amp;</span>'.
 </ul>
 
-Patterns used in <span class="parameter">IOPath</span> parameter are stored in the IWWE&amp;M server in an XML document, which follows the XML Schema <a href="IWWEM-patterns.xsd">IWWEM-patterns.xsd</a> (<a href="IWWEM-patterns.xsd.html">documentation</a>). Currently defined global patterns are available at <a href="../EVpatterns.xml">EVpatterns.xml</a>
+Patterns used in <span class="parameter">IOPath</span> parameter are stored in the IWWE&amp;M server in an XML document, which follows the XML Schema <a href="IWWEM-patterns.xsd">IWWEM-patterns.xsd</a> (<a href="IWWEM-patterns.xsd.html">documentation</a>). Currently defined global patterns are available at <a href="../etc/EVpatterns.xml">EVpatterns.xml</a>
 
 <hr>
 <a name="IWWEMconfirm"><div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend">IWWEMconfirm</span> frontend documentation and call parameters</h2></div></a>
@@ -249,5 +255,44 @@ and the addition operations from <span class="frontend"><a href="#workflowmanage
 <li><u><span class="parameter">code</span> <i>(required)</i></u>: The confirmation Id, or code, which confirms the operation.
 </li>
 </ul>
+
+<hr>
+<a name="IWWEMfs"><div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend">IWWEMfs</span> frontend documentation and call parameters</h2></div></a>
+
+<div align="justify">
+<p>This frontend module was created to give path-like access to almost all the information stored and provided by IWWE&amp;M server.
+So, it provides almost all the information you can fetch using <span class="frontend"><a href="#workflowmanager">workflowmanager</a></span>
+(available workflows and enactions), <span class="frontend"><a href="#enactionstatus">enactionstatus</a></span> (enaction and snapshot status)
+and <span class="frontend"><a href="#IWWEMproxy">IWWEMproxy</a></span> (access to workflow examples content, and inputs and results from enactions
+and snapshots), including single files like workflow graphs or raw workflow definitions.
+</p>
+</div>
+
+<h3>Call parameters</h3>
+<p>This module reuses parameters <span class="parameter">asMime</span>, <span class="parameter">charset</span> and <span class="parameter">withName</span>
+from <span class="frontend"><a href="#IWWEMproxy">IWWEMproxy</a></span>, and reuses the semantics of the content of <span class="parameter">IOPath</span>
+from <span class="frontend"><a href="#IWWEMproxy">IWWEMproxy</a></span> when an input or an output is being fetched.</p>
+
+<ul>
+<li><u><span class="parameter">digested</span> <i>(optional)</i></u>:
+When requested Input/Output information is in raw mode, this parameter switches to its digested (listing) representation.
+</li>
+</ul>
+
+<p>As this module works in a seamless way with virtual paths, next ones are relative sample URIs with valid paths:
+<ul>
+<li><span class="value">IWWEMfs/workflows</span> (detailed list of available workflows)</li>
+<li><span class="value">IWWEMfs/workflows/a04fe33d-4496-415b-a6ef-8b92559160f0/workflow.svg</span> (SVG graph representation of a concrete workflow)</li>
+<li><span class="value">IWWEMfs/workflows/a04fe33d-4496-415b-a6ef-8b92559160f0/workflow.xml</span> (Taverna representation of a concrete workflow)</li>
+<li><span class="value">IWWEMfs/workflows/a04fe33d-4496-415b-a6ef-8b92559160f0/examples/fc4756c6-c7fa-4237-9fb3-4ab03895d075.xml</span> (An example in Baclava format)</li>
+<li><span class="value">IWWEMfs/enactions</span> (detailed list of available enactions, as workflows)</li>
+<li><span class="value">IWWEMfs/enactions/87f3c937-a822-41fa-9749-93efd6f9eeb7</span> (detailed status of an enaction)</li>
+<li><span class="value">IWWEMfs/enactions/87f3c937-a822-41fa-9749-93efd6f9eeb7/Outputs.xml</span> (outputs in Baclava format)</li>
+<li><span class="value">IWWEMfs/enactions/87f3c937-a822-41fa-9749-93efd6f9eeb7/Results/getSymbolInteractions/Inputs.xml/Object(search)</span>
+<br>(value of one of the inputs to <span class="value">getSymbolInteractions</span> enaction step)</li>
+<li><span class="value">IWWEMfs/enactions/87f3c937-a822-41fa-9749-93efd6f9eeb7/Results/extractSymbols/Iterations/0000/Outputs.xml?digested=1</span>
+<br>(listing of available outputs from iteration <span class="value">0000</span> from enaction step <span class="value">extractSymbols</span>)</li>
+</ul>
+</p> 
 </body>
 </html>
