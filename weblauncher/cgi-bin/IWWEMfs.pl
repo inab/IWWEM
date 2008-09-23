@@ -235,6 +235,10 @@ sub processFSPath($$$$$$$$) {
 			last;
 		}
 	}
+	my($isWSDL)=undef;
+	foreach my $keyword ($query->keywords()) {
+		$isWSDL=1  if($keyword eq 'wsdl');
+	}
 	
 	if(!defined($patherr)) {
 		my($iddepth)=scalar(@idhist);
@@ -248,14 +252,18 @@ sub processFSPath($$$$$$$$) {
 			workflowmanager::sendWorkflowList($query,$retval,undef,@{$p_workflowlist},$baseListDir,$listDir,$uuidPrefix,$isSnapshot,$dataislandTag);
 		} elsif($iddepth==1) {
 			# Single workflows/enactions
-			if($globalkind->[0] eq $WorkflowCommon::VIRTJOBDIR) {
-				# Description as a status for enactions!
-				my(@jobs)=($idhist[0]);
-				enactionstatus::sendEnactionReport($query,@jobs);
+			unless(defined($isWSDL)) {
+				if($globalkind->[0] eq $WorkflowCommon::VIRTJOBDIR) {
+					# Description as a status for enactions!
+					my(@jobs)=($idhist[0]);
+					enactionstatus::sendEnactionReport($query,@jobs);
+				} else {
+					# Description as a workflow list for workflows...
+					my($p_workflowlist,$baseListDir,$listDir,$uuidPrefix,$isSnapshot)=workflowmanager::gatherWorkflowList($idhist[0]);
+					workflowmanager::sendWorkflowList($query,$retval,undef,@{$p_workflowlist},$baseListDir,$listDir,$uuidPrefix,$isSnapshot,$dataislandTag);
+				}
 			} else {
-				# Description as a workflow list for workflows...
-				my($p_workflowlist,$baseListDir,$listDir,$uuidPrefix,$isSnapshot)=workflowmanager::gatherWorkflowList($idhist[0]);
-				workflowmanager::sendWorkflowList($query,$retval,undef,@{$p_workflowlist},$baseListDir,$listDir,$uuidPrefix,$isSnapshot,$dataislandTag);
+				generateWSDL((($globalkind->[0] eq $WorkflowCommon::VIRTJOBDIR)?$WorkflowCommon::ENACTIONPREFIX:$WorkflowCommon::WORKFLOWPREFIX).$idhist[0]);
 			}
 		} elsif(!defined($kindclass)) {
 				my(@headers)=();
@@ -268,9 +276,14 @@ sub processFSPath($$$$$$$$) {
 			}
 		} elsif($iddepth==3) {
 			if($kindclass==$WorkflowCommon::ISIDDIR && $globalkind->[0] eq $WorkflowCommon::VIRTWORKFLOWDIR) {
-				# Description as a status for snapshots!
-				my(@jobs)=($WorkflowCommon::SNAPSHOTPREFIX.$idhist[0].':'.$idhist[2]);
-				enactionstatus::sendEnactionReport($query,@jobs);
+				my($jobId)=$WorkflowCommon::SNAPSHOTPREFIX.$idhist[0].':'.$idhist[2];
+				unless(defined($isWSDL)) {
+					# Description as a status for snapshots!
+					my(@jobs)=($jobId);
+					enactionstatus::sendEnactionReport($query,@jobs);
+				} else {
+					generateWSDL($jobId);
+				}
 			} elsif($kindclass==$WorkflowCommon::ISEXAMPLE || ($globalkind->[0] eq $WorkflowCommon::VIRTJOBDIR && $kindclass==$WorkflowCommon::ISIDDIR)) {
 				my($jobId)=undef;
 				my($step)=undef;
@@ -332,4 +345,47 @@ sub processFSPath($$$$$$$$) {
 	}
 	
 	return $patherr;
+}
+
+sub generateWSDL($) {
+	my($id)=@_;
+	
+	my($baseListDir,$listDir,$uuidPrefix,$subId,$isSnapshot);
+	if(index($id,$WorkflowCommon::ENACTIONPREFIX)==0) {
+		$baseListDir=$WorkflowCommon::VIRTJOBDIR;
+		$listDir=$WorkflowCommon::JOBDIR;
+		$uuidPrefix=$WorkflowCommon::ENACTIONPREFIX;
+		
+		if($id =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+			$subId=$1;
+		}
+	} elsif($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+)/) {
+		$baseListDir=$WorkflowCommon::VIRTWORKFLOWDIR . '/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
+		$listDir=$WorkflowCommon::WORKFLOWDIR .'/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
+		$uuidPrefix=$WorkflowCommon::SNAPSHOTPREFIX . $1 . ':';
+		
+		$isSnapshot=1;
+		
+		if($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			$subId=$2;
+		}
+	} else {
+		$baseListDir=$WorkflowCommon::VIRTWORKFLOWDIR;
+		$listDir=$WorkflowCommon::WORKFLOWDIR;
+		$uuidPrefix='';
+		
+		if($id =~ /^$WorkflowCommon::WORKFLOWPREFIX([^:]+)$/) {
+			$subId=$1;
+		} elsif(length($id)>0) {
+			$subId=$id;
+		}
+	}
+	my $parser = XML::LibXML->new();
+	my $context = XML::LibXML::XPathContext->new();
+	$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
+	$context->registerNs('sn',$WorkflowCommon::WFD_NS);
+	
+	my($desc)=workflowmanager::getWorkflowInfo($parser,$context,$listDir,$subId,$uuidPrefix,$isSnapshot);
+	
+	# TODO Translate to WSDL using an XSLT
 }

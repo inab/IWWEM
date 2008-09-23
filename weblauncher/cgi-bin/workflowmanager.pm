@@ -295,7 +295,11 @@ sub gatherWorkflowList(;$) {
 		$listDir=$WorkflowCommon::WORKFLOWDIR;
 		$uuidPrefix='';
 		
-		$subId=$id  if(length($id)>0);
+		if($id =~ /^$WorkflowCommon::WORKFLOWPREFIX([^:]+)$/) {
+			$subId=$1;
+		} elsif(length($id)>0) {
+			$subId=$id;
+		}
 	}
 	
 	# Looking for workflows
