@@ -557,6 +557,16 @@ DataBrowser.ImageViewer = {
 };
 DataBrowser.addViewer(DataBrowser.ImageViewer);
 
+// JMol intialization
+function JMolAlert(appname,info,addi) {
+	if(info=='Script completed' && DataBrowser.MolViewer.jmolRunme) {
+		//var d=new Date();
+		//alert('alerta '+d.getTime()+' '+appname+' '+info+' '+addi);
+		// This alert avoids a Java plugin deadlock
+		setTimeout(DataBrowser.MolViewer.jmolRunme,100);
+	}
+};
+	
 DataBrowser.MolViewer = {
 	name:	'JMol',
 	/*
@@ -581,7 +591,15 @@ DataBrowser.MolViewer = {
 	
 	jmolRunme:	undefined,
 	
+	jmolFirst:	1,
+	
 	applyView: function (data,paramArray,databrowserDiv,genview) {
+		if(DataBrowser.MolViewer.jmolFirst) {
+			DataBrowser.MolViewer.jmolFirst=undefined;
+			jmolInitialize('applets/jmol');
+			jmolSetDocument(false);
+			jmolSetCallback('messageCallback','JMolAlert');
+		}
 		/*
 		databrowserDiv.innerHTML=jmolAppletInline([300,450],
 			data,
@@ -664,20 +682,7 @@ DataBrowser.MolViewer = {
 	}
 };
 
-// JMol intialization
-function JMolAlert(appname,info,addi) {
-	if(info=='Script completed' && DataBrowser.MolViewer.jmolRunme) {
-		//var d=new Date();
-		//alert('alerta '+d.getTime()+' '+appname+' '+info+' '+addi);
-		// This alert avoids a Java plugin deadlock
-		setTimeout(DataBrowser.MolViewer.jmolRunme,100);
-	}
-};
-	
 
-jmolInitialize('applets/jmol');
-jmolSetDocument(false);
-jmolSetCallback('messageCallback','JMolAlert');
 DataBrowser.addViewer(DataBrowser.MolViewer);
 
 DataBrowser.NewickViewer = {

@@ -43,6 +43,7 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish
 	
 	var me = this;
 	this.timeoutLoad = function() {
+		clearTimeout(this.loading);
 		me.loading=true;
 		me.loadQueuedSVG();
 	};
@@ -89,7 +90,7 @@ TavernaSVG.prototype = {
 			if(!thedoc)  thedoc=document;
 			// First, kill timer (if any!)
 			if(this._svgloadtimer) {
-				clearInterval(this._svgloadtimer);
+				clearTimeout(this._svgloadtimer);
 				this._svgloadtimer=undefined;
 			}
 			/*
@@ -340,8 +341,8 @@ TavernaSVG.prototype = {
 			objres.setAttribute("src",url);
 			var finishfuncIE = function(evt) {
 				// Transferring the trampoline!
+				clearTimeout(thissvg._svgloadtimer);
 				if((objres.readyState=='loaded' || objres.readyState=='complete') && window.SVGtrampoline) {
-					clearTimeout(thissvg._svgloadtimer);
 					thissvg._svgloadtimer=undefined;
 					// Transferring the trampoline!
 					thissvg.SVGtramp=window.SVGtrampoline;
