@@ -9,7 +9,7 @@
 */
 
 var IWWEM={
-	Version:	'0.7.0',
+	Version:	'0.7.0alpha',
 //	Logo:	'style/unknown-inb.svg',
 	Logo:	'style/IWWEM-logo.svg',
 	// To be used when there was a problem loading any SVG
