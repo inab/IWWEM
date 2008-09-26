@@ -960,7 +960,7 @@ NewEnactionView.prototype = {
 					} else {
 						var request;
 						var genview=this.genview;
-						var theurl = IWWEM.FSBase + '/id/' + Base64._utf8_encode(exampleUUID);
+						var theurl = IWWEM.FSBase + '/id/' + Base64._utf8_encode(exampleUUID)+'?digested=1';
 						try {
 							request=new XMLHttpRequest();
 							var requestonload = function() {
