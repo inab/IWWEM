@@ -1,8 +1,10 @@
+@charset "UTF-8";
+
 /*
 	$Id$
 	IWWEM-styles.css
 	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
-	Author: JosÈ MarÌa Fern·ndez Gonz·lez (C) 2007-2008
+	Author: Jos√© Mar√≠a Fern√°ndez Gonz√°lez (C) 2007-2008
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
@@ -203,6 +205,8 @@ TBODY.generictbody {
 	text-align: left;
 	border: 1px solid #dfd8c8;
 	background-color: #f5ede9;
+	margin: 0px;
+	padding: 0px;
 }
 
 .scrolldatalarge {

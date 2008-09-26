@@ -7,7 +7,7 @@
 		$Id$
 		workflowmanager.html
 		from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
-		Author: JosÈ MarÌa Fern·ndez Gonz·lez (C) 2007-2008
+		Author: Jos√© Mar√≠a Fern√°ndez Gonz√°lez (C) 2007-2008
 		Institutions:
 		*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 		*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
@@ -41,7 +41,7 @@ if(BrowserDetect.browser=='Explorer') {
 	<form id="formManager" method="post" enctype="multipart/form-data" style="width:100%;height:90%;" accept-charset="UTF-8">
 		<table align="center" id="tableContainer" style="height:98%;width:98%;table-layout:fixed;"><tbody style="height:90%;width:98%;table-layout:fixed;">
 			<tr class="header"><td colspan="6" align="center"><a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <b id="titleB">Interactive Web Workflow Enactor &amp; Manager <i><blink>(loading)</blink></i></b></td></tr>
-			<tr><td colspan="2" class="data">
+			<tr><td colspan="2" class="data" style="overflow:hidden">
 				<div class="scrolldatawide" id="workflow"></div>
 			</td><td colspan="2" class="middle">
 				<div class="svgdiv" id="wfsvgdiv"></div>
@@ -108,38 +108,47 @@ if(BrowserDetect.browser=='Explorer') {
 </div>
 <div class="hidden" id="newEnaction">
 	<div class="secondary">
-		<form id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data" accept-charset="UTF-8">
+		<form style="width:98%; height:90%;" id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data" accept-charset="UTF-8">
 			<input id="workflowHiddenInput" type="hidden" name="id"></input>
-		<table align="center" style="width:98%; height:98%;"><tr valign="middle">
-			<td colspan="2" style="text-align:center;height:5%">Please introduce your inputs for workflow<br><span id="newEnactWFName" style="font-weight:bold"></span></td>
-		</tr><tr><td style="min-width:0px;width:0px;max-width:0px;min-height:0px;height:0px;max-height:0px"></td>
-		<td style="min-width:60%;width:60%;max-width:60%;height:5%">
-			<div>
-			Uploader mail <input type="text" id="NEresponsibleMail" name="responsibleMail"> <span style="font-style:italic;color:red">(required)</span><br>
-			Uploader name <input type="text" id="NEresponsibleName" name="responsibleName"> <span style="font-style:italic;color:red">(optional)</span>
-			</div>
-			<div id="useDiv" align="center" style="margin: 5px 5px 5px 5px">
-				<span class="borderedOption"><span id="noneExampleSpan" class="radio right">Use inputs</span>&nbsp;<span id="saveAsExampleSpan" class="checkboxgreen checkbox right">Save as example</span></span>
-				<span class="borderedOption"><span id="useExampleSpan" class="radio right">Use example</span></span>
-				<div id="saveExampleDiv"></div>
-			</div>
-		</td>
-		</tr><tr><td style="min-width:40%;width:40%;max-width:40%;min-height:100%;height:100%;max-height:100%;vertical-align:top;" align="center">
-			<div id="enactsvg" style="width:100%"></div>
-		</td>
-		<td style="min-width:60%;width:60%;max-width:60%;min-height:100%;height:100%;max-height:100%">
-			<div class="scrolldatawide" id="newInputs">&nbsp;</div>
-		</td>
-		</tr>
-		<tr><td align="left" style="height:5%;">
-			<div class="button" onclick="genview.newenactview.closeNewEnactionFrame()">
-				<img src="style/leftarrow.png"></img> Back
-			</div>
-		</td><td align="right"style="height:5%;">
-			<div class="button" onclick="genview.newenactview.enact()">
-				Let's go! <img src="style/run.png"></img>
-			</div>
-		</td></tr></table>
+			<table align="center" style="width:98%; height:90%;">
+				<tbody style="width:98%;height:90%;">
+					<tr valign="middle">
+						<td colspan="2" style="text-align:center;height:5%">Please introduce your inputs for workflow<br><span id="newEnactWFName" style="font-weight:bold"></span></td>
+					</tr><tr>
+						<td style="min-width:0px;width:0px;max-width:0px;min-height:0px;height:0px;max-height:0px"></td>
+						<td style="min-width:60%;width:60%;max-width:60%;height:5%">
+							<div>
+							Uploader mail <input type="text" id="NEresponsibleMail" name="responsibleMail"> <span style="font-style:italic;color:red">(required)</span><br>
+							Uploader name <input type="text" id="NEresponsibleName" name="responsibleName"> <span style="font-style:italic;color:red">(optional)</span>
+							</div>
+							<div id="useDiv" align="center" style="margin: 5px 5px 5px 5px">
+								<span class="borderedOption"><span id="noneExampleSpan" class="radio right">Use inputs</span>&nbsp;<span id="saveAsExampleSpan" class="checkboxgreen checkbox right">Save as example</span></span>
+								<span class="borderedOption"><span id="useExampleSpan" class="radio right">Use example</span></span>
+								
+							</div>
+						</td>
+					</tr><tr>
+						<td class="middle" style="min-width:40%;width:40%;max-width:40%;">
+							<div id="enactsvg" class="svgdiv"></div>
+						</td>
+						<td class="data" style="min-width:60%;width:60%;max-width:60%;">
+							<div id="saveExampleDiv"></div>
+							<div class="scrolldatawide" id="newInputs"></div>
+						</td>
+					</tr><tr>
+						<td align="left" style="height:5%;">
+							<div class="button" onclick="genview.newenactview.closeNewEnactionFrame()">
+								<img src="style/leftarrow.png"></img> Back
+							</div>
+						</td>
+						<td align="right"style="height:5%;">
+							<div class="button" onclick="genview.newenactview.enact()">
+								Let's go! <img src="style/run.png"></img>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 		</form>
 		<div id="newEnactUploading">
 			<iframe src="about:blank" frameborder="0" id="enactIFRAME" name="enactIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>

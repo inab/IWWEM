@@ -18,7 +18,7 @@ var IWWEM={
 	Plugins: [
 		'js/prettify/prettify.js',		// Prettify
 		'js/FCKeditor/fckeditor.js',	// FCKEditor
-		'js/jmol/Jmol.js',				// JMol Javascript
+		'applets/jmol/Jmol.js',				// JMol Javascript
 		'js/IWWEMprettyXML.js',			// IWWE&M's own XML pretty printer
 	],
 	/* DO NOT CHANGE NEXT LINES UNLESS YOU EXACTLY KNOW WHAT YOU ARE DOING!!! */

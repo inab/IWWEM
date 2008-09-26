@@ -85,10 +85,29 @@ function DataBrowser(genview,databrowserId,mimePathDivId,/*optional*/preprocessI
 			databrowser.applyView(mimeSelect.options[mimeSelect.selectedIndex].value,viewSelect.options[viewSelect.selectedIndex].value);
 		}
 	};
+	
+	// Last, viewers initialization
+	DataBrowser.immediateInit=1;
+	/*
+	for(var i=0;i<DataBrowser.Viewers.length;i++) {
+		viewerProto=DataBrowser.Viewers[i];
+		if(typeof viewerProto.init == 'function') {
+			try {
+				viewerProto.init();
+			} catch(ie) {
+				// IgnoreIT(R)
+			}
+		}
+	}
+	*/
 }
 
 // List of available MIME Viewers
 DataBrowser.Viewers = [];
+
+// Do immediate init?
+// DataBrowser.immediateInit=undefined;
+DataBrowser.immediateInit=1;
 
 // The way to register a MIME Viewer
 DataBrowser.addViewer = function (viewerProto) {
@@ -107,6 +126,15 @@ DataBrowser.addViewer = function (viewerProto) {
 			}
 			
 			viewlist.push(viewerProto);
+		}
+	}
+	
+	// Last, init (if needed)
+	if(DataBrowser.immediateInit && typeof viewerProto.init == 'function') {
+		try {
+			viewerProto.init();
+		} catch(ie) {
+			// IgnoreIT(R)
 		}
 	}
 };
@@ -431,6 +459,8 @@ DataBrowser.XMLViewer = {
 		'application/xml',
 		'text/xml',
 	],
+	init:	undefined,
+	
 	applyView: function(data,paramArray,databrowserDiv,genview) {
 		var xmldata=data;
 		if(typeof xmldata == 'string') {
@@ -455,6 +485,8 @@ DataBrowser.HTMLViewer = {
 		'text/html',
 		'text/xhtml'
 	],
+	init:	undefined,
+	
 	applyView: function(data,paramArray,databrowserDiv,genview) {
 		// A bit risky, isn't it?
 		// Better an iframe, but not know
@@ -475,6 +507,8 @@ DataBrowser.LinkViewer = {
 	dataSource:	DataBrowser.Inline,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	['text/x-taverna-web-url'],
+	init:	undefined,
+	
 	applyView: function(data,paramArray,databrowserDiv,genview) {
 		var ifraId='_ifra_';
 		databrowserDiv.innerHTML="<a href='"+data+"'>"+data+
@@ -498,6 +532,8 @@ DataBrowser.SVGViewer = {
 	dataSource:	DataBrowser.Link,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	['image/svg+xml'],
+	init:	undefined,
+	
 	applyView: function(url,paramArray,databrowserDiv,genview) {
 		var objres=undefined;
 		if(BrowserDetect.browser!='Explorer') {
@@ -522,6 +558,8 @@ DataBrowser.OctetStreamViewer = {
 	dataSource:	DataBrowser.Link,
 	dataFormat:	DataBrowser.Native,
 	acceptedMIME:	['application/octet-stream'],
+	init:	undefined,
+	
 	applyView: function(uri,paramArray,databrowserDiv,genview) {
 		databrowserDiv.innerHTML='Sorry, unable to show binary-labeled data (yet)!<br>';
 		var a=genview.createElement('a');
@@ -543,6 +581,8 @@ DataBrowser.ImageViewer = {
 		'image/jpeg',
 		'image/gif'
 	],
+	init:	undefined,
+	
 	applyView: function (uri,paramArray,databrowserDiv,genview) {
 		var img=new Image();
 		// This works with any browser but explorer, nuts!
@@ -591,15 +631,14 @@ DataBrowser.MolViewer = {
 	
 	jmolRunme:	undefined,
 	
-	jmolFirst:	1,
+	init:	function() {
+		DataBrowser.MolViewer.jmolFirst=undefined;
+		jmolInitialize('applets/jmol');
+		jmolSetDocument(false);
+		jmolSetCallback('messageCallback','JMolAlert');
+	},
 	
 	applyView: function (data,paramArray,databrowserDiv,genview) {
-		if(DataBrowser.MolViewer.jmolFirst) {
-			DataBrowser.MolViewer.jmolFirst=undefined;
-			jmolInitialize('applets/jmol');
-			jmolSetDocument(false);
-			jmolSetCallback('messageCallback','JMolAlert');
-		}
 		/*
 		databrowserDiv.innerHTML=jmolAppletInline([300,450],
 			data,
@@ -695,6 +734,7 @@ DataBrowser.NewickViewer = {
 	acceptedMIME:	[
 		'biotree/newick'
 	],
+	init:	undefined,
 	
 	applyView: function (data,paramArray,databrowserDiv,genview) {
 		var fullhref=window.location.href;
@@ -747,6 +787,7 @@ DataBrowser.MSAViewer = {
 	acceptedMIME:	[
 		'bioinformatics/x-msa'
 	],
+	init:	undefined,
 	
 	applyView: function (data,paramArray,databrowserDiv,genview) {
 		var applet = genview.createElement('applet');
@@ -795,6 +836,8 @@ DataBrowser.DefaultViewer = {
 		'application/xml',
 		'*'
 	],
+	init:	undefined,
+	
 	applyView: function(data,paramArray,databrowserDiv,genview) {
 		// Use the prettyfier!
 		var dataCont = genview.createElement('pre');

@@ -41,6 +41,12 @@
 							</mainClass>
 							<name>inbworkflowparser</name>
 						</program>
+						<program>
+							<mainClass>
+								org.cnio.scombio.jmfernandez.taverna.PatchDotSVG
+							</mainClass>
+							<name>patchDotSVG</name>
+						</program>
 					</programs>
 				</configuration>
 			</plugin>

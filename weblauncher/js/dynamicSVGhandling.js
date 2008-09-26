@@ -43,7 +43,7 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish
 	
 	var me = this;
 	this.timeoutLoad = function() {
-		clearTimeout(this.loading);
+		clearTimeout(me.loading);
 		me.loading=true;
 		me.loadQueuedSVG();
 	};
@@ -170,11 +170,13 @@ TavernaSVG.prototype = {
 			if(this.SVGtramp.isAutoResizing && this.SVGtramp.isAutoResizing()) {
 				if(this.once) {
 					this.once=undefined;
+					// Due ANOTHER WebKit bug, we cannot set width and height to 100%
+					// because most of the dynamic elements of the page are hidden :-(
 					if(this.asEmbed) {
-						this.svgobj.style.width  = '100%';
-						this.svgobj.style.height = '100%';
+						this.svgobj.style.width  = '95%';
+						this.svgobj.style.height = '95%';
 					} else {
-						this.svgobj.setAttribute("style",this.defaultPreStyle+" width:100%;height:100%;");					
+						this.svgobj.setAttribute("style",this.defaultPreStyle+" width:95%;height:95%;");
 					}
 				}
 			} else {
@@ -367,8 +369,11 @@ TavernaSVG.prototype = {
 		}
 
 		// All starts here!
+		if(oldsvgobj) {
+			oldsvgobj.style.visibility='hidden';
+		}
 		node.appendChild(objres);
-		// And this is needed due a Safari bug! Nuts!
+		// And this is needed due a Webkit bug! Nuts!
 		if(oldsvgobj) {
 			oldsvgobj.parentNode.removeChild(oldsvgobj);
 		}
