@@ -97,7 +97,7 @@ TD.buttons {
 
 /* Common height of cells */
 .Tleftcol , .Trightcol , .Tcontent , .Tleft , .Tright {
-	height: 80%;
+	height: 75%;
 }
 
 /* Left cell in a 3-pane pseudo-table */
@@ -141,12 +141,19 @@ TD.buttons {
 }
 
 /* Bottom buttons */
+.TleftButton , .TrightButton {
+	position:relative;
+	bottom: 10px;
+}
+
 .TleftButton {
-	float: left;
+	float:left;
+	left: 10px;
 }
 
 .TrightButton {
-	float: right;
+	float:right;
+	right: 10px;
 }
 
 /* Separator */

@@ -19,6 +19,14 @@ body {
 	padding: 0px;
 }
 
+textarea, input, select {
+    border: 1px solid #c0c0c0;
+    background: #eeeeee;
+    margin: 2px 2px 2px 2px;
+    font-family: Arial, Helvetica, Georgia, sans-serif;
+    font-size: 12px;
+}
+
 .hidden {
 	display: none;
 }
@@ -55,6 +63,12 @@ body {
 	z-index: 102;
 }
 
+.secondarytop {
+	visibility: hidden;
+	clear:both;
+	height: 5%;
+}
+
 .secondary {
 	background-color: white;
 	/*
@@ -69,10 +83,12 @@ body {
 	margin-top: 20px;
 	margin-bottom: auto;
 	*/
+	position:relative;
 	height: 90%;
-	margin-left: 5%;
-	margin-right: 5%;
-	margin-top: 3%;
+	width: 90%;
+	left:5%;
+	top:0px;
+	/* top: 5%; */
 	/*
 	padding-left: 5%;
 	padding-right: 5%;
@@ -193,14 +209,6 @@ body {
 	display: -moz-inline-block;
 	*/
 	display: inline-block;
-}
-
-textarea, input, select {
-    border: 1px solid #c0c0c0;
-    background: #eeeeee;
-    margin: 2px 2px 2px 2px;
-    font-family: Arial, Helvetica, Georgia, sans-serif;
-    font-size: 12px;
 }
 
 .scrolldatamin {

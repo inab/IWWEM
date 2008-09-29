@@ -41,11 +41,11 @@ if(BrowserDetect.browser=='Explorer') {
 		<table align="center" id="tableContainer" style="height:98%;width:98%;table-layout:fixed;"><tbody style="height:90%;width:98%;table-layout:fixed;">
 			<tr class="header"><td colspan="6" align="center"><a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <b id="titleB">Interactive Web Workflow Enactor &amp; Manager <i><blink>(loading)</blink></i></b></td></tr>
 			<tr><td colspan="2" class="data" style="overflow:hidden">
-				<div class="scrolldatawide" id="workflow"></div>
+				<div class="scrolldatawide" id="workflow">&nbsp;</div>
 			</td><td colspan="2" class="middle">
-				<div class="svgdiv" id="wfsvgdiv"></div>
+				<div class="svgdiv" id="wfsvgdiv">&nbsp;</div>
 			</td><td colspan="2" class="data" align="right">
-				<div class="scrolldatawide" id="wfReportDiv"></div>
+				<div class="scrolldatawide" id="wfReportDiv">&nbsp;</div>
 			</td></tr>
 			<tr><td colspan="6" align="right">
 				<span id="confirm" class='checkboxred checkbox right'>Confirm</span>
@@ -69,12 +69,13 @@ if(BrowserDetect.browser=='Explorer') {
 				<ol id="submittedList"></ol>
 			</td><td colspan="4" style="overflow:auto">
 				<p><u>Last operation message</u></p>
-				<div id="messageDiv"></div>
+				<div id="messageDiv">&nbsp;</div>
 			</td></tr>
 		</tbody></table>
 	</form>
-<div class="hidden" id="outerAbsDiv"></div>
+<div class="hidden" id="outerAbsDiv">&nbsp;</div>
 <div class="hidden" id="newWorkflow">
+	<div class="secondarytop">&nbsp;</div>
 	<div class="secondary">
 		<div align="center">Please introduce your workflow and the local workflows it depends on</div>
 		<form style="width:100%;height:90%;" id="formNewWF" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
@@ -84,12 +85,12 @@ if(BrowserDetect.browser=='Explorer') {
 				<tr><td colspan="3">
 					<div class="borderedOption"><span id="newWFStyleFile" class="radio right">Workflow&nbsp;&nbsp;as file</span>&nbsp;<span id="newWFStyleText" class="radio right">as text</span></div>
 				</td></tr><tr><td colspan="3">
-					<div id="newWFContainer"></div>
+					<div id="newWFContainer">&nbsp;</div>
 				</td></tr><tr><td colspan="3">
 					<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif" alt="Uploading...">
 						<iframe src="about:blank" frameborder="0" id="uploadIFRAME" name="uploadIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
 					</div>
-					<div id="newSubWFContainer"></div>
+					<div id="newSubWFContainer">&nbsp;</div>
 				</td></tr>
 			</tbody></table>
 		</form>
@@ -106,8 +107,9 @@ if(BrowserDetect.browser=='Explorer') {
 	</div>
 </div>
 <div class="hidden" id="newEnaction">
+	<div class="secondarytop">&nbsp;</div>
 	<div class="secondary" align="center">
-		<form style="width:98%; height:90%;" id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data" accept-charset="UTF-8">
+		<form style="display:block;width:100%; height:90%;" id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data" accept-charset="UTF-8">
 			<input id="workflowHiddenInput" type="hidden" name="id">
 
 			<div class="Theader">Please introduce your inputs for workflow<br><span id="newEnactWFName" style="font-weight:bold"></span></div>
@@ -122,66 +124,24 @@ if(BrowserDetect.browser=='Explorer') {
 				</div>
 			</div>
 			<div class="Tleft">
-				<div id="enactsvg" class="svgdiv"></div>
+				<div id="enactsvg" class="svgdiv">&nbsp;</div>
 			</div>
 			<div class="Tright">
-				<div id="saveExampleDiv"></div>
-				<div class="scrolldatawide" id="newInputs"></div>
+				<div id="saveExampleDiv">&nbsp;</div>
+				<div class="scrolldatawide" style="width:95%;height:95%;" id="newInputs">&nbsp;</div>
 			</div>
-			<div class="Tsep"></div>
-			<div class="TleftButton" align="left">
-				<div class="button" onclick="genview.newenactview.closeNewEnactionFrame()">
-					<img src="style/leftarrow.png" alt="Back"> Back
-				</div>
-			</div>
-			<div class="TrightButton" align="right">
-				<div class="button" onclick="genview.newenactview.enact()">
-					Let's go! <img src="style/run.png" alt="Enact">
-				</div>
-			</div>
-
-			<!--
-			<table align="center" style="width:98%; height:90%;">
-				<tbody style="width:98%;height:90%;">
-					<tr valign="middle">
-						<td colspan="2" style="text-align:center;height:5%">Please introduce your inputs for workflow<br><span id="newEnactWFName" style="font-weight:bold"></span></td>
-					</tr><tr>
-						<td style="min-width:0px;width:0px;max-width:0px;min-height:0px;height:0px;max-height:0px"></td>
-						<td style="min-width:60%;width:60%;max-width:60%;height:5%">
-							<div>
-							Uploader mail <input type="text" id="NEresponsibleMail" name="responsibleMail"> <span style="font-style:italic;color:red">(required)</span><br>
-							Uploader name <input type="text" id="NEresponsibleName" name="responsibleName"> <span style="font-style:italic;color:red">(optional)</span>
-							</div>
-							<div id="useDiv" align="center" style="margin: 5px 5px 5px 5px">
-								<span class="borderedOption"><span id="noneExampleSpan" class="radio right">Use inputs</span>&nbsp;<span id="saveAsExampleSpan" class="checkboxgreen checkbox right">Save as example</span></span>
-								<span class="borderedOption"><span id="useExampleSpan" class="radio right">Use example</span></span>
-								
-							</div>
-						</td>
-					</tr><tr>
-						<td class="middle" style="min-width:40%;width:40%;max-width:40%;">
-							<div id="enactsvg" class="svgdiv"></div>
-						</td>
-						<td class="data" style="min-width:60%;width:60%;max-width:60%;">
-							<div id="saveExampleDiv"></div>
-							<div class="scrolldatawide" id="newInputs"></div>
-						</td>
-					</tr><tr>
-						<td align="left" style="height:5%;">
-							<div class="button" onclick="genview.newenactview.closeNewEnactionFrame()">
-								<img src="style/leftarrow.png"></img> Back
-							</div>
-						</td>
-						<td align="right"style="height:5%;">
-							<div class="button" onclick="genview.newenactview.enact()">
-								Let's go! <img src="style/run.png"></img>
-							</div>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-			-->
 		</form>
+		<div class="Tsep">&nbsp;</div>
+		<div class="TleftButton" align="left">
+			<div class="button" onclick="genview.newenactview.closeNewEnactionFrame()">
+				<img src="style/leftarrow.png" alt="Back"> Back
+			</div>
+		</div>
+		<div class="TrightButton" align="right">
+			<div class="button" onclick="genview.newenactview.enact()">
+				Let's go! <img src="style/run.png" alt="Enact">
+			</div>
+		</div>
 		<div id="newEnactUploading">
 			<iframe src="about:blank" frameborder="0" id="enactIFRAME" name="enactIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
 		</div>
