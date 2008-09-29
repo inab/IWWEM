@@ -1,0 +1,155 @@
+@charset "UTF-8";
+
+/*
+	$Id$
+	IWWEM-tables.css
+	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
+	Author: José María Fernández González (C) 2007-2008
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+*/
+/* INB Web Workflow Launcher Buttons CSS */
+
+/* Some changes have been made to meet Internet Explorer impairness */
+/* about handling multiple classes restriction */
+
+TD.data , TD.middle, TD.equal, TD.half {
+	vertical-align:middle;
+	
+	empty-cells: show;
+	overflow: auto;
+}
+
+TD.data , TD.middle, TD.half {
+	min-height:85%;
+	height:85%;
+	max-height:85%;
+}
+
+TD.data {
+	min-width:30%;
+	width:30%;
+	max-width:30%;
+	
+	/*
+	vertical-align: top;
+	display: table-cell;
+	*/
+}
+
+TD.middle {
+	min-width:40%;
+	width:40%;
+	max-width:40%;
+}
+
+TD.equal {
+	min-height:65%;
+	height:65%;
+	max-height:65%;
+	
+	min-width:33%;
+	width:33%;
+	max-width:33%;
+}
+
+TD.half {
+	min-width:50%;
+	width:50%;
+	max-width:50%;
+}
+
+TR.header , TR.message {
+	width:100%;
+	min-height:1%;
+	height:1%;
+	max-height:1%;
+	vertical-align: top;
+}
+
+TABLE.wfdatabrowse {
+	width:100%;
+	height:85%;
+	margin:0px;
+	padding:0px;
+	table-layout:fixed;
+}
+
+TBODY.generictbody {
+	width:100%;
+	height:90%;
+}
+
+TD.buttons {
+	vertical-align: bottom;
+}
+
+/**********************/
+/* Pseudo-table tools */
+/**********************/
+
+/* Header */
+.Theader {
+	text-align: center;
+	width: 100%;
+}
+
+/* Common height of cells */
+.Tleftcol , .Trightcol , .Tcontent , .Tleft , .Tright {
+	height: 80%;
+}
+
+/* Left cell in a 3-pane pseudo-table */
+.Tleftcol {
+	float: left;
+	width: 20%;
+}
+
+/* Right cell in a 3-pane pseudo-table */
+.Trightcol {
+	float: right;
+	width: 20%;
+}
+
+/* Main cell in a 3-pane pseudo-table */
+.Tcontent {
+	float: left;
+	width: 59%;
+}
+
+
+/* Left cell in a 2-pane pseudo-table */
+/* Used for new enactions */
+.Tleft {
+	float: left;
+	width: 40%;
+}
+
+/* Right cell in a 2-pane pseudo-table */
+/* Used for new enactions */
+.Tright {
+	float: right;
+	width: 59%;
+	overflow:auto;
+}
+
+/* Footer */
+.Tfooter , .Tsep {
+	clear: both;
+	width: 100%;
+}
+
+/* Bottom buttons */
+.TleftButton {
+	float: left;
+}
+
+.TrightButton {
+	float: right;
+}
+
+/* Separator */
+.Tsep {
+	height: 10px;
+}

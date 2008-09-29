@@ -15,7 +15,6 @@
 	<link rel="shortcut icon" href="favicon.ico" type="image/vnd.microsoft.icon">
 	<link rel="icon" href="favicon.ico" type="image/vnd.microsoft.icon">
 
-	<link rel="stylesheet" type="text/css" href="style/IWWEM-buttons.css"></link>
 	<link rel="stylesheet" type="text/css" href="style/IWWEM-styles.css"></link>
 
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/browserdetect/BrowserDetect.js"></script>
@@ -52,17 +51,17 @@ if(BrowserDetect.browser=='Explorer') {
 				<span id="confirm" class='checkboxred checkbox right'>Confirm</span>
 			</td></tr>
 			<tr><td class="buttons" align="center">
-				<div id="reloadButton" class="button"><span id="updateTextSpan">Update</span> <img src="style/reload.png"></div>
+				<div id="reloadButton" class="button"><span id="updateTextSpan">Update</span> <img src="style/reload.png" alt="Reload"></div>
 			</td><td class="buttons" align="center">
-				<div id="newWFButton" class="button">Add new <img src="style/blueplus.png"></div>
+				<div id="newWFButton" class="button">Add new <img src="style/blueplus.png" alt="New"></div>
 			</td><td class="buttons" align="center">
-				<div id="relaunchButton" class="button">Relaunch!<img src="style/regreenball.png"></div>
+				<div id="relaunchButton" class="button">Relaunch!<img src="style/regreenball.png" alt="Relaunch"></div>
 			</td><td class="buttons" align="center">
-				<div id="launchButton" class="button">Launch!<img src="style/greenball.png"></div>
+				<div id="launchButton" class="button">Launch!<img src="style/greenball.png" alt="Launch"></div>
 			</td><td class="buttons" align="center">
-				<div id="openEnactionButton" class="button">Inspect it <img src="style/run.png"></div>
+				<div id="openEnactionButton" class="button">Inspect it <img src="style/run.png" alt="Inspect"></div>
 			</td><td class="buttons" align="center">
-				<div id="deleteButton" class="button">Delete <img src="style/recycle.png"></div>
+				<div id="deleteButton" class="button">Delete <img src="style/recycle.png" alt="Delete"></div>
 			</td></tr>
 		<!-- Messages table -->
 			<tr class="message"><td colspan="2" style="overflow:auto">
@@ -87,7 +86,7 @@ if(BrowserDetect.browser=='Explorer') {
 				</td></tr><tr><td colspan="3">
 					<div id="newWFContainer"></div>
 				</td></tr><tr><td colspan="3">
-					<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif"></img>
+					<div align="center" id="newWFUploading"><i><blink>Uploading and checking new workflow...</blink> </i><img src="style/ajaxLoader.gif" alt="Uploading...">
 						<iframe src="about:blank" frameborder="0" id="uploadIFRAME" name="uploadIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
 					</div>
 					<div id="newSubWFContainer"></div>
@@ -96,20 +95,52 @@ if(BrowserDetect.browser=='Explorer') {
 		</form>
 		<div class="button back" onclick="genview.newwfview.closeNewWorkflowFrame()">
 			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
-				<img src="style/leftarrow.png"></img> Back
+				<img src="style/leftarrow.png" alt="Back"> Back
 			</td></tr></table>
 		</div>
 		<div class="button forward" onclick="genview.newwfview.upload()">
 			<table style="width:100%; height:100%;margin:0px;padding:0px"><tr valign="middle"><td align="center">
-				Upload <img src="style/upload.png"></img>
+				Upload <img src="style/upload.png" alt="Upload">
 			</td></tr></table>
 		</div>
 	</div>
 </div>
 <div class="hidden" id="newEnaction">
-	<div class="secondary">
+	<div class="secondary" align="center">
 		<form style="width:98%; height:90%;" id="formEnactor" action="cgi-bin/enactionlauncher" method="post" target="_blank" enctype="multipart/form-data" accept-charset="UTF-8">
-			<input id="workflowHiddenInput" type="hidden" name="id"></input>
+			<input id="workflowHiddenInput" type="hidden" name="id">
+
+			<div class="Theader">Please introduce your inputs for workflow<br><span id="newEnactWFName" style="font-weight:bold"></span></div>
+			<div class="Theader">
+				<div align="center">
+				Uploader mail <input type="text" id="NEresponsibleMail" name="responsibleMail"> <span style="font-style:italic;color:red">(required)</span><br>
+				Uploader name <input type="text" id="NEresponsibleName" name="responsibleName"> <span style="font-style:italic;color:red">(optional)</span>
+				</div>
+				<div id="useDiv" align="center" style="margin: 5px 5px 5px 5px">
+					<span class="borderedOption"><span id="noneExampleSpan" class="radio right">Use inputs</span>&nbsp;<span id="saveAsExampleSpan" class="checkboxgreen checkbox right">Save as example</span></span>
+					<span class="borderedOption"><span id="useExampleSpan" class="radio right">Use example</span></span>
+				</div>
+			</div>
+			<div class="Tleft">
+				<div id="enactsvg" class="svgdiv"></div>
+			</div>
+			<div class="Tright">
+				<div id="saveExampleDiv"></div>
+				<div class="scrolldatawide" id="newInputs"></div>
+			</div>
+			<div class="Tsep"></div>
+			<div class="TleftButton" align="left">
+				<div class="button" onclick="genview.newenactview.closeNewEnactionFrame()">
+					<img src="style/leftarrow.png" alt="Back"> Back
+				</div>
+			</div>
+			<div class="TrightButton" align="right">
+				<div class="button" onclick="genview.newenactview.enact()">
+					Let's go! <img src="style/run.png" alt="Enact">
+				</div>
+			</div>
+
+			<!--
 			<table align="center" style="width:98%; height:90%;">
 				<tbody style="width:98%;height:90%;">
 					<tr valign="middle">
@@ -149,6 +180,7 @@ if(BrowserDetect.browser=='Explorer') {
 					</tr>
 				</tbody>
 			</table>
+			-->
 		</form>
 		<div id="newEnactUploading">
 			<iframe src="about:blank" frameborder="0" id="enactIFRAME" name="enactIFRAME" style="width:0;height:0;visibility:hidden;"></iframe>
@@ -157,7 +189,7 @@ if(BrowserDetect.browser=='Explorer') {
 </div>
 <div class="hidden" id="reloadWorkflows">
 	<table style="width:100%; height:100%"><tr valign="middle"><td align="center">
-		<img src="style/big-ajax-loader.gif"></img>
+		<img src="style/big-ajax-loader.gif" alt="Reloading workflows">
 	</td></tr></table>
 	<!--
 	<img style="position:relative; top: 45%;left: 45%" src="style/big-ajax-loader.gif"></img>
@@ -165,12 +197,12 @@ if(BrowserDetect.browser=='Explorer') {
 </div>
 <div class="hidden" id="submitEnaction">
 	<table style="width:100%; height:100%"><tr valign="middle"><td align="center">
-		<img src="style/big-ajax-submit.gif"></img>
+		<img src="style/big-ajax-submit.gif" alt="Submitting job">
 	</td></tr></table>
 </div>
 <div class="hidden" id="extractData">
 	<table style="width:100%; height:100%"><tr valign="middle"><td align="center">
-		<img src="style/big-ajax-extract.gif"></img>
+		<img src="style/big-ajax-extract.gif" alt="Extracting data from input">
 	</td></tr></table>
 </div>
 <iframe class="hidden" frameborder="0" src="about:blank" id="shimmer">

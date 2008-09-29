@@ -1,4 +1,4 @@
-#Tue Jul 29 14:01:52 CEST 2008
+#Mon Sep 29 13:04:45 CEST 2008
 eclipse.preferences.version=1
 encoding//src/main/java=UTF-8
 encoding//src/main/resources=UTF-8
@@ -7,7 +7,14 @@ encoding//src/main/resources/SVGtooltip.js=UTF-8
 encoding//src/main/resources/SVGtrampoline.js=UTF-8
 encoding//src/main/resources/SVGzoom.js=UTF-8
 encoding//src/main/resources/log4j.properties=UTF-8
+encoding//weblauncher/enactionviewer.html=UTF-8
+encoding//weblauncher/js=UTF-8
+encoding//weblauncher/js/workflowmanager.js=UTF-8
+encoding//weblauncher/style/IWWEM-buttons.css=UTF-8
+encoding//weblauncher/style/IWWEM-styles.css=UTF-8
+encoding//weblauncher/style/IWWEM-tables.css=UTF-8
 encoding//weblauncher/style/SVGmapApp.js=UTF-8
 encoding//weblauncher/style/SVGtooltip.js=UTF-8
 encoding//weblauncher/style/SVGtrampoline.js=UTF-8
 encoding//weblauncher/style/SVGzoom.js=UTF-8
+encoding//weblauncher/workflowmanager.html=UTF-8
