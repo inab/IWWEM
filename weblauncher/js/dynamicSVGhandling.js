@@ -13,7 +13,7 @@
 	(which have an internal injected trampoline)
 */
 
-function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish,thedoc) {
+function TavernaSVG(/* optional */ nodeid,url,badurl,bestScaleW,bestScaleH,callOnFinish,thedoc) {
 	this._svgloadtimer = undefined;
 	this.svglink = undefined;
 	this.svgobj = undefined;
@@ -51,6 +51,7 @@ function TavernaSVG(/* optional */ nodeid,url,bestScaleW,bestScaleH,callOnFinish
 	if(nodeid && url) {
 		this.defaultid = nodeid;
 		this.defaultsvg = url;
+		this.badurl = badurl;
 		this.defaultbestScaleW = bestScaleW;
 		this.defaultbestScaleH = bestScaleH;
 		this.defaultCallOnFinish = callOnFinish;
@@ -270,6 +271,88 @@ TavernaSVG.prototype = {
 		callOnFinish=load[4];
 		thedoc=tmpdoc;
 		
+		var thissvg=this;
+		var HEADrequest=new XMLHttpRequest();
+		var HEADrequestonerror=undefined;
+		var HEADrequestonload = function() {
+			if(HEADrequest) {
+				thissvg.rawLoadSVG(load,node,nodeid,url,bestScaleW,bestScaleH,callOnFinish,thedoc);
+				if(HEADrequest.onload) {
+					HEADrequest.onload=function() {};
+					HEADrequest.onerror=function() {};
+					HEADrequestonload=undefined;
+					HEADrequestonerror=undefined;
+					HEADrequest=undefined;
+				}
+			}
+		};
+
+		HEADrequestonerror = function() {
+			if(HEADrequest) {
+				if(thissvg.defaultsvg!=undefined) {
+					thissvg.rawLoadSVG(load,node,thissvg.defaultid,thissvg.badurl,thissvg.defaultbestScaleW,thissvg.defaultbestScaleH,callOnFinish,thedoc);
+				} else {
+					// Error path
+					if(typeof callOnFinish=='function') {
+						callOnFinish();
+					}
+				}
+				if(HEADrequest.onload) {
+					HEADrequest.onload=function() {};
+					HEADrequest.onerror=function() {};
+					HEADrequestonload=undefined;
+					HEADrequestonerror=undefined;
+					HEADrequest=undefined;
+				}
+			}
+		};
+
+		var onreadystatechange = function() {
+			if(HEADrequest.readyState==4) {
+				HEADrequest.onreadystatechange=function() {};
+				if(HEADrequest.status==200 || HEADrequest.status==304) {
+					HEADrequestonload();
+				} else {
+					HEADrequestonerror();
+				}
+				HEADrequest=undefined;
+			}
+		};
+		
+		var dovar=1;
+		if(HEADrequest.addEventListener) {
+			try {
+				HEADrequest.addEventListener('load',HEADrequestonload,false);
+				HEADrequest.addEventListener('error',HEADrequestonerror,false);
+				dovar=undefined;
+			} catch(e) {
+				try {
+					HEADrequest.addEventListener('readystatechange',onreadystatechange,false);
+					dovar=undefined;
+				} catch(e) {
+					// IgnoreIT!(R)
+				}
+			}
+		}
+		
+		if(dovar) {
+			if(HEADrequest.onload) {
+				HEADrequest.onload=HEADrequestonload;
+				HEADrequest.onerror=HEADrequestonerror;
+			} else {
+				HEADrequest.onreadystatechange=onreadystatechange;
+			}
+		}
+
+		
+		// Now it is time to send the query
+		HEADrequest.open('HEAD',url,true);
+		//HEADrequest.open('GET',url,true);
+		HEADrequest.send(null);
+
+	},
+	
+	rawLoadSVG: function(load,node,nodeid,url,bestScaleW,bestScaleH,callOnFinish,thedoc) {
 		// Needed to free resources later, due a Safari bug!
 		var oldsvgobj=this.clearSVGInternal(thedoc);
 		this.current=load;
@@ -282,14 +365,14 @@ TavernaSVG.prototype = {
 		this.svglink=ahref;
 
 		var gensvgid = WidgetCommon.getRandomUUID();
-		
+
 		var objres = this.svgobj = thedoc.createElement(this.asEmbed?"embed":"object");
 		objres.setAttribute('id',gensvgid);
 		objres.setAttribute("type","image/svg+xml");
 		//objres.setAttribute("style","overflow: hidden; border: 1px dotted #000;width:0;height:0");
 		//objres.setAttribute("style","overflow: auto; width:0;height:0;");
 		objres.setAttribute("style",this.defaultPreStyle+this.defaultCreateStyle);
-		
+
 		var thissvg=this;
 		if(BrowserDetect.browser!='Explorer') {
 			var finishfunc = function(evt) {
@@ -318,16 +401,16 @@ TavernaSVG.prototype = {
 			objres.setAttribute("wmode","transparent");
 			//objres.onload=finishfunc;
 			objres.addEventListener('load',finishfunc,false);
-			
+
 			/* Trying to add some error control path, with no success :-(
 			objres.addEventListener('error',function(evt) {alert("CUA CUA CUA CUA");},false);
 			var fallback=thedoc.createElement('script');
 			fallback.type="text/javascript";
 			fallback.appendChild(thedoc.createTextNode("<!--\n"+"alert('ALARMA');"+"\n// -->"));
-			
+
 			objres.appendChild(fallback);
 			*/
-			
+
 			/*
 			if(BrowserDetect.browser=='Explorer') {
 				objres.setAttribute('codebase', 'http://www.adobe.com/svg/viewer/install/');
@@ -339,7 +422,7 @@ TavernaSVG.prototype = {
 			objres.setAttribute("pluginspage","http://www.adobe.com/svg/viewer/install/");
 			// This line was killing IE and WebKit js
 			// objres.innerHTML="This browser is not able to show SVG: <a href='http://getfirefox.com'>http://getfirefox.com</a> is free and does it! If you use Internet Explorer, you can also get a plugin: <a href='http://www.adobe.com/svg/viewer/install/main.html'>http://www.adobe.com/svg/viewer/install/main.html</a>";
-			
+
 			objres.setAttribute("src",url);
 			var finishfuncIE = function(evt) {
 				// Transferring the trampoline!
@@ -365,7 +448,7 @@ TavernaSVG.prototype = {
 			};
 			//objres.onload=finishfuncIE;
 
-			this._svgloadtimer=setTimeout(finishfuncIE,199);
+			thissvg._svgloadtimer=setTimeout(finishfuncIE,199);
 		}
 
 		// All starts here!
