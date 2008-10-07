@@ -93,70 +93,93 @@ var Base64 = {
 			output = this._utf8_decode(output);
 		}
 
-		return output.join("");
+		return (output instanceof Array)?output.join(""):output;
 	},
 	
 	// private method for UTF-8 encoding
 	_utf8_encode : function (str) {
 		str = ''+str;
 		str = str.replace(/\r\n/g,"\n");
-		var utftext = new Array();
-		
-		for (var n = 0; n < str.length; n++) {
-			var c = str.charCodeAt(n);
-
-			if (c < 128) {
-				utftext.push(String.fromCharCode(c));
-			} else if((c > 127) && (c < 2048)) {
-				utftext.push(String.fromCharCode((c >> 6) | 192));
-				utftext.push(String.fromCharCode((c & 63) | 128));
-			} else {
-				utftext.push(String.fromCharCode((c >> 12) | 224));
-				utftext.push(String.fromCharCode(((c >> 6) & 63) | 128));
-				utftext.push(String.fromCharCode((c & 63) | 128));
+		try {
+			return unescape( encodeURIComponent( str ) );
+		} catch(e) {
+			var utftext = new Array();
+			
+			for (var n = 0; n < str.length; n++) {
+				var c = str.charCodeAt(n);
+	
+				if (c < 128) {
+					utftext.push(String.fromCharCode(c));
+				} else if((c > 127) && (c < 2048)) {
+					utftext.push(String.fromCharCode((c >> 6) | 192));
+					utftext.push(String.fromCharCode((c & 63) | 128));
+				} else {
+					utftext.push(String.fromCharCode((c >> 12) | 224));
+					utftext.push(String.fromCharCode(((c >> 6) & 63) | 128));
+					utftext.push(String.fromCharCode((c & 63) | 128));
+				}
 			}
+	
+			return utftext.join("");
 		}
-
-		return utftext.join("");
 	},
 	
 	// private method for UTF-8 decoding
 	_utf8_decode : function (utftext) {
-		utftext = ''+utftext;
-		var str = new Array();
-		var i = 0;
-		var c = c1 = c2 = 0;
-		
-		var utfarr=(utftext instanceof Array)?utftext:utftext.split("");
-
-		while (i < utfarr.length) {
-			c = utfarr[i].charCodeAt(0);
-
-			if (c < 128) {
-				str.push(String.fromCharCode(c));
-				i++;
-			} else if((c > 191) && (c < 224)) {
-				c2 = utfarr[i+1].charCodeAt(0);
-				str.push(String.fromCharCode(((c & 31) << 6) | (c2 & 63)));
-				i += 2;
-			} else {
-				c2 = utfarr[i+1].charCodeAt(0);
-				c3 = utfarr[i+2].charCodeAt(0);
-				str.push(String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63)));
-				i += 3;
-			}
+		if(!(utftext instanceof Array)) {
+			utftext = ''+utftext;
 		}
-
-		return (utftext instanceof Array)?str:str.join("");
+		try {
+			return decodeURIComponent( escape( (utftext instanceof Array)?utftext.join(""):utftext ) );
+		} catch(e) {
+			var str = new Array();
+			var i = 0;
+			var c = c1 = c2 = 0;
+			
+			var utfarr=(utftext instanceof Array)?utftext:utftext.split("");
+	
+			while (i < utfarr.length) {
+				c = utfarr[i].charCodeAt(0);
+	
+				if (c < 128) {
+					str.push(String.fromCharCode(c));
+					i++;
+				} else if((c > 191) && (c < 224)) {
+					c2 = utfarr[i+1].charCodeAt(0);
+					str.push(String.fromCharCode(((c & 31) << 6) | (c2 & 63)));
+					i += 2;
+				} else {
+					c2 = utfarr[i+1].charCodeAt(0);
+					c3 = utfarr[i+2].charCodeAt(0);
+					str.push(String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63)));
+					i += 3;
+				}
+			}
+	
+			return (utftext instanceof Array)?str:str.join("");
+		}
 	},
     
 	// public method for Base64 stream decoding
-	streamFromBase64ToByte: function (input, end_callback, /* optional */ noUTF8, i, output) {
+	streamFromBase64ToByte: function (input, end_callback, /* optional */ doUTF8, i, output) {
 		if(!i) {
-			i=0;
 			input = ''+input;
         		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-			if(output==undefined || output==null)  output=new Array();
+			if(window.atob) {
+				var rawoutput=window.atob(input);
+				if(doUTF8) {
+					// Next chain
+					setTimeout(function() {
+						Base64.streamFromByteToUTF8(rawoutput,end_callback);
+					},100);
+				} else {
+					end_callback(rawoutput);
+				}
+				return;
+			} else {
+				i=0;
+				if(output==undefined || output==null)  output=new Array();
+			}
 		}
 		
 		var _keyStr = this._keyStr;
@@ -184,20 +207,32 @@ var Base64 = {
 		
 		if(i<ilength) {
 			setTimeout(function() {
-				Base64.streamFromBase64ToByte(input,end_callback,noUTF8,i,output);
+				Base64.streamFromBase64ToByte(input,end_callback,doUTF8,i,output);
 			},100);
-		} else if(noUTF8) {
-			end_callback(output.join(""));
-		} else {
+		} else if(doUTF8) {
 			// Next chain
 			setTimeout(function() {
 				Base64.streamFromByteToUTF8(output.join(""),end_callback);
 			},100);
+		} else {
+			end_callback(output.join(""));
 		}
 	},
 	
 	// private method for UTF8 stream decoding
-	streamFromByteToUTF8: function (bytetext, end_callback, /* optional */ i, utftext) {
+	streamFromByteToUTF8: function (bytetext, end_callback) {
+		var utftext=undefined;
+		try {
+			utftext = unescape( encodeURIComponent( bytetext ) );
+		} catch(e) {
+			Base64.streamFromByteToUTF8Slow(bytetext, end_callback);
+		}
+		if(utftext!=undefined) {
+			end_callback(utftext);
+		}
+	},
+	
+	streamFromByteToUTF8Slow: function (bytetext, end_callback, /* optional */ i, utftext) {
 		if(utftext==undefined || utftext==null)  utftext=new Array();
 		if(!i) {
 			bytetext = ''+bytetext;
@@ -225,19 +260,28 @@ var Base64 = {
 		
 		if(i<blength) {
 			setTimeout(function() {
-				Base64.streamFromByteToUTF8(bytetext,end_callback,i,utftext);
+				Base64.streamFromByteToUTF8Slow(bytetext,end_callback,i,utftext);
 			},100);
 		} else {
 			end_callback(utftext.join(""));
 		}
 	},
 	
+	// public method for encoding
+	streamFromBase64ToByteToUTF8 : function (input, end_callback) {
+		Base64.streamFromBase64ToByte(input, end_callback, 1);
+	},
+	
 	// public method for Base64 stream decoding
 	streamFromBase64ToUTF8: function (input, end_callback, /* optional */ i, transientArr, output) {
 		if(!i) {
+			if(window.atob) {
+				Base64.streamFromBase64ToByteToUTF8(input,end_callback);
+				return;
+			}
 			i=0;
 			input = ''+input;
-        		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+			input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 			transientArr=new Array();
 			if(output==undefined || output==null)  output=new Array();
 		}
@@ -330,15 +374,21 @@ var Base64 = {
 		}
 	},
 
-	// public method for encoding
-	streamFromUTF8ToByteToBase64 : function (input, end_callback) {
-		Base64.streamFromUTF8ToByte(input, function(bytetext) {
-			Base64.streamFromByteToBase64(bytetext,end_callback);
-		});
+	// private method for UTF-8 stream encoding
+	streamFromUTF8ToByte: function (utftext, end_callback) {
+		var bytetext=undefined;
+		try {
+			bytetext=decodeURIComponent( escape( utftext ) );
+		} catch(e) {
+			Base64.streamFromUTF8ToByteSlow(utftext,end_callback);
+		}
+		
+		if(bytetext!=undefined) {
+			end_callback(bytetext);
+		}
 	},
 	
-	// private method for UTF-8 stream encoding
-	streamFromUTF8ToByte: function (utftext, end_callback, /* optional */ n, bytetext) {
+	streamFromUTF8ToByteSlow: function (utftext, end_callback, /* optional */ n, bytetext) {
 		if(bytetext==undefined || bytetext==null) {
 			bytetext=new Array();
 			utftext = ''+utftext;
@@ -363,7 +413,7 @@ var Base64 = {
 		
 		if(n<ulength) {
 			setTimeout(function() {
-				Base64.streamFromUTF8ToByte(utftext,end_callback,n,bytetext);
+				Base64.streamFromUTF8ToByteSlow(utftext,end_callback,n,bytetext);
 			},100);
 		} else {
 			end_callback(bytetext.join(""));
@@ -372,9 +422,14 @@ var Base64 = {
 
 	streamFromByteToBase64 : function (input, end_callback, /* optional */ i , output) {
 		if(!i) {
-			i=0;
 			input = ''+input;
-			if(output==null || output==undefined)  output=new Array();
+			if(window.btoa) {
+				end_callback(window.btoa(input));
+				return;
+			} else {
+				i=0;
+				if(output==null || output==undefined)  output=new Array();
+			}
 		}
 		
 		var _keyStr = this._keyStr;
@@ -401,7 +456,7 @@ var Base64 = {
 		
 		if(i<ilength) {
 			setTimeout(function() {
-				Base64.streamFromByte64ToBase64(input,end_callback,i,output);
+				Base64.streamFromByteToBase64(input,end_callback,i,output);
 			},100);
 		} else {
 			// Next chain
@@ -409,8 +464,19 @@ var Base64 = {
 		}
 	},
 	
+	// public method for encoding
+	streamFromUTF8ToByteToBase64 : function (input, end_callback) {
+		Base64.streamFromUTF8ToByte(input, function(bytetext) {
+			Base64.streamFromByteToBase64(bytetext,end_callback);
+		});
+	},
+	
 	streamFromUTF8ToBase64: function (utftext, end_callback, /* optional */ n, transientArr, base64text) {
 		if(!n) {
+			if(window.btoa) {
+				Base64.streamFromUTF8ToByteToBase64(utftext,end_callback);
+				return;
+			}
 			n = 0;
 			utftext = ''+utftext;
 			utftext = utftext.replace(/\r\n/g,"\n");
@@ -467,7 +533,7 @@ var Base64 = {
 		
 		if(n<ulength) {
 			setTimeout(function() {
-				Base64.streamFromUTF8ToByte(utftext,end_callback,n,bytetext);
+				Base64.streamFromUTF8ToBase64(utftext,end_callback,n,bytetext);
 			},100);
 		} else {
 			var tLength=transientArr.length;
