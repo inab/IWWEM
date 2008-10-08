@@ -57,6 +57,12 @@ function WorkflowReport(genview,reportDivId) {
 	p.appendChild(b);
 	this.uploaderContainer=genview.createElement('span');
 	p.appendChild(this.uploaderContainer);
+	p.appendChild(genview.createElement('br'));
+	b=genview.createElement('b');
+	b.innerHTML='License:&nbsp;';
+	p.appendChild(b);
+	this.licenseContainer=genview.createElement('span');
+	p.appendChild(this.licenseContainer);
 	reportDiv.appendChild(p);
 	
 	// Inputs
@@ -102,13 +108,14 @@ WorkflowReport.prototype={
 		GeneralView.freeContainer(this.lsidContainer);
 		GeneralView.freeContainer(this.authorContainer);
 		GeneralView.freeContainer(this.uploaderContainer);
+		GeneralView.freeContainer(this.licenseContainer);
 		GeneralView.freeContainer(this.descContainer);
 		GeneralView.freeContainer(this.snapContainer);
 		GeneralView.freeContainer(this.inContainer);
 		GeneralView.freeContainer(this.outContainer);
 	},
 	
-	updateView: function(WFBase,workflow) {
+	updateView: function(workflow) {
 		// Basic information
 		this.dateContainer.innerHTML = workflow.date;
 		this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
@@ -121,6 +128,13 @@ WorkflowReport.prototype={
 			this.uploaderContainer.innerHTML = '<a href="mailto:'+email+'">'+ename+'</a>';
 		} else {
 			this.uploaderContainer.innerHTML = '<i>(unknown)</i>';
+		}
+		
+		if(workflow.licenseURI && workflow.licenseURI.length>0) {
+			var lname=(workflow.licenseName && workflow.licenseName.length>0)?GeneralView.preProcess(workflow.licenseName):workflow.licenseURI;
+			this.licenseContainer.innerHTML = '<a href="'+workflow.licenseURI+'" target="_blank">'+lname+'</a>';
+		}  else {
+			this.licenseContainer.innerHTML = '<i>(private)</i>';
 		}
 
 		// Naive detection of rich description
@@ -136,7 +150,7 @@ WorkflowReport.prototype={
 		// This is needed to append links to the description itself
 		var thep = this.genview.createElement('p');
 		alink = this.genview.createElement('a');
-		alink.href = WFBase+'/'+workflow.path;
+		alink.href = workflow.getWFPath();
 		alink.target = '_blank';
 		alink.innerHTML = '<i>Download Workflow</i>';
 		thep.appendChild(alink);
@@ -153,7 +167,7 @@ WorkflowReport.prototype={
 		thep = this.genview.createElement('p');
 		for(var gmime in workflow.graph) {
 			alink = this.genview.createElement('a');
-			alink.href = WFBase+'/'+workflow.graph[gmime];
+			alink.href = workflow.getGraphPath(gmime);
 			alink.target = '_blank';
 			alink.innerHTML = '<i>Get Workflow Graph ('+gmime+')</i>';
 			thep.appendChild(alink);

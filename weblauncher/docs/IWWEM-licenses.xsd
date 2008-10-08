@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    targetNamespace="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/licenses"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:ilic="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/licenses"
+>
+    <xsd:annotation>
+        <xsd:documentation><![CDATA[$Id: IWWEM-messages.xsd 1460 2008-09-22 15:05:23Z jmfernandez $
+	
+This schema was designed to model
+the licenses catalog kept in an IWWE&M installation.
+
+Interactive Web Workflow Enactor & Launcher has been created by
+José María Fernández González, 2007-2008, for
+INB (http://www.inab.org/).
+
+Java backend modules have been made in Java and use Taverna core
+libraries. The initial seed of that code came from Taverna example
+called "workflowlauncher".
+
+Perl frontend modules have been made in Perl. They use various standard
+Perl libraries and LockNLog library, created in the context of iHOP
+web services by José María Fernández González, 2007.]]></xsd:documentation>
+    </xsd:annotation>
+    
+    <xsd:element name="licenses">
+        <xsd:annotation><xsd:documentation><![CDATA[This is a list of licenses, and its order should be taken into account by IWWE&M GUI programs]]></xsd:documentation></xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element name="license" minOccurs="1" maxOccurs="unbounded">
+                    <xsd:annotation><xsd:documentation><![CDATA[A single license description]]></xsd:documentation></xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:sequence minOccurs="1" maxOccurs="1">
+                            <xsd:element name="logo">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[A bitmap or drawing which symbolizes this license.
+When this element contains some text, it is telling that there is a local copy of the bitmap or drawing]]></xsd:documentation>
+                                </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:string">
+                                            <xsd:attribute name="mime" type="xsd:string" use="required">
+                                                <xsd:annotation>
+                                                    <xsd:documentation><![CDATA[The MIME type of this drawing]]></xsd:documentation>
+                                                </xsd:annotation>
+                                            </xsd:attribute>
+                                            <xsd:attribute name="uri" type="xsd:anyURI" use="required">
+                                                <xsd:annotation>
+                                                    <xsd:documentation><![CDATA[The URI pointing to the original drawing]]></xsd:documentation>
+                                                </xsd:annotation>
+                                            </xsd:attribute>
+                                            <xsd:attribute name="width" type="xsd:positiveInteger" use="optional">
+                                                <xsd:annotation>
+                                                    <xsd:documentation><![CDATA[When it is set, it tells the preferred representation width (in pixels)]]></xsd:documentation>
+                                                </xsd:annotation>
+                                            </xsd:attribute>
+                                            <xsd:attribute name="height" type="xsd:positiveInteger" use="optional">
+                                                <xsd:annotation>
+                                                    <xsd:documentation><![CDATA[When it is set, it tells the preferred representation height (in pixels)]]></xsd:documentation>
+                                                </xsd:annotation>
+                                            </xsd:attribute>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="name" type="xsd:string" use="required">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The short name of the license]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="uri" type="xsd:anyURI" use="required">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The URI to the full text which describes this license]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="abbrevURI" type="xsd:anyURI" use="optional">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The URI to an abbreviated version of the full text which describes this license]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>

@@ -29,7 +29,7 @@ GeneralView._loadtimer=undefined;
 GeneralView.SVGDivId='svgdiv';
 GeneralView.dataIslandMarker='dataIsland';
 
-GeneralView.IWWEM_NS='http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend';
+GeneralView.IWWEM_NS='http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend';
 GeneralView.XSCUFL_NS='http://org.embl.ebi.escience/xscufl/0.1alpha';
 
 

@@ -89,6 +89,10 @@ If this parameter is set, then any workflow dependency on external workflows whi
 Parameter <span class="parameter">responsibleMail</span> must be set with a valid e-mail address when optional <span class="parameter">workflow</span> parameter is set, because it is the e-mail address of the responsible person of the workflow (different from the workflow author).
 Parameter <span class="parameter">responsibleName</span> can be set to the name of the responsible person of the workflow to be inserted.
 </li>
+<li><u><span class="parameter">licenseURI</span> and <span class="parameter">licenseName</span><i>(optional)</i></u>:
+Parameter <span class="parameter">licenseURI</span> should be set with a valid URI pointing to a license document when optional <span class="parameter">workflow</span> parameter is set, because it is the URI of the document where the distribution and manipulation rights of the workflow are described.
+Parameter <span class="parameter">licenseName</span> can be set to a common abbreviated name used to tell about the license model.
+</li>
 <li><u><span class="parameter">dataIsland</span> <i>(optional, either <span class="value">1</span> or <span class="value">2</span>)</i></u>:
 When this parameter is set to <span class="value">1</span> or <span class="value">2</span>, the workflow repository report is returned embedded in an <a href="http://www.devarticles.com/c/a/XML/The-Why-and-How-of-XML-Data-Islands/">XML data island</a>.
 This parameter was created because AJAX GUIs running on some browsers (like Konqueror or old Internet Explorer versions) cannot

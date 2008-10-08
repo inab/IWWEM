@@ -207,6 +207,17 @@
     
 
 
+    <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#license -->
+
+    <owl:DatatypeProperty rdf:about="#license">
+        <rdfs:comment rdf:datatype="&xsd;string"
+            >This data property tells the URI of the license applied to the workflow content.</rdfs:comment>
+        <rdfs:domain rdf:resource="#Workflow"/>
+        <rdfs:range rdf:resource="&xsd;anyURI"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#lsid -->
 
     <owl:DatatypeProperty rdf:about="#lsid">
@@ -324,8 +335,6 @@
 
     <owl:Class rdf:about="#Enaction">
         <rdfs:subClassOf rdf:resource="#Intel"/>
-        <owl:disjointWith rdf:resource="#Workflow"/>
-        <owl:disjointWith rdf:resource="#WorkflowExample"/>
         <rdfs:comment rdf:datatype="&xsd;string"
             >(From Wikipedia)Enaction is one of the possible ways of organizing knowledge and one of the forms of interaction with the world. The first definition of Enaction has been introduced by (Bruner 1966,1968) in association with the other two ways of knowledge organization: Iconic and Symbolic. The second was by Francisco Varela and Humberto Maturana.
 
@@ -368,10 +377,6 @@ Enactive knowledge is knowledge that comes through action and it is constructed 
 
     <owl:Class rdf:about="#Intel">
         <rdfs:subClassOf rdf:resource="&owl;Thing"/>
-        <owl:disjointWith rdf:resource="#Resposible"/>
-        <owl:disjointWith rdf:resource="#WorkflowIO"/>
-        <owl:disjointWith rdf:resource="#WorkflowRepository"/>
-        <owl:disjointWith rdf:resource="#WorkflowRepresentation"/>
         <rdfs:comment rdf:datatype="&xsd;string"
             >A piece of valuable, cared or curated information.</rdfs:comment>
     </owl:Class>
@@ -382,9 +387,6 @@ Enactive knowledge is knowledge that comes through action and it is constructed 
 
     <owl:Class rdf:about="#Resposible">
         <rdfs:subClassOf rdf:resource="&owl;Thing"/>
-        <owl:disjointWith rdf:resource="#WorkflowIO"/>
-        <owl:disjointWith rdf:resource="#WorkflowRepository"/>
-        <owl:disjointWith rdf:resource="#WorkflowRepresentation"/>
         <rdfs:comment
             >A &quot;responsible&quot; is a person which takes care of a piece of information, and it is a role different from the &quot;owner&quot; one.</rdfs:comment>
     </owl:Class>
@@ -395,7 +397,6 @@ Enactive knowledge is knowledge that comes through action and it is constructed 
 
     <owl:Class rdf:about="#Workflow">
         <rdfs:subClassOf rdf:resource="#Intel"/>
-        <owl:disjointWith rdf:resource="#WorkflowExample"/>
         <rdfs:comment rdf:datatype="&xsd;string"
             >(From Wikipedia)A workflow is a depiction of a sequence of operations, declared as work of a person, work of a simple or complex mechanism, work of a group of persons,[1] work of an organization of staff, or machines. Workflow may be seen as any abstraction of real work, segregated in workshare, work split or whatever types of ordering. For control purposes, workflow may be a view on real work under a chosen aspect,[2] thus serving as a virtual representation of actual work.
 
@@ -419,8 +420,6 @@ associated description about what it is supposed to generate show when an enacti
 
     <owl:Class rdf:about="#WorkflowIO">
         <rdfs:subClassOf rdf:resource="&owl;Thing"/>
-        <owl:disjointWith rdf:resource="#WorkflowRepository"/>
-        <owl:disjointWith rdf:resource="#WorkflowRepresentation"/>
         <rdfs:comment rdf:datatype="&xsd;string"
             >A workflow input or output</rdfs:comment>
     </owl:Class>
@@ -431,6 +430,7 @@ associated description about what it is supposed to generate show when an enacti
 
     <owl:Class rdf:about="#WorkflowInput">
         <rdfs:subClassOf rdf:resource="#WorkflowIO"/>
+        <owl:disjointWith rdf:resource="#WorkflowOutput"/>
         <rdfs:comment rdf:datatype="&xsd;string"
             >One input for a workflow</rdfs:comment>
     </owl:Class>
@@ -451,7 +451,6 @@ associated description about what it is supposed to generate show when an enacti
 
     <owl:Class rdf:about="#WorkflowRepository">
         <rdfs:subClassOf rdf:resource="&owl;Thing"/>
-        <owl:disjointWith rdf:resource="#WorkflowRepresentation"/>
         <rdfs:comment rdf:datatype="&xsd;string"
             >A workflow repository is a public web site where workflows are hosted by their authors (or similar).</rdfs:comment>
     </owl:Class>
@@ -540,6 +539,24 @@ associated description about what it is supposed to generate show when an enacti
             <rdf:Description rdf:about="#bd7c0e35-8749-45d9-9340-50f40d72de2f"/>
             <rdf:Description rdf:about="#jtarraga@cipf.es"/>
         </owl:distinctMembers>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#Intel"/>
+            <rdf:Description rdf:about="#Resposible"/>
+            <rdf:Description rdf:about="#WorkflowIO"/>
+            <rdf:Description rdf:about="#WorkflowRepository"/>
+            <rdf:Description rdf:about="#WorkflowRepresentation"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#Enaction"/>
+            <rdf:Description rdf:about="#Workflow"/>
+            <rdf:Description rdf:about="#WorkflowExample"/>
+        </owl:members>
     </rdf:Description>
 </rdf:RDF>
 

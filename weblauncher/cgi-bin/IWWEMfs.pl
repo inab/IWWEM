@@ -18,6 +18,7 @@ use XML::LibXML;
 #use File::Path;
 
 use lib "$FindBin::Bin";
+use IWWEM::Config;
 use WorkflowCommon;
 use workflowmanager;
 use enactionstatus;
@@ -353,7 +354,7 @@ sub generateWSDL($) {
 	my($baseListDir,$listDir,$uuidPrefix,$subId,$isSnapshot);
 	if(index($id,$WorkflowCommon::ENACTIONPREFIX)==0) {
 		$baseListDir=$WorkflowCommon::VIRTJOBDIR;
-		$listDir=$WorkflowCommon::JOBDIR;
+		$listDir=$IWWEM::Config::JOBDIR;
 		$uuidPrefix=$WorkflowCommon::ENACTIONPREFIX;
 		
 		if($id =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
@@ -361,7 +362,7 @@ sub generateWSDL($) {
 		}
 	} elsif($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+)/) {
 		$baseListDir=$WorkflowCommon::VIRTWORKFLOWDIR . '/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
-		$listDir=$WorkflowCommon::WORKFLOWDIR .'/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
+		$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
 		$uuidPrefix=$WorkflowCommon::SNAPSHOTPREFIX . $1 . ':';
 		
 		$isSnapshot=1;
@@ -371,7 +372,7 @@ sub generateWSDL($) {
 		}
 	} else {
 		$baseListDir=$WorkflowCommon::VIRTWORKFLOWDIR;
-		$listDir=$WorkflowCommon::WORKFLOWDIR;
+		$listDir=$IWWEM::Config::WORKFLOWDIR;
 		$uuidPrefix='';
 		
 		if($id =~ /^$WorkflowCommon::WORKFLOWPREFIX([^:]+)$/) {

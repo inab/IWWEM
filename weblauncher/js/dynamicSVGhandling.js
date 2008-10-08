@@ -196,6 +196,19 @@ TavernaSVG.prototype = {
 					this.svgobj.setAttribute("style",this.defaultPreStyle+" width:"+this.SVGtramp.width+"; height:"+this.SVGtramp.height+";");
 				}
 			}
+		} else {
+			// Think about being autoresizing
+			if(this.once) {
+				this.once=undefined;
+				// Due ANOTHER WebKit bug, we cannot set width and height to 100%
+				// because most of the dynamic elements of the page are hidden :-(
+				if(this.asEmbed) {
+					this.svgobj.style.width  = '95%';
+					this.svgobj.style.height = '95%';
+				} else {
+					this.svgobj.setAttribute("style",this.defaultPreStyle+" width:95%;height:95%;");
+				}
+			}
 		}
 	},
 
@@ -347,7 +360,6 @@ TavernaSVG.prototype = {
 		
 		// Now it is time to send the query
 		HEADrequest.open('HEAD',url,true);
-		//HEADrequest.open('GET',url,true);
 		HEADrequest.send(null);
 
 	},

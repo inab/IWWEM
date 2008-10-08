@@ -9,17 +9,22 @@
 */
 
 var WFDEPS=[
+	"js/licensemanager.js",
 	"js/workflowdesc.js",
 	"js/workflowreport.js",
 ];
 
 function WorkflowManagerCustomInit() {
-	var manview = this.manview=new ManagerView(this);
-	this.newwfview=new NewWorkflowView(this,this.manview.restrictId);
+	var genview=this;
+	var manview = this.manview=new ManagerView(genview);
+	this.newwfview=new NewWorkflowView(genview,this.manview.restrictId);
 	this.newenactview=new NewEnactionView(manview);
 	
 	manview.svg.removeSVG(function() {
-		manview.reloadList();
+		LicenseManager.init(genview,'licenses/licenses.xml',function(licManager) {
+			genview.licenseManager=licManager;
+			manview.reloadList();
+		});
 	});
 }
 
@@ -64,18 +69,18 @@ function ManagerView(genview) {
 	var maxwidth=(parentno.offsetWidth-32)+'px';
 	var maxheight=(parentno.offsetHeight-32)+'px';
 	
-	this.svg=new TavernaSVG(this.svgdivid,IWWEM.Logo,maxwidth,maxheight,function() {
+	this.svg=new TavernaSVG(this.svgdivid,IWWEM.Logo,IWWEM.Unknown,maxwidth,maxheight,function() {
 		manview.updateSVGSize();
 	});
 	*/
 	
-	this.svg=new TavernaSVG(this.svgdivid,IWWEM.Logo,undefined,undefined,function() {
+	this.svg=new TavernaSVG(this.svgdivid,IWWEM.Logo,IWWEM.Unknown,undefined,undefined,function() {
 		manview.updateSVGSize();
 	});
 	
 	this.wfA={};
 	this.listRequest=undefined;
-	this.WFBase=undefined;
+	this.WFBase=[];
 	
 	// As confirm check is no more a real check, let's fake it!
 	var check;
@@ -204,12 +209,11 @@ ManagerView.prototype = {
 			// SVG graph
 			//this.svg.loadSVG(this.svgdivid,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
 			var wfreport=this.wfreport;
-			var WFBase=this.WFBase;
 			var parentno=this.genview.getElementById(this.svgdivid).parentNode;
 			var maxwidth=(parentno.offsetWidth-32)+'px';
 			var maxheight=(parentno.offsetHeight-32)+'px';
-			this.svg.loadSVG(this.svgdivid,this.WFBase+'/'+workflow.svgpath,maxwidth,maxheight,function() {
-				wfreport.updateView(WFBase,workflow);
+			this.svg.loadSVG(this.svgdivid,workflow.getSVGPath(),maxwidth,maxheight,function() {
+				wfreport.updateView(workflow);
 				if(typeof callbackFunc=='function') {
 					callbackFunc();
 				}
@@ -262,33 +266,41 @@ ManagerView.prototype = {
 			GeneralView.getLocalName(listDOM)=='workflowlist'
 		) {
 			var sortArr=new Array();
-			this.WFBase = listDOM.getAttribute('relURI');
-			if(this.WFBase.charAt(0)!='/' && IWWEM.FSBase!=undefined) {
-				this.WFBase = IWWEM.FSBase + '/'+ this.WFBase; 
-			}
-			for(var child=listDOM.firstChild ; child ; child=child.nextSibling) {
-				if(child.nodeType==1) {
-					 switch(GeneralView.getLocalName(child)) {
-						case 'workflow':
-							var workflow=new WorkflowDesc(child);
-							this.wfA[workflow.uuid]=workflow;
-							sortArr.push(workflow);
-							break;
-							
-						case 'message':
-							var mtext=WidgetCommon.getTextContent(child);
-							if(!mtext)  mtext='';
-							this.genview.addMessage('<p><u>Return Value:</u> '+
-								child.getAttribute('retval')+
-								'</p><pre>'+mtext+'</pre>'
-							);
-							break;
+			this.WFBase = new Array();
+			for(var domain=listDOM.firstChild ; domain ; domain=domain.nextSibling) {
+				if(domain.nodeType==1 && GeneralView.getLocalName(domain)=='domain') {
+					var WFBase = domain.getAttribute('relURI');
+					if(WFBase.indexOf('http:')!=0 && WFBase.indexOf('https:')!=0 && WFBase.charAt(0)!='/' && IWWEM.FSBase!=undefined) {
+						WFBase = IWWEM.FSBase + '/'+ WFBase;
+					}
+					this.WFBase.push(WFBase);
+					for(var child=domain.firstChild ; child ; child=child.nextSibling) {
+						if(child.nodeType==1) {
+							 switch(GeneralView.getLocalName(child)) {
+								case 'workflow':
+									var workflow=new WorkflowDesc(child,WFBase);
+									this.wfA[workflow.uuid]=workflow;
+									sortArr.push(workflow);
+									break;
+
+								case 'message':
+									var mtext=WidgetCommon.getTextContent(child);
+									if(!mtext)  mtext='';
+									this.genview.addMessage('<p><u>Return Value:</u> '+
+										child.getAttribute('retval')+
+										'</p><pre>'+mtext+'</pre>'
+									);
+									break;
+							}
+						}
 					}
 				}
 			}
 			
 			// Now, time to sort this... TODO
 			var sortFunc=function (a,b) {
+				if(a.WFBase < b.WFBase)  return -1;
+				if(a.WFBase > b.WFBase)  return 1;
 				if(a.title < b.title)  return -1;
 				if(a.title > b.title)  return 1;
 				if(a.date < b.date)  return 1;
@@ -303,6 +315,8 @@ ManagerView.prototype = {
 					if(a.date > b.date)  return -1;
 					if(a.title < b.title)  return -1;
 					if(a.title > b.title)  return 1;
+					if(a.WFBase < b.WFBase)  return -1;
+					if(a.WFBase > b.WFBase)  return 1;
 					return 0;
 				};
 			}
@@ -318,7 +332,7 @@ ManagerView.prototype = {
 				this.wfselect.add(wfO);
 			}
 		} else {
-			this.WFBase='.';
+			this.WFBase=[];
 			this.genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to fetch the workflow repository listing!</h1></blink>');
 		}
 	},
@@ -408,6 +422,7 @@ function NewWorkflowView(genview,restrictId) {
 	this.iframe=genview.getElementById('uploadIFRAME');
 	this.newWFForm=genview.getElementById('formNewWF');
 	this.newWFContainer=genview.getElementById('newWFContainer');
+	this.newWFLic=genview.getElementById('newWFLic');
 	this.newWFUploading=genview.getElementById('newWFUploading');
 	var newWFButton=genview.getElementById('newWFButton');
 	
@@ -418,6 +433,10 @@ function NewWorkflowView(genview,restrictId) {
 	var newwfview = this;
 	this.newWFStyleText=new GeneralView.Check(genview.getElementById('newWFStyleText'), function() { newwfview.setTextControl(); });
 	this.newWFStyleFile=new GeneralView.Check(genview.getElementById('newWFStyleFile'), function() { newwfview.setFileControl(); });
+	
+	// Either from a list or set by hand
+	this.newWFLicList=new GeneralView.Check(genview.getElementById('newWFLicList'), function() { newwfview.setLicenseList(); });
+	this.newWFLicOwn=new GeneralView.Check(genview.getElementById('newWFLicOwn'), function() { newwfview.setLicenseByHand(); });
 	
 	if(restrictId!=undefined) {
 		// Hiding new Workflow button
@@ -449,6 +468,7 @@ NewWorkflowView.prototype = {
 	openNewWorkflowFrame: function () {
 		// These methods only work when they must!
 		this.setFileControl();
+		this.setLicenseList();
 		this.generateSubworkflowSpan();
 		this.newWFUploading.style.visibility='hidden';
 		
@@ -459,6 +479,11 @@ NewWorkflowView.prototype = {
 		this.newWFControl = undefined;
 		// Removing all the content from the container
 		GeneralView.freeContainer(this.newWFContainer);
+	},
+	
+	clearLicArea: function () {
+		// Removing all the content from the container
+		GeneralView.freeContainer(this.newWFLic);
 	},
 	
 	setTextControl: function() {
@@ -484,6 +509,102 @@ NewWorkflowView.prototype = {
 		// We are appending the fake control!
 		//this.newWFContainer.appendChild(filecontrol.parentNode);
 		this.newWFContainer.appendChild(filecontrol);
+	},
+	
+	setLicenseList: function() {
+		this.newWFLicList.doCheck();
+		this.newWFLicOwn.doUncheck();
+		this.clearLicArea();
+		
+		// TODO
+		//this.newWFLic.appendChild();
+		var licSelect = this.genview.createElement('select');
+		licSelect.name = 'licenseURI';
+		this.newWFLic.appendChild(licSelect);
+		var licenses = this.genview.licenseManager.licenses; 
+		for(var lici=0;lici<licenses.length;lici++) {
+			var license=licenses[lici];
+			var licSelOpt=license.generateOption();
+
+			// Last: save selection!
+			try {
+				licSelect.add(licSelOpt,null);
+			} catch(e) {
+				licSelect.add(licSelOpt);
+			}
+		}
+		
+		var licName = this.genview.createHiddenInput('licenseName','');
+		this.newWFLic.appendChild(licName);
+		
+		var licHRef=this.genview.createElement('a');
+		licHRef.setAttribute('target','_blank');
+		licHRef.setAttribute('href','about:blank');
+		this.newWFLic.appendChild(licHRef);
+		var licImg = this.genview.createElement('img');
+		licImg.setAttribute('alt','(NO IMAGE)');
+		licImg.setAttribute('style','vertical-align:middle;');
+		licImg.setAttribute('border','0');
+		licHRef.appendChild(licImg);
+		
+		WidgetCommon.addEventListener(licSelect,'change',function() {
+			if(licSelect.selectedIndex!=-1) {
+				licName.value=licSelect.options[licSelect.selectedIndex].text;
+				var license=licenses[licSelect.selectedIndex];
+				var theuri=license.getAbbrevURI();
+				var thealt;
+				if(theuri) {
+					thealt=theuri;
+				} else {
+					theuri='about:blank';
+					thealt='(NO IMAGE)';
+				}
+				licImg.setAttribute('alt',thealt);
+				licHRef.setAttribute('href',theuri);
+				var width=license.getLogoWidth();
+				if(width) {
+					licImg.setAttribute('width',width);
+				} else {
+					licImg.removeAttribute('width');
+				}
+				var height=license.getLogoHeight();
+				if(height) {
+					licImg.setAttribute('height',height);
+				} else {
+					licImg.removeAttribute('height');
+				}
+				var logourl=license.getLogoURL();
+				if(!logourl)
+					logourl='about:blank';
+				licImg.setAttribute('src',logourl);
+			} else {
+				licName.value='';
+				licHRef.setAttribute('href','about:blank');
+				licImg.setAttribute('alt','(NO IMAGE)');
+				licImg.removeAttribute('width');
+				licImg.removeAttribute('height');
+				licImg.setAttribute('src','about:blank');
+			}
+		},false);
+		
+	},
+	
+	setLicenseByHand: function() {
+		this.newWFLicOwn.doCheck();
+		this.newWFLicList.doUncheck();
+		this.clearLicArea();
+		
+		// TODO
+		this.newWFLic.appendChild(this.genview.thedoc.createTextNode('License URI'));
+		var licURI=this.genview.createElement('input');
+		licURI.type='text';
+		licURI.name='licenseURI';
+		this.newWFLic.appendChild(licURI);
+		this.newWFLic.appendChild(this.genview.thedoc.createTextNode('  License Name'));
+		var licName=this.genview.createElement('input');
+		licName.type='text';
+		licName.name='licenseName';
+		this.newWFLic.appendChild(licName);
 	},
 	
 	/* Generates a new graphical input */
@@ -638,7 +759,6 @@ function NewEnactionView(manview) {
 	this.inputs=new Array();
 	
 	this.workflow=undefined;
-	this.WFBase=undefined;
 	
 	this.frameEnactId=undefined;
 	
@@ -790,12 +910,10 @@ NewEnactionView.prototype = {
 		var workflow = this.manview.getCurrentWorkflow();
 		if(workflow) {
 			// First, do the needed preparations!
-			var WFBase = this.manview.WFBase;
 			
 			this.workflow = workflow;
 			GeneralView.freeContainer(this.newEnactWFName);
 			this.newEnactWFName.appendChild(this.genview.thedoc.createTextNode(workflow.title+' ['+workflow.lsid+']'));
-			this.WFBase = WFBase;
 			
 			// Inputs
 			this.setInputMode(this.noneExampleSpan.control);
@@ -810,7 +928,7 @@ NewEnactionView.prototype = {
 			var maxheight=(parentno.offsetHeight-32)+'px';
 			//alert(maxwidth+' '+maxheight);
 			var newenactview=this;
-			this.enactSVG.loadSVG(this.enactSVGContainer.id,WFBase+'/'+workflow.svgpath,maxwidth,maxheight,function() {
+			this.enactSVG.loadSVG(this.enactSVGContainer.id,workflow.getSVGPath(),maxwidth,maxheight,function() {
 				newenactview.updateSVGSize();
 			});
 		/*
@@ -913,13 +1031,11 @@ NewEnactionView.prototype = {
 		
 		// the on change event, which must be taken into account
 		var newenactview=this;
-		var WFBase = this.manview.WFBase;
 		var stepCache={};
 		var step=undefined;
-		var WFBase=this.manview.WFBase;
 		var viewExample=function(exampleUUID) {
 			var step=stepCache[exampleUUID];
-			datatreeview.setStep(WFBase,exampleUUID,step,-1);
+			datatreeview.setStep(example.workflow.WFBase,exampleUUID,step,-1);
 		};
 		var onSelectChange=function() {
 			if(exSelect.selectedIndex!=-1) {
@@ -940,7 +1056,7 @@ NewEnactionView.prototype = {
 					} else {
 						output += '<i>(unknown)</i></p>';
 					}
-					output += '<p><i><a href="'+WFBase+'/'+example.path+'">Download example in Baclava format</a></i></p>';
+					output += '<p><i><a href="'+example.getExamplePath()+'">Download example in Baclava format</a></i></p>';
 					output += '<b>Description</b><br>';
 					if(example.description && example.description.length>0) {
 						output += GeneralView.preProcess(example.description);

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
-    targetNamespace="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend/patterns"
+    targetNamespace="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend/patterns"
     elementFormDefault="qualified"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:pat="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend/patterns"
+    xmlns:pat="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend/patterns"
 >
     <xsd:annotation>
         <xsd:documentation><![CDATA[$Id$
@@ -12,7 +12,7 @@
 recognition patterns. These patterns can be either RE (for raw text)
 or XPath expressions (for XML).
 
-INB Web Workflow Launcher has been created by
+Interactive Web Workflow Enactor & Launcher has been created by
 José María Fernández González, 2007-2008, for
 INB (http://www.inab.org/).
 

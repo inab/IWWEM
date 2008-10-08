@@ -20,6 +20,7 @@ use URI;
 use XML::LibXML;
 
 use lib "$FindBin::Bin";
+use IWWEM::Config;
 use WorkflowCommon;
 use workflowmanager; 
 
@@ -43,6 +44,9 @@ my($doFreezeWorkflowDeps)=undef;
 
 my($responsibleMail)=undef;
 my($responsibleName)=undef;
+
+my($licenseURI)=undef;
+my($licenseName)=undef;
 
 my $parser = XML::LibXML->new();
 my $context = XML::LibXML::XPathContext->new();
@@ -92,7 +96,7 @@ foreach my $param ($query->param()) {
 				my($snapId)=$2;
 				$kind='snapshot';
 				eval {
-					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 
 					my($transsnapId)=WorkflowCommon::patchXMLString($snapId);
@@ -108,7 +112,7 @@ foreach my $param ($query->param()) {
 				my($examId)=$2;
 				$kind='example';
 				eval {
-					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 
 					my($transexamId)=WorkflowCommon::patchXMLString($examId);
@@ -123,10 +127,10 @@ foreach my $param ($query->param()) {
 				my($jobdir)=undef;
 				
 				if($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
-					$jobdir=$WorkflowCommon::JOBDIR.'/'.$1;
+					$jobdir=$IWWEM::Config::JOBDIR.'/'.$1;
 					$kind='enaction';
 				} else {
-					$jobdir=$WorkflowCommon::WORKFLOWDIR.'/'.$irelpath;
+					$jobdir=$IWWEM::Config::WORKFLOWDIR.'/'.$irelpath;
 					$kind='workflow';
 				}
 				
@@ -165,6 +169,10 @@ foreach my $param ($query->param()) {
 		$paramval = $responsibleMail = $query->param($param);
 	} elsif($param eq $WorkflowCommon::RESPONSIBLENAME) {
 		$paramval = $responsibleName = $query->param($param);
+	} elsif($param eq $WorkflowCommon::LICENSEURI) {
+		$paramval = $licenseURI = $query->param($param);
+	} elsif($param eq $WorkflowCommon::LICENSENAME) {
+		$paramval = $licenseName = $query->param($param);
 	} elsif($param eq 'freezeWorkflowDeps') {
 		$doFreezeWorkflowDeps=1;
 	}
@@ -189,7 +197,7 @@ foreach my $param ($query->param()) {
 
 # Parsing input workflows
 if($retval==0 && !$query->cgi_error() && defined($hasInputWorkflow)) {
-	($retval,$retvalmsg)=workflowmanager::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps);
+	($retval,$retvalmsg)=workflowmanager::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps);
 }
 
 # We must signal here errors and exit

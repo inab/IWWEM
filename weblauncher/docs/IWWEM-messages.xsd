@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema
-    targetNamespace="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend"
-    elementFormDefault="qualified"
-    attributeFormDefault="unqualified"
+<xsd:schema targetNamespace="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend"
+    elementFormDefault="qualified" attributeFormDefault="unqualified"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:iwwem="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend"
->
+    xmlns:iwwem="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend">
     <xsd:annotation>
         <xsd:documentation><![CDATA[$Id$
 	
 This schema was designed to model
 the messages between frontend modules and AJAX layer of
-INB Web Workflow Launcher.
+Interactive Web Workflow Enactor & Launcher.
 
-INB Web Workflow Launcher has been created by
+Interactive Web Workflow Enactor & Launcher has been created by
 José María Fernández González, 2007-2008, for
 INB (http://www.inab.org/).
 
@@ -25,7 +22,7 @@ Perl frontend modules have been made in Perl. They use various standard
 Perl libraries and LockNLog library, created in the context of iHOP
 web services by José María Fernández González, 2007.]]></xsd:documentation>
     </xsd:annotation>
-    
+
     <xsd:simpleType name="EnactionStatusType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="queued">
@@ -75,7 +72,7 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="EnactionStepStatusType">
         <xsd:restriction base="iwwem:EnactionStatusType">
             <xsd:enumeration value="queued">
@@ -100,7 +97,7 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:complexType name="IORepType">
         <xsd:annotation>
             <xsd:documentation><![CDATA[Generic complex type for input, outputs & steps]]></xsd:documentation>
@@ -111,7 +108,7 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
-    
+
     <xsd:complexType name="labelledType">
         <xsd:annotation>
             <xsd:documentation><![CDATA[Labelled tree node]]></xsd:documentation>
@@ -122,13 +119,13 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
-    
+
     <xsd:element name="leaf" type="iwwem:labelledType">
         <xsd:annotation>
             <xsd:documentation><![CDATA[A final leaf node which has a parent, used to describe I/O topology]]></xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="branch">
         <xsd:annotation>
             <xsd:documentation><![CDATA[An intermediate branch node used to describe I/O topology]]></xsd:documentation>
@@ -144,7 +141,7 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
             </xsd:complexContent>
         </xsd:complexType>
     </xsd:element>
-    
+
     <xsd:complexType name="IODesc">
         <xsd:annotation>
             <xsd:documentation><![CDATA[Generic complex type for described inputs & outputs]]></xsd:documentation>
@@ -166,7 +163,7 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="IOBundleDesc">
         <xsd:annotation>
             <xsd:documentation><![CDATA[Generic complex type for described inputs & outputs]]></xsd:documentation>
@@ -201,9 +198,27 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:attributeGroup name="licenseAttrs">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Attributes for licensable content (workflows just now)]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute name="licenseName" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[The short name used to talk about this license type]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="licenseURI" type="xsd:anyURI" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[The URI of the defined license]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:attributeGroup>
     
     <xsd:attributeGroup name="responsibleAttrs">
-        <xsd:annotation><xsd:documentation><![CDATA[Attributes for content with a responsible (workflows, enactions, ...)]]></xsd:documentation></xsd:annotation>
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Attributes for content with a responsible (workflows, enactions, ...)]]></xsd:documentation>
+        </xsd:annotation>
         <xsd:attribute name="responsibleMail" type="xsd:string" use="required">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[The mail of the uploader and responsible]]></xsd:documentation>
@@ -215,9 +230,11 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
     </xsd:attributeGroup>
-    
+
     <xsd:attributeGroup name="catalogAttrs">
-        <xsd:annotation><xsd:documentation><![CDATA[Attributes for catalog files found at examples and snapshots dirs]]></xsd:documentation></xsd:annotation>
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Attributes for catalog files found at examples and snapshots dirs]]></xsd:documentation>
+        </xsd:annotation>
         <xsd:attribute name="uuid" type="xsd:string" use="required">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[The example/snapshot UUID. As this UUID has only meaning taking into account the context workflow, it is it unqualified form]]></xsd:documentation>
@@ -235,7 +252,7 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
         </xsd:attribute>
         <xsd:attributeGroup ref="iwwem:responsibleAttrs"/>
     </xsd:attributeGroup>
-    
+
     <xsd:element name="example">
         <xsd:annotation>
             <xsd:documentation><![CDATA[Input examples. They are stored in the server in Baclava format.
@@ -254,7 +271,7 @@ The textual content of this element is the description of the example (possibly 
             </xsd:simpleContent>
         </xsd:complexType>
     </xsd:element>
-    
+
     <xsd:element name="snapshot">
         <xsd:annotation>
             <xsd:documentation><![CDATA[Snapshots from workflow executions. The textual content of this element is the description of the snapshot (possibly HTML in a CDATA)]]></xsd:documentation>
@@ -263,11 +280,11 @@ The textual content of this element is the description of the example (possibly 
             <xsd:simpleContent>
                 <xsd:extension base="xsd:string">
                     <xsd:attributeGroup ref="iwwem:catalogAttrs"/>
-                 </xsd:extension>
+                </xsd:extension>
             </xsd:simpleContent>
         </xsd:complexType>
     </xsd:element>
-    
+
     <xsd:element name="examples">
         <xsd:annotation>
             <xsd:documentation><![CDATA[
@@ -280,7 +297,7 @@ The textual content of this element is the description of the example (possibly 
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
-    
+
     <xsd:element name="snapshots">
         <xsd:annotation>
             <xsd:documentation><![CDATA[
@@ -293,7 +310,7 @@ The textual content of this element is the description of the example (possibly 
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
-    
+
     <xsd:element name="workflow">
         <xsd:annotation>
             <xsd:documentation><![CDATA[The description of a particular workflow]]></xsd:documentation>
@@ -353,7 +370,7 @@ results.]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element ref="iwwem:example" minOccurs="0" maxOccurs="unbounded"/>
-                
+
                 <xsd:element ref="iwwem:snapshot" minOccurs="0" maxOccurs="unbounded"/>
             </xsd:sequence>
             <xsd:attribute name="uuid" type="xsd:string" use="required">
@@ -392,9 +409,10 @@ results.]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attributeGroup ref="iwwem:responsibleAttrs"/>
+            <xsd:attributeGroup ref="iwwem:licenseAttrs"/>
         </xsd:complexType>
     </xsd:element>
-    
+
     <xsd:attributeGroup name="TimeAttr">
         <xsd:attribute name="time" type="xsd:dateTime" use="required">
             <xsd:annotation>
@@ -406,11 +424,11 @@ results.]]></xsd:documentation>
     <xsd:attributeGroup name="RelURIAttr">
         <xsd:attribute name="relURI" type="xsd:anyURI" use="required">
             <xsd:annotation>
-                <xsd:documentation><![CDATA[A relative URI, base for linked resources, and relative to IWWEMfs CGI]]></xsd:documentation>
+                <xsd:documentation><![CDATA[When it is a relative URI, base for linked resources, and relative to IWWEMfs CGI. When it is an absolute URI, it points out to a remote repository]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
     </xsd:attributeGroup>
-    
+
     <xsd:attributeGroup name="JobIdAttr">
         <xsd:attribute name="jobId" type="xsd:string" use="required">
             <xsd:annotation>
@@ -418,7 +436,7 @@ results.]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
     </xsd:attributeGroup>
-    
+
     <xsd:attributeGroup name="TimeJob">
         <xsd:annotation>
             <xsd:documentation><![CDATA[These two attributes are used together at least twice]]></xsd:documentation>
@@ -426,37 +444,46 @@ results.]]></xsd:documentation>
         <xsd:attributeGroup ref="iwwem:TimeAttr"/>
         <xsd:attributeGroup ref="iwwem:JobIdAttr"/>
     </xsd:attributeGroup>
-    
+
     <xsd:element name="workflowlist">
         <xsd:annotation>
-            <xsd:documentation><![CDATA[A list of available workflows in the workflow repository.
-workflowlister frontend module returns the information following this sub-schema.]]></xsd:documentation>
+            <xsd:documentation><![CDATA[A list of available workflows in one or more workflow repositories.
+workflowmanager frontend module returns the information following this sub-schema.]]></xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence minOccurs="1" maxOccurs="1">
-                <xsd:element name="message" minOccurs="0" maxOccurs="1">
+                <xsd:element name="domain" minOccurs="0" maxOccurs="unbounded">
                     <xsd:annotation>
-                        <xsd:documentation><![CDATA[This is a simple message with an error value, generated by insertion or deletion processes]]></xsd:documentation>
+                        <xsd:documentation><![CDATA[The application domain]]></xsd:documentation>
                     </xsd:annotation>
                     <xsd:complexType>
-                        <xsd:simpleContent>
-                            <xsd:extension base="xsd:string">
-                                <xsd:attribute name="retval" type="xsd:integer">
-                                        <xsd:annotation>
-                                            <xsd:documentation><![CDATA[The error value assigned to the message]]></xsd:documentation>
-                                        </xsd:annotation>
-                                </xsd:attribute>
-                            </xsd:extension>
-                        </xsd:simpleContent>
+                        <xsd:sequence minOccurs="1" maxOccurs="1">
+                            <xsd:element name="message" minOccurs="0" maxOccurs="1">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[This is a simple message with an error value, generated by insertion or deletion processes]]></xsd:documentation>
+                                </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:string">
+                                            <xsd:attribute name="retval" type="xsd:integer">
+                                                <xsd:annotation>
+                                                  <xsd:documentation><![CDATA[The error value assigned to the message]]></xsd:documentation>
+                                                </xsd:annotation>
+                                            </xsd:attribute>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element ref="iwwem:workflow" minOccurs="0" maxOccurs="unbounded"/>
+                        </xsd:sequence>
+                        <xsd:attributeGroup ref="iwwem:TimeAttr"/>
+                        <xsd:attributeGroup ref="iwwem:RelURIAttr"/>
                     </xsd:complexType>
                 </xsd:element>
-                <xsd:element ref="iwwem:workflow" minOccurs="0" maxOccurs="unbounded"/>
             </xsd:sequence>
-            <xsd:attributeGroup ref="iwwem:TimeAttr"></xsd:attributeGroup>
-            <xsd:attributeGroup ref="iwwem:RelURIAttr"></xsd:attributeGroup>
         </xsd:complexType>
     </xsd:element>
-    
+
     <xsd:element name="enactionlaunched">
         <xsd:annotation>
             <xsd:documentation><![CDATA[This message is sent by enactionlauncher when
@@ -476,7 +503,7 @@ this element is included to tell that it was done properly.
             <xsd:attributeGroup ref="iwwem:TimeJob"/>
         </xsd:complexType>
     </xsd:element>
-    
+
     <xsd:element name="enactionreport">
         <xsd:annotation>
             <xsd:documentation><![CDATA[A bunch of enaction reports]]></xsd:documentation>
@@ -496,11 +523,13 @@ this element is included to tell that it was done properly.
                                     </xsd:annotation>
                                     <xsd:complexType mixed="true">
                                         <xsd:sequence minOccurs="1" maxOccurs="1">
-                                            <xsd:any minOccurs="0" maxOccurs="unbounded" namespace="##other" />
+                                            <xsd:any minOccurs="0" maxOccurs="unbounded"
+                                                namespace="##other"/>
                                         </xsd:sequence>
                                     </xsd:complexType>
                                 </xsd:element>
-                                <xsd:element name="enactionReportError" type="xsd:string" minOccurs="1" maxOccurs="1">
+                                <xsd:element name="enactionReportError" type="xsd:string"
+                                    minOccurs="1" maxOccurs="1">
                                     <xsd:annotation>
                                         <xsd:documentation>
                                             <![CDATA[This element only appears when a parsing error on enactionReport happens]]>
@@ -511,12 +540,12 @@ this element is included to tell that it was done properly.
                             <xsd:element ref="iwwem:snapshot" minOccurs="0" maxOccurs="1"/>
                             <xsd:element name="input" type="iwwem:IORepType">
                                 <xsd:annotation>
-                                <xsd:documentation><![CDATA[The feeded inputs]]></xsd:documentation>
+                                    <xsd:documentation><![CDATA[The feeded inputs]]></xsd:documentation>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element name="output" type="iwwem:IORepType">
                                 <xsd:annotation>
-                                <xsd:documentation><![CDATA[The obtained outputs]]></xsd:documentation>
+                                    <xsd:documentation><![CDATA[The obtained outputs]]></xsd:documentation>
                                 </xsd:annotation>
                             </xsd:element>
                             <xsd:element name="step" minOccurs="0" maxOccurs="unbounded">
@@ -527,36 +556,45 @@ this element is included to tell that it was done properly.
                                     <xsd:complexContent>
                                         <xsd:extension base="iwwem:IORepType">
                                             <xsd:sequence minOccurs="1" maxOccurs="1">
-                                                <xsd:element name="extraStepInfo" minOccurs="0" maxOccurs="1">
+                                                <xsd:element name="extraStepInfo" minOccurs="0"
+                                                    maxOccurs="1">
                                                     <xsd:annotation>
                                                         <xsd:documentation><![CDATA[Extra step information, provided by Taverna]]></xsd:documentation>
                                                     </xsd:annotation>
                                                     <xsd:complexType>
                                                         <xsd:sequence minOccurs="1" maxOccurs="1">
-                                                            <xsd:element name="stepError" minOccurs="0" maxOccurs="unbounded">
+                                                            <xsd:element name="stepError"
+                                                                minOccurs="0" maxOccurs="unbounded">
                                                                 <xsd:annotation>
                                                                     <xsd:documentation><![CDATA[Detailed step error report]]></xsd:documentation>
                                                                 </xsd:annotation>
                                                                 <xsd:complexType>
                                                                     <xsd:simpleContent>
-                                                                        <xsd:extension base="xsd:string">
-                                                                            <xsd:attribute name="header" type="xsd:string" use="required"/>
+                                                                        <xsd:extension
+                                                                            base="xsd:string">
+                                                                            <xsd:attribute
+                                                                                name="header"
+                                                                                type="xsd:string"
+                                                                                use="required"/>
                                                                         </xsd:extension>
                                                                     </xsd:simpleContent>
                                                                 </xsd:complexType>
                                                             </xsd:element>
                                                         </xsd:sequence>
-                                                        <xsd:attribute name="sched" type="xsd:dateTime" use="required">
+                                                        <xsd:attribute name="sched"
+                                                            type="xsd:dateTime" use="required">
                                                             <xsd:annotation>
                                                                 <xsd:documentation><![CDATA[When the step was scheduled]]></xsd:documentation>
                                                             </xsd:annotation>
                                                         </xsd:attribute>
-                                                        <xsd:attribute name="start" type="xsd:dateTime" use="optional">
+                                                        <xsd:attribute name="start"
+                                                            type="xsd:dateTime" use="optional">
                                                             <xsd:annotation>
                                                                 <xsd:documentation><![CDATA[When the step started to run]]></xsd:documentation>
                                                             </xsd:annotation>
                                                         </xsd:attribute>
-                                                        <xsd:attribute name="stop" type="xsd:dateTime" use="optional">
+                                                        <xsd:attribute name="stop"
+                                                            type="xsd:dateTime" use="optional">
                                                             <xsd:annotation>
                                                                 <xsd:documentation><![CDATA[When the step stopped, either by an error or successfully]]></xsd:documentation>
                                                             </xsd:annotation>
@@ -586,17 +624,25 @@ this element is included to tell that it was done properly.
                                                 <xsd:element name="iterations" minOccurs="0" maxOccurs="1">
                                                     <xsd:complexType>
                                                         <xsd:sequence minOccurs="1" maxOccurs="1">
-                                                            <xsd:element name="step" minOccurs="1" maxOccurs="unbounded">
+                                                            <xsd:element name="step" minOccurs="1"
+                                                                maxOccurs="unbounded">
                                                                 <xsd:complexType>
                                                                     <xsd:complexContent>
-                                                                        <xsd:extension base="iwwem:IORepType">
-                                                                            <xsd:sequence minOccurs="1" maxOccurs="1">
-                                                                                <xsd:element name="input" type="iwwem:IORepType">
+                                                                        <xsd:extension
+                                                                            base="iwwem:IORepType">
+                                                                            <xsd:sequence
+                                                                                minOccurs="1"
+                                                                                maxOccurs="1">
+                                                                                <xsd:element
+                                                                                    name="input"
+                                                                                    type="iwwem:IORepType">
                                                                                     <xsd:annotation>
                                                                                         <xsd:documentation><![CDATA[The feeded inputs]]></xsd:documentation>
                                                                                     </xsd:annotation>
                                                                                 </xsd:element>
-                                                                                <xsd:element name="output" type="iwwem:IORepType">
+                                                                                <xsd:element
+                                                                                    name="output"
+                                                                                    type="iwwem:IORepType">
                                                                                     <xsd:annotation>
                                                                                         <xsd:documentation><![CDATA[The obtained outputs]]></xsd:documentation>
                                                                                     </xsd:annotation>
@@ -610,7 +656,8 @@ this element is included to tell that it was done properly.
                                                     </xsd:complexType>
                                                 </xsd:element>
                                             </xsd:sequence>
-                                            <xsd:attribute name="state" type="iwwem:EnactionStepStatusType">
+                                            <xsd:attribute name="state"
+                                                type="iwwem:EnactionStepStatusType">
                                                 <xsd:annotation>
                                                     <xsd:documentation><![CDATA[The state of this enaction step]]></xsd:documentation>
                                                 </xsd:annotation>
@@ -629,25 +676,30 @@ this element is included to tell that it was done properly.
                         <xsd:attributeGroup ref="iwwem:RelURIAttr"/>
                         <xsd:attributeGroup ref="iwwem:responsibleAttrs"/>
                         <xsd:attribute name="title" type="xsd:string" use="required">
-                            <xsd:annotation><xsd:documentation><![CDATA[The title of the enacted workflow]]></xsd:documentation></xsd:annotation>
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The title of the enacted workflow]]></xsd:documentation>
+                            </xsd:annotation>
                         </xsd:attribute>
                     </xsd:complexType>
                 </xsd:element>
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
+    
     <xsd:element name="dataBundle">
         <xsd:annotation>
             <xsd:documentation><![CDATA[The description of a data bundle]]></xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence minOccurs="1" maxOccurs="1">
-                <xsd:element name="input" type="iwwem:IOBundleDesc" minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="input" type="iwwem:IOBundleDesc" minOccurs="0"
+                    maxOccurs="unbounded">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[The inputs available in the data bundle, along with their MIME types. This happens with input flows and examples]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="output" type="iwwem:IOBundleDesc" minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="output" type="iwwem:IOBundleDesc" minOccurs="0"
+                    maxOccurs="unbounded">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[The outputs available in the data bundle, along with their MIME types. This happens with output flows]]></xsd:documentation>
                     </xsd:annotation>
@@ -692,9 +744,11 @@ this element is included to tell that it was done properly.
             </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
-    
+
     <xsd:element name="responsible">
-        <xsd:annotation><xsd:documentation><![CDATA[Structure of internal responsible files]]></xsd:documentation></xsd:annotation>
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Structure of internal responsible files]]></xsd:documentation>
+        </xsd:annotation>
         <xsd:complexType>
             <xsd:attributeGroup ref="iwwem:responsibleAttrs"/>
         </xsd:complexType>

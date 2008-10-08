@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<IWWEMpatterns xmlns="http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend/patterns">
+<IWWEMpatterns xmlns="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend/patterns">
     <detectionPattern name="PDB">
         <description>PDB extractor</description>
         <applyToMIME type="text/xml"/>

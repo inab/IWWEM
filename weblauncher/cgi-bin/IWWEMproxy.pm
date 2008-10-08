@@ -20,6 +20,7 @@ use XML::LibXML;
 #use File::Path;
 
 use lib "$FindBin::Bin";
+use IWWEM::Config;
 use WorkflowCommon;
 use BaclavaSAX;
 
@@ -208,19 +209,19 @@ sub parseBaclavaQuery($$$$$$$$$$) {
 			if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				$wfsnap=$1;
 				$jobId=$2;
-				$jobdir=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
+				$jobdir=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
 			}
 		} elsif(index($jobId,$WorkflowCommon::EXAMPLEPREFIX)==0) {
 			if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				$wfsnap=$1;
 				$jobId=$2;
-				$jobdir=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::EXAMPLESDIR;
+				$jobdir=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::EXAMPLESDIR;
 				$isExample=1;
 			}
 		} else {
 			# For completion, we handle qualified job Ids
 			$jobId =~ s/^$WorkflowCommon::ENACTIONPREFIX//;
-			$jobdir=$WorkflowCommon::JOBDIR . '/' .$jobId;
+			$jobdir=$IWWEM::Config::JOBDIR . '/' .$jobId;
 		}
 		
 		# Is it a valid job id?

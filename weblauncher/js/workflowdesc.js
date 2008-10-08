@@ -32,8 +32,8 @@ function IODesc(ioD) {
 	
 }
 
-function InputExample(wfUUID,inEx) {
-	this.wfUUID=wfUUID;
+function InputExample(workflow,inEx) {
+	this.workflow=workflow;
 	this.name=inEx.getAttribute('name');
 	this.uuid=inEx.getAttribute('uuid');
 	this.date=inEx.getAttribute('date');
@@ -45,7 +45,11 @@ function InputExample(wfUUID,inEx) {
 
 InputExample.prototype = {
 	getQualifiedUUID: function() {
-		return 'example:'+this.wfUUID+':'+this.uuid;
+		return 'example:'+this.workflow.uuid+':'+this.uuid;
+	},
+	
+	getExamplePath: function() {
+		return this.workflow.WFBase+'/'+this.path;
 	},
 	
 	generateOption: function (/* optional */ thedoc) {
@@ -59,8 +63,8 @@ InputExample.prototype = {
 	}
 };
 
-function OutputSnapshot(wfUUID,ouSn) {
-	this.wfUUID=wfUUID;
+function OutputSnapshot(workflow,ouSn) {
+	this.workflow=workflow;
 	this.name=ouSn.getAttribute('name');
 	this.uuid=ouSn.getAttribute('uuid');
 	this.date=ouSn.getAttribute('date');
@@ -71,7 +75,7 @@ function OutputSnapshot(wfUUID,ouSn) {
 
 OutputSnapshot.prototype = {
 	getQualifiedUUID: function() {
-		return 'snapshot:'+this.wfUUID+':'+this.uuid;
+		return 'snapshot:'+this.workflow+':'+this.uuid;
 	},
 	
 	generateOption: function (/* optional */ thedoc) {
@@ -84,7 +88,8 @@ OutputSnapshot.prototype = {
 	}
 };
 
-function WorkflowDesc(wfD) {
+function WorkflowDesc(wfD,WFBase) {
+	this.WFBase=WFBase;
 	this.uuid = wfD.getAttribute('uuid');
 	this.path = wfD.getAttribute('path');
 	//this.svgpath = wfD.getAttribute('svg');
@@ -94,6 +99,8 @@ function WorkflowDesc(wfD) {
 	this.date = wfD.getAttribute('date');
 	this.responsibleMail = wfD.getAttribute('responsibleMail');
 	this.responsibleName = wfD.getAttribute('responsibleName');
+	this.licenseName = wfD.getAttribute('licenseName');
+	this.licenseURI = wfD.getAttribute('licenseURI');
 	this.graph = {};
 	
 	var depends=new Array();
@@ -129,12 +136,12 @@ function WorkflowDesc(wfD) {
 					depends.push(child.getAttribute('sub'));
 					break;
 				case 'example':
-					var newExample = new InputExample(this.uuid,child);
+					var newExample = new InputExample(this,child);
 					examples[newExample.uuid]=newExample;
 					this.hasExamples=1;
 					break;
 				case 'snapshot':
-					var newSnapshot = new OutputSnapshot(this.uuid,child);
+					var newSnapshot = new OutputSnapshot(this,child);
 					snapshots[newSnapshot.uuid]=newSnapshot;
 					break;
 				case 'input':
@@ -169,6 +176,28 @@ WorkflowDesc.prototype = {
 		// wfO.id = this.uuid;
 		
 		return wfO;
+	},
+	
+	/**
+		Get the SVG path, prepended by the WFBase path
+	*/
+	getSVGPath: function() {
+		return this.WFBase+'/'+this.svgpath;
+	},
+	
+	/**
+		Get the native workflow definition path, prepended by the WFBase path
+	*/
+	getWFPath: function() {
+		return this.WFBase+'/'+this.path;
+	},
+	
+	/**
+		Get the path of a graphical representation of the workflow, prepended by the WFBase path
+		based on its MIME Type
+	*/
+	getGraphPath: function(mime) {
+		return this.WFBase+'/'+this.graph[mime];
 	},
 	
 	getExample: function (uuid) {

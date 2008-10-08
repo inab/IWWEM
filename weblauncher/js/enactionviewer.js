@@ -150,7 +150,7 @@ function EnactionView(genview) {
 	};
 	
 	// At last, getting the enaction id
-	this.svg=new TavernaSVG(GeneralView.SVGDivId,IWWEM.Logo,undefined,undefined,function() {
+	this.svg=new TavernaSVG(GeneralView.SVGDivId,IWWEM.Logo,IWWEM.Unknown,undefined,undefined,function() {
 		enactview.updateSVGSize();
 	});
 	// SVG resize

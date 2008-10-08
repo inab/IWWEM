@@ -21,6 +21,7 @@ use XML::LibXML;
 
 # And now, my own libraries!
 use lib "$FindBin::Bin";
+use IWWEM::Config;
 use WorkflowCommon;
 use workflowmanager;
 
@@ -100,13 +101,13 @@ foreach my $param ($query->param()) {
 		
 		if($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 			$workflowId=$1;
-			my($wabsbasepath)=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::SNAPSHOTSDIR . '/' . $2 . '/';
+			my($wabsbasepath)=$IWWEM::Config::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::SNAPSHOTSDIR . '/' . $2 . '/';
 			$wabspath=$wabsbasepath . $WorkflowCommon::WORKFLOWFILE;
 			
 			$originalInput=$wabsbasepath . $WorkflowCommon::INPUTSFILE;
 		} elsif($id =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
 			my($ENHAND);
-			my($wabsbasepath)=$WorkflowCommon::JOBDIR . '/' . $1 . '/';
+			my($wabsbasepath)=$IWWEM::Config::JOBDIR . '/' . $1 . '/';
 			if(open($ENHAND,'<',$wabsbasepath . $WorkflowCommon::WFIDFILE)) {
 				$workflowId=<$ENHAND>;
 				close($ENHAND);
@@ -119,7 +120,7 @@ foreach my $param ($query->param()) {
 			$originalInput=$wabsbasepath . $WorkflowCommon::INPUTSFILE;
 		} else {
 			$workflowId=$id;
-			$wabspath=$WorkflowCommon::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::WORKFLOWFILE;
+			$wabspath=$IWWEM::Config::WORKFLOWDIR . '/' . $workflowId . '/' . $WorkflowCommon::WORKFLOWFILE;
 		}
 		
 		# Is it a 'sure' path?
@@ -193,14 +194,14 @@ if($retval==0 && !$query->cgi_error()) {
 		$workflowId=undef;
 
 		my($p_res)=undef;
-		($retval,$retvalmsg,$p_res)=workflowmanager::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,undef,$WorkflowCommon::JOBDIR,1);
+		($retval,$retvalmsg,$p_res)=workflowmanager::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,undef,undef,$hasInputWorkflowDeps,undef,$IWWEM::Config::JOBDIR,1);
 
 		$jobid=$p_res->[0]  if(scalar(@{$p_res})>0);
-		$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
+		$jobdir = $IWWEM::Config::JOBDIR . '/' .$jobid;
 	} else {
 		do {
 			$jobid = WorkflowCommon::genUUID();
-			$jobdir = $WorkflowCommon::JOBDIR . '/' .$jobid;
+			$jobdir = $IWWEM::Config::JOBDIR . '/' .$jobid;
 		} while (-d $jobdir);
 		mkpath($jobdir);
 		WorkflowCommon::createResponsibleFile($jobdir,$responsibleMail,$responsibleName);
@@ -359,7 +360,7 @@ if($retval==0 && !$query->cgi_error() && defined($baclavafound)) {
 					$exId=$exfile;
 				}
 				
-				my($example)=$WorkflowCommon::WORKFLOWDIR.'/'.$origWFID.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$exId.'.xml';
+				my($example)=$IWWEM::Config::WORKFLOWDIR.'/'.$origWFID.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$exId.'.xml';
 				next  if(index($exfile,'/')==0 || index($exfile,'../')!=-1 || ! -f $example );
 				if(copy($example,$baclavaname)) {
 					push(@baclavadesc,'-inputDoc',$baclavaname);
@@ -417,7 +418,7 @@ if($retval==0 && !$query->cgi_error() && defined($exampleName) && defined($workf
 	do {
 		$exampleuuid=WorkflowCommon::genUUID();
 		$relrandfile=$workflowId.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$exampleuuid.'.xml';
-		$randfile=$WorkflowCommon::WORKFLOWDIR.'/'.$relrandfile;
+		$randfile=$IWWEM::Config::WORKFLOWDIR.'/'.$relrandfile;
 	} while(-f $randfile);
 	
 	my($EXH);
@@ -497,7 +498,7 @@ if($retval!=0 || $query->cgi_error() || !defined($wfilefetched)) {
 # related to examples
 if(defined($penduuid)) {
 	system($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
-		'-baseDir',$WorkflowCommon::MAVENDIR,
+		'-baseDir',$IWWEM::Config::MAVENDIR,
 		'-workflow',$wfile,
 	#	'-expandSubWorkflows',
 		'-statusDir',$jobdir,
@@ -610,7 +611,7 @@ unless(defined($cpid)) {
 					WorkflowCommon::sendEnactionMail($query,$jobid,$responsibleMail);
 					
 					exec($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
-						'-baseDir',$WorkflowCommon::MAVENDIR,
+						'-baseDir',$IWWEM::Config::MAVENDIR,
 						'-workflow',$wfile,
 	#					'-expandSubWorkflows',
 						'-statusDir',$jobdir,
@@ -631,7 +632,7 @@ unless(defined($cpid)) {
 		eval $submethod->(1);
 	} else {
 		# Now it is time to enqueue this query (limited resources)
-		my($mutex)=LockNLog::Mutex->new($WorkflowCommon::MAXJOBS,$WorkflowCommon::JOBCHECKDELAY);
+		my($mutex)=LockNLog::Mutex->new($IWWEM::Config::MAXJOBS,$IWWEM::Config::JOBCHECKDELAY);
 		$mutex->mutex($submethod);
 	}
 }

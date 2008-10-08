@@ -1,0 +1,44 @@
+#!/usr/bin/perl -W
+
+# $Id: WorkflowCommon.pm 1461 2008-09-22 15:26:39Z jmfernandez $
+# IWWEM/MailConfig.pm.example
+# from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
+# Author: José María Fernández González (C) 2007-2008
+# Institutions:
+# *	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+# *	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+
+use strict;
+
+package IWWEM::MailConfig;
+
+# This package contains the configuration bits
+# of IWWE&M related to e-mails
+# You must copy this file to MailConfig.pm
+# and then setup the needed bits.
+
+# This is the e-mail name used for the From field in IWWE&M
+use vars qw($IWWEMmailname);
+$IWWEMmailname='INB IWWE&M system';
+
+# This is the e-mail address used for the From field in IWWE&M
+use vars qw($IWWEMmailaddr);
+$IWWEMmailaddr='an.email@address';
+
+# Mail server connection
+use vars qw($SMTPSERVER);
+$SMTPSERVER='the.smtp.server';
+
+# Are credentials encoded in Base64?
+use vars qw($SMTP_ENCODED_CREDS);
+$SMTP_ENCODED_CREDS=undef;
+
+# Mail server user, perhaps in base64
+use vars qw($SMTPUSER);
+$SMTPUSER='fakeuser';
+
+# Mail server password, perhaps in base64
+use vars qw($SMTPPASS);
+$SMTPPASS='fakepass';
+
+1;

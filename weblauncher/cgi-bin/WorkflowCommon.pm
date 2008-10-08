@@ -22,18 +22,22 @@ use Mail::Sender;
 use POSIX qw(strftime);
 use XML::LibXML;
 
+use lib "$FindBin::Bin";
+use IWWEM::Config;
+use IWWEM::MailConfig;
+
 use vars qw($WORKFLOWFILE $SVGFILE $PNGFILE $PDFFILE $WFIDFILE $DEPDIR $EXAMPLESDIR $SNAPSHOTSDIR);
 
 use vars qw($INPUTSFILE $OUTPUTSFILE);
 
 use vars qw($REPORTFILE $STATICSTATUSFILE);
 
-use vars qw($WORKFLOWRELDIR $WORKFLOWDIR $JOBRELDIR $JOBDIR $MAXJOBS $JOBCHECKDELAY $LAUNCHERDIR $MAVENDIR);
+use vars qw($LAUNCHERDIR);
 
 use vars qw($VIRTWORKFLOWDIR $VIRTJOBDIR $VIRTIDDIR $VIRTRESULTSDIR);
 use vars qw($RESULTSDIR $ETCRELDIR $ETCDIR);
 
-use vars qw($CONFIRMRELDIR $CONFIRMDIR $COMMANDFILE $PENDINGERASEFILE $PENDINGADDFILE);
+use vars qw($COMMANDFILE $PENDINGERASEFILE $PENDINGADDFILE);
 
 use vars qw($ITERATIONSDIR);
 
@@ -50,18 +54,22 @@ use vars qw($PARAMSAVEEX $PARAMSAVEEXDESC $CATALOGFILE $RESPONSIBLEFILE $LOCKFIL
 
 use vars qw($COMMENTPRE $COMMENTPOST $COMMENTWM $COMMENTEL $COMMENTES);
 
+use vars qw($LICENSESTART $LICENSESTOP);
+
 use vars qw(%GRAPHREP);
 
-use vars qw($IWWEMmailaddr $RESPONSIBLENAME $RESPONSIBLEMAIL);
+use vars qw($RESPONSIBLENAME $RESPONSIBLEMAIL);
 
-use vars qw(%HARDHOST @PATHCHECK $WFKIND $ENKIND);
+use vars qw($LICENSENAME $LICENSEURI);
 
-$IWWEMmailaddr='jmfernandez@cnio.es';
-
+use vars qw(@PATHCHECK $WFKIND $ENKIND);
 
 # Workflow files constants
 $RESPONSIBLENAME='responsibleName';
 $RESPONSIBLEMAIL='responsibleMail';
+$LICENSENAME='licenseName';
+$LICENSEURI='licenseURI';
+
 $WORKFLOWFILE='workflow.xml';
 $SVGFILE='workflow.svg';
 $PDFFILE='workflow.pdf';
@@ -79,21 +87,11 @@ $EXAMPLESDIR='examples';
 $SNAPSHOTSDIR='snapshots';
 $ITERATIONSDIR='Iterations';
 
-# Base directory for stored workflows
-
-my($STORAGERELDIR)='Storage';
-
-$WORKFLOWRELDIR = 'workflows';
-$WORKFLOWDIR = $FindBin::Bin. '/'.$STORAGERELDIR.'/' . $WORKFLOWRELDIR;
-# Base directory for jobs
-$JOBRELDIR = 'jobs';
-$JOBDIR = $FindBin::Bin . '/'.$STORAGERELDIR.'/' .$JOBRELDIR;
-
 $ETCRELDIR = 'etc';
 $ETCDIR = $FindBin::Bin . '/../' .$ETCRELDIR;
 
 # Virtual dirs
-$VIRTWORKFLOWDIR = $WORKFLOWRELDIR;
+$VIRTWORKFLOWDIR = 'workflows';
 $VIRTJOBDIR = 'enactions';
 $VIRTIDDIR = 'id';
 
@@ -102,23 +100,12 @@ $VIRTRESULTSDIR = $RESULTSDIR;
 
 # Patterns file
 $PATTERNSFILE = $ETCDIR . '/' . 'EVpatterns.xml';
-# Number of concurrent jobs
-$MAXJOBS = 10;
-# When a pending job is waiting for a slot,
-# the delay (in seconds) between checks.
-# It is not higher because it is
-# restricted from LockNLog side.
-$JOBCHECKDELAY = 1;
+
 # Launcher directory
 $LAUNCHERDIR = $FindBin::Bin.'/INBWorkflowLauncher';
-# Maven directory used by raven instance inside
-# workflowparser and workflowlauncher
-$MAVENDIR = $FindBin::Bin.'/inb-maven';
 
 $PENDINGERASEFILE='eraselist.txt';
 $PENDINGADDFILE='addlist.txt';
-$CONFIRMRELDIR='.pending';
-$CONFIRMDIR=$FindBin::Bin.'/'.$STORAGERELDIR.'/'.$CONFIRMRELDIR;
 $COMMANDFILE='.command';
 $COMMANDADD='add';
 $COMMANDERASE='erase';
@@ -146,7 +133,7 @@ $REPORTFILE='report.xml';
 $STATICSTATUSFILE='staticstatus.xml';
 $LOCKFILE='.lockfile';
 
-$WFD_NS = 'http://www.cnio.es/scombio/jmfernandez/taverna/inb/frontend';
+$WFD_NS = 'http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend';
 $PAT_NS = $WFD_NS . '/patterns';
 $XSCUFL_NS = 'http://org.embl.ebi.escience/xscufl/0.1alpha';
 $BACLAVA_NS = 'http://org.embl.ebi.escience/baclava/0.1alpha';
@@ -168,10 +155,8 @@ $COMMENTWM=$COMMENTPRE.'workflowmanager'.$COMMENTPOST;
 $COMMENTEL=$COMMENTPRE.'enactionlauncher'.$COMMENTPOST;
 $COMMENTES=$COMMENTPRE.'enactionstatus'.$COMMENTPOST;
 
-%HARDHOST=(
-	'ubio.bioinfo.cnio.es' => '/biotools/IWWEM/cgi-bin',
-	'iwwem.bioinfo.cnio.es' => '/cgi-bin',
-);
+$LICENSESTART=('-' x 30)."LICENSE URI START".('-' x 30);
+$LICENSESTOP= ('-' x 30)."LICENSE URI  STOP".('-' x 30);
 
 use vars qw($ISRAWFILE $ISFORBIDDEN $ISEXAMPLE $ISINPUT $ISOUTPUT $ISRAWDIR $ISIDDIR $ISENDIR);
 # undef means a raw file
@@ -223,7 +208,7 @@ my($ENACTSUBTREE)=[
 
 $WFKIND=[
 	$VIRTWORKFLOWDIR,
-	$WORKFLOWDIR,
+	$IWWEM::Config::WORKFLOWDIR,
 	[
 		["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,[
 				[$EXAMPLESDIR,$ISRAWDIR,[
@@ -248,7 +233,7 @@ $WFKIND=[
 
 $ENKIND=[
 	$VIRTJOBDIR,
-	$JOBDIR,
+	$IWWEM::Config::JOBDIR,
 	[
 		["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,$ENACTSUBTREE],
 	]
@@ -372,8 +357,8 @@ sub getCGIBaseURI($) {
 		# print STDERR "VIRTUALREL IS $virtualrel\n";
 		if($virtualrel =~ /^(?:https?:\/\/[^:\/]+)?(?::[0-9]+)?(\/.*)/) {
 			$relpath=$1;
-		} elsif(exists($HARDHOST{$virtualrel})) {
-			$relpath=$HARDHOST{$virtualrel}.substr($relpath,rindex($relpath,'/'));
+		} elsif(exists($IWWEM::Config::HARDHOST{$virtualrel})) {
+			$relpath=$IWWEM::Config::HARDHOST{$virtualrel}.substr($relpath,rindex($relpath,'/'));
 		}
 	}
 	
@@ -392,7 +377,7 @@ sub genPendingOperationsDir($) {
 	my($randdir);
 	do {
 		$randname=WorkflowCommon::genUUID();
-		$randdir=$WorkflowCommon::CONFIRMDIR.'/'.$randname;
+		$randdir=$IWWEM::Config::CONFIRMDIR.'/'.$randname;
 	} while(-d $randdir);
 
 	# Creating workflow directory
@@ -434,15 +419,11 @@ sub createResponsibleFile($$;$) {
 }
 
 sub createMailer() {
-	my($mailserver)='webmail.cnio.es';
-	my($base64user)='YmlvZGI=';
-	my($base64pass)='Y25pby05OA==';
-	
-	my($smtp) = Mail::Sender->new({smtp=>$mailserver,
+	my($smtp) = Mail::Sender->new({smtp=>$IWWEM::Config::SMTPSERVER,
 		auth=>'LOGIN',
-		auth_encoded=>1,
-		authid=>$base64user,
-		authpwd=>$base64pass
+		auth_encoded=>$IWWEM::Config::SMTP_ENCODED_CREDS,
+		authid=>$IWWEM::Config::SMTPUSER,
+		authpwd=>$IWWEM::Config::SMTPPASS
 	#	subject=>'Prueba4',
 	#	debug=>\*STDERR
 	});
@@ -477,7 +458,7 @@ sub sendResponsibleConfirmedMail($$$$$$$;$$) {
 	}
 	
 	return $smtp->MailMsg({
-		from=>"\"INB IWWE&M system\" <$WorkflowCommon::IWWEMmailaddr>",
+		from=>"\"$IWWEM::Common::IWWEMmailname\" <$IWWEM::Common::IWWEMmailaddr>",
 		to=>"\"IWWE&M user\" <$responsibleMail>",
 		subject=>"Your $kind $irelpath has just been $prettyop",
 		msg=>"Dear IWWE&M user,\r\n    as you have just confirmed petition ".
@@ -494,7 +475,7 @@ sub sendEnactionMail($$$;$) {
 	my($status)=defined($hasFinished)?'finished':'started';
 	my($dataStatus)=defined($hasFinished)?'results':'progress';
 	return $smtp->MailMsg({
-		from=>"\"INB IWWE&M system\" <$WorkflowCommon::IWWEMmailaddr>",
+		from=>"\"$IWWEM::Common::IWWEMmailname\" <$IWWEM::Common::IWWEMmailaddr>",
 		to=>"\"IWWE&M user\" <$responsibleMail>",
 		subject=>"Your enaction $jobId has just $status",
 		msg=>"Dear IWWE&M user,\r\n    your enaction $jobId has just $status. You can see the $dataStatus at\r\n\r\n$operURL\r\n\r\nThe INB Interactive Web Workflow Enactor & Manager system"
@@ -512,7 +493,7 @@ sub sendResponsiblePendingMail($$$$$$$$) {
 	$operURL.="cgi-bin/IWWEMconfirm?code=$code";
 	
 	return $smtp->MailMsg({
-		from=>"\"INB IWWE&M system\" <$WorkflowCommon::IWWEMmailaddr>",
+		from=>"\"$IWWEM::Common::IWWEMmailname\" <$IWWEM::Common::IWWEMmailaddr>",
 		to=>"\"IWWE&M user\" <$responsibleMail>",
 		subject=>"Confirmation for $prettyop of $kind $irelpath",
 		msg=>"Dear IWWE&M user,\r\n    before the $prettyop of $kind $irelpath".

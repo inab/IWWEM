@@ -22,6 +22,7 @@ use URI;
 use XML::LibXML;
 
 use lib "$FindBin::Bin";
+use IWWEM::Config;
 use WorkflowCommon;
 
 use lib "$FindBin::Bin/LockNLog";
@@ -33,7 +34,7 @@ sub getWorkflowInfo($$$$$$);
 sub sendWorkflowList($$$\@$$$$;$);
 sub gatherWorkflowList(;$);
 
-sub parseInlineWorkflows($$$$$;$$$);
+sub parseInlineWorkflows($$$$$$$;$$$);
 sub patchWorkflow($$$$$$$;$$$);
 
 # Method declarations
@@ -53,33 +54,26 @@ sub getWorkflowInfo($$$$$$) {
 		my($examplescat) = $wfdir .'/'. $WorkflowCommon::EXAMPLESDIR . '/' . $WorkflowCommon::CATALOGFILE;
 		my($snapshotscat) = $wfdir .'/'. $WorkflowCommon::SNAPSHOTSDIR . '/' . $WorkflowCommon::CATALOGFILE;
 		my($wfresp)=$wfdir.'/'.$WorkflowCommon::RESPONSIBLEFILE;
-
-		my(@stat_wffile)=stat($wffile);
-		my(@stat_wfcat)=stat($wfcat);
-
-		my($regen)=undef;
 		
-		if(scalar(@stat_wfcat)==0 || (scalar(@stat_wffile)>0 && $stat_wfcat[9]<$stat_wffile[9])) {
-			# Catalog is outdated related to workflow
-			$regen=1;
-		} else {
-			my(@stat_examplescat)=stat($examplescat);
-			
-			if(scalar(@stat_examplescat)>0 &&  $stat_wfcat[9]<$stat_examplescat[9]) {
-				# Catalog is outdated related to examples
-				$regen=1;
-			} else {
-				my(@stat_snapshotscat)=stat($snapshotscat);
-				
-				if(scalar(@stat_snapshotscat)>0 &&  $stat_wfcat[9]<$stat_snapshotscat[9]) {
-					# Catalog is outdated related to snapshots
-					$regen=1;
-				} else {
-					my(@stat_wfresp)=stat($wfresp);
-					
-					if(scalar(@stat_wfresp)>0 && $stat_wfcat[9]<$stat_wfresp[9]) {
-						# Catalog is outdated related to snapshots
-						$regen=1;
+		my($regen)=1;
+		my(@stat_selffile)=stat($FindBin::Bin .'/workflowmanager.pm');
+		my(@stat_wfcat)=stat($wfcat);
+		if(scalar(@stat_wfcat)>0 && $stat_wfcat[9]>$stat_selffile[9]) {
+			my(@stat_wffile)=stat($wffile);
+
+			if(scalar(@stat_wffile)==0 || $stat_wfcat[9]>$stat_wffile[9]) {
+				my(@stat_examplescat)=stat($examplescat);
+
+				if(scalar(@stat_examplescat)>0 && $stat_wfcat[9]>$stat_examplescat[9]) {
+					my(@stat_snapshotscat)=stat($snapshotscat);
+
+					if(scalar(@stat_snapshotscat)>0 && $stat_wfcat[9]>$stat_snapshotscat[9]) {
+						my(@stat_wfresp)=stat($wfresp);
+
+						if(scalar(@stat_wfresp)>0 || $stat_wfcat[9]>$stat_wfresp[9]) {
+							# Catalog is outdated related to snapshots
+							$regen=undef;
+						}
 					}
 				}
 			}
@@ -131,9 +125,31 @@ sub getWorkflowInfo($$$$$$) {
 					my $svg = $wf.'/'.$WorkflowCommon::SVGFILE;
 					$wfe->setAttribute('svg',$svg);
 					
+					my($licenseName)=undef;
+					my($licenseURI)=undef;
+					
+					my($desctext)=$desc->textContent();
+					
+					# Catching the defined license
+					if(defined($desctext) && $desctext =~ /^$WorkflowCommon::LICENSESTART\n[ \t]*([^ \n]+)[ \t]+([^\n]+)[ \t]*\n$WorkflowCommon::LICENSESTOP\n/ms) {
+						$licenseURI=$1;
+						$licenseName=$2;
+						$desctext=substr($desctext,0,index($desctext,"\n$WorkflowCommon::LICENSESTART\n")).substr($desctext,index($desctext,index($desctext,"\n$WorkflowCommon::LICENSESTOP\n")+length($WorkflowCommon::LICENSESTOP)+1));
+					}
+					
+					unless(defined($licenseURI)) {
+						$licenseName=$IWWEM::Config::DEFAULT_LICENSE_NAME;
+						$licenseURI=$IWWEM::Config::DEFAULT_LICENSE_URI;
+					} elsif(!defined($licenseName)) {
+						$licenseName='PRIVATE';
+					}
+					
+					$wfe->setAttribute('licenseName',$licenseName);
+					$wfe->setAttribute('licenseURI',$licenseURI);
+					
 					# Getting the workflow description
 					my($wdesc)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
-					$wdesc->appendChild($outputDoc->createCDATASection($desc->textContent()));
+					$wdesc->appendChild($outputDoc->createCDATASection($desctext));
 					$wfe->appendChild($wdesc);
 					
 					# Adding links to its graphical representations
@@ -232,6 +248,9 @@ sub getWorkflowInfo($$$$$$) {
 							$wfe->appendChild($outputDoc->importNode($child));
 						}
 					};
+					if($@) {
+						$wfe->appendChild($outputDoc->createComment('Unable to parse examples catalog!'));
+					}
 					
 					# And the snapshots one!
 					eval {
@@ -240,6 +259,9 @@ sub getWorkflowInfo($$$$$$) {
 							$wfe->appendChild($outputDoc->importNode($child));
 						}
 					};
+					if($@) {
+						$wfe->appendChild($outputDoc->createComment('Unable to parse snapshots catalog!'));
+					}
 					
 					$outputDoc->toFile($wfcat);
 					
@@ -274,7 +296,7 @@ sub gatherWorkflowList(;$) {
 	my($isSnapshot)=undef;
 	if(index($id,$WorkflowCommon::ENACTIONPREFIX)==0) {
 		$baseListDir=$WorkflowCommon::VIRTJOBDIR;
-		$listDir=$WorkflowCommon::JOBDIR;
+		$listDir=$IWWEM::Config::JOBDIR;
 		$uuidPrefix=$WorkflowCommon::ENACTIONPREFIX;
 		
 		if($id =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
@@ -282,7 +304,7 @@ sub gatherWorkflowList(;$) {
 		}
 	} elsif($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+)/) {
 		$baseListDir=$WorkflowCommon::VIRTWORKFLOWDIR . '/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
-		$listDir=$WorkflowCommon::WORKFLOWDIR .'/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
+		$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
 		$uuidPrefix=$WorkflowCommon::SNAPSHOTPREFIX . $1 . ':';
 		
 		$isSnapshot=1;
@@ -292,7 +314,7 @@ sub gatherWorkflowList(;$) {
 		}
 	} else {
 		$baseListDir=$WorkflowCommon::VIRTWORKFLOWDIR;
-		$listDir=$WorkflowCommon::WORKFLOWDIR;
+		$listDir=$IWWEM::Config::WORKFLOWDIR;
 		$uuidPrefix='';
 		
 		if($id =~ /^$WorkflowCommon::WORKFLOWPREFIX([^:]+)$/) {
@@ -345,11 +367,14 @@ sub sendWorkflowList($$$\@$$$$;$) {
 	
 	my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
 	my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflowlist');
-	$root->setAttribute('time',LockNLog::getPrintableNow());
-	$root->setAttribute('relURI',$baseListDir);
 	$outputDoc->setDocumentElement($root);
 	
 	$root->appendChild($outputDoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTWM) ));
+	
+	my($domain)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'domain');
+	$domain->setAttribute('time',LockNLog::getPrintableNow());
+	$domain->setAttribute('relURI',$baseListDir);
+	$root->appendChild($domain);
 	
 	# Attached Error Message (if any)
 	if($retval!=0) {
@@ -358,11 +383,11 @@ sub sendWorkflowList($$$\@$$$$;$) {
 		if(defined($retvalmsg)) {
 			$message->appendChild($outputDoc->createCDATASection($retvalmsg));
 		}
-		$root->appendChild($message);
+		$domain->appendChild($message);
 	}
 	
 	foreach my $wf (@{$p_workflowlist}) {
-		$root->appendChild($outputDoc->importNode(getWorkflowInfo($parser,$context,$listDir,$wf,$uuidPrefix,$isSnapshot)));
+		$domain->appendChild($outputDoc->importNode(getWorkflowInfo($parser,$context,$listDir,$wf,$uuidPrefix,$isSnapshot)));
 	}
 	
 	print $query->header(-type=>(defined($dataislandTag)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store',-expires=>'-1');
@@ -383,16 +408,23 @@ sub sendWorkflowList($$$\@$$$$;$) {
 	
 }
 
-sub parseInlineWorkflows($$$$$;$$$) {
-	my($query,$parser,$responsibleMail,$responsibleName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
+sub parseInlineWorkflows($$$$$$$;$$$) {
+	my($query,$parser,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
 	
 	unless(defined($responsibleMail) && $responsibleMail =~ /[^\@]+\@[^\@]+\.[^\@]+/) {
 		return (10,(defined($responsibleMail)?"$responsibleMail is not a valid e-mail address":'Responsible mail has not been set using '.$WorkflowCommon::RESPONSIBLEMAIL.' CGI parameter'),[]);
 	}
 	
+	unless(defined($licenseURI) && length($licenseURI)>0) {
+		$licenseName=$IWWEM::Config::DEFAULT_LICENSE_NAME;
+		$licenseURI=$IWWEM::Config::DEFAULT_LICENSE_URI;
+	} elsif(!defined($licenseName) || $licenseName eq '') {
+		$licenseName='PRIVATE';
+	}
+	
 	my($isCreation)=undef;
 	unless(defined($basedir)) {
-		$basedir=$WorkflowCommon::WORKFLOWDIR;
+		$basedir=$IWWEM::Config::WORKFLOWDIR;
 		$isCreation=1;
 	} else {
 		$doFreezeWorkflowDeps=1;
@@ -480,7 +512,31 @@ sub parseInlineWorkflows($$$$$;$$$) {
 				last;
 			}
 			
-			($retval,$retvalmsg)=patchWorkflow($query,$parser,$context,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps);
+			my($doSaveDoc)=undef;
+			my @desclist = $WFmaindoc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+			if(scalar(@desclist)>0) {
+				my($desc)=$desclist[0];
+				my($desctext)=$desc->textContent();
+
+				# Catching the defined license
+				unless(defined($desctext) && $desctext =~ /^$WorkflowCommon::LICENSESTART\n[ \t]*([^ \n]+)[ \t]+([^\n]+)[ \t]*\n$WorkflowCommon::LICENSESTOP$/ms) {
+					# Stamping the license
+					if(defined($desctext)) {
+						chomp($desctext);
+					} else {
+						$desctext='';
+					}
+					$desctext .= "\n$WorkflowCommon::LICENSESTART\n$licenseURI $licenseName\n$WorkflowCommon::LICENSESTOP\n";
+					while($desc->lastChild) {
+						$desc->removeChild($desc->lastChild);
+					}
+					$desc->appendChild($WFmaindoc->createCDATASection($desctext));
+					$doSaveDoc=1;
+				}
+			}
+			
+			
+			($retval,$retvalmsg)=patchWorkflow($query,$parser,$context,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc);
 			
 			# Erasing all...
 			if($retval!=0) {
@@ -628,7 +684,7 @@ sub patchWorkflow($$$$$$$;$$$) {
 							}
 
 							# And recording the patched dependency
-							my($patchedURI) = $cgibaseuri . $WorkflowCommon::WORKFLOWRELDIR .'/'.$randname .'/'.$reldepname;
+							my($patchedURI) = $cgibaseuri . $IWWEM::Config::WORKFLOWRELDIR .'/'.$randname .'/'.$reldepname;
 
 							# Saving the subworkflow
 							$WFhash{$uritext}=[$newWFdoc,$newWFname,undef,$patchedURI];
@@ -706,7 +762,7 @@ sub patchWorkflow($$$$$$$;$$$) {
 		my($randfilepng) = $randdir . '/' . $WorkflowCommon::PNGFILE;
 		my($randfilepdf) = $randdir . '/' . $WorkflowCommon::PDFFILE;
 		my(@command)=($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser',
-			'-baseDir',$WorkflowCommon::MAVENDIR,
+			'-baseDir',$IWWEM::Config::MAVENDIR,
 			'-workflow',$randfilexml,
 			'-svggraph',$randfilesvg
 		);
@@ -732,7 +788,7 @@ sub patchWorkflow($$$$$$$;$$$) {
 		open(STDERR,'>&',$TMPLOG);
 
 		# The command
-	#	my($comm)=$WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser -baseDir '.$WorkflowCommon::MAVENDIR.' -workflow '.$randfilexml.' -svggraph '.$randfilesvg.' -expandSubWorkflows';
+	#	my($comm)=$WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser -baseDir '.$IWWEM::Config::MAVENDIR.' -workflow '.$randfilexml.' -svggraph '.$randfilesvg.' -expandSubWorkflows';
 
 		$retval=system(@command);
 

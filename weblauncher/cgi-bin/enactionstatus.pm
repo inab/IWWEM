@@ -21,6 +21,7 @@ use File::Path;
 use Socket;
 
 use lib "$FindBin::Bin";
+use IWWEM::Config;
 use WorkflowCommon;
 
 use lib "$FindBin::Bin/LockNLog";
@@ -30,8 +31,8 @@ use LockNLog;
 sub appendInputs($$$);
 sub appendOutputs($$$);
 sub appendIO($$$$);
-sub appendResults($$$;$);
-sub processStep($$$;$);
+sub appendResults($$$;$$);
+sub processStep($$$;$$);
 sub getFreshEnactionReport($$);
 sub getStoredEnactionReport($$);
 sub parseEnactionReport($$;$);
@@ -62,19 +63,19 @@ sub appendIO($$$$) {
 	}
 }
 
-sub processStep($$$;$) {
-	my($basedir,$outputDoc,$es,$enactionReport)=@_;
+sub processStep($$$;$$) {
+	my($basedir,$outputDoc,$es,$enactionReport,$p_stamp)=@_;
 	
 	my($inputsfile)=$basedir . '/' . $WorkflowCommon::INPUTSFILE;
 	my($outputsfile)=$basedir . '/' . $WorkflowCommon::OUTPUTSFILE;
 	my($resultsdir)=$basedir . '/Results';
 	appendInputs($inputsfile,$outputDoc,$es);
 	appendOutputs($outputsfile,$outputDoc,$es);
-	return appendResults($resultsdir,$outputDoc,$es,$enactionReport);
+	return appendResults($resultsdir,$outputDoc,$es,$enactionReport,$p_stamp);
 }
 
-sub appendResults($$$;$) {
-	my($resultsdir,$outputDoc,$parent,$enactionReport)=@_;
+sub appendResults($$$;$$) {
+	my($resultsdir,$outputDoc,$parent,$enactionReport,$p_stamp)=@_;
 	
 	my($failedSth)=undef;
 	
@@ -104,24 +105,31 @@ sub appendResults($$$;$) {
 				foreach my $child ($erentry->childNodes) {
 					if($child->nodeType==XML::LibXML::XML_ELEMENT_NODE) {
 						my($name)=$child->localName();
+						my($val)=undef;
 						if($name eq 'ProcessScheduled') {
-							$sched=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
+							$val=str2time($child->getAttribute('TimeStamp'));
+							$sched=LockNLog::getPrintableDate($val);
 						} elsif($name eq 'Invoking') {
-							$run=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
+							$val=str2time($child->getAttribute('TimeStamp'));
+							$run=LockNLog::getPrintableDate($val);
 						} elsif($name eq 'InvokingWithIteration') {
-							$run=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
+							$val=str2time($child->getAttribute('TimeStamp'));
+							$run=LockNLog::getPrintableDate($val);
 							$runnumber=$child->getAttribute('IterationNumber');
 							$runmax=$child->getAttribute('IterationTotal');
 						} elsif($name eq 'ProcessComplete') {
-							$stop=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
+							$val=str2time($child->getAttribute('TimeStamp'));
+							$stop=LockNLog::getPrintableDate($val);
 							$state='finished';
 						} elsif($name eq 'ServiceFailure') {
-							$stop=LockNLog::getPrintableDate(str2time($child->getAttribute('TimeStamp')));
+							$val=str2time($child->getAttribute('TimeStamp'));
+							$stop=LockNLog::getPrintableDate($val);
 							$state='error';
 							$failedSth=1;
 						} elsif($name eq 'ServiceError') {
 							push(@errreport,[$child->getAttribute('Message'),$child->textContent()]);
 						}
+						${$p_stamp}=$val  unless(!defined($val) || (defined(${$p_stamp}) && ${$p_stamp}>=$val));
 					}
 				}
 				unless(defined($state)) {
@@ -272,7 +280,7 @@ sub getStoredEnactionReport($$) {
 			$rep .= $line;
 		}
 		close($ER);
-		return parseEnactionReport($outputDoc,$rep);
+		return parseEnactionReport($outputDoc,$rep,undef);
 	} else {
 		return undef;
 	}
@@ -350,7 +358,7 @@ sub sendEnactionReport($\@;$$$$$) {
 		} else {
 			# For completion, we handle qualified job Ids
 			$jobId =~ s/^$WorkflowCommon::ENACTIONPREFIX//;
-			$jobdir=$WorkflowCommon::JOBDIR . '/' .$jobId;
+			$jobdir=$IWWEM::Config::JOBDIR . '/' .$jobId;
 			$origJobId=$WorkflowCommon::ENACTIONPREFIX.$jobId;
 		}
 	
@@ -426,11 +434,16 @@ sub sendEnactionReport($\@;$$$$$) {
 				}
 			} else {
 				# Getting static info
-				eval {
-					my($staticdoc)=$parser->parse_file($jobdir.'/'.$WorkflowCommon::STATICSTATUSFILE);
-					$es=$outputDoc->importNode($staticdoc->documentElement());
-					$doGen=undef;
-				};
+				my($staticfile)=$jobdir.'/'.$WorkflowCommon::STATICSTATUSFILE;
+				my(@stat_staticfile)=stat($staticfile);
+				my(@stat_selffile)=stat($FindBin::Bin .'/enactionstatus.pm');
+				if(scalar(@stat_staticfile)>0 && $stat_staticfile[9]>$stat_selffile[9]) {
+					eval {
+						my($staticdoc)=$parser->parse_file($staticfile);
+						$es=$outputDoc->importNode($staticdoc->documentElement());
+						$doGen=undef;
+					};
+				}
 				
 				if(defined($doGen)) {
 					my($ppidfile)=$jobdir . '/PPID';
@@ -523,8 +536,11 @@ sub sendEnactionReport($\@;$$$$$) {
 					
 					# Now including subinformation...
 					if(defined($includeSubs)) {
-						my($failedSth)=processStep($jobdir,$outputDoc,$es,(defined($enactionReport) && $enactionReport->localname eq 'enactionReport')?$enactionReport:undef);
+						my($estamp)=undef;
+						my($failedSth)=processStep($jobdir,$outputDoc,$es,(defined($enactionReport) && $enactionReport->localname eq 'enactionReport')?$enactionReport:undef,\$estamp);
 						$state='dubious'  if($state eq 'finished' && defined($failedSth));
+						
+						$es->setAttribute('time',LockNLog::getPrintableDate($estamp))  if(defined($estamp));
 					}
 				}
 				# Status report

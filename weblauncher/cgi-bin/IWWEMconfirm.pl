@@ -18,6 +18,7 @@ use FindBin;
 use XML::LibXML;
 
 use lib "$FindBin::Bin";
+use IWWEM::Config;
 use WorkflowCommon;
 
 use lib "$FindBin::Bin/LockNLog";
@@ -68,7 +69,7 @@ foreach my $param ($query->param()) {
 
 # Second, do it!
 
-my($codedir)=$WorkflowCommon::CONFIRMDIR.'/'.$code;
+my($codedir)=$IWWEM::Config::CONFIRMDIR.'/'.$code;
 my($commandfile)=$codedir.'/'.$WorkflowCommon::COMMANDFILE;
 my($command)=undef;
 if($retval eq '0' && !$query->cgi_error() && defined($code) && index($code,'/')==-1 && -d $codedir && -r $commandfile) {
@@ -123,7 +124,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				my($snapId)=$2;
 				$kind='snapshot';
 				eval {
-					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 					
 					my($transsnapId)=WorkflowCommon::patchXMLString($snapId);
@@ -135,13 +136,13 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 					}
 					$catdoc->toFile($catfile);
 				};
-				rmtree($WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$snapId);
+				rmtree($IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$snapId);
 			} elsif($irelpath =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				my($wfexam)=$1;
 				my($examId)=$2;
 				$kind='example';
 				eval {
-					my($catfile)=$WorkflowCommon::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 					
 					my($transexamId)=WorkflowCommon::patchXMLString($examId);
@@ -153,16 +154,16 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 					}
 					$catdoc->toFile($catfile);
 				};
-				unlink($WorkflowCommon::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$examId.'.xml');
+				unlink($IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$examId.'.xml');
 			} else {
 				# Workflows and enactions
 				my($jobdir)=undef;
 				
 				if($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
-					$jobdir=$WorkflowCommon::JOBDIR.'/'.$1;
+					$jobdir=$IWWEM::Config::JOBDIR.'/'.$1;
 					$kind='enaction';
 				} else {
-					$jobdir=$WorkflowCommon::WORKFLOWDIR.'/'.$irelpath;
+					$jobdir=$IWWEM::Config::WORKFLOWDIR.'/'.$irelpath;
 					$kind='workflow';
 					
 					# Let's gather information about what is going to be destroyed
@@ -258,7 +259,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				my($snapId)=$2;
 				$kind='snapshot';
 				
-				my($workflowdir)=$WorkflowCommon::WORKFLOWDIR.'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR;
+				my($workflowdir)=$IWWEM::Config::WORKFLOWDIR.'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR;
 				move($codedir.'/'.$snapId,$workflowdir.'/'.$snapId);
 				
 				eval {
@@ -290,7 +291,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				my($examId)=$2;
 				$kind='example';
 				
-				my($workflowdir)=$WorkflowCommon::WORKFLOWDIR.'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR;
+				my($workflowdir)=$IWWEM::Config::WORKFLOWDIR.'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR;
 				move($codedir.'/'.$examId.'.xml',$workflowdir);
 				
 				eval {
@@ -323,11 +324,11 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				
 				if($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
 					$jobdir.='/'.$1;
-					$destdir=$WorkflowCommon::JOBDIR.'/'.$1;
+					$destdir=$IWWEM::Config::JOBDIR.'/'.$1;
 					$kind='enaction';
 				} else {
 					$jobdir.='/'.$irelpath;
-					$destdir=$WorkflowCommon::WORKFLOWDIR.'/'.$irelpath;
+					$destdir=$IWWEM::Config::WORKFLOWDIR.'/'.$irelpath;
 					$kind='workflow';
 				}
 				
