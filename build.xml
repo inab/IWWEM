@@ -1,5 +1,24 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
+<!--
+	This file is part of IWWE&M, the Interactive Web Workflow Enactor & Manager.
+
+	IWWE&M is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	IWWE&M is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
+
+	Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
+	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
+-->
 <project basedir="." default="check" name="inb-workflow-launcher-system">
 	<description>INB Web Workflow Enactor by jmfernandez Ant script $Id$</description>
 	
@@ -139,7 +158,7 @@
 			username="${deploy.ssh.user}"
 			keyfile="${user.home}/.ssh/id_dsa"
 			passphrase=""
-			command="cd '${deploy.ssh.dir}' &amp;&amp; chmod -v go+w cgi-bin/Storage/workflows cgi-bin/Storage/jobs cgi-bin/Storage/.pending cgi-bin/logs cgi-bin/inb-maven"
+			command="cd '${deploy.ssh.dir}' &amp;&amp; chmod -v go+w cgi-bin/Storage/workflows cgi-bin/Storage/jobs cgi-bin/Storage/.pending cgi-bin/Storage/logs cgi-bin/inb-maven"
 		/>
 		<sshexec
 			host="${deploy.host}"

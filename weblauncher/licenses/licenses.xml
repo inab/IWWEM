@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!--
+	This file is part of IWWE&M, the Interactive Web Workflow Enactor & Manager.
+
+	IWWE&M is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	IWWE&M is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
+
+	Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
+	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
+-->
 <licenses xmlns="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/licenses">
 	<license name="CC Attribution-ShareAlike 3.0"
 		abbrevURI="http://creativecommons.org/licenses/by-sa/3.0/"
@@ -42,5 +61,11 @@
 	>
 		<logo mime="image/png" width="88" height="31" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nc.eu.png">by-nc.eu_3.0.png</logo>
 		<logo mime="image/svg+xml" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by-nc.eu.svg"></logo>
+	</license>
+	<license name="AGPLv3"
+		uri="http://www.gnu.org/licenses/agpl.html"
+	>
+		<logo mime="image/png" uri="http://www.gnu.org/graphics/agplv3-88x31.png">agplv3-88x31.png</logo>
+		<logo mime="image/svg+xml" uri="http://www.gnu.org/graphics/lgpl-agpl-v3-logos.svg"></logo>
 	</license>
 </licenses>

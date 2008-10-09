@@ -3,6 +3,7 @@
 
 <!DOCTYPE rdf:RDF [
     <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY dc "http://purl.org/dc/elements/1.1/" >
     <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
     <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
     <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
@@ -17,11 +18,50 @@
      xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:iwwem="http://ubio.bioinfo.cnio.es/biotools/IWWEM/iwwem.owl#"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:jtarraga="&iwwem;jtarraga@"
      xmlns:owl="http://www.w3.org/2002/07/owl#">
-    <owl:Ontology rdf:about=""/>
+    <owl:Ontology rdf:about="">
+        <dc:contributor rdf:datatype="&xsd;string"
+            >Jos&#233; Mar&#237;a Fern&#225;ndez Gonz&#225;lez</dc:contributor>
+        <dc:rights rdf:datatype="&xsd;string"
+            >This file is part of IWWE&amp;M, the Interactive Web Workflow Enactor &amp; Manager.
+
+IWWE&amp;M is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+IWWE&amp;M is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with IWWE&amp;M.  If not, see &lt;http://www.gnu.org/licenses/agpl.txt&gt;.
+
+Original IWWE&amp;M concept, design and coding done by Jos&#233; Mar&#237;a Fern&#225;ndez Gonz&#225;lez, INB (C) 2008.
+Source code of IWWE&amp;M is available at http://trac.bioinfo.cnio.es/trac/iwwem
+</dc:rights>
+        <dc:source rdf:datatype="&xsd;anyURI"
+            >http://trac.bioinfo.cnio.es/trac/iwwem</dc:source>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <owl:AnnotationProperty rdf:about="&dc;source"/>
+    <owl:AnnotationProperty rdf:about="&dc;rights"/>
+    <owl:AnnotationProperty rdf:about="&dc;contributor"/>
     
 
 
@@ -534,13 +574,6 @@ associated description about what it is supposed to generate show when an enacti
      -->
 
     <rdf:Description>
-        <rdf:type rdf:resource="&owl;AllDifferent"/>
-        <owl:distinctMembers rdf:parseType="Collection">
-            <rdf:Description rdf:about="#bd7c0e35-8749-45d9-9340-50f40d72de2f"/>
-            <rdf:Description rdf:about="#jtarraga@cipf.es"/>
-        </owl:distinctMembers>
-    </rdf:Description>
-    <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
         <owl:members rdf:parseType="Collection">
             <rdf:Description rdf:about="#Intel"/>
@@ -549,6 +582,13 @@ associated description about what it is supposed to generate show when an enacti
             <rdf:Description rdf:about="#WorkflowRepository"/>
             <rdf:Description rdf:about="#WorkflowRepresentation"/>
         </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="&owl;AllDifferent"/>
+        <owl:distinctMembers rdf:parseType="Collection">
+            <rdf:Description rdf:about="#bd7c0e35-8749-45d9-9340-50f40d72de2f"/>
+            <rdf:Description rdf:about="#jtarraga@cipf.es"/>
+        </owl:distinctMembers>
     </rdf:Description>
     <rdf:Description>
         <rdf:type rdf:resource="&owl;AllDisjointClasses"/>

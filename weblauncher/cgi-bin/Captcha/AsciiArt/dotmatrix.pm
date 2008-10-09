@@ -1,5 +1,28 @@
 #!/usr/bin/perl -W
 
+# $Id$
+# This code is based on work from CAPTCHA Pack
+# from Drupal
+# http://drupal.org/project/captcha_pack
+#
+# This file is part of IWWE&M, the Interactive Web Workflow Enactor & Manager.
+# 
+# IWWE&M is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# IWWE&M is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+# 
+# You should have received a copy of the GNU Affero General Public License
+# along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
+# 
+# Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
+# Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
+
 use strict;
 
 package Captcha::AsciiArt;
@@ -7,7 +30,7 @@ package Captcha::AsciiArt;
 use vars qw(%FONT);
 
 
-# $Id: ascii_art_captcha_font_dotmatrix.inc,v 1.2 2007/09/18 21:13:22 soxofaan Exp $
+# $Id$
 # Font definition based on figlet font "dotmatrix" (http://www.figlet.org/)
 # as distributed by pyfiglet (http://sourceforge.net/projects/pyfiglet/)
 
