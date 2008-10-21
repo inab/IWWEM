@@ -1,0 +1,113 @@
+@charset "UTF-8";
+
+/*
+	$Id$
+	docs.css
+	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
+	Author: José María Fernández González (C) 2007-2008
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+	
+	This file is part of IWWE&M, the Interactive Web Workflow Enactor & Manager.
+
+	IWWE&M is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	IWWE&M is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
+
+	Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
+	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
+*/
+
+h1 {
+	font-size:32px;
+}
+
+img {
+	vertical-align:middle;
+	border-width:0;
+}
+
+/* Borrowed from intellinuxwireless */
+
+a[href] {
+        padding-right: 0px;
+        background: none;
+}
+
+a[href ^="ftp://"] {
+        background: url('link.png') center right no-repeat;
+        padding-right: 13px;
+}
+
+a[href ^="http://"] {
+        background: url('link.png') center right no-repeat;
+        padding-right: 13px;
+}
+
+a[href ^="http://ubio.bioinfo.cnio.es"] , a[href ^="http://www.inab.org"] {
+        padding-right: 0px;
+        background: none;
+}
+
+/* End of borrowing */
+
+.frontend {
+	font-weight: bold;
+	font-family: Arial, Helvetica, Sans-Serif;
+}
+
+.parameter {
+	color: green;
+	font-family: "Lucida Console","Courier New", Courier;
+}
+
+.value {
+	color: blue;
+	font-weight: bold;
+}
+
+.svndate {
+	text-align:left;
+	font-style:italic;
+	float:left;
+}
+
+.svnrev {
+	text-align:right;
+	font-style:italic;
+	float:right;
+}
+
+.doctitle {
+	clear:both;
+	text-align:center;
+}
+
+.ccimg {
+	float:left;
+	margin-right: 10px;
+}
+
+.threetable {
+	float:left;
+	text-align:center;
+	width:33%;
+}
+
+.invisiblesep {
+	clear:both;
+}
+
+li.ver {
+	text-align:left;
+}

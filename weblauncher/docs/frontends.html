@@ -1,26 +1,11 @@
 <html>
 <head>
 	<title>INB IWWE&amp;M v0.7.0 frontends call parameters ($Rev$, $Date$)</title>
-	<style type="text/css">
-	.frontend {
-		font-weight: bold;
-		font-family: Arial, Helvetica, Sans-Serif;
-	}
-
-	.parameter {
-		color: green;
-		font-family: "Lucida Console","Courier New", Courier;
-	}
-
-	.value {
-		color: blue;
-		font-weight: bold;
-	}
-	</style>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="style/docs.css">
 	<!--
-		$Id: workflowmanager.html 1483 2008-10-08 20:32:12Z jmfernandez $
-		workflowmanager.html
+		$Id$
+		frontends.html
 		from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 		Author: José María Fernández González (C) 2007-2008
 		Institutions:
@@ -60,9 +45,9 @@
 	<link rel="icon" href="../style/IWWEM-favicon.ico" type="image/vnd.microsoft.icon">
 </head>
 <body>
-<div style="text-align:left;font-style:italic;float:left;">$Date$</div>
-<div style="text-align:right;font-style:italic;float:right;">$Rev$</div>
-<div style="clear:both;text-align:center;"><h1 style="font-size:32px;"><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a> v0.7.0 frontends</h1></div>
+<div class="svndate">$Date$</div>
+<div class="svnrev">$Rev$</div>
+<div class="doctitle"><h1><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" alt="INB" title="INB"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a> v0.7.0 frontends</h1></div>
 Currently, IWWE&amp;M has 6 frontends, used by AJAX GUIs:
 <ul>
 <li><span class="frontend"><a href="#workflowmanager">workflowmanager</a></span></li>
@@ -90,7 +75,7 @@ For instance:
 </ul>
 <hr>
 
-<div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend"><a name="workflowmanager">workflowmanager</a></span> frontend documentation and call parameters</h2></div>
+<div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" alt="INB"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend"><a name="workflowmanager">workflowmanager</a></span> frontend documentation and call parameters</h2></div>
 
 <div align="justify">
 <p>The <span class="frontend">workflowmanager</span> frontend is responsible of all the workflow repository management tasks,
@@ -143,7 +128,7 @@ by an <tt>xml</tt> tag (for Internet Explorer), and when parameter is <span clas
 
 <hr>
 
-<div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <a name="enactionlauncher"><span class="frontend">enactionlauncher</span></a> frontend documentation and call parameters</h2></div>
+<div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" alt="INB" title="INB"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <a name="enactionlauncher"><span class="frontend">enactionlauncher</span></a> frontend documentation and call parameters</h2></div>
 
 <div align="justify">
 <p>The <span class="frontend">enactionlauncher</span> frontend module is used to start an enaction process over a given input workflow or a previously stored one. As any program based on <a href="http://taverna.sourceforge.net/">Taverna</a> core uses lots of resources for any enaction process, <span class="frontend">enactionlauncher</span> must restrict the number of concurrent enaction instances, queuing further queries until an enaction slot is available for each one.</p>
@@ -191,7 +176,7 @@ An e-mail is sent to the responsible person when enaction is just starting and w
 </ul>
 
 <hr>
-<div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <a name="enactionstatus"><span class="frontend">enactionstatus</span></a> frontend documentation and call parameters</h2></div>
+<div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" alt="INB" title="INB"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <a name="enactionstatus"><span class="frontend">enactionstatus</span></a> frontend documentation and call parameters</h2></div>
 
 <div align="justify">
 <p>The frontend module <span class="frontend">enactionstatus</span> reports the status of an in-course or finished enaction.
@@ -229,7 +214,7 @@ Parameter <span class="parameter">responsibleName</span> can be set to the name 
 </ul>
 
 <hr>
-<div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <a name="IWWEMproxy"><span class="frontend">IWWEMproxy</span></a> frontend documentation and call parameters</h2></div>
+<div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" alt="INB" title="INB"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <a name="IWWEMproxy"><span class="frontend">IWWEMproxy</span></a> frontend documentation and call parameters</h2></div>
 
 <div align="justify">
 <p>This frontend module was created to overcome some of the limitations of current browsers. Enaction process launched with <span class="frontend"><a href="#enactionlauncher">enactionlauncher</a></span> save both inputs and ouputs of the whole process, intermediate steps and iterations in Baclava XML format. <a href="../enactionviewer.html">AJAX GUI Enaction Viewer</a> allows the end user to browse this information, but some data viewers it uses are only able to handle information coming from an URL. <span class="frontend">IWWEMproxy</span> is responsible of decoding, extracting and streaming this information under demand. Data bundles can be accessed in listing or raw modes when <span class="parameter">bundle64</span> and <span class="parameter">IOPath</span> parameters are unset. Data bundles listing shows the backbone of the data bundle (i.e. its tree structure), meanwhile raw mode access gives full access to the raw storage format (Baclava).
@@ -285,7 +270,7 @@ you must substitute occurrences of '<span class="value">#</span>' with '<span cl
 Patterns used in <span class="parameter">IOPath</span> parameter are stored in the IWWE&amp;M server in an XML document, which follows the XML Schema <a href="IWWEM-patterns.xsd">IWWEM-patterns.xsd</a> (<a href="IWWEM-patterns.xsd.html">documentation</a>). Currently defined global patterns are available at <a href="../etc/EVpatterns.xml">EVpatterns.xml</a>
 
 <hr>
-<a name="IWWEMconfirm"><div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend">IWWEMconfirm</span> frontend documentation and call parameters</h2></div></a>
+<a name="IWWEMconfirm"><div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" alt="INB" title="INB"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend">IWWEMconfirm</span> frontend documentation and call parameters</h2></div></a>
 
 <div align="justify">
 <p>This frontend module is used as an operations confirmation proxy. All erasing operations requested using <span class="frontend"><a href="#workflowmanager">workflowmanager</a></span> (workflows, examples, snapshots and enactions),
@@ -300,7 +285,7 @@ and the addition operations from <span class="frontend"><a href="#workflowmanage
 </ul>
 
 <hr>
-<a name="IWWEMfs"><div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend">IWWEMfs</span> frontend documentation and call parameters</h2></div></a>
+<a name="IWWEMfs"><div align="center"><h2><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" alt="INB" title="INB"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a>: <span class="frontend">IWWEMfs</span> frontend documentation and call parameters</h2></div></a>
 
 <div align="justify">
 <p>This frontend module was created to give path-like access to almost all the information stored and provided by IWWE&amp;M server.
@@ -337,6 +322,6 @@ When requested Input/Output information is in raw mode, this parameter switches 
 <br>(listing of available outputs from iteration <span class="value">0000</span> from enaction step <span class="value">extractSymbols</span>)</li>
 </ul>
 <hr>
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/"><img alt="Creative Commons License" style="border-width:0;vertical-align:middle;float:left;margin-right: 10px;" src="http://i.creativecommons.org/l/by-sa/3.0/88x31.png"></a><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type" style="font-style:italic;"> "INB IWWE&amp;M frontends call parameters"</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://ubio.bioinfo.cnio.es/biotools/IWWEM/workflowmanager.html" property="cc:attributionName" rel="cc:attributionURL">Jos&#233; Mar&#237;a Fern&#225;ndez Gonz&#225;lez</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0 Unported License</a>.<br />Based on a work stored at <a xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://trac.bioinfo.cnio.es/trc/iwwem" rel="dc:source">IWWE&amp;M Trac Server</a>.
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/"><img alt="Creative Commons License" class="ccimg" src="http://i.creativecommons.org/l/by-sa/3.0/88x31.png"></a><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type" style="font-style:italic;"> "INB IWWE&amp;M frontends call parameters"</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://ubio.bioinfo.cnio.es/biotools/IWWEM/workflowmanager.html" property="cc:attributionName" rel="cc:attributionURL">Jos&#233; Mar&#237;a Fern&#225;ndez Gonz&#225;lez</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0 Unported License</a>.<br />Based on a work stored at <a xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://trac.bioinfo.cnio.es/trc/iwwem" rel="dc:source">IWWE&amp;M Trac Server</a>.
 </body>
 </html>

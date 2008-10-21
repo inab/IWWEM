@@ -1,0 +1,82 @@
+<html>
+<head>
+	<title>INB IWWE&amp;M v0.7.0 workflow versioning scheme ($Rev$, $Date$)</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="style/docs.css">
+	<!--
+		$Id$
+		versioning.html
+		from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
+		Author: José María Fernández González (C) 2007-2008
+		Institutions:
+		*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+		*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+
+		This documentation is part of IWWE&M, the Interactive Web Workflow Enactor & Manager.
+		As it is documentation, it is under a double license:
+		
+		========================== First license block =========================
+		IWWE&M is free software: you can redistribute it and/or modify
+		it under the terms of the GNU Affero General Public License as published by
+		the Free Software Foundation, either version 3 of the License, or
+		(at your option) any later version.
+
+		IWWE&M is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU Affero General Public License for more details.
+
+		You should have received a copy of the GNU Affero General Public License
+		along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
+
+		Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
+		Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
+		======================= End of First license block =====================
+
+		========================= Second license block =========================
+
+		"INB IWWE&M frontends call parameters" by Jos� Mar�a Fern�ndez Gonz�lez is
+		licensed under a Creative Commons Attribution-Share Alike 3.0 Unported License
+		<http://creativecommons.org/licenses/by-sa/3.0/>. Based on
+		a work at http://trac.bioinfo.cnio.es/trac/iwwem
+		===================== End of Second license block ======================
+	-->
+	<link rel="shortcut icon" href="../style/IWWEM-favicon.ico" type="image/vnd.microsoft.icon">
+	<link rel="icon" href="../style/IWWEM-favicon.ico" type="image/vnd.microsoft.icon">
+</head>
+<body>
+<div class="svndate">$Date$</div>
+<div class="svnrev">$Rev$</div>
+<div class="doctitle"><h1><a href="http://www.inab.org/"><img src="../style/logo-inb-small.png" alt="INB" title="INB"></a> <a href="http://ubio.bioinfo.cnio.es/biotools/IWWEM">IWWE&amp;M</a> v0.7.0 workflow versioning scheme</h1></div>
+One of the main needs on future workflow development environments will be a workflow versioning mechanism, currently unsupported by tools like <a href="http://tarverna.sourceforge.net/">Taverna</a>. As IWWE&amp;M will host in the near future workflows for different workflow engines, this mechanism should be integrated into the workflow repository itself, as it is going to be taken as the reference point for those hosted workflows.
+<p>The workflow versioning mechanism used by IWWE&amp;M is based on <i>de facto</i> software versioning style. The system is based on a 3 numbers mechanism, separated by dots, and the change of those numbers is strictly managed by IWWE&amp;M. This is the meaning of each one, with an example of <span class="value">version 2.1.3</span>:
+<div class="threetable">
+	<h1 class="value">2.</h1>
+	<ul>
+		<li class="ver">The workflow has been updated in an incompatible way: some input or output has disappeared or changed its name.</li>
+		<li class="ver">Workflow responsible has requested this major version.</li>
+	</ul>
+</div>
+<div class="threetable">
+	<h1 class="value">1.</h1>
+	<ul>
+		<li class="ver">MIME types associated to some input or output have been changed</li>
+		<li class="ver">The workflow distribution license has been changed</li>
+		<li class="ver">The workflow responsible, which is an IWWE&amp;M concept, has changed (different from workflow author)</li>
+		<li class="ver">The workflow has been updated in an compatible way: the workflow keeps at least the same inputs and outputs.</li>
+	</ul>
+</div>
+<div class="threetable">
+	<h1 class="value">3</h1>
+	<ul>
+		<li class="ver">There has been one or more changes in workflow input or output descriptions.</li>
+		<li class="ver">The workflow author has changed (different from workflow responsible, an IWWE&amp;M concept)</li>
+	</ul>
+</div>
+<div class="invisiblesep"></div>
+<p>IWWE&amp;M allows creating a new version of the same or upper class for a workflow when it is the newest one from its branch. For instance, if workflow <span class="param">A</span> has versions <span class="value">1.0.0</span> and <span class="value">1.0.1</span>, then you cannot create a new version of the workflow version <span class="value">1.0.0</span> unless it is a major compatible change, so it would be <span class="value">1.1.0</span>, or a major incompatible change, so it would be <span class="value">2.0.0</span>. The responsible is only capable to generate a <span class="value">1.0.2</span> version from <span class="value">1.0.1</span> one.
+<p>Also, each workflow version's reponsible can consider that the workflow life cycle has finished, so IWWE&amp;M has considered a new workflow flag called <i>deprecated</i>, which warns the potential users about its lack of usability (perhaps due the disappear of a service used by the workflow).
+<hr>
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/"><img alt="Creative Commons License" class="ccimg" src="http://i.creativecommons.org/l/by-sa/3.0/88x31.png"></a><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type" style="font-style:italic;"> "INB IWWE&amp;M frontends call parameters"</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://ubio.bioinfo.cnio.es/biotools/IWWEM/workflowmanager.html" property="cc:attributionName" rel="cc:attributionURL">Jos&#233; Mar&#237;a Fern&#225;ndez Gonz&#225;lez</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-Share Alike 3.0 Unported License</a>.<br />Based on a work stored at <a xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://trac.bioinfo.cnio.es/trc/iwwem" rel="dc:source">IWWE&amp;M Trac Server</a>.
+</body>
+</html>
