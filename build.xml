@@ -19,17 +19,15 @@
 	Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
 	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 -->
-<project basedir="." default="check" name="inb-workflow-launcher-system">
+<project basedir="." default="compile" name="inb-workflow-launcher-system">
 	<description>INB Web Workflow Enactor by jmfernandez Ant script $Id$</description>
 	
 	<!--
 		Configuration properties
 	-->
-	<property name="deploy.host" value="localhost" />
-	<property name="deploy.ssh.user" value="jmfernandez" />
-	<property name="deploy.ssh.dir" value="/home/jmfernandez/public_html/IWWEM-new" />
-	
 	<dirname property="iwwem.antfile.dir" file="${ant.file}"/>
+	<property file="${iwwem.antfile.dir}/build.properties"/>
+	
 	<dirname property="iwwem.antfile.dir.parent" file="${iwwem.antfile.dir}"/>
 	<property name="iwwem.weblauncher.src" location="weblauncher" />
 	<property name="maven.settings.local" location="" />
@@ -51,6 +49,13 @@
 	<target name="checkout-local-biomoby" depends="init">
 		<delete dir="${taverna.biomoby.src}" includeemptydirs="true">
 		</delete>
+		<cvs cvsRoot=":pserver:anonymous@taverna.cvs.sourceforge.net:/cvsroot/taverna"
+			compressionlevel="3"
+			package="taverna1.0/taverna-biomoby"
+			dest="${taverna.biomoby.src}"
+			failonerror="true"
+		/>
+		<!--
 		<exec executable="cvs" failonerror="true">
 			<arg value="-z3"/>
 			<arg value="-d:pserver:anonymous@taverna.cvs.sourceforge.net:/cvsroot/taverna"/>
@@ -59,13 +64,22 @@
 			<arg value="${taverna.biomoby.src}"/>
 			<arg value="taverna1.0/taverna-biomoby"/>
 		</exec>
+		-->
 	</target>
 	
 	<target name="prepare-local-biomoby" depends="init">
+		<cvs
+			dest="${taverna.biomoby.src}"
+			command="update"
+			compressionlevel="3"
+			failonerror="true"
+		/>
+		<!--
 		<exec dir="${taverna.biomoby.src}" executable="cvs" failonerror="true">
 			<arg value="-z3"/>
 			<arg value="update"/>
 		</exec>
+		-->
 		
 		<!--
 		<delete dir="${taverna.biomoby.src}/src/test" includeemptydirs="true">
@@ -85,7 +99,7 @@
 		</exec>
 	</target>
 	
-	<target depends="init" description="Compilation of Java/Maven backend modules" name="maven-compile">
+	<target name="compile.backends" depends="init" description="Compilation of Java/Maven backend modules">
 		<exec executable="mvn" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
 			<arg value="-s"/>
@@ -95,7 +109,7 @@
 		</exec>
 	</target>
 	
-	<target depends="init" description="Checking of Perl frontend modules" name="perl-check">
+	<target name="compile.frontends" depends="init" description="Checking of Perl frontend modules">
 		<apply executable="perl" dir="${iwwem.weblauncher.src}/cgi-bin" failonerror="true">
 			<arg value="-c"/>
 			<arg value="-I${iwwem.weblauncher.src}/cgi-bin/LockNLog"/>
@@ -106,18 +120,18 @@
 		</apply>
 	</target>
 	
-	<target depends="perl-check,maven-compile" description="It checks the whole project's modules" name="check">
+	<target name="compile" depends="compile.backends,compile.frontends" description="It compiles/checks the whole project's modules">
 	</target>
 	
-	<target depends="maven-compile" description="It deploys only the Java backend" name="backdeploy">
+	<target name="deploy.backends" depends="compile.backends" description="It deploys only the backends">
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
-			keyfile="${user.home}/.ssh/id_dsa"
-			passphrase=""
+			keyfile="${deploy.ssh.keyfile}"
+			passphrase="${deploy.ssh.passphrase}"
 			command="mkdir -v -p '${deploy.ssh.dir}/cgi-bin'"
 		/>
-		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}/cgi-bin" keyfile="${user.home}/.ssh/id_dsa" passphrase="">
+		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}/cgi-bin" keyfile="${deploy.ssh.keyfile}" passphrase="${deploy.ssh.passphrase}">
 			<fileset dir="${iwwem.weblauncher.src}/cgi-bin">
 				<include name="inb-maven"/>
 				<include name="inb-maven/**"/>
@@ -130,25 +144,36 @@
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
-			keyfile="${user.home}/.ssh/id_dsa"
-			passphrase=""
+			keyfile="${deploy.ssh.keyfile}"
+			passphrase="${deploy.ssh.passphrase}"
+			command="cd '${deploy.ssh.dir}'/cgi-bin &amp;&amp; chmod -v go+w inb-maven"
+		/>
+		<sshexec
+			host="${deploy.host}"
+			username="${deploy.ssh.user}"
+			keyfile="${deploy.ssh.keyfile}"
+			passphrase="${deploy.ssh.passphrase}"
 			command="cd '${deploy.ssh.dir}'/cgi-bin/INBWorkflowLauncher/bin &amp;&amp; chmod -v ugo+x inbworkflowparser inbworkflowlauncher patchDotSVG"
 		/>
 	</target>
 	
-	<target depends="check,rawdeploy" description="It deploys the whole project to the destination repository" name="deploy">
+	<target name="deploy" depends="deploy.backends,deploy.frontends" description="It deploys the whole project to the destination repository">
 	</target>
 
-	<target description="It deploys the whole project to the destination repository" name="rawdeploy">
+	<target name="deploy.frontends" depends="compile.frontends" description="It deploys the whole project frontends to the destination repository">
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
-			keyfile="${user.home}/.ssh/id_dsa"
-			passphrase=""
+			keyfile="${deploy.ssh.keyfile}"
+			passphrase="${deploy.ssh.passphrase}"
 			command="mkdir -v -p '${deploy.ssh.dir}'"
 		/>
-		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}" keyfile="${user.home}/.ssh/id_dsa" passphrase="">
+		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}" keyfile="${deploy.ssh.keyfile}" passphrase="${deploy.ssh.passphrase}">
 			<fileset dir="${iwwem.weblauncher.src}">
+				<exclude name="cgi-bin/inb-maven"/>
+				<exclude name="cgi-bin/inb-maven/**"/>
+				<exclude name="cgi-bin/INBWorkflowLauncher"/>
+				<exclude name="cgi-bin/INBWorkflowLauncher/**"/>
 				<exclude name="**/.svn"/>
 				<exclude name="**/.svn/**"/>
 			</fileset>
@@ -156,36 +181,39 @@
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
-			keyfile="${user.home}/.ssh/id_dsa"
-			passphrase=""
-			command="cd '${deploy.ssh.dir}' &amp;&amp; chmod -v go+w cgi-bin/Storage/workflows cgi-bin/Storage/jobs cgi-bin/Storage/.pending cgi-bin/Storage/logs cgi-bin/inb-maven"
+			keyfile="${deploy.ssh.keyfile}"
+			passphrase="${deploy.ssh.passphrase}"
+			command="cd '${deploy.ssh.dir}'/cgi-bin/Storage &amp;&amp; chmod -v go+w workflows jobs .pending logs"
 		/>
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
-			keyfile="${user.home}/.ssh/id_dsa"
-			passphrase=""
-			command="cd '${deploy.ssh.dir}'/cgi-bin &amp;&amp; chmod -v ugo+x workflowmanager enactionlauncher enactionstatus IWWEMproxy IWWEMfs IWWEMconfirm INBWorkflowLauncher/bin/inbworkflow* INBWorkflowLauncher/bin/patchDotSVG"
+			keyfile="${deploy.ssh.keyfile}"
+			passphrase="${deploy.ssh.passphrase}"
+			command="cd '${deploy.ssh.dir}'/cgi-bin &amp;&amp; chmod -v ugo+x workflowmanager enactionlauncher enactionstatus IWWEMproxy IWWEMfs IWWEMconfirm"
 		/>
 	</target>
-	<target depends="deploy" description="Fresh regeneration of Maven repository" name="freshdeploy">
+	
+	<target name="freshdeploy" depends="deploy" description="Fresh installation of IWWE&amp;M (it avoids first run stalls)">
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
-			keyfile="${user.home}/.ssh/id_dsa"
-			passphrase=""
+			keyfile="${deploy.ssh.keyfile}"
+			passphrase="${deploy.ssh.passphrase}"
 			command="${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowparser -baseDir ${deploy.ssh.dir}/cgi-bin/inb-maven -onlyUpdateBaseDir"
 		/>
+		<!--
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
-			keyfile="${user.home}/.ssh/id_dsa"
-			passphrase=""
+			keyfile="${deploy.ssh.keyfile}"
+			passphrase="${deploy.ssh.passphrase}"
 			command="chmod -v -R go+w ${deploy.ssh.dir}/cgi-bin/inb-maven"
 		/>
+		-->
 	</target>
 
-	<target description="Cleaning the project" name="clean">
+	<target name="clean.backends" description="Cleaning the project backends">
 		<exec executable="mvn" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
 			<arg value="-s"/>
@@ -196,5 +224,8 @@
 			<arg value="update"/>
 			<arg value="target"/>
 		</exec>
+	</target>
+	
+	<target name="clean" depends="clean.backends" description="It cleans the project">
 	</target>
 </project>
