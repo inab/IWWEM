@@ -328,110 +328,238 @@ The textual content of this element is the description of the example (possibly 
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
-
+    
+    <xsd:attributeGroup name="workflowRefAttrGroup">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Attribute group used by both workflow and workflowRef elements]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute name="uuid" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[The workflow UUID. As the workflow can be in an enaction or an snapshot, it is always in qualified form. When the workflow is not a local one, then it is a URI]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="title" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[The title given to the workflow by the author (if it is available)]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:attributeGroup>
+    
+    <xsd:complexType name="stepDescrType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[A described (for documentation) workflow step]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="iwwem:IODesc">
+                <xsd:choice minOccurs="0" maxOccurs="1">
+                    <xsd:element name="secondaryInput" minOccurs="1" maxOccurs="unbounded">
+                        <xsd:complexType>
+                            <xsd:complexContent>
+                                <xsd:extension base="iwwem:IODesc">
+                                    <xsd:sequence>
+                                        <xsd:element name="enumVal" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+                                            <xsd:annotation>
+                                                <xsd:documentation><![CDATA[An enumerated value]]></xsd:documentation>
+                                            </xsd:annotation>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="type" use="required">
+                                        <xsd:annotation>
+                                            <xsd:documentation><![CDATA[A basic type which describes the parameter]]></xsd:documentation>
+                                        </xsd:annotation>
+                                        <xsd:simpleType>
+                                            <xsd:restriction base="xsd:string">
+                                                <xsd:enumeration value="enum">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation><![CDATA[An enumerated type (you can choose only among the available ones]]></xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:enumeration>
+                                                <xsd:enumeration value="string">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation><![CDATA[A string/universal value]]></xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:enumeration>
+                                                <xsd:enumeration value="integer">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation><![CDATA[An integer, like xsd:int]]></xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:enumeration>
+                                                <xsd:enumeration value="float">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation><![CDATA[A floating point value, like xsd:double]]></xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:enumeration>
+                                                <xsd:enumeration value="boolean">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation><![CDATA[A boolean value, like xsd:boolean]]></xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:enumeration>
+                                                <xsd:enumeration value="timestamp">
+                                                    <xsd:annotation>
+                                                        <xsd:documentation><![CDATA[A timestamp value, like xsd:dateTime]]></xsd:documentation>
+                                                    </xsd:annotation>
+                                                </xsd:enumeration>
+                                            </xsd:restriction>
+                                        </xsd:simpleType>
+                                    </xsd:attribute>
+                                    <xsd:attribute name="isOptional" type="xsd:boolean" use="optional" default="true">
+                                        <xsd:annotation>
+                                            <xsd:documentation><![CDATA[Is this an optional secondary parameter?]]></xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:attribute>
+                                    <xsd:attribute name="default" type="xsd:string" use="optional">
+                                        <xsd:annotation>
+                                            <xsd:documentation><![CDATA[The parameter has a default value]]></xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:attribute>
+                                    <xsd:attribute name="minVal" type="xsd:string" use="optional">
+                                        <xsd:annotation>
+                                            <xsd:documentation><![CDATA[Minimum value restriction]]></xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:attribute>
+                                    <xsd:attribute name="maxVal" type="xsd:string" use="optional">
+                                        <xsd:annotation>
+                                            <xsd:documentation><![CDATA[Maximum value restriction]]></xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:attribute>
+                                </xsd:extension>
+                            </xsd:complexContent>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="step" type="iwwem:stepDescrType" minOccurs="1" maxOccurs="unbounded"></xsd:element>
+                </xsd:choice>
+                <xsd:attribute name="kind" use="optional" default="subworkflow">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[Kind of secondary parameters]]></xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:simpleType>
+                        <xsd:restriction base="xsd:string">
+                            <xsd:enumeration value="moby"/>
+                            <xsd:enumeration value="subworkflow"/>
+                        </xsd:restriction>
+                    </xsd:simpleType>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
     <xsd:element name="workflow">
         <xsd:annotation>
             <xsd:documentation><![CDATA[The description of a particular workflow]]></xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
-            <xsd:sequence minOccurs="1" maxOccurs="1">
-                <xsd:element name="description" type="xsd:string" minOccurs="1" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:documentation><![CDATA[Available documentation related to the workflow. It might be in HTML]]></xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-                <xsd:element name="graph" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:annotation>
-                        <xsd:documentation><![CDATA[Graphical representation of the workflow, relative to the workflow home]]></xsd:documentation>
-                    </xsd:annotation>
+            <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                <xsd:element name="release" minOccurs="1" maxOccurs="unbounded">
                     <xsd:complexType>
-                        <xsd:simpleContent>
-                            <xsd:extension base="xsd:anyURI">
-                                <xsd:attribute name="mime" type="xsd:string">
-                                    <xsd:annotation>
-                                        <xsd:documentation><![CDATA[MIME type of this graph image]]></xsd:documentation>
-                                    </xsd:annotation>
-                                </xsd:attribute>
-                            </xsd:extension>
-                        </xsd:simpleContent>
-                    </xsd:complexType>
-                </xsd:element>
-                <xsd:element name="dependsOn" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:annotation>
-                        <xsd:documentation><![CDATA[
+                        <xsd:sequence minOccurs="1" maxOccurs="1">
+                            <xsd:element name="description" type="xsd:string" minOccurs="1" maxOccurs="1">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[Available documentation related to the workflow. It might be in HTML]]></xsd:documentation>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element name="graph" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[Graphical representation of the workflow, relative to the workflow home]]></xsd:documentation>
+                                </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:anyURI">
+                                            <xsd:attribute name="mime" type="xsd:string">
+                                                <xsd:annotation>
+                                                    <xsd:documentation><![CDATA[MIME type of this graph image]]></xsd:documentation>
+                                                </xsd:annotation>
+                                            </xsd:attribute>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="dependsOn" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[
 The subworkflows' this workflow depends on...
 ]]></xsd:documentation>
-                    </xsd:annotation>
-                    <xsd:complexType>
-                        <xsd:attribute name="dep" type="xsd:anyURI" use="required">
-                            <xsd:annotation>
-                                <xsd:documentation><![CDATA[
+                                </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:attribute name="dep" type="xsd:anyURI" use="required">
+                                        <xsd:annotation>
+                                            <xsd:documentation><![CDATA[
 The relative URI to the subworkflow
 ]]></xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:attribute>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="input" minOccurs="0" maxOccurs="unbounded" type="iwwem:IODesc">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[The set of inputs of the workflow.
+The workflow can have zero inputs when it is a self-contained,
+demonstration or test workflow.]]></xsd:documentation>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element name="output" minOccurs="0" maxOccurs="unbounded" type="iwwem:IODesc">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[The set of outputs of the workflow.
+There should be at least one output, but a workflow developer can 'forget'
+creating it when it is more interested in side-effects than in the generated
+results.]]></xsd:documentation>
+                                </xsd:annotation>
+                            </xsd:element>
+                            
+                            <xsd:element name="step" minOccurs="0" maxOccurs="unbounded" type="iwwem:stepDescrType"/>
+                            
+                            <xsd:element ref="iwwem:example" minOccurs="0" maxOccurs="unbounded"/>
+                            
+                            <xsd:element ref="iwwem:snapshot" minOccurs="0" maxOccurs="unbounded"/>
+                        </xsd:sequence>
+                        <xsd:attributeGroup ref="iwwem:workflowRefAttrGroup"/>
+                        <xsd:attribute name="lsid" type="xsd:string" use="required">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The LSID generated by Taverna when the workflow was created]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="author" type="xsd:string" use="required">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The name of the author of the workflow (if it is available)]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="path" type="xsd:anyURI" use="required">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The relative path to the workflow, respect to the repository base URL]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="date" type="xsd:dateTime" use="required">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The last modification date of the workflow or snapshot]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attributeGroup ref="iwwem:responsibleAttrs"/>
+                        <xsd:attributeGroup ref="iwwem:licenseAttrs"/>
+                        <xsd:attribute name="version" type="xsd:string" use="optional">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The version string of the workflow (if it is known)]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="basedOn" type="xsd:string" use="optional">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The workflow UUID which was the base for this one (if it is based on one and it is known)]]></xsd:documentation>
                             </xsd:annotation>
                         </xsd:attribute>
                     </xsd:complexType>
                 </xsd:element>
-                <xsd:element name="input" minOccurs="0" maxOccurs="unbounded" type="iwwem:IODesc">
+                <xsd:element name="releaseRef" minOccurs="1" maxOccurs="unbounded">
                     <xsd:annotation>
-                        <xsd:documentation><![CDATA[The set of inputs of the workflow.
-The workflow can zero inputs when it is a self-contained,
-demonstration or test workflow.]]></xsd:documentation>
+                        <xsd:documentation><![CDATA[A workflow release reference. It is used when detailed workflow lists are not available]]></xsd:documentation>
                     </xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:attributeGroup ref="iwwem:workflowRefAttrGroup"/>
+                    </xsd:complexType>
                 </xsd:element>
-                <xsd:element name="output" minOccurs="0" maxOccurs="unbounded" type="iwwem:IODesc">
-                    <xsd:annotation>
-                        <xsd:documentation><![CDATA[The set of outputs of the workflow.
-There should be at least one output, but a workflow developer can 'forget'
-creating it when it is more interested in side-effects than in the generated
-results.]]></xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-                <xsd:element ref="iwwem:example" minOccurs="0" maxOccurs="unbounded"/>
-
-                <xsd:element ref="iwwem:snapshot" minOccurs="0" maxOccurs="unbounded"/>
-            </xsd:sequence>
-            <xsd:attribute name="uuid" type="xsd:string" use="required">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[The workflow UUID. As the workflow can be in an enaction or an snapshot, it is always in qualified form]]></xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="lsid" type="xsd:string" use="required">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[The LSID generated by Taverna when the workflow was created]]></xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="author" type="xsd:string" use="required">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[The name of the author of the workflow (if it is available)]]></xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="title" type="xsd:string" use="required">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[The title given to the workflow by the author (if it is available)]]></xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="path" type="xsd:anyURI" use="required">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[The relative path to the workflow, respect to the repository base URL]]></xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="svg" type="xsd:anyURI" use="required">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[(Deprecated)The relative path to the SVG graph representation of the workflow, respect to the local workflow repository base URL]]></xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="date" type="xsd:dateTime" use="required">
-                <xsd:annotation>
-                    <xsd:documentation><![CDATA[The last modification date of the workflow or snapshot]]></xsd:documentation>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attributeGroup ref="iwwem:responsibleAttrs"/>
-            <xsd:attributeGroup ref="iwwem:licenseAttrs"/>
+            </xsd:choice>
+            <xsd:attributeGroup ref="iwwem:workflowRefAttrGroup"/>
         </xsd:complexType>
     </xsd:element>
-
-    <xsd:attributeGroup name="TimeAttr">
+    
+    <xsd:attributeGroup name="TimeAttrGroup">
         <xsd:attribute name="time" type="xsd:dateTime" use="required">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[A time ticket which reports when this event has happened]]></xsd:documentation>
@@ -439,7 +567,7 @@ results.]]></xsd:documentation>
         </xsd:attribute>
     </xsd:attributeGroup>
 
-    <xsd:attributeGroup name="RelURIAttr">
+    <xsd:attributeGroup name="RelURIAttrGroup">
         <xsd:attribute name="relURI" type="xsd:anyURI" use="required">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[When it is a relative URI, base for linked resources, and relative to IWWEMfs CGI. When it is an absolute URI, it points out to a remote repository]]></xsd:documentation>
@@ -447,7 +575,7 @@ results.]]></xsd:documentation>
         </xsd:attribute>
     </xsd:attributeGroup>
 
-    <xsd:attributeGroup name="JobIdAttr">
+    <xsd:attributeGroup name="JobIdAttrGroup">
         <xsd:attribute name="jobId" type="xsd:string" use="required">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[The enaction job ID, which must be used by subsequent operations]]></xsd:documentation>
@@ -459,10 +587,59 @@ results.]]></xsd:documentation>
         <xsd:annotation>
             <xsd:documentation><![CDATA[These two attributes are used together at least twice]]></xsd:documentation>
         </xsd:annotation>
-        <xsd:attributeGroup ref="iwwem:TimeAttr"/>
-        <xsd:attributeGroup ref="iwwem:JobIdAttr"/>
+        <xsd:attributeGroup ref="iwwem:TimeAttrGroup"/>
+        <xsd:attributeGroup ref="iwwem:JobIdAttrGroup"/>
     </xsd:attributeGroup>
-
+    
+    <xsd:element name="domainClasses">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[A list of workflow domain classes]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="domainClass" minOccurs="1" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[A workflow domain class known by this IWWE&M installation. The description is inside the element]]></xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:simpleContent>
+                            <xsd:extension base="xsd:string">
+                                <xsd:attribute name="name" use="required" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:documentation><![CDATA[Workflow domain class name]]></xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:attribute>
+                                <xsd:attribute name="workflowType" use="required">
+                                    <xsd:annotation>
+                                        <xsd:documentation><![CDATA[The workflow type reported by this workflow domain class]]></xsd:documentation>
+                                    </xsd:annotation>
+                                    <xsd:simpleType>
+                                        <xsd:restriction base="xsd:string">
+                                            <xsd:enumeration value="Taverna1"/>
+                                            <xsd:enumeration value="Taverna2"/>
+                                        </xsd:restriction>
+                                    </xsd:simpleType>
+                                </xsd:attribute>
+                                <xsd:attribute name="listingType" use="required">
+                                    <xsd:annotation>
+                                        <xsd:documentation><![CDATA[The workflow listing type. It is only useful for the IWWE&M core]]></xsd:documentation>
+                                    </xsd:annotation>
+                                    <xsd:simpleType>
+                                        <xsd:restriction base="xsd:string">
+                                            <xsd:enumeration value="internal"/>
+                                            <xsd:enumeration value="myExperiment"/>
+                                            <xsd:enumeration value="IWWEM"/>
+                                        </xsd:restriction>
+                                    </xsd:simpleType>
+                                </xsd:attribute>
+                            </xsd:extension>
+                        </xsd:simpleContent>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    
     <xsd:element name="workflowlist">
         <xsd:annotation>
             <xsd:documentation><![CDATA[A list of available workflows in one or more workflow repositories.
@@ -470,6 +647,7 @@ workflowmanager frontend module returns the information following this sub-schem
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element ref="iwwem:domainClasses" minOccurs="0" maxOccurs="1" />
                 <xsd:element name="domain" minOccurs="0" maxOccurs="unbounded">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[The application domain]]></xsd:documentation>
@@ -494,8 +672,13 @@ workflowmanager frontend module returns the information following this sub-schem
                             </xsd:element>
                             <xsd:element ref="iwwem:workflow" minOccurs="0" maxOccurs="unbounded"/>
                         </xsd:sequence>
-                        <xsd:attributeGroup ref="iwwem:TimeAttr"/>
-                        <xsd:attributeGroup ref="iwwem:RelURIAttr"/>
+                        <xsd:attribute name="class" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[The domain class for this domain (IWWE&M, myExperiment, etc...)]]></xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attributeGroup ref="iwwem:TimeAttrGroup"/>
+                        <xsd:attributeGroup ref="iwwem:RelURIAttrGroup"/>
                     </xsd:complexType>
                 </xsd:element>
             </xsd:sequence>
@@ -691,7 +874,7 @@ this element is included to tell that it was done properly.
                                 <xsd:documentation><![CDATA[The state of the enaction]]></xsd:documentation>
                             </xsd:annotation>
                         </xsd:attribute>
-                        <xsd:attributeGroup ref="iwwem:RelURIAttr"/>
+                        <xsd:attributeGroup ref="iwwem:RelURIAttrGroup"/>
                         <xsd:attributeGroup ref="iwwem:responsibleAttrs"/>
                         <xsd:attribute name="title" type="xsd:string" use="required">
                             <xsd:annotation>
@@ -723,7 +906,7 @@ this element is included to tell that it was done properly.
                     </xsd:annotation>
                 </xsd:element>
             </xsd:sequence>
-            <xsd:attributeGroup ref="iwwem:TimeAttr"/>
+            <xsd:attributeGroup ref="iwwem:TimeAttrGroup"/>
             <xsd:attribute name="uuid" use="required" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[The id (example, enaction, snapshot) needed to locate the bundle]]></xsd:documentation>

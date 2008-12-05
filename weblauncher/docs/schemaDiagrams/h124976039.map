@@ -1,20 +1,26 @@
 <map xmlns='http://www.w3.org/1999/xhtml' name='h124976039'>
  <area
   shape='rect'
+  alt='h1320607423'
+  coords='298,0,487,40'
+  href='IWWEM-messages.xsd.html#h1320607423'/>
+
+ <area
+  shape='rect'
   alt='h1300956578'
-  coords='538,107,688,147'
+  coords='554,157,708,197'
   href='IWWEM-messages.xsd.html#h1300956578'/>
 
  <area
   shape='rect'
-  alt='h-1179015686'
-  coords='452,157,625,183'
-  href='IWWEM-messages.xsd.html#h-1179015686'/>
+  alt='h-1338045275'
+  coords='468,243,681,269'
+  href='IWWEM-messages.xsd.html#h-1338045275'/>
 
  <area
   shape='rect'
-  alt='h1552672576'
-  coords='452,193,633,219'
-  href='IWWEM-messages.xsd.html#h1552672576'/>
+  alt='h1663084319'
+  coords='468,279,695,305'
+  href='IWWEM-messages.xsd.html#h1663084319'/>
 
 </map>

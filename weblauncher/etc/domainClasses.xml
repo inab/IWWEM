@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<domainClasses xmlns="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend">
+	<domainClass name="IWWEM" workflowType="Taverna1" listingType="internal">
+	</domainClass>
+	<domainClass name="IWWEMext" workflowType="Taverna1" listingType="IWWEM">
+	</domainClass>
+	<domainClass name="myExperiment" workflowType="Taverna1" listingType="myExperiment">
+	</domainClass>
+</domainClasses>
