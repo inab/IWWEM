@@ -41,7 +41,7 @@ use XML::LibXML;
 
 use lib "$FindBin::Bin";
 use IWWEM::Config;
-use WorkflowCommon;
+use IWWEM::WorkflowCommon;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -63,49 +63,60 @@ sub getWorkflowInfo($$$$$$) {
 	
 	my($retnode)=undef;
 	eval {
-		my($relwffile)=$wf.'/'.$WorkflowCommon::WORKFLOWFILE;
-		my($wfdir)=$listDir.'/'.$wf;
+		my($relwffile)=$wf.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
+		my($wfdir)=undef;
 		
-		my($wffile)=$listDir.'/'.$relwffile;
+		my($wffile)=undef;
 		
-		my($wfcat)=$wfdir.'/'.$WorkflowCommon::CATALOGFILE;
-		my($examplescat) = $wfdir .'/'. $WorkflowCommon::EXAMPLESDIR . '/' . $WorkflowCommon::CATALOGFILE;
-		my($snapshotscat) = $wfdir .'/'. $WorkflowCommon::SNAPSHOTSDIR . '/' . $WorkflowCommon::CATALOGFILE;
-		my($wfresp)=$wfdir.'/'.$WorkflowCommon::RESPONSIBLEFILE;
+		my($wfcat)=undef;
+		my($examplescat) = undef;
+		my($snapshotscat) = undef;
+		my($wfresp)=undef;
 		
 		my($regen)=1;
-		my(@stat_selffile)=stat($FindBin::Bin .'/workflowmanager.pm');
-		my(@stat_wfcat)=stat($wfcat);
-		if(scalar(@stat_wfcat)>0 && $stat_wfcat[9]>$stat_selffile[9]) {
-			my(@stat_wffile)=stat($wffile);
+		unless(index($wf,'http://')==0 || index($wf,'ftp://')==0) {
+			$wfdir=$listDir.'/'.$wf;
+			$wffile=$listDir.'/'.$relwffile;
+			$wfcat=$wfdir.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
+			$examplescat = $wfdir .'/'. $IWWEM::WorkflowCommon::EXAMPLESDIR . '/' . $IWWEM::WorkflowCommon::CATALOGFILE;
+			$snapshotscat = $wfdir .'/'. $IWWEM::WorkflowCommon::SNAPSHOTSDIR . '/' . $IWWEM::WorkflowCommon::CATALOGFILE;
+			$wfresp=$wfdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
+			
+			my(@stat_selffile)=stat($FindBin::Bin .'/workflowmanager.pm');
+			my(@stat_wfcat)=stat($wfcat);
+			if(scalar(@stat_wfcat)>0 && $stat_wfcat[9]>$stat_selffile[9]) {
+				my(@stat_wffile)=stat($wffile);
 
-			if(scalar(@stat_wffile)==0 || $stat_wfcat[9]>$stat_wffile[9]) {
-				my(@stat_examplescat)=stat($examplescat);
+				if(scalar(@stat_wffile)==0 || $stat_wfcat[9]>$stat_wffile[9]) {
+					my(@stat_examplescat)=stat($examplescat);
 
-				if(scalar(@stat_examplescat)>0 && $stat_wfcat[9]>$stat_examplescat[9]) {
-					my(@stat_snapshotscat)=stat($snapshotscat);
+					if(scalar(@stat_examplescat)>0 && $stat_wfcat[9]>$stat_examplescat[9]) {
+						my(@stat_snapshotscat)=stat($snapshotscat);
 
-					if(scalar(@stat_snapshotscat)>0 && $stat_wfcat[9]>$stat_snapshotscat[9]) {
-						my(@stat_wfresp)=stat($wfresp);
+						if(scalar(@stat_snapshotscat)>0 && $stat_wfcat[9]>$stat_snapshotscat[9]) {
+							my(@stat_wfresp)=stat($wfresp);
 
-						if(scalar(@stat_wfresp)>0 || $stat_wfcat[9]>$stat_wfresp[9]) {
-							# Catalog is outdated related to snapshots
-							$regen=undef;
+							if(scalar(@stat_wfresp)>0 || $stat_wfcat[9]>$stat_wfresp[9]) {
+								# Catalog is outdated related to snapshots
+								$regen=undef;
+							}
 						}
 					}
 				}
 			}
+		} else {
+			$wffile=$wf;
 		}
 		
-		#my($wfcatmutex)=LockNLog::SimpleMutex->new($wfdir.'/'.$WorkflowCommon::LOCKFILE,$regen);
+		#my($wfcatmutex)=LockNLog::SimpleMutex->new($wfdir.'/'.$IWWEM::WorkflowCommon::LOCKFILE,$regen);
 		if(defined($regen)) {
 			#$wfcatmutex->mutex(sub {
 				my $doc = $parser->parse_file($wffile);
 				
 				# Getting description from workflow definition
-				my @nodelist = $doc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+				my @nodelist = $doc->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
 				if(scalar(@nodelist)>0) {
-					my $wfe = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflow');
+					my $wfe = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'workflow');
 					$outputDoc->setDocumentElement($wfe);
 					
 					my($desc)=$nodelist[0];
@@ -119,28 +130,28 @@ sub getWorkflowInfo($$$$$$) {
 					my($responsibleName)='';
 					eval {
 						if(defined($isSnapshot)) {
-							my $cat = $parser->parse_file($listDir.'/'.$WorkflowCommon::CATALOGFILE);
-							my($transwf)=WorkflowCommon::patchXMLString($wf);
+							my $cat = $parser->parse_file($listDir.'/'.$IWWEM::WorkflowCommon::CATALOGFILE);
+							my($transwf)=IWWEM::WorkflowCommon::patchXMLString($wf);
 							my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$transwf']",$cat);
 							foreach my $snapNode (@snaps) {
-								$responsibleMail=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
-								$responsibleName=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+								$responsibleMail=$snapNode->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+								$responsibleName=$snapNode->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME);
 								last;
 							}
-						} else {
-							my $res = $parser->parse_file($listDir.'/'.$wf.'/'.$WorkflowCommon::RESPONSIBLEFILE);
-							$responsibleMail=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
-							$responsibleName=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+						} elsif(defined($wfresp)) {
+							my $res = $parser->parse_file($wfresp);
+							$responsibleMail=$res->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+							$responsibleName=$res->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME);
 						}
 					};
 		
-					$wfe->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
-					$wfe->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+					$wfe->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+					$wfe->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 					$wfe->setAttribute('lsid',$desc->getAttribute('lsid'));
 					$wfe->setAttribute('author',$desc->getAttribute('author'));
 					$wfe->setAttribute('title',$desc->getAttribute('title'));
 					$wfe->setAttribute('path',$relwffile);
-					my $svg = $wf.'/'.$WorkflowCommon::SVGFILE;
+					my $svg = $wf.'/'.$IWWEM::WorkflowCommon::SVGFILE;
 					$wfe->setAttribute('svg',$svg);
 					
 					my($licenseName)=undef;
@@ -149,10 +160,10 @@ sub getWorkflowInfo($$$$$$) {
 					my($desctext)=$desc->textContent();
 					
 					# Catching the defined license
-					if(defined($desctext) && $desctext =~ /^$WorkflowCommon::LICENSESTART\n[ \t]*([^ \n]+)[ \t]+([^\n]+)[ \t]*\n$WorkflowCommon::LICENSESTOP\n/ms) {
+					if(defined($desctext) && $desctext =~ /^$IWWEM::WorkflowCommon::LICENSESTART\n[ \t]*([^ \n]+)[ \t]+([^\n]+)[ \t]*\n$IWWEM::WorkflowCommon::LICENSESTOP\n/ms) {
 						$licenseURI=$1;
 						$licenseName=$2;
-						$desctext=substr($desctext,0,index($desctext,"\n$WorkflowCommon::LICENSESTART\n")).substr($desctext,index($desctext,index($desctext,"\n$WorkflowCommon::LICENSESTOP\n")+length($WorkflowCommon::LICENSESTOP)+1));
+						$desctext=substr($desctext,0,index($desctext,"\n$IWWEM::WorkflowCommon::LICENSESTART\n")).substr($desctext,index($desctext,index($desctext,"\n$IWWEM::WorkflowCommon::LICENSESTOP\n")+length($IWWEM::WorkflowCommon::LICENSESTOP)+1));
 					}
 					
 					unless(defined($licenseURI)) {
@@ -166,63 +177,67 @@ sub getWorkflowInfo($$$$$$) {
 					$wfe->setAttribute('licenseURI',$licenseURI);
 					
 					# Getting the workflow description
-					my($wdesc)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
+					my($wdesc)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'description');
 					$wdesc->appendChild($outputDoc->createCDATASection($desctext));
 					$wfe->appendChild($wdesc);
 					
 					# Adding links to its graphical representations
 					my($gfile,$gmime);
-					while(($gfile,$gmime)=each(%WorkflowCommon::GRAPHREP)) {
-						my $rfile = $wf.'/'.$gfile;
-						# Only include what has been generated!
-						if( -f $listDir.'/'.$rfile) {
-							my($gchild)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'graph');
-							$gchild->setAttribute('mime',$gmime);
-							$gchild->appendChild($outputDoc->createTextNode($rfile));
-							$wfe->appendChild($gchild);
+					if(defined($listDir)) {
+						while(($gfile,$gmime)=each(%IWWEM::WorkflowCommon::GRAPHREP)) {
+							my $rfile = $wf.'/'.$gfile;
+							# Only include what has been generated!
+							if( -f $listDir.'/'.$rfile) {
+								my($gchild)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'graph');
+								$gchild->setAttribute('mime',$gmime);
+								$gchild->appendChild($outputDoc->createTextNode($rfile));
+								$wfe->appendChild($gchild);
+							}
 						}
 					}
 					
 					# Now, including dependencies
-					my($DEPDIRH);
-					my($depreldir)=$wf.'/'.$WorkflowCommon::DEPDIR;
-					my($depdir)=$listDir.'/'.$depreldir;
-					if(opendir($DEPDIRH,$depdir)) {
-						my($entry);
-						while($entry=readdir($DEPDIRH)) {
-							next  if(index($entry,'.')==0);
-							
-							my($fentry)=$depdir.'/'.$entry;
-							if(-f $fentry && $fentry =~ /\.xml$/) {
-								my($depnode) = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'dependsOn');
-								$depnode->setAttribute('sub',$depreldir.'/'.$entry);
-								$wfe->appendChild($depnode);
+					if(defined($listDir)) {
+						my($DEPDIRH);
+						my($depreldir)=$wf.'/'.$IWWEM::WorkflowCommon::DEPDIR;
+						my($depdir)=$listDir.'/'.$depreldir;
+						if(opendir($DEPDIRH,$depdir)) {
+							my($entry);
+							while($entry=readdir($DEPDIRH)) {
+								next  if(index($entry,'.')==0);
+
+								my($fentry)=$depdir.'/'.$entry;
+								if(-f $fentry && $fentry =~ /\.xml$/) {
+									my($depnode) = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'dependsOn');
+									$depnode->setAttribute('sub',$depreldir.'/'.$entry);
+									$wfe->appendChild($depnode);
+								}
 							}
+
+							closedir($DEPDIRH);
 						}
-						
-						closedir($DEPDIRH);
 					}
 					
 					# Getting Inputs
 					@nodelist = $context->findnodes('/s:scufl/s:source',$doc);
 					foreach my $source (@nodelist) {
-						my $input = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'input');
+						my $input = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'input');
 						$input->setAttribute('name',$source->getAttribute('name'));
 						
 						# Description
-						my(@sourcedesc)=$source->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'description');
+						my(@sourcedesc)=$source->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'description');
 						if(scalar(@sourcedesc)>0) {
-							my($descnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
+							my($descnode)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'description');
 							$descnode->appendChild($outputDoc->createCDATASection($sourcedesc[0]->textContent()));
 							$input->appendChild($descnode);
 						}
 						
 						# MIME types handling
-						my(@mimetypes)=$source->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'mimetype');
+						my(@mimetypes)=$source->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'mimetype');
 						# Taverna default mime type
 						push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
 						foreach my $mime (@mimetypes) {
-							my $mtype = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'mime');
+							my $mtype = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'mime');
 							$mtype->setAttribute('type',$mime);
 							$input->appendChild($mtype);
 						}
@@ -234,23 +249,23 @@ sub getWorkflowInfo($$$$$$) {
 					# And Outputs
 					@nodelist = $context->findnodes('/s:scufl/s:sink',$doc);
 					foreach my $sink (@nodelist) {
-						my $output = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'output');
+						my $output = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'output');
 						$output->setAttribute('name',$sink->getAttribute('name'));
 						
 						# Description
-						my(@sinkdesc)=$sink->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'description');
+						my(@sinkdesc)=$sink->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'description');
 						if(scalar(@sinkdesc)>0) {
-							my($descnode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'description');
+							my($descnode)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'description');
 							$descnode->appendChild($outputDoc->createCDATASection($sinkdesc[0]->textContent()));
 							$output->appendChild($descnode);
 						}
 						
 						# MIME types handling
-						my(@mimetypes)=$sink->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'mimetype');
+						my(@mimetypes)=$sink->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'mimetype');
 						# Taverna default mime type
 						push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
 						foreach my $mime (@mimetypes) {
-							my $mtype = $outputDoc->createElementNS($WorkflowCommon::WFD_NS,'mime');
+							my $mtype = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'mime');
 							$mtype->setAttribute('type',$mime);
 							$output->appendChild($mtype);
 						}
@@ -261,9 +276,11 @@ sub getWorkflowInfo($$$$$$) {
 					
 					# Now importing the examples catalog
 					eval {
-						my($examples)=$parser->parse_file($examplescat);
-						for my $child ($examples->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'example')) {
-							$wfe->appendChild($outputDoc->importNode($child));
+						if(defined($examplescat)) {
+							my($examples)=$parser->parse_file($examplescat);
+							for my $child ($examples->documentElement()->getChildrenByTagNameNS($IWWEM::WorkflowCommon::WFD_NS,'example')) {
+								$wfe->appendChild($outputDoc->importNode($child));
+							}
 						}
 					};
 					if($@) {
@@ -272,16 +289,18 @@ sub getWorkflowInfo($$$$$$) {
 					
 					# And the snapshots one!
 					eval {
-						my($snapshots)=$parser->parse_file($snapshotscat);
-						for my $child ($snapshots->documentElement()->getChildrenByTagNameNS($WorkflowCommon::WFD_NS,'snapshot')) {
-							$wfe->appendChild($outputDoc->importNode($child));
+						if(defined($snapshotscat)) {
+							my($snapshots)=$parser->parse_file($snapshotscat);
+							for my $child ($snapshots->documentElement()->getChildrenByTagNameNS($IWWEM::WorkflowCommon::WFD_NS,'snapshot')) {
+								$wfe->appendChild($outputDoc->importNode($child));
+							}
 						}
 					};
 					if($@) {
 						$wfe->appendChild($outputDoc->createComment('Unable to parse snapshots catalog!'));
 					}
 					
-					$outputDoc->toFile($wfcat);
+					$outputDoc->toFile($wfcat)  if(defined($wfcat));
 					
 					# At last, appending the new workflow entry
 					$retnode=$wfe;
@@ -312,30 +331,33 @@ sub gatherWorkflowList(;$) {
 	my($subId)=undef;
 	my($uuidPrefix)=undef;
 	my($isSnapshot)=undef;
-	if(index($id,$WorkflowCommon::ENACTIONPREFIX)==0) {
-		$baseListDir=$WorkflowCommon::VIRTJOBDIR;
+	if(index($id,'http://')==0 || index($id,'ftp://')==0) {
+		$subId=$id;
+		@dirstack=();
+	} elsif(index($id,$IWWEM::WorkflowCommon::ENACTIONPREFIX)==0) {
+		$baseListDir=$IWWEM::WorkflowCommon::VIRTJOBDIR;
 		$listDir=$IWWEM::Config::JOBDIR;
-		$uuidPrefix=$WorkflowCommon::ENACTIONPREFIX;
+		$uuidPrefix=$IWWEM::WorkflowCommon::ENACTIONPREFIX;
 		
-		if($id =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+		if($id =~ /^$IWWEM::WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
 			$subId=$1;
 		}
-	} elsif($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+)/) {
-		$baseListDir=$WorkflowCommon::VIRTWORKFLOWDIR . '/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
-		$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$WorkflowCommon::SNAPSHOTSDIR;
-		$uuidPrefix=$WorkflowCommon::SNAPSHOTPREFIX . $1 . ':';
+	} elsif($id =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+)/) {
+		$baseListDir=$IWWEM::WorkflowCommon::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+		$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+		$uuidPrefix=$IWWEM::WorkflowCommon::SNAPSHOTPREFIX . $1 . ':';
 		
 		$isSnapshot=1;
 		
-		if($id =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+		if($id =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 			$subId=$2;
 		}
 	} else {
-		$baseListDir=$WorkflowCommon::VIRTWORKFLOWDIR;
+		$baseListDir=$IWWEM::WorkflowCommon::VIRTWORKFLOWDIR;
 		$listDir=$IWWEM::Config::WORKFLOWDIR;
-		$uuidPrefix='';
+		$uuidPrefix=$IWWEM::WorkflowCommon::WORKFLOWPREFIX;
 		
-		if($id =~ /^$WorkflowCommon::WORKFLOWPREFIX([^:]+)$/) {
+		if($id =~ /^$IWWEM::WorkflowCommon::WORKFLOWPREFIX([^:]+)$/) {
 			$subId=$1;
 		} elsif(length($id)>0) {
 			$subId=$id;
@@ -355,7 +377,7 @@ sub gatherWorkflowList(;$) {
 				
 				my($fentry)=$fdir.'/'.$entry;
 				my($rentry)=($dir ne '.')?($dir.'/'.$entry):$entry;
-				if($entry eq $WorkflowCommon::WORKFLOWFILE) {
+				if($entry eq $IWWEM::WorkflowCommon::WORKFLOWFILE) {
 					$foundworkflowdir=1;
 				} elsif(-d $fentry && (!defined($subId) || ($subId eq $entry))) {
 					push(@posdirstack,$rentry);
@@ -380,23 +402,24 @@ sub sendWorkflowList($$$\@$$$$;$) {
 		
 	my $parser = XML::LibXML->new();
 	my $context = XML::LibXML::XPathContext->new();
-	$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
-	$context->registerNs('sn',$WorkflowCommon::WFD_NS);
+	$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+	$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
 	
 	my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
-	my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'workflowlist');
+	my($root)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'workflowlist');
 	$outputDoc->setDocumentElement($root);
 	
-	$root->appendChild($outputDoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTWM) ));
+	$root->appendChild($outputDoc->createComment( encode('UTF-8',$IWWEM::WorkflowCommon::COMMENTWM) ));
 	
-	my($domain)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'domain');
+	my($domain)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'domain');
+	$domain->setAttribute('class','IWWEM');
 	$domain->setAttribute('time',LockNLog::getPrintableNow());
 	$domain->setAttribute('relURI',$baseListDir);
 	$root->appendChild($domain);
 	
 	# Attached Error Message (if any)
 	if($retval!=0) {
-		my($message)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'message');
+		my($message)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'message');
 		$message->setAttribute('retval',$retval);
 		if(defined($retvalmsg)) {
 			$message->appendChild($outputDoc->createCDATASection($retvalmsg));
@@ -411,7 +434,7 @@ sub sendWorkflowList($$$\@$$$$;$) {
 	print $query->header(-type=>(defined($dataislandTag)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store',-expires=>'-1');
 	
 	if(defined($dataislandTag)) {
-		print "<html><body><$dataislandTag id='".$WorkflowCommon::PARAMISLAND."'>\n";
+		print "<html><body><$dataislandTag id='".$IWWEM::WorkflowCommon::PARAMISLAND."'>\n";
 	}
 	
 	unless(defined($dataislandTag) && $dataislandTag eq 'div') {
@@ -430,7 +453,7 @@ sub parseInlineWorkflows($$$$$$$;$$$) {
 	my($query,$parser,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
 	
 	unless(defined($responsibleMail) && $responsibleMail =~ /[^\@]+\@[^\@]+\.[^\@]+/) {
-		return (10,(defined($responsibleMail)?"$responsibleMail is not a valid e-mail address":'Responsible mail has not been set using '.$WorkflowCommon::RESPONSIBLEMAIL.' CGI parameter'),[]);
+		return (10,(defined($responsibleMail)?"$responsibleMail is not a valid e-mail address":'Responsible mail has not been set using '.$IWWEM::WorkflowCommon::RESPONSIBLEMAIL.' CGI parameter'),[]);
 	}
 	
 	unless(defined($licenseURI) && length($licenseURI)>0) {
@@ -453,10 +476,10 @@ sub parseInlineWorkflows($$$$$$$;$$$) {
 	my(@goodwf)=();
 	
 	my $context = XML::LibXML::XPathContext->new();
-	$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
+	$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
 
 	# Now, time to recognize the content
-	my($param)=$WorkflowCommon::PARAMWORKFLOW;
+	my($param)=$IWWEM::WorkflowCommon::PARAMWORKFLOW;
 	my @UPHL=$query->upload($param);
 
 	unless($query->cgi_error()) {
@@ -472,7 +495,7 @@ sub parseInlineWorkflows($$$$$$$;$$$) {
 			# Generating a pending operation
 			my($penduuid,$penddir,$PH)=(undef,undef,undef);
 			unless(defined($dontPending)) {
-				($penduuid,$penddir,$PH)=WorkflowCommon::genPendingOperationsDir($WorkflowCommon::COMMANDADD);
+				($penduuid,$penddir,$PH)=IWWEM::WorkflowCommon::genPendingOperationsDir($IWWEM::WorkflowCommon::COMMANDADD);
 			}
 			
 			# Generating a unique identifier
@@ -480,7 +503,7 @@ sub parseInlineWorkflows($$$$$$$;$$$) {
 			my($randfilexml);
 			my($randdir);
 			do {
-				$randname=WorkflowCommon::genUUID();
+				$randname=IWWEM::WorkflowCommon::genUUID();
 				$randdir=$basedir.'/'.$randname;
 			} while(-d $randdir);
 			
@@ -498,10 +521,10 @@ sub parseInlineWorkflows($$$$$$$;$$$) {
 			}
 			
 			# Responsible file creation
-			WorkflowCommon::createResponsibleFile($randdir,$responsibleMail,$responsibleName);
+			IWWEM::WorkflowCommon::createResponsibleFile($randdir,$responsibleMail,$responsibleName);
 			
 			# Saving the workflow data
-			$randfilexml = $randdir . '/' . $WorkflowCommon::WORKFLOWFILE;
+			$randfilexml = $randdir . '/' . $IWWEM::WorkflowCommon::WORKFLOWFILE;
 			
 			my($WFmaindoc);
 			
@@ -531,20 +554,20 @@ sub parseInlineWorkflows($$$$$$$;$$$) {
 			}
 			
 			my($doSaveDoc)=undef;
-			my @desclist = $WFmaindoc->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+			my @desclist = $WFmaindoc->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
 			if(scalar(@desclist)>0) {
 				my($desc)=$desclist[0];
 				my($desctext)=$desc->textContent();
 
 				# Catching the defined license
-				unless(defined($desctext) && $desctext =~ /^$WorkflowCommon::LICENSESTART\n[ \t]*([^ \n]+)[ \t]+([^\n]+)[ \t]*\n$WorkflowCommon::LICENSESTOP$/ms) {
+				unless(defined($desctext) && $desctext =~ /^$IWWEM::WorkflowCommon::LICENSESTART\n[ \t]*([^ \n]+)[ \t]+([^\n]+)[ \t]*\n$IWWEM::WorkflowCommon::LICENSESTOP$/ms) {
 					# Stamping the license
 					if(defined($desctext)) {
 						chomp($desctext);
 					} else {
 						$desctext='';
 					}
-					$desctext .= "\n$WorkflowCommon::LICENSESTART\n$licenseURI $licenseName\n$WorkflowCommon::LICENSESTOP\n";
+					$desctext .= "\n$IWWEM::WorkflowCommon::LICENSESTART\n$licenseURI $licenseName\n$IWWEM::WorkflowCommon::LICENSESTOP\n";
 					while($desc->lastChild) {
 						$desc->removeChild($desc->lastChild);
 					}
@@ -564,7 +587,7 @@ sub parseInlineWorkflows($$$$$$$;$$$) {
 				}
 				last;
 			} elsif(!defined($dontPending)) {
-				WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'workflow',$WorkflowCommon::COMMANDADD,$randname,$responsibleMail,undef);
+				IWWEM::WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'workflow',$IWWEM::WorkflowCommon::COMMANDADD,$randname,$responsibleMail,undef);
 			}
 			
 			push(@goodwf,$randname);
@@ -582,13 +605,13 @@ sub patchWorkflow($$$$$$$;$$$) {
 	
 	unless(defined($context)) {
 		$context = XML::LibXML::XPathContext->new();
-		$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
+		$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
 	}
 
-	my($randfilexml) = $randdir . '/' . $WorkflowCommon::WORKFLOWFILE;
+	my($randfilexml) = $randdir . '/' . $IWWEM::WorkflowCommon::WORKFLOWFILE;
 
 	# Resolving and saving dependencies
-	my($depdir)=$randdir.'/'.$WorkflowCommon::DEPDIR;
+	my($depdir)=$randdir.'/'.$IWWEM::WorkflowCommon::DEPDIR;
 	mkpath($depdir);
 	my(@unpatchedWF)=($randfilexml);
 	my(%WFhash)=($randfilexml=>[$WFmaindoc,$randfilexml,$doSaveDoc,undef]);
@@ -596,7 +619,7 @@ sub patchWorkflow($$$$$$$;$$$) {
 	my($peta)=undef;
 	my($ua)=LWP::UserAgent->new();
 	# Getting the base uri for subworkflows
-	my($cgibaseuri)=WorkflowCommon::getCGIBaseURI($query);
+	my($cgibaseuri)=IWWEM::WorkflowCommon::getCGIBaseURI($query);
 	$cgibaseuri =~ s/cgi-bin\/[^\/]+$//;
 
 	# First pass...
@@ -632,7 +655,7 @@ sub patchWorkflow($$$$$$$;$$$) {
 								# etc...
 								# So we can only play with $file and $relfile,
 								# which have a known structure.
-								my(@depnames) = $query->param($WorkflowCommon::PARAMWORKFLOWDEP);
+								my(@depnames) = $query->param($IWWEM::WorkflowCommon::PARAMWORKFLOWDEP);
 								my($found)=undef;
 								my($pos)=0;
 								foreach my $depname (@depnames) {
@@ -647,7 +670,7 @@ sub patchWorkflow($$$$$$$;$$$) {
 
 								# I believe it was found
 								if(defined($found)) {
-									my(@DEPH) = $query->upload($WorkflowCommon::PARAMWORKFLOWDEP);
+									my(@DEPH) = $query->upload($IWWEM::WorkflowCommon::PARAMWORKFLOWDEP);
 									last  if($query->cgi_error());
 
 									my($FAKEH)=$DEPH[$found];
@@ -687,7 +710,7 @@ sub patchWorkflow($$$$$$$;$$$) {
 							my($reldepname);
 							my($newWFname);
 							do {
-								$reldepname = $WorkflowCommon::DEPDIR.'/'.WorkflowCommon::genUUID().'.xml';
+								$reldepname = $IWWEM::WorkflowCommon::DEPDIR.'/'.IWWEM::WorkflowCommon::genUUID().'.xml';
 								$newWFname = $randdir .'/'.$reldepname;
 							} while(-f $newWFname);
 
@@ -776,10 +799,10 @@ sub patchWorkflow($$$$$$$;$$$) {
 
 		# Now it is time to validate the whole mess!
 		# Saving the workflow data
-		my($randfilesvg) = $randdir . '/' . $WorkflowCommon::SVGFILE;
-		my($randfilepng) = $randdir . '/' . $WorkflowCommon::PNGFILE;
-		my($randfilepdf) = $randdir . '/' . $WorkflowCommon::PDFFILE;
-		my(@command)=($WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser',
+		my($randfilesvg) = $randdir . '/' . $IWWEM::WorkflowCommon::SVGFILE;
+		my($randfilepng) = $randdir . '/' . $IWWEM::WorkflowCommon::PNGFILE;
+		my($randfilepdf) = $randdir . '/' . $IWWEM::WorkflowCommon::PDFFILE;
+		my(@command)=($IWWEM::WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser',
 			'-baseDir',$IWWEM::Config::MAVENDIR,
 			'-workflow',$randfilexml,
 			'-svggraph',$randfilesvg
@@ -806,7 +829,7 @@ sub patchWorkflow($$$$$$$;$$$) {
 		open(STDERR,'>&',$TMPLOG);
 
 		# The command
-	#	my($comm)=$WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser -baseDir '.$IWWEM::Config::MAVENDIR.' -workflow '.$randfilexml.' -svggraph '.$randfilesvg.' -expandSubWorkflows';
+	#	my($comm)=$IWWEM::WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowparser -baseDir '.$IWWEM::Config::MAVENDIR.' -workflow '.$randfilexml.' -svggraph '.$randfilesvg.' -expandSubWorkflows';
 
 		$retval=system(@command);
 
@@ -836,19 +859,19 @@ sub patchWorkflow($$$$$$$;$$$) {
 			}
 		} elsif(defined($isCreation)) {
 			# Creating empty catalogs
-			mkpath($randdir.'/'.$WorkflowCommon::EXAMPLESDIR);
+			mkpath($randdir.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR);
 			my($excatalog)=XML::LibXML::Document->createDocument('1.0','UTF-8');
-			my($exroot)=$excatalog->createElementNS($WorkflowCommon::WFD_NS,'examples');
-			$exroot->appendChild($excatalog->createComment( encode('UTF-8',$WorkflowCommon::COMMENTEL) ));
+			my($exroot)=$excatalog->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'examples');
+			$exroot->appendChild($excatalog->createComment( encode('UTF-8',$IWWEM::WorkflowCommon::COMMENTEL) ));
 			$excatalog->setDocumentElement($exroot);
-			$excatalog->toFile($randdir.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE);
+			$excatalog->toFile($randdir.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE);
 
-			mkpath($randdir.'/'.$WorkflowCommon::SNAPSHOTSDIR);
+			mkpath($randdir.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR);
 			my($snapcatalog)=XML::LibXML::Document->createDocument('1.0','UTF-8');
-			my($snaproot)=$excatalog->createElementNS($WorkflowCommon::WFD_NS,'snapshots');
-			$snaproot->appendChild($snapcatalog->createComment( encode('UTF-8',$WorkflowCommon::COMMENTES) ));
+			my($snaproot)=$excatalog->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'snapshots');
+			$snaproot->appendChild($snapcatalog->createComment( encode('UTF-8',$IWWEM::WorkflowCommon::COMMENTES) ));
 			$snapcatalog->setDocumentElement($snaproot);
-			$snapcatalog->toFile($randdir.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE);
+			$snapcatalog->toFile($randdir.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE);
 		}
 	}
 	

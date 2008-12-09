@@ -56,6 +56,7 @@ function InputExample(workflow,inEx) {
 	this.uuid=inEx.getAttribute('uuid');
 	this.date=inEx.getAttribute('date');
 	this.path=inEx.getAttribute('path');
+	this.isAbsolute=path.indexOf('ftp:')==0 || path.indexOf('http:')==0 || path.indexOf('https:')==0;
 	this.responsibleMail = inEx.getAttribute('responsibleMail');
 	this.responsibleName = inEx.getAttribute('responsibleName');
 	this.description = WidgetCommon.getTextContent(inEx);
@@ -67,7 +68,7 @@ InputExample.prototype = {
 	},
 	
 	getExamplePath: function() {
-		return this.workflow.WFBase+'/'+this.path;
+		return this.isAbsolute?this.path:(this.workflow.WFBase+'/'+this.path);
 	},
 	
 	generateOption: function (/* optional */ thedoc) {
@@ -110,6 +111,7 @@ function WorkflowDesc(wfD,WFBase) {
 	this.WFBase=WFBase;
 	this.uuid = wfD.getAttribute('uuid');
 	this.path = wfD.getAttribute('path');
+	this.isAbsolute=path.indexOf('ftp:')==0 || path.indexOf('http:')==0 || path.indexOf('https:')==0;
 	//this.svgpath = wfD.getAttribute('svg');
 	this.title = wfD.getAttribute('title');
 	this.lsid = wfD.getAttribute('lsid');
@@ -148,7 +150,12 @@ function WorkflowDesc(wfD,WFBase) {
 					break;
 				case 'graph':
 					// Graph information
-					this.graph[child.getAttribute('mime')]=WidgetCommon.getTextContent(child);
+					var gpath=WidgetCommon.getTextContent(child);
+					if(gpath.indexOf('ftp:')==0 || gpath.indexOf('http:')==0 || gpath.indexOf('https:')==0) {
+						this.graph[child.getAttribute('mime')]=gpath;
+					} else {
+						this.graph[child.getAttribute('mime')]=this.WFBase+'/'+gpath;
+					}
 					break;
 				case 'dependsOn':
 					depends.push(child.getAttribute('sub'));
@@ -176,7 +183,12 @@ function WorkflowDesc(wfD,WFBase) {
 	}
 	
 	// Now, handling SVG special case
-	this.svgpath = ('image/svg+xml' in this.graph)?this.graph['image/svg+xml']:wfD.getAttribute('svg');
+	var svgpath = ('image/svg+xml' in this.graph)?this.graph['image/svg+xml']:wfD.getAttribute('svg');
+	if(svgpath.indexOf('ftp:')==0 || svgpath.indexOf('http:')==0 || svgpath.indexOf('https:')==0) {
+		this.svgpath=svgpath;
+	} else {
+		this.svgpath=this.WFBase+'/'+svgpath;
+	}
 }
 
 WorkflowDesc.prototype = {
@@ -200,14 +212,14 @@ WorkflowDesc.prototype = {
 		Get the SVG path, prepended by the WFBase path
 	*/
 	getSVGPath: function() {
-		return this.WFBase+'/'+this.svgpath;
+		return this.svgpath;
 	},
 	
 	/**
 		Get the native workflow definition path, prepended by the WFBase path
 	*/
 	getWFPath: function() {
-		return this.WFBase+'/'+this.path;
+		return this.isAbsolute?this.path:(this.WFBase+'/'+this.path);
 	},
 	
 	/**
@@ -215,7 +227,7 @@ WorkflowDesc.prototype = {
 		based on its MIME Type
 	*/
 	getGraphPath: function(mime) {
-		return this.WFBase+'/'+this.graph[mime];
+		return this.graph[mime];
 	},
 	
 	getExample: function (uuid) {

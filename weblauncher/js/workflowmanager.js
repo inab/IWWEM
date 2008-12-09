@@ -288,7 +288,7 @@ ManagerView.prototype = {
 			for(var domain=listDOM.firstChild ; domain ; domain=domain.nextSibling) {
 				if(domain.nodeType==1 && GeneralView.getLocalName(domain)=='domain') {
 					var WFBase = domain.getAttribute('relURI');
-					if(WFBase.indexOf('http:')!=0 && WFBase.indexOf('https:')!=0 && WFBase.charAt(0)!='/' && IWWEM.FSBase!=undefined) {
+					if(WFBase.indexOf('ftp:')!=0 && WFBase.indexOf('http:')!=0 && WFBase.indexOf('https:')!=0 && WFBase.charAt(0)!='/' && IWWEM.FSBase!=undefined) {
 						WFBase = IWWEM.FSBase + '/'+ WFBase;
 					}
 					this.WFBase.push(WFBase);

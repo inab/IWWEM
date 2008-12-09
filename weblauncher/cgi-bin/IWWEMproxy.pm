@@ -39,7 +39,7 @@ use XML::LibXML;
 
 use lib "$FindBin::Bin";
 use IWWEM::Config;
-use WorkflowCommon;
+use IWWEM::WorkflowCommon;
 use BaclavaSAX;
 
 use lib "$FindBin::Bin/LockNLog";
@@ -181,7 +181,7 @@ sub rawAnswer($$\@;$) {
 				if($dotpos!=-1) {
 					my($ext)=substr($basename,$dotpos+1);
 					my($MIMEFILE);
-					if(open($MIMEFILE,'<',$WorkflowCommon::ETCDIR . '/mime.types')) {
+					if(open($MIMEFILE,'<',$IWWEM::WorkflowCommon::ETCDIR . '/mime.types')) {
 						my(@mimelines)=<$MIMEFILE>;
 						close($MIMEFILE);
 						my(@greplines)=grep(/^[-\w]+\/[-.+\w]+[ \t]+.*[ \t]$ext/,@mimelines);
@@ -223,22 +223,22 @@ sub parseBaclavaQuery($$$$$$$$$$) {
 		my($jobdir)=undef;
 		my($wfsnap)=undef;
 		
-		if(index($jobId,$WorkflowCommon::SNAPSHOTPREFIX)==0) {
-			if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+		if(index($jobId,$IWWEM::WorkflowCommon::SNAPSHOTPREFIX)==0) {
+			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				$wfsnap=$1;
 				$jobId=$2;
-				$jobdir=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
+				$jobdir=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
 			}
-		} elsif(index($jobId,$WorkflowCommon::EXAMPLEPREFIX)==0) {
-			if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+		} elsif(index($jobId,$IWWEM::WorkflowCommon::EXAMPLEPREFIX)==0) {
+			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				$wfsnap=$1;
 				$jobId=$2;
-				$jobdir=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::EXAMPLESDIR;
+				$jobdir=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR;
 				$isExample=1;
 			}
 		} else {
 			# For completion, we handle qualified job Ids
-			$jobId =~ s/^$WorkflowCommon::ENACTIONPREFIX//;
+			$jobId =~ s/^$IWWEM::WorkflowCommon::ENACTIONPREFIX//;
 			$jobdir=$IWWEM::Config::JOBDIR . '/' .$jobId;
 		}
 		
@@ -254,15 +254,15 @@ sub parseBaclavaQuery($$$$$$$$$$) {
 						$targfile=[$jobId.'.xml'];
 					} elsif(defined($IOMode) && $IOMode ne 'B') {
 						if($IOMode eq 'I') {
-							$aFile=$WorkflowCommon::INPUTSFILE;
+							$aFile=$IWWEM::WorkflowCommon::INPUTSFILE;
 							$targfile=[$aFile];
 						} elsif($IOMode eq 'O') {
-							$aFile=$WorkflowCommon::OUTPUTSFILE;
+							$aFile=$IWWEM::WorkflowCommon::OUTPUTSFILE;
 							$targfile=[$aFile];
 						}
 					} elsif(!defined($IOPath) && (!defined($IOMode) || $IOMode eq 'B')) {
-						$aFile=$WorkflowCommon::OUTPUTSFILE;
-						$targfile=[$WorkflowCommon::INPUTSFILE,$aFile];
+						$aFile=$IWWEM::WorkflowCommon::OUTPUTSFILE;
+						$targfile=[$IWWEM::WorkflowCommon::INPUTSFILE,$aFile];
 					}
 					
 					if(defined($targfile)) {
@@ -280,7 +280,7 @@ sub parseBaclavaQuery($$$$$$$$$$) {
 							# Now, the physical path
 							my($stepdir)=$jobdir;
 							if(!defined($isExample) && defined($step) && length($step)>0 && $step ne $origJobId) {
-								$stepdir .= '/'.$WorkflowCommon::RESULTSDIR.'/'.$step;
+								$stepdir .= '/'.$IWWEM::WorkflowCommon::RESULTSDIR.'/'.$step;
 							} else {
 								$step='';
 								# Forcing iteration forgery avoidance
@@ -303,7 +303,7 @@ sub parseBaclavaQuery($$$$$$$$$$) {
 										my($partbacfile)=$iterdir . '/' . $parttargfile;
 		
 										# We are going to parse!
-										#$context->registerNs('s',$WorkflowCommon::SCUFL_NS);
+										#$context->registerNs('s',$IWWEM::WorkflowCommon::SCUFL_NS);
 		
 										eval {
 											if(defined($IOPath) && length($IOPath)>0) {
@@ -311,7 +311,7 @@ sub parseBaclavaQuery($$$$$$$$$$) {
 											} else {
 												$lastval=$partbacfile;
 											}
-											push(@Abacarray,[($parttargfile eq $WorkflowCommon::OUTPUTSFILE)?'O':'I',$lastval]);
+											push(@Abacarray,[($parttargfile eq $IWWEM::WorkflowCommon::OUTPUTSFILE)?'O':'I',$lastval]);
 										};
 		
 										if($@) {
@@ -361,13 +361,13 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 		unless(defined($bundle64)) {
 			eval {
 				my($context)=XML::LibXML::XPathContext->new();
-				$context->registerNs('b',$WorkflowCommon::BACLAVA_NS);
-				$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
+				$context->registerNs('b',$IWWEM::WorkflowCommon::BACLAVA_NS);
+				$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
 				
 				my(%xpathvars)=();
 				my($varbase)='var';
 				my($varnum)=0;
-				my($transfacet)=WorkflowCommon::depatchPath($facet);
+				my($transfacet)=IWWEM::WorkflowCommon::depatchPath($facet);
 				my($varref)=$varbase.$varnum;
 				$varnum++;
 				$xpathvars{$varref}=$transfacet;
@@ -386,13 +386,13 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 					$xpathfetch .= 'b:partialOrder/b:itemList/';
 					$effpathlength--;
 					for(my $pathidx=0; $pathidx<$effpathlength; $pathidx++) {
-						my($transpath)=WorkflowCommon::depatchPath($path[$pathidx]);
+						my($transpath)=IWWEM::WorkflowCommon::depatchPath($path[$pathidx]);
 						my($varref)=$varbase.$varnum;
 						$varnum++;
 						$xpathvars{$varref}=$transpath;
 						$xpathfetch .= "b:partialOrder[\@index=\$$varref]/b:itemList/";
 					}
-					my($transpath)=WorkflowCommon::depatchPath($path[$effpathlength]);
+					my($transpath)=IWWEM::WorkflowCommon::depatchPath($path[$effpathlength]);
 					my($varref)=$varbase.$varnum;
 					$varnum++;
 					$xpathvars{$varref}=$transpath;
@@ -450,12 +450,12 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 			# We are going to parse!
 			my($parser)=XML::LibXML->new();
 			my($context)=XML::LibXML::XPathContext->new();
-			$context->registerNs('pat',$WorkflowCommon::PAT_NS);
-			#$context->registerNs('s',$WorkflowCommon::SCUFL_NS);
+			$context->registerNs('pat',$IWWEM::WorkflowCommon::PAT_NS);
+			#$context->registerNs('s',$IWWEM::WorkflowCommon::SCUFL_NS);
 	
 			my($docpat);
 			eval {
-				$docpat=$parser->parse_file($WorkflowCommon::PATTERNSFILE);
+				$docpat=$parser->parse_file($IWWEM::WorkflowCommon::PATTERNSFILE);
 			};
 			unless($@) {
 				my($varref)='var0';
@@ -526,7 +526,7 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 	} else {
 		# Generating output listing
 		my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
-		my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'dataBundle');
+		my($root)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'dataBundle');
 		$root->setAttribute('time',LockNLog::getPrintableNow());
 		$root->setAttribute('uuid',$origJobId);
 		unless(defined($isExample)) {
@@ -534,7 +534,7 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 			$root->setAttribute('step',$step)  if(defined($step) && length($step)>0);
 			$root->setAttribute('iteration',$iteration)  if(defined($iteration) && length($iteration)>0);
 		}
-		$root->appendChild($outputDoc->createComment($WorkflowCommon::COMMENTWM));
+		$root->appendChild($outputDoc->createComment($IWWEM::WorkflowCommon::COMMENTWM));
 		$outputDoc->setDocumentElement($root);
 		
 		# TODO
@@ -545,8 +545,8 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 			$p_bacio=$bacio;
 		}
 		my($context)=XML::LibXML::XPathContext->new();
-		$context->registerNs('b',$WorkflowCommon::BACLAVA_NS);
-		$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
+		$context->registerNs('b',$IWWEM::WorkflowCommon::BACLAVA_NS);
+		$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
 		my($miniIOMode,$minibacio);
 		foreach my $mini (@{$p_bacio}) {
 			($miniIOMode,$minibacio)=@{$mini};
@@ -588,7 +588,7 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 		my($ext);
 		$ext='xml'  if($asMime eq 'text/xml');
 		my($MIMEFILE);
-		if(!defined($ext) && open($MIMEFILE,'<',$WorkflowCommon::ETCDIR.'/mime.types')) {
+		if(!defined($ext) && open($MIMEFILE,'<',$IWWEM::WorkflowCommon::ETCDIR.'/mime.types')) {
 			my(@mimelines)=<$MIMEFILE>;
 			close($MIMEFILE);
 			my(@greplines)=grep(/^$asMime[ \t]+\w+/,@mimelines);

@@ -36,7 +36,6 @@ use XML::LibXML;
 #use File::Path;
 
 use lib "$FindBin::Bin";
-use WorkflowCommon;
 use IWWEMproxy;
 
 use lib "$FindBin::Bin/LockNLog";

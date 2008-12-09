@@ -40,7 +40,7 @@ use Socket;
 
 use lib "$FindBin::Bin";
 use IWWEM::Config;
-use WorkflowCommon;
+use IWWEM::WorkflowCommon;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -84,8 +84,8 @@ sub appendIO($$$$) {
 sub processStep($$$;$$) {
 	my($basedir,$outputDoc,$es,$enactionReport,$p_stamp)=@_;
 	
-	my($inputsfile)=$basedir . '/' . $WorkflowCommon::INPUTSFILE;
-	my($outputsfile)=$basedir . '/' . $WorkflowCommon::OUTPUTSFILE;
+	my($inputsfile)=$basedir . '/' . $IWWEM::WorkflowCommon::INPUTSFILE;
+	my($outputsfile)=$basedir . '/' . $IWWEM::WorkflowCommon::OUTPUTSFILE;
 	my($resultsdir)=$basedir . '/Results';
 	appendInputs($inputsfile,$outputDoc,$es);
 	appendOutputs($outputsfile,$outputDoc,$es);
@@ -106,7 +106,7 @@ sub appendResults($$$;$$) {
 			foreach my $erentry ($context->findnodes(".//processor",$enactionReport)) {
 				my($entry)=$erentry->getAttribute('name');
 				
-				my($step)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'step');
+				my($step)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'step');
 				$step->setAttribute('name',$entry);
 				
 				my($state)=undef;
@@ -162,14 +162,14 @@ sub appendResults($$$;$$) {
 				$step->setAttribute('state',$state);
 				
 				# Adding the extra info
-				my($extra)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'extraStepInfo');
+				my($extra)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'extraStepInfo');
 				$extra->setAttribute('sched',$sched)  if(defined($sched));
 				$extra->setAttribute('start',$run)  if(defined($run));
 				$extra->setAttribute('stop',$stop)  if(defined($stop));
 				$extra->setAttribute('iterNumber',$runnumber)  if(defined($runnumber));
 				$extra->setAttribute('iterMax',$runmax)  if(defined($runmax));
 				foreach my $errmsg (@errreport) {
-					my($err)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'stepError');
+					my($err)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'stepError');
 					$err->setAttribute('header',$errmsg->[0]);
 					$err->appendChild($outputDoc->createCDATASection($errmsg->[1]));
 					$extra->appendChild($err);
@@ -179,12 +179,12 @@ sub appendResults($$$;$$) {
 				
 				if(defined($includeSubs)) {
 					my($jobdir)=$resultsdir .'/'. $entry;
-					appendInputs($jobdir . '/' . $WorkflowCommon::INPUTSFILE,$outputDoc,$step);
-					appendOutputs($jobdir . '/' . $WorkflowCommon::OUTPUTSFILE,$outputDoc,$step);
+					appendInputs($jobdir . '/' . $IWWEM::WorkflowCommon::INPUTSFILE,$outputDoc,$step);
+					appendOutputs($jobdir . '/' . $IWWEM::WorkflowCommon::OUTPUTSFILE,$outputDoc,$step);
 					
-					my($iteratedir)=$jobdir . '/'. $WorkflowCommon::ITERATIONSDIR;
+					my($iteratedir)=$jobdir . '/'. $IWWEM::WorkflowCommon::ITERATIONSDIR;
 					if(-d $iteratedir) {
-						my($iternode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'iterations');
+						my($iternode)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'iterations');
 						$step->appendChild($iternode);
 						my($subFailed)=appendResults($iteratedir,$outputDoc,$iternode);
 						$failedSth=1  if(defined($subFailed));
@@ -202,7 +202,7 @@ sub appendResults($$$;$$) {
 				my($jobdir)=$resultsdir .'/'. $entry;
 				next  if($entry eq '.' || $entry eq '..' || ! -d $jobdir);
 				
-				my($step)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'step');
+				my($step)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'step');
 				$step->setAttribute('name',$entry);
 				my($state)=undef;
 				my($includeSubs)=1;
@@ -223,12 +223,12 @@ sub appendResults($$$;$$) {
 				$step->setAttribute('state',$state);
 				
 				if(defined($includeSubs)) {
-					appendInputs($jobdir . '/' . $WorkflowCommon::INPUTSFILE,$outputDoc,$step);
-					appendOutputs($jobdir . '/' . $WorkflowCommon::OUTPUTSFILE,$outputDoc,$step);
+					appendInputs($jobdir . '/' . $IWWEM::WorkflowCommon::INPUTSFILE,$outputDoc,$step);
+					appendOutputs($jobdir . '/' . $IWWEM::WorkflowCommon::OUTPUTSFILE,$outputDoc,$step);
 					
 					my($iteratedir)=$jobdir . '/Iterations';
 					if(-d $iteratedir) {
-						my($iternode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'iterations');
+						my($iternode)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'iterations');
 						$step->appendChild($iternode);
 						my($subFailed)=appendResults($iteratedir,$outputDoc,$iternode);
 						$failedSth=1  if(defined($subFailed));
@@ -292,7 +292,7 @@ sub getStoredEnactionReport($$) {
 	my($ER);
 	my($rep)='';
 	
-	if(open($ER,'<',$dir.'/'.$WorkflowCommon::REPORTFILE)) {
+	if(open($ER,'<',$dir.'/'.$IWWEM::WorkflowCommon::REPORTFILE)) {
 		my($line)=undef;
 		while($line=<$ER>) {
 			$rep .= $line;
@@ -316,7 +316,7 @@ sub parseEnactionReport($$;$) {
 			# Beware decode!
 			my($crap)=$enactionReport;
 			my($er)=$parser->parse_string(decode('UTF-8', $crap));
-			$repnode=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReport');
+			$repnode=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionReport');
 			$repnode->appendChild($outputDoc->importNode($er->documentElement));
 		};
 
@@ -330,7 +330,7 @@ sub parseEnactionReport($$;$) {
 	}
 	
 	if(defined($enactionReportError)) {
-		$repnode=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionReportError');
+		$repnode=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionReportError');
 		$enactionReportError .= "\n\nOffending content:\n\n$enactionReport"  if(defined($enactionReport));
 		$repnode->appendChild($outputDoc->createCDATASection($enactionReportError));
 	}
@@ -341,22 +341,22 @@ sub parseEnactionReport($$;$) {
 sub sendEnactionReport($\@;$$$$$) {
 	my($query,$p_jobIdList,$snapshotName,$snapshotDesc,$responsibleMail,$responsibleName,$dispose)=@_;
 	my($outputDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
-	my($root)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionreport');
+	my($root)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionreport');
 	$outputDoc->setDocumentElement($root);
 	
-	$root->appendChild($outputDoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTES) ));
+	$root->appendChild($outputDoc->createComment( encode('UTF-8',$IWWEM::WorkflowCommon::COMMENTES) ));
 	
 	my $parser = XML::LibXML->new();
 	my $context = XML::LibXML::XPathContext->new();
-	$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
-	$context->registerNs('sn',$WorkflowCommon::WFD_NS);
+	$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+	$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
 	
 	# Disposal execution
 	foreach my $jobId (@{$p_jobIdList}) {
-		my($es)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'enactionstatus');
+		my($es)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionstatus');
 		$es->setAttribute('jobId',$jobId);
 		$es->setAttribute('time',LockNLog::getPrintableNow());
-		$es->setAttribute('relURI',$WorkflowCommon::VIRTJOBDIR);
+		$es->setAttribute('relURI',$IWWEM::WorkflowCommon::VIRTJOBDIR);
 	
 		# Time to know the overall status of this enaction
 		my($state)=undef;
@@ -364,20 +364,20 @@ sub sendEnactionReport($\@;$$$$$) {
 		my($wfsnap)=undef;
 		my($origJobId)=undef;
 		
-		if(index($jobId,$WorkflowCommon::SNAPSHOTPREFIX)==0) {
+		if(index($jobId,$IWWEM::WorkflowCommon::SNAPSHOTPREFIX)==0) {
 			$origJobId=$jobId;
-			if(index($jobId,'/')==-1 && $jobId =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				$wfsnap=$1;
 				$jobId=$2;
-				$jobdir=$WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
+				$jobdir=$IWWEM::WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
 				# It is an snapshot, so the relative URI changes
-				$es->setAttribute('relURI',$WorkflowCommon::VIRTWORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR);
+				$es->setAttribute('relURI',$IWWEM::WorkflowCommon::VIRTWORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR);
 			}
 		} else {
 			# For completion, we handle qualified job Ids
-			$jobId =~ s/^$WorkflowCommon::ENACTIONPREFIX//;
+			$jobId =~ s/^$IWWEM::WorkflowCommon::ENACTIONPREFIX//;
 			$jobdir=$IWWEM::Config::JOBDIR . '/' .$jobId;
-			$origJobId=$WorkflowCommon::ENACTIONPREFIX.$jobId;
+			$origJobId=$IWWEM::WorkflowCommon::ENACTIONPREFIX.$jobId;
 		}
 	
 		# Is it a valid job id?
@@ -411,14 +411,14 @@ sub sendEnactionReport($\@;$$$$$) {
 				if(defined($wfsnap)) {
 					$kind='snapshot';
 					eval {
-						my($catfile)=$jobdir.'/../'.$WorkflowCommon::CATALOGFILE;
+						my($catfile)=$jobdir.'/../'.$IWWEM::WorkflowCommon::CATALOGFILE;
 						my($catdoc)=$parser->parse_file($catfile);
 						
-						my($transjobId)=WorkflowCommon::patchXMLString($jobId);
+						my($transjobId)=IWWEM::WorkflowCommon::patchXMLString($jobId);
 						my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transjobId']",$catdoc);
 						foreach my $snap (@eraseSnap) {
 							$prettyname=$snap->getAttribute('name');
-							$resMail=$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+							$resMail=$snap->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 							last;
 						}
 					};
@@ -426,14 +426,14 @@ sub sendEnactionReport($\@;$$$$$) {
 					$kind='enaction';
 					
 					eval {
-						my($responsiblefile)=$jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE;
+						my($responsiblefile)=$jobdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
 						my($rp)=$parser->parse_file($responsiblefile);
-						$resMail=$rp->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+						$resMail=$rp->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 						
-						my($workflowfile)=$jobdir.'/'.$WorkflowCommon::WORKFLOWFILE;
+						my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
 						my($wf)=$parser->parse_file($workflowfile);
 						
-						my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+						my @nodelist = $wf->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
 						if(scalar(@nodelist)>0) {
 							$prettyname=$nodelist[0]->getAttribute('title');
 						}
@@ -443,16 +443,16 @@ sub sendEnactionReport($\@;$$$$$) {
 				
 				# Sending e-mail to confirm the pass
 				if(defined($resMail)) {
-					my($penduuid,$penddir,$PH)=WorkflowCommon::genPendingOperationsDir($WorkflowCommon::COMMANDERASE);
+					my($penduuid,$penddir,$PH)=IWWEM::WorkflowCommon::genPendingOperationsDir($IWWEM::WorkflowCommon::COMMANDERASE);
 	
 					print $PH "$origJobId\n";
 					close($PH);
 					
-					WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,$kind,$WorkflowCommon::COMMANDERASE,$origJobId,$resMail,$prettyname);
+					IWWEM::WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,$kind,$IWWEM::WorkflowCommon::COMMANDERASE,$origJobId,$resMail,$prettyname);
 				}
 			} else {
 				# Getting static info
-				my($staticfile)=$jobdir.'/'.$WorkflowCommon::STATICSTATUSFILE;
+				my($staticfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::STATICSTATUSFILE;
 				my(@stat_staticfile)=stat($staticfile);
 				my(@stat_selffile)=stat($FindBin::Bin .'/enactionstatus.pm');
 				if(scalar(@stat_staticfile)>0 && $stat_staticfile[9]>$stat_selffile[9]) {
@@ -521,7 +521,7 @@ sub sendEnactionReport($\@;$$$$$) {
 									if(defined($enactionReport) && $enactionReport->localname eq 'enactionReport') {
 										my($erDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
 										$erDoc->setDocumentElement($erDoc->importNode($enactionReport->firstChild()));
-										$erDoc->toFile($jobdir.'/'.$WorkflowCommon::REPORTFILE);
+										$erDoc->toFile($jobdir.'/'.$IWWEM::WorkflowCommon::REPORTFILE);
 									}
 									$termstat=1;
 									if(kill(TERM => -$pid)) {
@@ -568,7 +568,7 @@ sub sendEnactionReport($\@;$$$$$) {
 					my($workflowId)=undef;
 					# Trying to get the workflowId
 					my($WFID);
-					if(open($WFID,'<',$jobdir.'/'.$WorkflowCommon::WFIDFILE)) {
+					if(open($WFID,'<',$jobdir.'/'.$IWWEM::WorkflowCommon::WFIDFILE)) {
 						$workflowId=<$WFID>;
 						close($WFID);
 					}
@@ -576,37 +576,37 @@ sub sendEnactionReport($\@;$$$$$) {
 					# So, let's take a snapshot!
 					if(defined($workflowId) && index($workflowId,'/')==-1) {
 						# First, read the catalog
-						my($snapbasedir)=$WorkflowCommon::WORKFLOWDIR .'/'.$workflowId.'/'.$WorkflowCommon::SNAPSHOTSDIR;
+						my($snapbasedir)=$IWWEM::WorkflowCommon::WORKFLOWDIR .'/'.$workflowId.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 						eval {
 							my($uuid);
 							my($snapdir);
 							do {
-								$uuid=WorkflowCommon::genUUID();
+								$uuid=IWWEM::WorkflowCommon::genUUID();
 								$snapdir=$snapbasedir.'/'.$uuid;
 							} while(-d $snapdir);
 							mkpath($snapdir);
 	
 							# Generating a pending operation
-							my($penduuid,$penddir,$PH)=WorkflowCommon::genPendingOperationsDir($WorkflowCommon::COMMANDADD);
-							my($fullsnapuuid)=$WorkflowCommon::SNAPSHOTPREFIX."$workflowId:$uuid";
+							my($penduuid,$penddir,$PH)=IWWEM::WorkflowCommon::genPendingOperationsDir($IWWEM::WorkflowCommon::COMMANDADD);
+							my($fullsnapuuid)=$IWWEM::WorkflowCommon::SNAPSHOTPREFIX."$workflowId:$uuid";
 							print $PH "$fullsnapuuid\n";
 							close($PH);
 							
 							# Now, the new files
 							my($pendsnapdir)=$penddir.'/'.$uuid;
-							my($pendcatalogfile)=$penddir.'/'.$uuid.'_'.$WorkflowCommon::CATALOGFILE;
+							my($pendcatalogfile)=$penddir.'/'.$uuid.'_'.$IWWEM::WorkflowCommon::CATALOGFILE;
 							
 							# Partial catalog
 							my($catdoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
 	
 							# Last but one, register snapshot
-							my($snapnode)=$catdoc->createElementNS($WorkflowCommon::WFD_NS,'snapshot');
+							my($snapnode)=$catdoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'snapshot');
 							# First in unqualified form
 							$snapnode->setAttribute('name',$snapshotName);
 							$snapnode->setAttribute('uuid',$uuid);
 							$snapnode->setAttribute('date',LockNLog::getPrintableNow());
-							$snapnode->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
-							$snapnode->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+							$snapnode->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+							$snapnode->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 							if(defined($snapshotDesc) && length($snapshotDesc)>0) {
 								$snapnode->appendChild($catdoc->createCDATASection($snapshotDesc));
 							}
@@ -621,13 +621,13 @@ sub sendEnactionReport($\@;$$$$$) {
 								$enactionReport=getFreshEnactionReport($erDoc,$jobdir . '/socket')  unless(defined($enactionReport));
 								if(defined($enactionReport) && $enactionReport->localname eq 'enactionReport') {
 									$erDoc->setDocumentElement($enactionReport->firstChild);
-									$erDoc->toFile($pendsnapdir.'/'.$WorkflowCommon::REPORTFILE);
+									$erDoc->toFile($pendsnapdir.'/'.$IWWEM::WorkflowCommon::REPORTFILE);
 								}
 								# Static info is erased, so it is regenerated
-								unlink($pendsnapdir.'/'.$WorkflowCommon::STATICSTATUSFILE);
+								unlink($pendsnapdir.'/'.$IWWEM::WorkflowCommon::STATICSTATUSFILE);
 	
 								
-								WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'snapshot',$WorkflowCommon::COMMANDADD,$fullsnapuuid,$responsibleMail,$snapshotName);
+								IWWEM::WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'snapshot',$IWWEM::WorkflowCommon::COMMANDADD,$fullsnapuuid,$responsibleMail,$snapshotName);
 								# And let's add it to the report
 								# in qualified form
 								$snapnode->setAttribute('uuid',$fullsnapuuid);
@@ -655,8 +655,8 @@ sub sendEnactionReport($\@;$$$$$) {
 	
 			# The title
 			eval {
-				my $wf = $parser->parse_file($jobdir.'/'.$WorkflowCommon::WORKFLOWFILE);
-				my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+				my $wf = $parser->parse_file($jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE);
+				my @nodelist = $wf->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
 				if(scalar(@nodelist)>0) {
 					$es->setAttribute('title',$nodelist[0]->getAttribute('title'));
 				}
@@ -667,22 +667,22 @@ sub sendEnactionReport($\@;$$$$$) {
 			my($responsibleName)='';
 			eval {
 				if(defined($wfsnap)) {
-					my $cat = $parser->parse_file($jobdir.'/../'.$WorkflowCommon::CATALOGFILE);
-					my($transjobId)=WorkflowCommon::patchXMLString($jobId);
+					my $cat = $parser->parse_file($jobdir.'/../'.$IWWEM::WorkflowCommon::CATALOGFILE);
+					my($transjobId)=IWWEM::WorkflowCommon::patchXMLString($jobId);
 					my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$transjobId']",$cat);
 					foreach my $snapNode (@snaps) {
-						$responsibleMail=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
-						$responsibleName=$snapNode->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+						$responsibleMail=$snapNode->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+						$responsibleName=$snapNode->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME);
 						last;
 					}
 				} else {
-					my $res = $parser->parse_file($jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE);
-					$responsibleMail=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
-					$responsibleName=$res->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLENAME);
+					my $res = $parser->parse_file($jobdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE);
+					$responsibleMail=$res->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+					$responsibleName=$res->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME);
 				}
 			};
-			$es->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
-			$es->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+			$es->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+			$es->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 		}
 		
 		# Do we have to save the report as an static one?
@@ -690,7 +690,7 @@ sub sendEnactionReport($\@;$$$$$) {
 			eval {
 				my($staticDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
 				$staticDoc->setDocumentElement($staticDoc->importNode($es));
-				$staticDoc->toFile($jobdir.'/'.$WorkflowCommon::STATICSTATUSFILE);
+				$staticDoc->toFile($jobdir.'/'.$IWWEM::WorkflowCommon::STATICSTATUSFILE);
 			};
 		}
 		# Last, attach
@@ -709,7 +709,7 @@ use strict;
 use XML::SAX::Base;
 use XML::SAX::Exception;
 use lib "$FindBin::Bin";
-use WorkflowCommon;
+use IWWEM::WorkflowCommon;
 
 use base qw(XML::SAX::Base);
 
@@ -738,8 +738,8 @@ sub start_element {
 	
 	my($elname)=$elem->{LocalName};
 
-	if($elem->{NamespaceURI} eq $WorkflowCommon::BACLAVA_NS && $elname eq 'dataThing') {
-		my($ionode)=$self->{outputDoc}->createElementNS($WorkflowCommon::WFD_NS,$self->{iotagname});
+	if($elem->{NamespaceURI} eq $IWWEM::WorkflowCommon::BACLAVA_NS && $elname eq 'dataThing') {
+		my($ionode)=$self->{outputDoc}->createElementNS($IWWEM::WorkflowCommon::WFD_NS,$self->{iotagname});
 		$ionode->setAttribute('name',$elem->{Attributes}{'{}key'}{Value});
 		$self->{parent}->appendChild($ionode);
 	}

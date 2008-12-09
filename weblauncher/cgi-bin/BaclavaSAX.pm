@@ -34,7 +34,7 @@ use strict;
 
 use FindBin;
 use lib "$FindBin::Bin";
-use WorkflowCommon;
+use IWWEM::WorkflowCommon;
 
 use XML::SAX::Base;
 use XML::SAX::Exception;
@@ -61,7 +61,7 @@ sub start_element {
 	my($elname)=$elem->{LocalName};
 	
 	if($elname eq 'partialOrder' || $elname eq 'dataElement') {
-		my($current)=$self->{outputDoc}->createElementNS($WorkflowCommon::WFD_NS,($elname eq 'partialOrder')?'branch':'leaf');
+		my($current)=$self->{outputDoc}->createElementNS($IWWEM::WorkflowCommon::WFD_NS,($elname eq 'partialOrder')?'branch':'leaf');
 		if(exists($elem->{Attributes}{'{}index'})) {
 			$current->setAttribute('index',$elem->{Attributes}{'{}index'}{Value});
 		}
@@ -71,7 +71,7 @@ sub start_element {
 		$self->{current}=$current;
 	} elsif($elname eq 'dataThing') {
 		my($ionode);
-		$self->{current}=$self->{ionode}=$ionode=$self->{outputDoc}->createElementNS($WorkflowCommon::WFD_NS,$self->{baseelem});
+		$self->{current}=$self->{ionode}=$ionode=$self->{outputDoc}->createElementNS($IWWEM::WorkflowCommon::WFD_NS,$self->{baseelem});
 		$ionode->setAttribute('name',$elem->{Attributes}{'{}key'}{Value});
 		$self->{p_mimes}=[];
 		$self->{root}->appendChild($ionode);
@@ -110,7 +110,7 @@ sub end_element {
 		my($outputDoc)=$self->{outputDoc};
 		push(@{$p_mimes},'text/plain')  if(scalar(@{$p_mimes})==0);
 		foreach my $mime (@{$p_mimes}) {
-			my($mimeNode)=$outputDoc->createElementNS($WorkflowCommon::WFD_NS,'mime');
+			my($mimeNode)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'mime');
 			$mimeNode->appendChild($outputDoc->createTextNode($mime));
 			$ionode->appendChild($mimeNode);
 		}

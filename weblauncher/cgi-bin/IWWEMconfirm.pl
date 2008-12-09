@@ -37,7 +37,7 @@ use XML::LibXML;
 
 use lib "$FindBin::Bin";
 use IWWEM::Config;
-use WorkflowCommon;
+use IWWEM::WorkflowCommon;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -88,7 +88,7 @@ foreach my $param ($query->param()) {
 # Second, do it!
 
 my($codedir)=$IWWEM::Config::CONFIRMDIR.'/'.$code;
-my($commandfile)=$codedir.'/'.$WorkflowCommon::COMMANDFILE;
+my($commandfile)=$codedir.'/'.$IWWEM::WorkflowCommon::COMMANDFILE;
 my($command)=undef;
 if($retval eq '0' && !$query->cgi_error() && defined($code) && index($code,'/')==-1 && -d $codedir && -r $commandfile) {
 	my($FH);
@@ -98,7 +98,7 @@ if($retval eq '0' && !$query->cgi_error() && defined($code) && index($code,'/')=
 		close($FH);
 		
 		# Command validation
-		$command=undef  if($command ne $WorkflowCommon::COMMANDERASE && $command ne $WorkflowCommon::COMMANDADD);
+		$command=undef  if($command ne $IWWEM::WorkflowCommon::COMMANDERASE && $command ne $IWWEM::WorkflowCommon::COMMANDADD);
 	}
 }
 
@@ -116,16 +116,16 @@ unless(defined($command)) {
 
 my $parser = XML::LibXML->new();
 my $context = XML::LibXML::XPathContext->new();
-$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
-$context->registerNs('sn',$WorkflowCommon::WFD_NS);
+$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
 
-my($smtp) = WorkflowCommon::createMailer();
+my($smtp) = IWWEM::WorkflowCommon::createMailer();
 
 my(@done)=();
 
-if($command eq $WorkflowCommon::COMMANDERASE) {
+if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 	my($EH);
-	if(open($EH,'<',$codedir.'/'.$WorkflowCommon::PENDINGERASEFILE)) {
+	if(open($EH,'<',$codedir.'/'.$IWWEM::WorkflowCommon::PENDINGERASEFILE)) {
 		my($irelpath)=undef;
 		while($irelpath=<$EH>) {
 			chomp($irelpath);
@@ -137,47 +137,47 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 			my($email)=undef;
 			my($kind)=undef;
 			my($prettyname)=undef;
-			if($irelpath =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			if($irelpath =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				my($wfsnap)=$1;
 				my($snapId)=$2;
 				$kind='snapshot';
 				eval {
-					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 					
-					my($transsnapId)=WorkflowCommon::patchXMLString($snapId);
+					my($transsnapId)=IWWEM::WorkflowCommon::patchXMLString($snapId);
 					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transsnapId']",$catdoc);
 					foreach my $snap (@eraseSnap) {
 						$prettyname=$snap->getAttribute('name');
-						$email=$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+						$email=$snap->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 						$snap->parentNode->removeChild($snap);
 					}
 					$catdoc->toFile($catfile);
 				};
-				rmtree($IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$snapId);
-			} elsif($irelpath =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+				rmtree($IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$snapId);
+			} elsif($irelpath =~ /^$IWWEM::WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				my($wfexam)=$1;
 				my($examId)=$2;
 				$kind='example';
 				eval {
-					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 					
-					my($transexamId)=WorkflowCommon::patchXMLString($examId);
+					my($transexamId)=IWWEM::WorkflowCommon::patchXMLString($examId);
 					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$transexamId']",$catdoc);
 					foreach my $exam (@eraseExam) {
 						$prettyname=$exam->getAttribute('name');
-						$email=$exam->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+						$email=$exam->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 						$exam->parentNode->removeChild($exam);
 					}
 					$catdoc->toFile($catfile);
 				};
-				unlink($IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$examId.'.xml');
+				unlink($IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR.'/'.$examId.'.xml');
 			} else {
 				# Workflows and enactions
 				my($jobdir)=undef;
 				
-				if($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+				if($irelpath =~ /^$IWWEM::WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
 					$jobdir=$IWWEM::Config::JOBDIR.'/'.$1;
 					$kind='enaction';
 				} else {
@@ -186,31 +186,31 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 					
 					# Let's gather information about what is going to be destroyed
 					eval {
-						my($excatfile) = $jobdir.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
+						my($excatfile) = $jobdir.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
 						my($excatdoc)=$parser->parse_file($excatfile);
 						my(@eraseExam)=$context->findnodes("//sn:example",$excatdoc);
 						
 						foreach my $exam (@eraseExam) {
 							push(@predone,[
 								'example',
-								$WorkflowCommon::EXAMPLEPREFIX.$exam->getAttribute('uuid'),
+								$IWWEM::WorkflowCommon::EXAMPLEPREFIX.$exam->getAttribute('uuid'),
 								1,
-								$exam->getAttribute($WorkflowCommon::RESPONSIBLEMAIL),
+								$exam->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL),
 								$exam->getAttribute('name')
 							]);
 						}
 					};
 					eval {
-						my($sncatfile) = $jobdir.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
+						my($sncatfile) = $jobdir.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
 						my($sncatdoc)=$parser->parse_file($sncatfile);
 						my(@eraseSnap)=$context->findnodes("//sn:snapshot",$sncatdoc);
 						
 						foreach my $snap (@eraseSnap) {
 							push(@predone,[
 								'snapshot',
-								$WorkflowCommon::SNAPSHOTPREFIX.$snap->getAttribute('uuid'),
+								$IWWEM::WorkflowCommon::SNAPSHOTPREFIX.$snap->getAttribute('uuid'),
 								1,
-								$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL),
+								$snap->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL),
 								$snap->getAttribute('name')
 							]);
 						}
@@ -219,14 +219,14 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				}
 				
 				eval {
-					my($responsiblefile)=$jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE;
+					my($responsiblefile)=$jobdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
 					my($rp)=$parser->parse_file($responsiblefile);
-					$email=$rp->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+					$email=$rp->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 					
-					my($workflowfile)=$jobdir.'/'.$WorkflowCommon::WORKFLOWFILE;
+					my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
 					my($wf)=$parser->parse_file($workflowfile);
 					
-					my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+					my @nodelist = $wf->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
 					if(scalar(@nodelist)>0) {
 						$prettyname=$nodelist[0]->getAttribute('title');
 					}
@@ -249,7 +249,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				foreach my $p_done (@predone) {
 					my($prett)=$p_done->[4];
 					$prett=undef  if(defined($prett) && length($prett)==0);
-					WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$p_done->[0],$command,$p_done->[1],$p_done->[3],$prett);
+					IWWEM::WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$p_done->[0],$command,$p_done->[1],$p_done->[3],$prett);
 				}
 				push(@done,@predone);
 			} else {
@@ -258,9 +258,9 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 		}
 		close($EH);
 	}
-} elsif($command eq $WorkflowCommon::COMMANDADD) {
+} elsif($command eq $IWWEM::WorkflowCommon::COMMANDADD) {
 	my($EH);
-	if(open($EH,'<',$codedir.'/'.$WorkflowCommon::PENDINGADDFILE)) {
+	if(open($EH,'<',$codedir.'/'.$IWWEM::WorkflowCommon::PENDINGADDFILE)) {
 		my($irelpath)=undef;
 		while($irelpath=<$EH>) {
 			chomp($irelpath);
@@ -272,27 +272,27 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 			my($kind)=undef;
 			my($prettyname)=undef;
 			
-			if($irelpath =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			if($irelpath =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				my($wfsnap)=$1;
 				my($snapId)=$2;
 				$kind='snapshot';
 				
-				my($workflowdir)=$IWWEM::Config::WORKFLOWDIR.'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR;
+				my($workflowdir)=$IWWEM::Config::WORKFLOWDIR.'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 				move($codedir.'/'.$snapId,$workflowdir.'/'.$snapId);
 				
 				eval {
-					my($catfile)=$codedir.'/'.$snapId.'_'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$codedir.'/'.$snapId.'_'.$IWWEM::WorkflowCommon::CATALOGFILE;
 					my($catres)=$parser->parse_file($catfile);
 					my($snap)=$catres->documentElement();
 					$prettyname=$snap->getAttribute('name');
-					$email=$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+					$email=$snap->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 					
 					# Adding to the catalog file
-					my($newcatfile)=$workflowdir.'/'.$WorkflowCommon::CATALOGFILE;
+					my($newcatfile)=$workflowdir.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
 					# File must exist
 					my($newcatres)=$parser->parse_file($newcatfile);
 					# Are there old entries?
-					my($transsnapId)=WorkflowCommon::patchXMLString($snapId);
+					my($transsnapId)=IWWEM::WorkflowCommon::patchXMLString($snapId);
 					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transsnapId']",$newcatres);
 					foreach my $snapNode (@eraseSnap) {
 						$snapNode->parentNode->removeChild($snapNode);
@@ -304,27 +304,27 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 					# And tmp catfile must be removed
 					unlink($catfile);
 				};
-			} elsif($irelpath =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+			} elsif($irelpath =~ /^$IWWEM::WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				my($wfexam)=$1;
 				my($examId)=$2;
 				$kind='example';
 				
-				my($workflowdir)=$IWWEM::Config::WORKFLOWDIR.'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR;
+				my($workflowdir)=$IWWEM::Config::WORKFLOWDIR.'/'.$wfexam.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR;
 				move($codedir.'/'.$examId.'.xml',$workflowdir);
 				
 				eval {
-					my($catfile)=$codedir.'/'.$examId.'_'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$codedir.'/'.$examId.'_'.$IWWEM::WorkflowCommon::CATALOGFILE;
 					my($catres)=$parser->parse_file($catfile);
 					my($exam)=$catres->documentElement();
 					$prettyname=$exam->getAttribute('name');
-					$email=$exam->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+					$email=$exam->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 					
 					# Adding to the catalog file
-					my($newcatfile)=$workflowdir.'/'.$WorkflowCommon::CATALOGFILE;
+					my($newcatfile)=$workflowdir.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
 					# File must exist
 					my($newcatres)=$parser->parse_file($newcatfile);
 					# Are there old entries?
-					my($transexamId)=WorkflowCommon::patchXMLString($examId);
+					my($transexamId)=IWWEM::WorkflowCommon::patchXMLString($examId);
 					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$transexamId']",$newcatres);
 					foreach my $examNode (@eraseExam) {
 						$examNode->parentNode->removeChild($examNode);
@@ -340,7 +340,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				my($jobdir)=$codedir;
 				my($destdir)=undef;
 				
-				if($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+				if($irelpath =~ /^$IWWEM::WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
 					$jobdir.='/'.$1;
 					$destdir=$IWWEM::Config::JOBDIR.'/'.$1;
 					$kind='enaction';
@@ -351,12 +351,12 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 				}
 				
 				eval {
-					my($wfres)=$parser->parse_file($jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE);
+					my($wfres)=$parser->parse_file($jobdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE);
 					
-					$email=$wfres->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+					$email=$wfres->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 					
-					my($wf)=$parser->parse_file($jobdir.'/'.$WorkflowCommon::WORKFLOWFILE);
-					my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+					my($wf)=$parser->parse_file($jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE);
+					my @nodelist = $wf->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
 					if(scalar(@nodelist)>0) {
 						$prettyname=$nodelist[0]->getAttribute('title');
 					}
@@ -381,7 +381,7 @@ if($command eq $WorkflowCommon::COMMANDERASE) {
 			# Now, we must send an informative e-mail
 			if(defined($email)) {
 				$prettyname=undef  if(defined($prettyname) && length($prettyname)==0);
-				WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname,$query,($kind eq 'snapshot')?$irelpath:undef);
+				IWWEM::WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname,$query,($kind eq 'snapshot')?$irelpath:undef);
 				push(@done,@predone);
 			} else {
 				push(@done,[$kind,$irelpath,undef,$email,$prettyname]);
@@ -405,7 +405,7 @@ foreach my $doel (@done) {
 }
 $tabledone .='</table>';
 
-my($operURL)=WorkflowCommon::getCGIBaseURI($query);
+my($operURL)=IWWEM::WorkflowCommon::getCGIBaseURI($query);
 $operURL =~ s/cgi-bin\/[^\/]+$//;
 
 print <<EOF;

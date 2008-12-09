@@ -39,7 +39,7 @@ use XML::LibXML;
 
 use lib "$FindBin::Bin";
 use IWWEM::Config;
-use WorkflowCommon;
+use IWWEM::WorkflowCommon;
 use workflowmanager; 
 
 use lib "$FindBin::Bin/LockNLog";
@@ -68,8 +68,8 @@ my($licenseName)=undef;
 
 my $parser = XML::LibXML->new();
 my $context = XML::LibXML::XPathContext->new();
-$context->registerNs('s',$WorkflowCommon::XSCUFL_NS);
-$context->registerNs('sn',$WorkflowCommon::WFD_NS);
+$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
@@ -89,7 +89,7 @@ foreach my $param ($query->param()) {
 	my($paramval)=undef;
 
 	# We are skipping all unknown params
-	if($param eq $WorkflowCommon::PARAMISLAND) {
+	if($param eq $IWWEM::WorkflowCommon::PARAMISLAND) {
 		$dataisland=$query->param($param);
 		if($dataisland ne '2') {
 			$dataisland=1;
@@ -109,42 +109,42 @@ foreach my $param ($query->param()) {
 			my($kind)=undef;
 			my($resMail)=undef;
 			my($prettyname)=undef;
-			if($irelpath =~ /^$WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			if($irelpath =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				my($wfsnap)=$1;
 				my($snapId)=$2;
 				$kind='snapshot';
 				eval {
-					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$WorkflowCommon::SNAPSHOTSDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 
-					my($transsnapId)=WorkflowCommon::patchXMLString($snapId);
+					my($transsnapId)=IWWEM::WorkflowCommon::patchXMLString($snapId);
 					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transsnapId']",$catdoc);
 					foreach my $snap (@eraseSnap) {
 						$prettyname=$snap->getAttribute('name');
-						$resMail=$snap->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+						$resMail=$snap->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 						last;
 					}
 				};
-			} elsif($irelpath =~ /^$WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+			} elsif($irelpath =~ /^$IWWEM::WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				my($wfexam)=$1;
 				my($examId)=$2;
 				$kind='example';
 				eval {
-					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$WorkflowCommon::EXAMPLESDIR.'/'.$WorkflowCommon::CATALOGFILE;
+					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
 					my($catdoc)=$parser->parse_file($catfile);
 
-					my($transexamId)=WorkflowCommon::patchXMLString($examId);
+					my($transexamId)=IWWEM::WorkflowCommon::patchXMLString($examId);
 					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$transexamId']",$catdoc);
 					foreach my $exam (@eraseExam) {
 						$prettyname=$exam->getAttribute('name');
-						$resMail=$exam->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+						$resMail=$exam->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 						last;
 					}
 				};
 			} else {
 				my($jobdir)=undef;
 				
-				if($irelpath =~ /^$WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+				if($irelpath =~ /^$IWWEM::WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
 					$jobdir=$IWWEM::Config::JOBDIR.'/'.$1;
 					$kind='enaction';
 				} else {
@@ -153,14 +153,14 @@ foreach my $param ($query->param()) {
 				}
 				
 				eval {
-					my($responsiblefile)=$jobdir.'/'.$WorkflowCommon::RESPONSIBLEFILE;
+					my($responsiblefile)=$jobdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
 					my($rp)=$parser->parse_file($responsiblefile);
-					$resMail=$rp->documentElement()->getAttribute($WorkflowCommon::RESPONSIBLEMAIL);
+					$resMail=$rp->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 					
-					my($workflowfile)=$jobdir.'/'.$WorkflowCommon::WORKFLOWFILE;
+					my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
 					my($wf)=$parser->parse_file($workflowfile);
 					
-					my @nodelist = $wf->getElementsByTagNameNS($WorkflowCommon::XSCUFL_NS,'workflowdescription');
+					my @nodelist = $wf->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
 					if(scalar(@nodelist)>0) {
 						$prettyname=$nodelist[0]->getAttribute('title');
 					}
@@ -169,27 +169,27 @@ foreach my $param ($query->param()) {
 			}
 			
 			if(defined($resMail)) {
-				my($penduuid,$penddir,$PH)=WorkflowCommon::genPendingOperationsDir($WorkflowCommon::COMMANDERASE);
+				my($penduuid,$penddir,$PH)=IWWEM::WorkflowCommon::genPendingOperationsDir($IWWEM::WorkflowCommon::COMMANDERASE);
 
 				print $PH "$irelpath\n";
 				close($PH);
 				
-				WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,$kind,$WorkflowCommon::COMMANDERASE,$irelpath,$resMail,$prettyname);
+				IWWEM::WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,$kind,$IWWEM::WorkflowCommon::COMMANDERASE,$irelpath,$resMail,$prettyname);
 			}
 		}
-	} elsif($param eq $WorkflowCommon::PARAMWORKFLOW) {
+	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOW) {
 		$hasInputWorkflow=1;
-	} elsif($param eq $WorkflowCommon::PARAMWORKFLOWDEP) {
+	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOWDEP) {
 		$hasInputWorkflowDeps=1;
-	} elsif($param eq $WorkflowCommon::PARAMWFID) {
+	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWFID) {
 		$paramval = $id = $query->param($param);
-	} elsif($param eq $WorkflowCommon::RESPONSIBLEMAIL) {
+	} elsif($param eq $IWWEM::WorkflowCommon::RESPONSIBLEMAIL) {
 		$paramval = $responsibleMail = $query->param($param);
-	} elsif($param eq $WorkflowCommon::RESPONSIBLENAME) {
+	} elsif($param eq $IWWEM::WorkflowCommon::RESPONSIBLENAME) {
 		$paramval = $responsibleName = $query->param($param);
-	} elsif($param eq $WorkflowCommon::LICENSEURI) {
+	} elsif($param eq $IWWEM::WorkflowCommon::LICENSEURI) {
 		$paramval = $licenseURI = $query->param($param);
-	} elsif($param eq $WorkflowCommon::LICENSENAME) {
+	} elsif($param eq $IWWEM::WorkflowCommon::LICENSENAME) {
 		$paramval = $licenseName = $query->param($param);
 	} elsif($param eq 'freezeWorkflowDeps') {
 		$doFreezeWorkflowDeps=1;

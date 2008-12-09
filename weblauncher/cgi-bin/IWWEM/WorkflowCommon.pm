@@ -1,7 +1,7 @@
 #!/usr/bin/perl -W
 
 # $Id$
-# WorkflowCommon.pm
+# IWWEM/WorkflowCommon.pm
 # from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 # Author: José María Fernández González (C) 2007-2008
 # Institutions:
@@ -28,7 +28,7 @@
 
 use strict;
 
-package WorkflowCommon;
+package IWWEM::WorkflowCommon;
 
 use CGI;
 use Encode;
@@ -41,6 +41,7 @@ use POSIX qw(strftime);
 use XML::LibXML;
 
 use lib "$FindBin::Bin";
+use lib "$FindBin::Bin/..";
 use IWWEM::Config;
 use IWWEM::MailConfig;
 
@@ -95,9 +96,9 @@ $PNGFILE='workflow.png';
 $WFIDFILE='WFID';
 
 %GRAPHREP=(
-	$WorkflowCommon::SVGFILE => 'image/svg+xml',
-	$WorkflowCommon::PNGFILE => 'image/png',
-	$WorkflowCommon::PDFFILE => 'application/pdf'
+	$IWWEM::WorkflowCommon::SVGFILE => 'image/svg+xml',
+	$IWWEM::WorkflowCommon::PNGFILE => 'image/png',
+	$IWWEM::WorkflowCommon::PDFFILE => 'application/pdf'
 );
 
 $DEPDIR='dependencies';
@@ -322,7 +323,7 @@ sub patchXMLString($) {
 }
 
 sub depatchPath($) {
-	#my($trans)=WorkflowCommon::patchXMLString($_[0]);
+	#my($trans)=IWWEM::WorkflowCommon::patchXMLString($_[0]);
 	my($trans)=$_[0];
 	
 	# Deconstructing some work
@@ -394,7 +395,7 @@ sub genPendingOperationsDir($) {
 	my($randfilexml);
 	my($randdir);
 	do {
-		$randname=WorkflowCommon::genUUID();
+		$randname=IWWEM::WorkflowCommon::genUUID();
 		$randdir=$IWWEM::Config::CONFIRMDIR.'/'.$randname;
 	} while(-d $randdir);
 
@@ -402,15 +403,15 @@ sub genPendingOperationsDir($) {
 	mkpath($randdir);
 	my($COM);
 	my($FH);
-	if(open($COM,'>',$randdir.'/'.$WorkflowCommon::COMMANDFILE)) {
+	if(open($COM,'>',$randdir.'/'.$IWWEM::WorkflowCommon::COMMANDFILE)) {
 		print $COM $oper;
 		close($COM);
-		if($oper eq $WorkflowCommon::COMMANDADD) {
+		if($oper eq $IWWEM::WorkflowCommon::COMMANDADD) {
 			# touch
-			open($FH,'>',$randdir.'/'.$WorkflowCommon::PENDINGADDFILE);
-		} elsif($oper eq $WorkflowCommon::COMMANDERASE) {
+			open($FH,'>',$randdir.'/'.$IWWEM::WorkflowCommon::PENDINGADDFILE);
+		} elsif($oper eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 			# touch
-			open($FH,'>',$randdir.'/'.$WorkflowCommon::PENDINGERASEFILE);
+			open($FH,'>',$randdir.'/'.$IWWEM::WorkflowCommon::PENDINGERASEFILE);
 		}
 	}
 	
@@ -425,23 +426,23 @@ sub createResponsibleFile($$;$) {
 	
 	eval {
 		my($resdoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
-		my($resroot)=$resdoc->createElementNS($WorkflowCommon::WFD_NS,'responsible');
-		$resroot->appendChild($resdoc->createComment( encode('UTF-8',$WorkflowCommon::COMMENTEL) ));
-		$resroot->setAttribute($WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
-		$resroot->setAttribute($WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+		my($resroot)=$resdoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'responsible');
+		$resroot->appendChild($resdoc->createComment( encode('UTF-8',$IWWEM::WorkflowCommon::COMMENTEL) ));
+		$resroot->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+		$resroot->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 		$resdoc->setDocumentElement($resroot);
-		$resdoc->toFile($basedir.'/'.$WorkflowCommon::RESPONSIBLEFILE);
+		$resdoc->toFile($basedir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE);
 	};
 	
 	return $@;
 }
 
 sub createMailer() {
-	my($smtp) = Mail::Sender->new({smtp=>$IWWEM::Config::SMTPSERVER,
+	my($smtp) = Mail::Sender->new({smtp=>$IWWEM::MailConfig::SMTPSERVER,
 		auth=>'LOGIN',
-		auth_encoded=>$IWWEM::Config::SMTP_ENCODED_CREDS,
-		authid=>$IWWEM::Config::SMTPUSER,
-		authpwd=>$IWWEM::Config::SMTPPASS
+		auth_encoded=>$IWWEM::MailConfig::SMTP_ENCODED_CREDS,
+		authid=>$IWWEM::MailConfig::SMTPUSER,
+		authpwd=>$IWWEM::MailConfig::SMTPPASS
 	#	subject=>'Prueba4',
 	#	debug=>\*STDERR
 	});
@@ -455,7 +456,7 @@ sub enactionGUIURI($$) {
 	my($operURL)=undef;
 	
 	if(defined($jobId)) {
-		$operURL = WorkflowCommon::getCGIBaseURI($query);
+		$operURL = IWWEM::WorkflowCommon::getCGIBaseURI($query);
 		$operURL =~ s/cgi-bin\/[^\/]+$//;
 		$operURL.="enactionviewer.html?jobId=$jobId";
 	}
@@ -466,10 +467,10 @@ sub enactionGUIURI($$) {
 sub sendResponsibleConfirmedMail($$$$$$$;$$) {
 	my($smtp,$code,$kind,$command,$irelpath,$responsibleMail,$prettyname,$query,$enId)=@_;
 	
-	$smtp=WorkflowCommon::createMailer()  unless(defined($smtp));
-	my($prettyop)=($command eq $WorkflowCommon::COMMANDADD)?'added':'disposed';
+	$smtp=IWWEM::WorkflowCommon::createMailer()  unless(defined($smtp));
+	my($prettyop)=($command eq $IWWEM::WorkflowCommon::COMMANDADD)?'added':'disposed';
 	
-	my($operURL)=WorkflowCommon::enactionGUIURI($query,$enId);
+	my($operURL)=IWWEM::WorkflowCommon::enactionGUIURI($query,$enId);
 	my($addmesg)='';
 	if(defined($operURL)) {
 		$addmesg="You can browse it at\r\n\r\n$operURL\r\n";
@@ -488,8 +489,8 @@ sub sendResponsibleConfirmedMail($$$$$$$;$$) {
 sub sendEnactionMail($$$;$) {
 	my($query,$jobId,$responsibleMail,$hasFinished)=@_;
 	
-	my($smtp)=WorkflowCommon::createMailer();
-	my($operURL)=WorkflowCommon::enactionGUIURI($query,$jobId);
+	my($smtp)=IWWEM::WorkflowCommon::createMailer();
+	my($operURL)=IWWEM::WorkflowCommon::enactionGUIURI($query,$jobId);
 	my($status)=defined($hasFinished)?'finished':'started';
 	my($dataStatus)=defined($hasFinished)?'results':'progress';
 	return $smtp->MailMsg({
@@ -503,10 +504,10 @@ sub sendEnactionMail($$$;$) {
 sub sendResponsiblePendingMail($$$$$$$$) {
 	my($query,$smtp,$code,$kind,$command,$irelpath,$responsibleMail,$prettyname)=@_;
 	
-	$smtp=WorkflowCommon::createMailer()  unless(defined($smtp));
-	my($prettyop)=($command eq $WorkflowCommon::COMMANDADD)?'addition':'deletion';
+	$smtp=IWWEM::WorkflowCommon::createMailer()  unless(defined($smtp));
+	my($prettyop)=($command eq $IWWEM::WorkflowCommon::COMMANDADD)?'addition':'deletion';
 	
-	my($operURL)=WorkflowCommon::getCGIBaseURI($query);
+	my($operURL)=IWWEM::WorkflowCommon::getCGIBaseURI($query);
 	$operURL =~ s/cgi-bin\/[^\/]+$//;
 	$operURL.="cgi-bin/IWWEMconfirm?code=$code";
 	

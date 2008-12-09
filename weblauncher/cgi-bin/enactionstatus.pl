@@ -37,7 +37,7 @@ use File::Path;
 use Socket;
 
 use lib "$FindBin::Bin";
-use WorkflowCommon;
+use IWWEM::WorkflowCommon;
 use enactionstatus;
 
 use lib "$FindBin::Bin/LockNLog";
@@ -87,10 +87,10 @@ foreach my $param ($query->param()) {
 	} elsif($param eq 'snapshotDesc') {
 		$snapshotDesc = $query->param($param);
 		@paramvalarr = ( $snapshotDesc );
-	} elsif($param eq $WorkflowCommon::RESPONSIBLEMAIL) {
+	} elsif($param eq $IWWEM::WorkflowCommon::RESPONSIBLEMAIL) {
 		$responsibleMail = $query->param($param);
 		@paramvalarr = ( $responsibleMail );
-	} elsif($param eq $WorkflowCommon::RESPONSIBLENAME) {
+	} elsif($param eq $IWWEM::WorkflowCommon::RESPONSIBLENAME) {
 		$responsibleName = $query->param($param);
 		@paramvalarr = ( $responsibleName );
 	}
