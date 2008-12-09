@@ -443,6 +443,21 @@ The textual content of this element is the description of the example (possibly 
         </xsd:complexContent>
     </xsd:complexType>
     
+    <xsd:attributeGroup name="wfTypeAttrGroup">
+        <xsd:attribute name="workflowType" use="optional" default="Taverna1">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[The workflow type reported by this workflow domain class]]></xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="any"/>
+                    <xsd:enumeration value="Taverna1"/>
+                    <xsd:enumeration value="Taverna2"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:attribute>
+    </xsd:attributeGroup>
+    
     <xsd:element name="workflow">
         <xsd:annotation>
             <xsd:documentation><![CDATA[The description of a particular workflow]]></xsd:documentation>
@@ -534,6 +549,7 @@ results.]]></xsd:documentation>
                         </xsd:attribute>
                         <xsd:attributeGroup ref="iwwem:responsibleAttrs"/>
                         <xsd:attributeGroup ref="iwwem:licenseAttrs"/>
+                        <xsd:attributeGroup ref="iwwem:wfTypeAttrGroup"/>
                         <xsd:attribute name="version" type="xsd:string" use="optional">
                             <xsd:annotation>
                                 <xsd:documentation><![CDATA[The version string of the workflow (if it is known)]]></xsd:documentation>
@@ -609,17 +625,7 @@ results.]]></xsd:documentation>
                                         <xsd:documentation><![CDATA[Workflow domain class name]]></xsd:documentation>
                                     </xsd:annotation>
                                 </xsd:attribute>
-                                <xsd:attribute name="workflowType" use="required">
-                                    <xsd:annotation>
-                                        <xsd:documentation><![CDATA[The workflow type reported by this workflow domain class]]></xsd:documentation>
-                                    </xsd:annotation>
-                                    <xsd:simpleType>
-                                        <xsd:restriction base="xsd:string">
-                                            <xsd:enumeration value="Taverna1"/>
-                                            <xsd:enumeration value="Taverna2"/>
-                                        </xsd:restriction>
-                                    </xsd:simpleType>
-                                </xsd:attribute>
+                                <xsd:attributeGroup ref="iwwem:wfTypeAttrGroup"/>
                                 <xsd:attribute name="listingType" use="required">
                                     <xsd:annotation>
                                         <xsd:documentation><![CDATA[The workflow listing type. It is only useful for the IWWE&M core]]></xsd:documentation>
