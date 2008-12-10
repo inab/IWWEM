@@ -1,7 +1,7 @@
 #!/usr/bin/perl -W
 
 # $Id: Config.pm 256 2008-10-09 17:11:44Z jmfernandez $
-# IWWEM/AbstractWorkflowList.pm
+# IWWEM/UniversalWorkflowKind.pm
 # from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 # Author: José María Fernández González (C) 2007-2008
 # Institutions:
@@ -28,11 +28,14 @@
 
 use strict;
 
-package IWWEM::AbstractWorkflowKind;
+package IWWEM::UniversalWorkflowKind;
 
 use Carp qw(croak);
+use base qw(IWWEM::AbstractWorkflowKind);
 
 use IWWEM::WorkflowCommon;
+use IWWEM::Taverna1WorkflowKind;
+use IWWEM::Taverna2WorkflowKind;
 
 ##############
 # Prototypes #
@@ -43,24 +46,22 @@ sub new(;$$);
 # Constructor #
 ###############
 
-# Constructor must do the tasks done by gatherWorkflowList in the past
 sub new(;$$) {
-	# Very special case for multiple inheritance handling
-	# This is the seed
-	my($self)=shift;
-	my($class)=ref($self) || $self;
+	my($proto)=shift;
+	my($class)=ref($proto) || $proto;
 	
-	$self={}  unless(ref($self));
+	my($self)=$proto->SUPER::new(@_);
 	
-	# Now, it is time to gather WF information!
-	# But, as this is an "abstract" class, almost nothing is done :-(
-	
-	my $parser = (scalar(@_)>0)?shift:XML::LibXML->new();
-	my $context = (scalar(@_)>0)?shift:XML::LibXML::XPathContext->new();
-	$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
-	
-	$self->{PARSER}=$parser;
-	$self->{CONTEXT}=$context;
+	my($t1)=IWWEM::Taverna1WorkflowKind->new(@_);
+	my($t2)=IWWEM::Taverna2WorkflowKind->new(@_);
+	$self->{WFKINDSHASH}={
+		'Taverna1' => $t1,
+		'Taverna2' => $t2,
+	};
+	$self->{WFKINDS}=[
+		$t1,
+		$t2,
+	];
 	
 	return bless($self,$class);
 }
@@ -69,19 +70,41 @@ sub new(;$$) {
 # Methods #
 ###########
 
-#	my($wf,$uuid,$listDir,$relwffile,$isSnapshot)=@_;
 sub getWorkflowInfo($$$$$) {
-	croak("Unimplemented method");
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my $wfe=undef;
+	foreach my $kind (@{$self->{WFKINDS}}) {
+		$wfe=$kind->getWorkflowInfo(@_);
+		last  if(defined($wfe));
+	}
+	
+	return $wfe;
 }
 
 #	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
 sub patchWorkflow($$$$$;$$$) {
-	croak("Unimplemented method");
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
+	my($tavkind)=($WFmaindoc->documentElement() eq 'scufl')?'Taverna1':'Taverna2';
+	
+	return $self->{WFKINDHASH}{$tavkind}->patchWorkflow(@_);
 }
 
-#	my($wfile,$jobdir,$p_baclava,$inputFileMap,$saveInputsFile)=@_;
-sub launchJob($$$$$) {
-	croak("Unimplemented method");
-}
+#	my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
+sub parseInlineWorkflows($$$$$$;$$$) {
+	my($self)=shift;
 	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
+	# TODO: I cannot guess (yet), so it is fixed :-(
+	return $self->{WFKINDHASH}{'Taverna1'}->patchWorkflow(@_);
+}
+
 1;

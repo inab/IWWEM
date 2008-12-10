@@ -38,6 +38,7 @@ use XML::LibXML;
 use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
+use IWWEM::Taverna1WorkflowKind;
 use workflowmanager;
 use enactionstatus;
 use IWWEMproxy;
@@ -401,7 +402,7 @@ sub generateWSDL($) {
 	}
 	my $parser = XML::LibXML->new();
 	my $context = XML::LibXML::XPathContext->new();
-	$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+	$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 	$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
 	
 	my($desc)=workflowmanager::getWorkflowInfo($parser,$context,$listDir,$subId,$uuidPrefix,$isSnapshot);

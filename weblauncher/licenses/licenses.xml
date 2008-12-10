@@ -24,6 +24,7 @@
 		abbrevURI="http://creativecommons.org/licenses/by-sa/3.0/"
 		uri="http://creativecommons.org/licenses/by-sa/3.0/legalcode"
 	>
+		<alias>by-sa</alias>
 		<logo mime="image/png" width="88" height="31" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-sa.png">by-sa_3.0.png</logo>
 		<logo mime="image/svg+xml" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by-sa.svg"></logo>
 	</license>
@@ -31,6 +32,7 @@
 		abbrevURI="http://creativecommons.org/licenses/by-nc-sa/3.0/"
 		uri="http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode"
 	>
+		<alias>by-nc-sa</alias>
 		<logo mime="image/png" width="88" height="31" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nc-sa.eu.png">by-nc-sa.eu_3.0.png</logo>
 		<logo mime="image/svg+xml" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by-nc-sa.eu.svg"></logo>
 	</license>
@@ -38,6 +40,7 @@
 		abbrevURI="http://creativecommons.org/licenses/by/3.0/"
 		uri="http://creativecommons.org/licenses/by/3.0/legalcode"
 	>
+		<alias>by</alias>
 		<logo mime="image/png" width="88" height="31" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/png/by.png">by_3.0.png</logo>
 		<logo mime="image/svg+xml" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by.svg"></logo>
 	</license>
@@ -45,6 +48,7 @@
 		abbrevURI="http://creativecommons.org/licenses/by-nd/3.0/"
 		uri="http://creativecommons.org/licenses/by-nd/3.0/legalcode"
 	>
+		<alias>by-nd</alias>
 		<logo mime="image/png" width="88" height="31" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nd.png">by-nd_3.0.png</logo>
 		<logo mime="image/svg+xml" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by-nd.svg"></logo>
 	</license>
@@ -52,6 +56,7 @@
 		abbrevURI="http://creativecommons.org/licenses/by-nc-nd/3.0/"
 		uri="http://creativecommons.org/licenses/by-nc-nd/3.0/legalcode"
 	>
+		<alias>by-nc-nd</alias>
 		<logo mime="image/png" width="88" height="31" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nc-nd.eu.png">by-nc-nd.eu_3.0.png</logo>
 		<logo mime="image/svg+xml" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by-nc-nd.eu.svg"></logo>
 	</license>
@@ -59,12 +64,14 @@
 		abbrevURI="http://creativecommons.org/licenses/by-nc/3.0/"
 		uri="http://creativecommons.org/licenses/by-nc/3.0/legalcode"
 	>
+		<alias>by-nc</alias>
 		<logo mime="image/png" width="88" height="31" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nc.eu.png">by-nc.eu_3.0.png</logo>
 		<logo mime="image/svg+xml" uri="http://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by-nc.eu.svg"></logo>
 	</license>
 	<license name="AGPLv3"
 		uri="http://www.gnu.org/licenses/agpl.html"
 	>
+		<alias>agpl</alias>
 		<logo mime="image/png" uri="http://www.gnu.org/graphics/agplv3-88x31.png">agplv3-88x31.png</logo>
 		<logo mime="image/svg+xml" uri="http://www.gnu.org/graphics/lgpl-agpl-v3-logos.svg"></logo>
 	</license>

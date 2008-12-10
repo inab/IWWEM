@@ -124,6 +124,8 @@ parse pure XML loaded in embedded FRAMEs or IFRAMEs due browser limitations. Whe
 by an <tt>xml</tt> tag (for Internet Explorer), and when parameter is <span class="value">2</span>, the content is wrapped by a <tt>div</tt> tag
 (for Konqueror).
 </li>
+<li><u><span class="parameter">altViewerURI</span> <i>(optional)</i></u>: When a workflow is added,this parameter allows customizing the enaction viewer URI to use when an enaction is run.
+</li>
 </ul>
 
 <hr>
@@ -165,13 +167,15 @@ These parameters were designed to upload new workflows to the workflow repositor
 </li>
 <li><u><span class="parameter">MIME_</span> prefixed parameters <i>(optional, multiple)</i></u>: These parameters are used to tell the MIME types of the values for the inputs of the workflow to be enacted, and they should be legal ones. The text after the <span class="parameter">MIME_</span> prefix sets the name of the input to be assigned to. If there is no prefixed <span class="parameter">PARAM_</span> parameter corresponding to a MIME type one, then it is discarded. Other supplementary way to send a MIME type is through the Content-Type header associated to a file transfer in multipart/form-data style.
 </li>
-<li><u><span class="parameter">exampleName</span> and <span class="parameter">exampleDesc</span> <i>(optional)</i></u>: These parameters are used to save and describe the input to this workflow enaction as an input example associated to the original workflow. These parameters do not work with inline workflow definitions. <span class="parameter">exampleName</span> has no restrictions in its value, and at the moment it should be encoded in UTF-8. <span class="parameter">exampleDesc</span> is the description of the input example which is being created, and it can be HTML content (also encoded in UTF-8). The example addition operation is not effective until it is confirmed (see <span class="frontend"><a href="#IWWEMconfirm">IWWEMconfirm</a></span> and <span class="parameter">responsibleMail</span> parameter).
+<li><u><span class="parameter">exampleName</span> and <span class="parameter">exampleDesc</span> <i>(optional)</i></u>: These parameters are used to save and describe the input to this workflow enaction as an input example associated to the original workflow. These parameters do not work with inline workflow definitions. <span class="parameter">exampleName</span> has no restrictions in its value, and at the moment it should be encoded in UTF-8. <span class="parameter">exampleDesc</span> is the description of the input example which is being created, and it can be HTML content (also encoded in UTF-8). The example addition operation is not effective until it is confirmed (see <span class="frontend"><a href="#IWWEMconfirm">IWWEMconfirm</a></span> and <span class="parameter">responsibleMail</span> parameter). Current behavior is that when an example is saved, no workflow enaction is issued (and so <span class="parameter">onlySaveAsExample</span> <b>is deprecated</b>).
 </li>
 <li><u><span class="parameter">responsibleMail</span> and <span class="parameter">responsibleName</span><i>(optional)</i></u>:
 Parameter <span class="parameter">responsibleMail</span> must be set with a valid e-mail address when optional <span class="parameter">exampleName</span> parameter is set, because it is the e-mail address of the responsible person of the example (different from the workflow author and workflow responsible).
 An e-mail is sent to the responsible person when enaction is just starting and when enaction has just finished. Parameter <span class="parameter">responsibleName</span> can be set to the name of the responsible person of the example to be inserted.
 </li>
-<li><u><span class="parameter">onlySaveAsExample</span> <i>(optional)</i></u>: When <span class="parameter">exampleName</span> is set, <span class="parameter">id</span> parameter is a workflow Id, a qualified enaction Id or a qualified snapshot Id, and this parameter is set, only save parameters stage is done and no enaction process is issued.
+<li><u><span class="parameter">onlySaveAsExample</span> <i>(optional, deprecated)</i></u>: When <span class="parameter">exampleName</span> is set, <span class="parameter">id</span> parameter is a workflow Id, a qualified enaction Id or a qualified snapshot Id, and this parameter is set, only save parameters stage is done and no enaction process is issued.
+</li>
+<li><u><span class="parameter">altViewerURI</span> <i>(optional)</i></u>: When a job is launched, an e-mail with the URL to the enaction viewer is sent. This parameter allows customizing that enaction viewer URI just for this run.
 </li>
 </ul>
 

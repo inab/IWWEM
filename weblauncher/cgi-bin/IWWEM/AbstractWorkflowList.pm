@@ -59,13 +59,13 @@ sub new(;$) {
 	
 	my $parser = XML::LibXML->new();
 	my $context = XML::LibXML::XPathContext->new();
-	$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
-	$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
 	
 	$self->{PARSER}=$parser;
 	$self->{CONTEXT}=$context;
 	$self->{WORKFLOWLIST}=[];
 	$self->{baseListDir}="";
+	
+	$self->{UNIVERSAL}=IWWEM::UniversalWorkflowKind->new($self->{PARSER},$self->{CONTEXT});
 	
 	return bless($self,$class);
 }
@@ -74,7 +74,11 @@ sub new(;$) {
 # Methods #
 ###########
 
-sub getWorkflowInfo($) {
+sub getWorkflowInfo($@) {
+	croak("Unimplemented method");
+}
+
+sub getDomainClass() {
 	croak("Unimplemented method");
 }
 
@@ -97,7 +101,7 @@ sub sendWorkflowList($$$$;$) {
 	$root->appendChild($outputDoc->createComment( encode('UTF-8',$IWWEM::WorkflowCommon::COMMENTWM) ));
 	
 	my($domain)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'domain');
-	$domain->setAttribute('class','IWWEM');
+	$domain->setAttribute('class',$self->getDomainClass());
 	$domain->setAttribute('time',LockNLog::getPrintableNow());
 	$domain->setAttribute('relURI',$baseListDir);
 	$root->appendChild($domain);
@@ -131,6 +135,15 @@ sub sendWorkflowList($$$$;$) {
 	if(defined($dataislandTag)) {
 		print "\n</$dataislandTag></body></html>";
 	}
+}
+
+
+sub launchJob($$$$$) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	return $self->{UNIVERSAL}->launchJob(@_);
 }
 
 1;

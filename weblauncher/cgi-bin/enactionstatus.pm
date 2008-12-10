@@ -41,6 +41,7 @@ use Socket;
 use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
+use IWWEM::Taverna1WorkflowKind;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -348,7 +349,7 @@ sub sendEnactionReport($\@;$$$$$) {
 	
 	my $parser = XML::LibXML->new();
 	my $context = XML::LibXML::XPathContext->new();
-	$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+	$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 	$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
 	
 	# Disposal execution
@@ -433,7 +434,7 @@ sub sendEnactionReport($\@;$$$$$) {
 						my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
 						my($wf)=$parser->parse_file($workflowfile);
 						
-						my @nodelist = $wf->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
+						my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
 						if(scalar(@nodelist)>0) {
 							$prettyname=$nodelist[0]->getAttribute('title');
 						}
@@ -656,7 +657,7 @@ sub sendEnactionReport($\@;$$$$$) {
 			# The title
 			eval {
 				my $wf = $parser->parse_file($jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE);
-				my @nodelist = $wf->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
+				my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
 				if(scalar(@nodelist)>0) {
 					$es->setAttribute('title',$nodelist[0]->getAttribute('title'));
 				}

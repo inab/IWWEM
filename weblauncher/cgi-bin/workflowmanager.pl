@@ -40,6 +40,7 @@ use XML::LibXML;
 use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
+use IWWEM::Taverna1WorkflowKind;
 use workflowmanager; 
 
 use lib "$FindBin::Bin/LockNLog";
@@ -68,7 +69,7 @@ my($licenseName)=undef;
 
 my $parser = XML::LibXML->new();
 my $context = XML::LibXML::XPathContext->new();
-$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 $context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
 
 # First step, parameter storage (if any!)
@@ -160,7 +161,7 @@ foreach my $param ($query->param()) {
 					my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
 					my($wf)=$parser->parse_file($workflowfile);
 					
-					my @nodelist = $wf->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
+					my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
 					if(scalar(@nodelist)>0) {
 						$prettyname=$nodelist[0]->getAttribute('title');
 					}

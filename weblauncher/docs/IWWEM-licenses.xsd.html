@@ -987,6 +987,10 @@ web services by José María Fernández González, 2007.</td>
                      <p class="documentation">'The URI to an abbreviated version of the full text which describes this license'</p>"</span>&gt;  <span class="occurs">[1..*]</span>  
                   <p class="documentation">'A single license description'</p>
                   <br/>
+                  <div style="margin-left: 1.5em">&lt;<a href="#ns_ilic" title="Find out namespace of 'ilic' prefix">ilic</a>:alias&gt; <span class="type">
+                        <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> &lt;/<a href="#ns_ilic" title="Find out namespace of 'ilic' prefix">ilic</a>:alias&gt; <span class="occurs">[0..*]</span> 
+                     <p class="documentation">'An alias name for this license'</p>
+                  </div>
                   <div style="margin-left: 1.5em">&lt;<a href="#ns_ilic" title="Find out namespace of 'ilic' prefix">ilic</a>:logo<br/>
                      <span style="margin-left: 0.5em"> mime="<span class="type">
                            <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span> 
@@ -1006,7 +1010,7 @@ web services by José María Fernández González, 2007.</td>
                      <span style="margin-left: 0.5em"> height="<span class="type">
                            <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:positiveInteger</span> 
                         <span class="occurs">[0..1]</span> 
-                        <p class="documentation">'When it is set, it tells the preferred representation height (in pixels)'</p>"</span>&gt;  <span class="occurs">[1]</span>  
+                        <p class="documentation">'When it is set, it tells the preferred representation height (in pixels)'</p>"</span>&gt;  <span class="occurs">[0..*]</span>  
                      <p class="documentation">'A bitmap or drawing which symbolizes this license. When this element contains some text, it is telling that there is a local copy of the bitmap or drawing'</p>
                      <br/>
                      <span style="margin-left: 1.5em"> 
@@ -1053,7 +1057,12 @@ web services by José María Fernández González, 2007.</td>
                      <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
                         <span class="scTag">name</span>="<span class="scContent">license</span>" <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:sequence</span> 
                               <span class="scTag">minOccurs</span>="<span class="scContent">1</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">1</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
-                                 <span class="scTag">name</span>="<span class="scContent">logo</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:simpleContent</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:extension</span> 
+                                 <span class="scTag">name</span>="<span class="scContent">alias</span>" <span class="scTag">type</span>="<span class="scContent">
+                                    <span class="type">
+                                       <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>
+                                 </span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"/&gt;</div>
+                              <div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:element</span> 
+                                 <span class="scTag">name</span>="<span class="scContent">logo</span>" <span class="scTag">minOccurs</span>="<span class="scContent">0</span>" <span class="scTag">maxOccurs</span>="<span class="scContent">unbounded</span>"&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:complexType</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:simpleContent</span>&gt;<div style="margin-left: 1.5em">&lt;<span class="scTag">xsd:extension</span> 
                                           <span class="scTag">base</span>="<span class="scContent">
                                              <span class="type">
                                                 <a href="#ns_xsd" title="Find out namespace of 'xsd' prefix">xsd</a>:string</span>

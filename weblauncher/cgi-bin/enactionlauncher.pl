@@ -81,6 +81,7 @@ my(@saveExample)=();
 my(@parseParam)=();
 my(%encodingHash)=();
 my(%mimeHash)=();
+my($altViewerURI)=IWWEM::WorkflowCommon::enactionGUIURI($query);
 
 # First step, parameter and workflow storage (if any!)
 PARAMPROC:
@@ -114,6 +115,8 @@ foreach my $param ($query->param()) {
 		$wfilefetched=1;
 	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOWDEP) {
 		$hasInputWorkflowDeps=1;
+	} elsif($param eq $IWWEM::WorkflowCommon::PARAMALTVIEWERURI) {
+		$paramval = $altViewerURI = $query->param($param);
 	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWFID) {
 		my($id)=$query->param($param);
 		my($isnet)=undef;
@@ -234,6 +237,11 @@ if($retval==0 && !$query->cgi_error()) {
 		} while (-d $jobdir);
 		mkpath($jobdir);
 		IWWEM::WorkflowCommon::createResponsibleFile($jobdir,$responsibleMail,$responsibleName);
+		my($VIE);
+		if(open($VIE,'>',$jobdir.'/'.$IWWEM::WorkflowCommon::VIEWERFILE)) {
+			print $VIE $altViewerURI;
+			close($VIE);
+		}
 	}
 }
 

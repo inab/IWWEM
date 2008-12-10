@@ -38,6 +38,7 @@ use XML::LibXML;
 use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
+use IWWEM::Taverna1WorkflowKind;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -116,7 +117,7 @@ unless(defined($command)) {
 
 my $parser = XML::LibXML->new();
 my $context = XML::LibXML::XPathContext->new();
-$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 $context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
 
 my($smtp) = IWWEM::WorkflowCommon::createMailer();
@@ -226,7 +227,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 					my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
 					my($wf)=$parser->parse_file($workflowfile);
 					
-					my @nodelist = $wf->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
+					my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
 					if(scalar(@nodelist)>0) {
 						$prettyname=$nodelist[0]->getAttribute('title');
 					}
@@ -271,6 +272,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 			my($email)=undef;
 			my($kind)=undef;
 			my($prettyname)=undef;
+			my($viewerURL)=IWWEM::WorkflowCommon::enactionGUIURI($query);
 			
 			if($irelpath =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				my($wfsnap)=$1;
@@ -280,6 +282,12 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 				my($workflowdir)=$IWWEM::Config::WORKFLOWDIR.'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 				move($codedir.'/'.$snapId,$workflowdir.'/'.$snapId);
 				
+				my($VIE);
+				if(open($VIE,'<',$workflowdir.'/'.$snapId.'/'.$IWWEM::WorkflowCommon::VIEWERFILE)) {
+					$viewerURL=<$VIE>;
+					close($VIE);
+				}
+
 				eval {
 					my($catfile)=$codedir.'/'.$snapId.'_'.$IWWEM::WorkflowCommon::CATALOGFILE;
 					my($catres)=$parser->parse_file($catfile);
@@ -356,7 +364,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 					$email=$wfres->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 					
 					my($wf)=$parser->parse_file($jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE);
-					my @nodelist = $wf->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
+					my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
 					if(scalar(@nodelist)>0) {
 						$prettyname=$nodelist[0]->getAttribute('title');
 					}
@@ -367,6 +375,11 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 					print STDERR "JOB $jobdir DEST $destdir WTF????? $@\n";
 				} else {
 					move($jobdir,$destdir);
+					my($VIE);
+					if(open($VIE,'<',$destdir.'/'.$IWWEM::WorkflowCommon::VIEWERFILE)) {
+						$viewerURL=<$VIE>;
+						close($VIE);
+					}
 				}
 			}
 			my(@predone)=();
@@ -381,7 +394,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 			# Now, we must send an informative e-mail
 			if(defined($email)) {
 				$prettyname=undef  if(defined($prettyname) && length($prettyname)==0);
-				IWWEM::WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname,$query,($kind eq 'snapshot')?$irelpath:undef);
+				IWWEM::WorkflowCommon::sendResponsibleConfirmedMail($smtp,$code,$kind,$command,$irelpath,$email,$prettyname,$query,($kind eq 'snapshot')?$irelpath:undef,$viewerURL);
 				push(@done,@predone);
 			} else {
 				push(@done,[$kind,$irelpath,undef,$email,$prettyname]);

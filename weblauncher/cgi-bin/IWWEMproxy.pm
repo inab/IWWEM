@@ -40,6 +40,7 @@ use XML::LibXML;
 use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
+use IWWEM::Taverna1WorkflowKind;
 use BaclavaSAX;
 
 use lib "$FindBin::Bin/LockNLog";
@@ -362,7 +363,7 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 			eval {
 				my($context)=XML::LibXML::XPathContext->new();
 				$context->registerNs('b',$IWWEM::WorkflowCommon::BACLAVA_NS);
-				$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+				$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 				
 				my(%xpathvars)=();
 				my($varbase)='var';
@@ -546,7 +547,7 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 		}
 		my($context)=XML::LibXML::XPathContext->new();
 		$context->registerNs('b',$IWWEM::WorkflowCommon::BACLAVA_NS);
-		$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+		$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 		my($miniIOMode,$minibacio);
 		foreach my $mini (@{$p_bacio}) {
 			($miniIOMode,$minibacio)=@{$mini};

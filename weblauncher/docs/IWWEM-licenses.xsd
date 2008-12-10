@@ -51,7 +51,12 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
                     <xsd:annotation><xsd:documentation><![CDATA[A single license description]]></xsd:documentation></xsd:annotation>
                     <xsd:complexType>
                         <xsd:sequence minOccurs="1" maxOccurs="1">
-                            <xsd:element name="logo">
+                            <xsd:element name="alias" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:documentation><![CDATA[An alias name for this license]]></xsd:documentation>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element name="logo" minOccurs="0" maxOccurs="unbounded">
                                 <xsd:annotation>
                                     <xsd:documentation><![CDATA[A bitmap or drawing which symbolizes this license.
 When this element contains some text, it is telling that there is a local copy of the bitmap or drawing]]></xsd:documentation>

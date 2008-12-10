@@ -42,6 +42,7 @@ use XML::LibXML;
 use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
+use IWWEM::Taverna1WorkflowKind;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -114,7 +115,7 @@ sub getWorkflowInfo($$$$$$) {
 				my $doc = $parser->parse_file($wffile);
 				
 				# Getting description from workflow definition
-				my @nodelist = $doc->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
+				my @nodelist = $doc->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
 				if(scalar(@nodelist)>0) {
 					my $wfe = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'workflow');
 					$outputDoc->setDocumentElement($wfe);
@@ -225,7 +226,7 @@ sub getWorkflowInfo($$$$$$) {
 						$input->setAttribute('name',$source->getAttribute('name'));
 						
 						# Description
-						my(@sourcedesc)=$source->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'description');
+						my(@sourcedesc)=$source->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'description');
 						if(scalar(@sourcedesc)>0) {
 							my($descnode)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'description');
 							$descnode->appendChild($outputDoc->createCDATASection($sourcedesc[0]->textContent()));
@@ -233,7 +234,7 @@ sub getWorkflowInfo($$$$$$) {
 						}
 						
 						# MIME types handling
-						my(@mimetypes)=$source->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'mimetype');
+						my(@mimetypes)=$source->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'mimetype');
 						# Taverna default mime type
 						push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
 						foreach my $mime (@mimetypes) {
@@ -253,7 +254,7 @@ sub getWorkflowInfo($$$$$$) {
 						$output->setAttribute('name',$sink->getAttribute('name'));
 						
 						# Description
-						my(@sinkdesc)=$sink->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'description');
+						my(@sinkdesc)=$sink->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'description');
 						if(scalar(@sinkdesc)>0) {
 							my($descnode)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'description');
 							$descnode->appendChild($outputDoc->createCDATASection($sinkdesc[0]->textContent()));
@@ -261,7 +262,7 @@ sub getWorkflowInfo($$$$$$) {
 						}
 						
 						# MIME types handling
-						my(@mimetypes)=$sink->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'mimetype');
+						my(@mimetypes)=$sink->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'mimetype');
 						# Taverna default mime type
 						push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
 						foreach my $mime (@mimetypes) {
@@ -402,7 +403,7 @@ sub sendWorkflowList($$$\@$$$$;$) {
 		
 	my $parser = XML::LibXML->new();
 	my $context = XML::LibXML::XPathContext->new();
-	$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+	$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 	$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
 	
 	my $outputDoc = XML::LibXML::Document->createDocument('1.0','UTF-8');
@@ -476,7 +477,7 @@ sub parseInlineWorkflows($$$$$$$;$$$) {
 	my(@goodwf)=();
 	
 	my $context = XML::LibXML::XPathContext->new();
-	$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+	$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 
 	# Now, time to recognize the content
 	my($param)=$IWWEM::WorkflowCommon::PARAMWORKFLOW;
@@ -554,7 +555,7 @@ sub parseInlineWorkflows($$$$$$$;$$$) {
 			}
 			
 			my($doSaveDoc)=undef;
-			my @desclist = $WFmaindoc->getElementsByTagNameNS($IWWEM::WorkflowCommon::XSCUFL_NS,'workflowdescription');
+			my @desclist = $WFmaindoc->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
 			if(scalar(@desclist)>0) {
 				my($desc)=$desclist[0];
 				my($desctext)=$desc->textContent();
@@ -605,7 +606,7 @@ sub patchWorkflow($$$$$$$;$$$) {
 	
 	unless(defined($context)) {
 		$context = XML::LibXML::XPathContext->new();
-		$context->registerNs('s',$IWWEM::WorkflowCommon::XSCUFL_NS);
+		$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 	}
 
 	my($randfilexml) = $randdir . '/' . $IWWEM::WorkflowCommon::WORKFLOWFILE;

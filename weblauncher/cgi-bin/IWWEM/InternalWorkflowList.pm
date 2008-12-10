@@ -34,7 +34,7 @@ use Carp qw(croak);
 use base qw(IWWEM::AbstractWorkflowList);
 
 use IWWEM::WorkflowCommon;
-use IWWEM::Taverna1WorkflowKind;
+use IWWEM::UniversalWorkflowKind;
 
 ##############
 # Prototypes #
@@ -51,8 +51,6 @@ sub new(;$) {
 	my($class)=ref($proto) || $proto;
 	
 	my($self)=$proto->SUPER::new(@_);
-	
-	$self->{TAVERNA1}=IWWEM::Taverna1WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
 	
 	# Now, it is time to gather WF information!
 	my($id)=undef;
@@ -136,6 +134,10 @@ sub new(;$) {
 	return bless($self,$class);
 }
 
+sub getDomainClass() {
+	return 'IWWEM';
+}
+
 sub getWorkflowInfo($@) {
 	my($self)=shift;
 	
@@ -194,14 +196,109 @@ sub getWorkflowInfo($@) {
 		
 		# With this variable it is possible to swtich among different 
 		# representations
-		my($wfKind)='TAVERNA1';
+		my($wfKind)='UNIVERSAL';
 		#my($wfcatmutex)=LockNLog::SimpleMutex->new($wfdir.'/'.$IWWEM::WorkflowCommon::LOCKFILE,$regen);
 		if(defined($regen)) {
 			my($uuid)=$uuidPrefix.$wf;
-			$retnode = $self->{$wfKind}->($wf,$uuid,$listDir,$relwffile,$isSnapshot);
+			$retnode = $self->{$wfKind}->getWorkflowInfo($wf,$uuid,$listDir,$relwffile,$isSnapshot);
 			
 			if(defined($retnode) && defined($wfcat)) {
-				my($outputDoc)=$retnode->ownerDocument();  
+				my($outputDoc)=$retnode->ownerDocument();
+				my($release)=$retnode->firstChild();
+				while(defined($release) && $release->localname() ne 'release') {
+					$release=$release->nextSibling();
+				}
+				
+				# Now, the responsible person
+				my($responsibleMail)='';
+				my($responsibleName)='';
+				eval {
+					my($res)=undef;
+					if(defined($isSnapshot)) {
+						my $cat = $parser->parse_file($listDir.'/'.$IWWEM::WorkflowCommon::CATALOGFILE);
+						my($transwf)=IWWEM::WorkflowCommon::patchXMLString($wf);
+						my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$transwf']",$cat);
+						$res=$snaps[0]  if(scalar(@snaps)>0);
+					} elsif(defined($wfresp)) {
+						$res = $parser->parse_file($wfresp)->documentElement();
+					}
+					if(defined($res)) {
+						$responsibleMail=$res->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+						$responsibleName=$res->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME);
+					}
+				};
+	
+				$release->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+				$release->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+				
+				# The date
+				$release->setAttribute('date',LockNLog::getPrintableDate((stat($wffile))[9]));
+				
+				# Adding links to its graphical representations
+				my($refnode)=$release->firstChild();
+				while(defined($refnode) && $refnode->localname() ne 'description') {
+					$refnode=$refnode->nextSibling();
+				}
+				
+				my($gfile,$gmime);
+				while(($gfile,$gmime)=each(%IWWEM::WorkflowCommon::GRAPHREP)) {
+					my $rfile = $wf.'/'.$gfile;
+					# Only include what has been generated!
+					if( -f $listDir.'/'.$rfile) {
+						my($gchild)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'graph');
+						$gchild->setAttribute('mime',$gmime);
+						$gchild->appendChild($outputDoc->createTextNode($rfile));
+						$release->insertAfter($gchild,$refnode);
+						$refnode=$gchild;
+					}
+				}
+	
+				# Now, including dependencies
+				my($DEPDIRH);
+				my($depreldir)=$wf.'/'.$IWWEM::WorkflowCommon::DEPDIR;
+				my($depdir)=$listDir.'/'.$depreldir;
+				if(opendir($DEPDIRH,$depdir)) {
+					my($entry);
+					while($entry=readdir($DEPDIRH)) {
+						next  if(index($entry,'.')==0);
+
+						my($fentry)=$depdir.'/'.$entry;
+						if(-f $fentry && $fentry =~ /\.xml$/) {
+							my($depnode) = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'dependsOn');
+							$depnode->setAttribute('sub',$depreldir.'/'.$entry);
+							$$release->insertAfter($depnode,$refnode);
+							$refnode=$depnode;
+						}
+					}
+
+					closedir($DEPDIRH);
+				}
+				
+				# Now importing the examples catalog
+				eval {
+					if(defined($examplescat)) {
+						my($examples)=$parser->parse_file($examplescat);
+						for my $child ($examples->documentElement()->getChildrenByTagNameNS($IWWEM::WorkflowCommon::WFD_NS,'example')) {
+							$release->appendChild($outputDoc->importNode($child));
+						}
+					}
+				};
+				if($@) {
+					$release->appendChild($outputDoc->createComment('Unable to parse examples catalog!'));
+				}
+				
+				# And the snapshots one!
+				eval {
+					if(defined($snapshotscat)) {
+						my($snapshots)=$parser->parse_file($snapshotscat);
+						for my $child ($snapshots->documentElement()->getChildrenByTagNameNS($IWWEM::WorkflowCommon::WFD_NS,'snapshot')) {
+							$release->appendChild($outputDoc->importNode($child));
+						}
+					}
+				};
+				if($@) {
+					$release->appendChild($outputDoc->createComment('Unable to parse snapshots catalog!'));
+				}
 			
 				$outputDoc->toFile($wfcat);
 			}
@@ -220,6 +317,14 @@ sub getWorkflowInfo($@) {
 	
 	return $retnode;
 	
+}
+
+sub launchJob() {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($wfile,$jobdir,$p_baclava,$inputFileMap,$saveInputsFile)=@_;
 }
 
 1;

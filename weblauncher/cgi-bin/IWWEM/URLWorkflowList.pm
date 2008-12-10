@@ -34,6 +34,8 @@ use Carp qw(croak);
 use base qw(IWWEM::AbstractWorkflowList);
 
 use IWWEM::WorkflowCommon;
+use LWP::UserAgent;
+
 
 ##############
 # Prototypes #
@@ -70,6 +72,65 @@ sub new(;$) {
 	$self->{GATHERED}=[\@workflowlist,$baseListDir,$listDir,$uuidPrefix,$isSnapshot];
 	
 	return bless($self,$class);
+}
+
+sub getDomainClass() {
+	return 'URL';
+}
+
+sub getWorkflowInfo($@) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($parser,$context)=($self->{PARSER},$self->{CONTEXT});
+	my($wf,$listDir,$uuidPrefix,$isSnapshot)=@_;
+	
+	my($retnode)=undef;
+	eval {
+		my($relwffile)=undef;
+		my($wfdir)=undef;
+		
+		
+		# With this variable it is possible to switch among different 
+		# representations
+		my($wfKind)='UNIVERSAL';
+		#my($wfcatmutex)=LockNLog::SimpleMutex->new($wfdir.'/'.$IWWEM::WorkflowCommon::LOCKFILE,$regen);
+			my($uuid)=$uuidPrefix.$wf;
+			$retnode = $self->{$wfKind}->getWorkflowInfo($wf,$uuid,$listDir,$relwffile,$isSnapshot);
+			
+			my($outputDoc)=$retnode->ownerDocument();
+			my($release)=$retnode->firstChild();
+			while(defined($release) && $release->localname() ne 'release') {
+				$release=$release->nextSibling();
+			}
+			
+			# Now, the responsible person
+			my($responsibleMail)='';
+			my($responsibleName)='';
+
+			$release->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+			$release->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+			
+			# The date
+			my($ua) = LWP::UserAgent->new;
+			$ua->agent("IWWEM/0.7 ");
+			my($req)=HTTP::Request->new(HEAD => $wf);
+			my($resp)=$ua->request($req);
+			if($resp->is_success()) {
+				$release->setAttribute('date',LockNLog::getPrintableDate($resp->last_modified()));
+			} else {
+				$release->appendChild($outputDoc->createComment($resp->status_line()));
+			}
+	};
+	
+	if($@ || !defined($retnode)) {
+		my($outputDoc)=XML::LibXML::Document->new('1.0','UTF-8');
+		$retnode=$outputDoc->createComment("Unable to process $wf due ".$@);
+	}
+	
+	return $retnode;
+	
 }
 
 1;
