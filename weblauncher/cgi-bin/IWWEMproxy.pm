@@ -41,6 +41,7 @@ use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
 use IWWEM::Taverna1WorkflowKind;
+use IWWEM::InternalWorkflowList;
 use BaclavaSAX;
 
 use lib "$FindBin::Bin/LockNLog";
@@ -224,14 +225,14 @@ sub parseBaclavaQuery($$$$$$$$$$) {
 		my($jobdir)=undef;
 		my($wfsnap)=undef;
 		
-		if(index($jobId,$IWWEM::WorkflowCommon::SNAPSHOTPREFIX)==0) {
-			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+		if(index($jobId,$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX)==0) {
+			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				$wfsnap=$1;
 				$jobId=$2;
 				$jobdir=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
 			}
-		} elsif(index($jobId,$IWWEM::WorkflowCommon::EXAMPLEPREFIX)==0) {
-			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+		} elsif(index($jobId,$IWWEM::InternalWorkflowList::EXAMPLEPREFIX)==0) {
+			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::InternalWorkflowList::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				$wfsnap=$1;
 				$jobId=$2;
 				$jobdir=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR;
@@ -239,7 +240,7 @@ sub parseBaclavaQuery($$$$$$$$$$) {
 			}
 		} else {
 			# For completion, we handle qualified job Ids
-			$jobId =~ s/^$IWWEM::WorkflowCommon::ENACTIONPREFIX//;
+			$jobId =~ s/^$IWWEM::InternalWorkflowList::ENACTIONPREFIX//;
 			$jobdir=$IWWEM::Config::JOBDIR . '/' .$jobId;
 		}
 		

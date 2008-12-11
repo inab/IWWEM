@@ -125,13 +125,13 @@ foreach my $param ($query->param()) {
 			$workflowId=$id;
 			$wabspath=$id;
 			$isnet=1;
-		} elsif($id =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+		} elsif($id =~ /^$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 			$workflowId=$1;
 			my($wabsbasepath)=$IWWEM::Config::WORKFLOWDIR . '/' . $workflowId . '/' . $IWWEM::WorkflowCommon::SNAPSHOTSDIR . '/' . $2 . '/';
 			$wabspath=$wabsbasepath . $IWWEM::WorkflowCommon::WORKFLOWFILE;
 			
 			$originalInput=$wabsbasepath . $IWWEM::WorkflowCommon::INPUTSFILE;
-		} elsif($id =~ /^$IWWEM::WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+		} elsif($id =~ /^$IWWEM::InternalWorkflowList::ENACTIONPREFIX([^:]+)$/) {
 			my($ENHAND);
 			my($wabsbasepath)=$IWWEM::Config::JOBDIR . '/' . $1 . '/';
 			if(open($ENHAND,'<',$wabsbasepath . $IWWEM::WorkflowCommon::WFIDFILE)) {
@@ -145,7 +145,7 @@ foreach my $param ($query->param()) {
 			
 			$originalInput=$wabsbasepath . $IWWEM::WorkflowCommon::INPUTSFILE;
 		} else {
-			if($id =~ /^$IWWEM::WorkflowCommon::WORKFLOWPREFIX([^:]+)$/) {
+			if($id =~ /^$IWWEM::InternalWorkflowList::WORKFLOWPREFIX([^:]+)$/) {
 				$workflowId=$1;
 			} else {
 				$workflowId=$id;
@@ -390,7 +390,7 @@ if($retval==0 && !$query->cgi_error() && defined($baclavafound)) {
 				my($origWFID)=undef;
 				my($exId)=undef;
 				
-				if($exfile =~ /^$IWWEM::WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+				if($exfile =~ /^$IWWEM::InternalWorkflowList::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 					$origWFID=$1;
 					$exId=$2;
 				} else {
@@ -465,7 +465,7 @@ if($retval==0 && !$query->cgi_error() && defined($exampleName) && defined($workf
 	# Generating a pending operation
 	my($PH);
 	($penduuid,$penddir,$PH)=IWWEM::WorkflowCommon::genPendingOperationsDir($IWWEM::WorkflowCommon::COMMANDADD);
-	$fullexampleuuid=$IWWEM::WorkflowCommon::EXAMPLEPREFIX."$workflowId:$exampleuuid";
+	$fullexampleuuid=$IWWEM::InternalWorkflowList::EXAMPLEPREFIX."$workflowId:$exampleuuid";
 	print $PH "$fullexampleuuid\n";
 	close($PH);
 	

@@ -40,6 +40,7 @@ use XML::LibXML;
 use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
+use IWWEM::InternalWorkflowList;
 use IWWEM::Taverna1WorkflowKind;
 use workflowmanager; 
 
@@ -110,7 +111,7 @@ foreach my $param ($query->param()) {
 			my($kind)=undef;
 			my($resMail)=undef;
 			my($prettyname)=undef;
-			if($irelpath =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			if($irelpath =~ /^$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				my($wfsnap)=$1;
 				my($snapId)=$2;
 				$kind='snapshot';
@@ -126,7 +127,7 @@ foreach my $param ($query->param()) {
 						last;
 					}
 				};
-			} elsif($irelpath =~ /^$IWWEM::WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+			} elsif($irelpath =~ /^$IWWEM::InternalWorkflowList::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				my($wfexam)=$1;
 				my($examId)=$2;
 				$kind='example';
@@ -145,7 +146,7 @@ foreach my $param ($query->param()) {
 			} else {
 				my($jobdir)=undef;
 				
-				if($irelpath =~ /^$IWWEM::WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+				if($irelpath =~ /^$IWWEM::InternalWorkflowList::ENACTIONPREFIX([^:]+)$/) {
 					$jobdir=$IWWEM::Config::JOBDIR.'/'.$1;
 					$kind='enaction';
 				} else {

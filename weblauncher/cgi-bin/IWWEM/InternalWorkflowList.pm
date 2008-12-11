@@ -36,6 +36,117 @@ use base qw(IWWEM::AbstractWorkflowList);
 use IWWEM::WorkflowCommon;
 use IWWEM::UniversalWorkflowKind;
 
+use vars qw($SNAPSHOTPREFIX $EXAMPLEPREFIX $ENACTIONPREFIX $WORKFLOWPREFIX);
+$SNAPSHOTPREFIX='snapshot:';
+$EXAMPLEPREFIX='example:';
+$ENACTIONPREFIX='enaction:';
+$WORKFLOWPREFIX='workflow:';
+
+use vars qw($VIRTWORKFLOWDIR $VIRTJOBDIR $VIRTIDDIR $VIRTRESULTSDIR);
+
+# Virtual dirs
+$VIRTWORKFLOWDIR = 'workflows';
+$VIRTJOBDIR = 'enactions';
+$VIRTIDDIR = 'id';
+$VIRTRESULTSDIR = $IWWEM::WorkflowCommon::RESULTSDIR;
+
+use vars qw($ISRAWFILE $ISFORBIDDEN $ISEXAMPLE $ISINPUT $ISOUTPUT $ISRAWDIR $ISIDDIR $ISENDIR);
+# undef means a raw file
+$ISRAWFILE=undef;
+# -1 means a forbidden file/dir
+$ISFORBIDDEN=-1;
+# 0, 1 or 2 mean a raw file which is handled as a result.
+$ISEXAMPLE=0;
+$ISINPUT=1;
+$ISOUTPUT=2;
+# 10 means a raw directory
+$ISRAWDIR=10;
+$ISIDDIR=11;
+# 20 means an enaction/snapshot directory
+$ISENDIR=20;
+
+my($DEPSUBTREE)=[$IWWEM::WorkflowCommon::DEPDIR,$ISRAWDIR,[
+		["^[0-9a-f].+[0-9a-f]\\.xml",undef,undef],
+	]
+];	# Contains only files and no catalog at all
+
+
+my($ENACTSUBTREE)=[
+	$DEPSUBTREE,
+	[$VIRTRESULTSDIR,$ISRAWDIR,[
+			['^.+',$ISIDDIR,[
+					[$IWWEM::WorkflowCommon::INPUTSFILE,$ISINPUT,undef],
+					[$IWWEM::WorkflowCommon::OUTPUTSFILE,$ISOUTPUT,undef],
+					[$IWWEM::WorkflowCommon::ITERATIONSDIR,$ISRAWDIR,[
+							["^[0-9]+",$ISRAWDIR,[
+									[$IWWEM::WorkflowCommon::INPUTSFILE,$ISINPUT,undef],
+									[$IWWEM::WorkflowCommon::OUTPUTSFILE,$ISOUTPUT,undef],
+								]
+							],
+						]
+					],
+				]
+			],
+		]
+	],	# Contains lots of directories
+	[$IWWEM::WorkflowCommon::WORKFLOWFILE,$ISRAWFILE,undef],
+	[$IWWEM::WorkflowCommon::SVGFILE,$ISRAWFILE,undef],
+	[$IWWEM::WorkflowCommon::PDFFILE,$ISRAWFILE,undef],
+	[$IWWEM::WorkflowCommon::PNGFILE,$ISRAWFILE,undef],
+	[$IWWEM::WorkflowCommon::REPORTFILE,$ISRAWFILE,undef],
+	[$IWWEM::WorkflowCommon::INPUTSFILE,$ISINPUT,undef],
+	[$IWWEM::WorkflowCommon::OUTPUTSFILE,$ISOUTPUT,undef],
+];
+
+use vars qw(@PATHCHECK $WFKIND $ENKIND);
+
+$WFKIND=[
+	$VIRTWORKFLOWDIR,
+	$IWWEM::Config::WORKFLOWDIR,
+	[
+		["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,[
+				[$IWWEM::WorkflowCommon::EXAMPLESDIR,$ISRAWDIR,[
+						[$IWWEM::WorkflowCommon::CATALOGFILE,$ISFORBIDDEN,undef],
+						["^[0-9a-fA-F].+[0-9a-fA-F]\\.xml",$ISEXAMPLE,undef]
+					]
+				],	# Contains files
+				[$IWWEM::WorkflowCommon::SNAPSHOTSDIR,$ISRAWDIR,[
+						[$IWWEM::WorkflowCommon::CATALOGFILE,$ISFORBIDDEN,undef],
+						["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,$ENACTSUBTREE]
+					]
+				],	# Contains directories
+				$DEPSUBTREE,
+				[$IWWEM::WorkflowCommon::WORKFLOWFILE,$ISRAWFILE,undef],
+				[$IWWEM::WorkflowCommon::SVGFILE,$ISRAWFILE,undef],
+				[$IWWEM::WorkflowCommon::PDFFILE,$ISRAWFILE,undef],
+				[$IWWEM::WorkflowCommon::PNGFILE,$ISRAWFILE,undef],
+			]
+		],
+	]
+];
+
+$ENKIND=[
+	$VIRTJOBDIR,
+	$IWWEM::Config::JOBDIR,
+	[
+		["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,$ENACTSUBTREE],
+	]
+];
+
+@PATHCHECK=(
+	$WFKIND,
+	$ENKIND, 
+	[
+		$VIRTIDDIR,
+		undef,
+		[
+			["^${WORKFLOWPREFIX}[^:]+",$ISIDDIR,undef],
+			["^${ENACTIONPREFIX}[^:]+",$ISIDDIR,undef],
+			["^${SNAPSHOTPREFIX}[^:]+:[^:]+",$ISIDDIR,undef],
+			["^${EXAMPLEPREFIX}[^:]+:[^:]+",$ISEXAMPLE,undef],
+		]
+	]
+);
 ##############
 # Prototypes #
 ##############
@@ -67,30 +178,30 @@ sub new(;$) {
 	if(index($id,'http://')==0 || index($id,'ftp://')==0) {
 		$subId=$id;
 		@dirstack=();
-	} elsif(index($id,$IWWEM::WorkflowCommon::ENACTIONPREFIX)==0) {
-		$baseListDir=$IWWEM::WorkflowCommon::VIRTJOBDIR;
+	} elsif(index($id,$ENACTIONPREFIX)==0) {
+		$baseListDir=$VIRTJOBDIR;
 		$listDir=$IWWEM::Config::JOBDIR;
-		$uuidPrefix=$IWWEM::WorkflowCommon::ENACTIONPREFIX;
+		$uuidPrefix=$ENACTIONPREFIX;
 		
-		if($id =~ /^$IWWEM::WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+		if($id =~ /^$ENACTIONPREFIX([^:]+)$/) {
 			$subId=$1;
 		}
-	} elsif($id =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+)/) {
-		$baseListDir=$IWWEM::WorkflowCommon::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+	} elsif($id =~ /^$SNAPSHOTPREFIX([^:]+)/) {
+		$baseListDir=$VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 		$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
-		$uuidPrefix=$IWWEM::WorkflowCommon::SNAPSHOTPREFIX . $1 . ':';
+		$uuidPrefix=$SNAPSHOTPREFIX . $1 . ':';
 		
 		$isSnapshot=1;
 		
-		if($id =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+		if($id =~ /^$SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 			$subId=$2;
 		}
 	} else {
-		$baseListDir=$IWWEM::WorkflowCommon::VIRTWORKFLOWDIR;
+		$baseListDir=$VIRTWORKFLOWDIR;
 		$listDir=$IWWEM::Config::WORKFLOWDIR;
-		$uuidPrefix=$IWWEM::WorkflowCommon::WORKFLOWPREFIX;
+		$uuidPrefix=$WORKFLOWPREFIX;
 		
-		if($id =~ /^$IWWEM::WorkflowCommon::WORKFLOWPREFIX([^:]+)$/) {
+		if($id =~ /^$WORKFLOWPREFIX([^:]+)$/) {
 			$subId=$1;
 		} elsif(length($id)>0) {
 			$subId=$id;
@@ -132,6 +243,18 @@ sub new(;$) {
 	$self->{GATHERED}=[$listDir,$uuidPrefix,$isSnapshot];
 	
 	return bless($self,$class);
+}
+
+# Static method
+sub UnderstandsId($) {
+	# Very special case for multiple inheritance handling
+	# This is the seed
+	my($self)=shift;
+	my($class)=ref($self) || $self;
+	
+	my($id)=shift;
+	
+	return index($id,$WORKFLOWPREFIX)==0 || index($id,$ENACTIONPREFIX)==0 || index($id,$SNAPSHOTPREFIX)==0 || (index($id,'/')==-1 && index($id,':')==-1 );
 }
 
 sub getDomainClass() {

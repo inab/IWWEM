@@ -74,6 +74,16 @@ sub new(;$) {
 	return bless($self,$class);
 }
 
+# Static method
+sub UnderstandsId($) {
+	# Very special case for multiple inheritance handling
+	# This is the seed
+	my($self)=shift;
+	my($class)=ref($self) || $self;
+	
+	return index($_[0],'http://')==0 || index($_[0],'https://')==0 || index($_[0],'ftp://')==0;
+}
+
 sub getDomainClass() {
 	return 'URL';
 }

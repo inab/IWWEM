@@ -39,6 +39,7 @@ use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
 use IWWEM::Taverna1WorkflowKind;
+use IWWEM::InternalWorkflowList;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -138,7 +139,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 			my($email)=undef;
 			my($kind)=undef;
 			my($prettyname)=undef;
-			if($irelpath =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			if($irelpath =~ /^$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				my($wfsnap)=$1;
 				my($snapId)=$2;
 				$kind='snapshot';
@@ -156,7 +157,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 					$catdoc->toFile($catfile);
 				};
 				rmtree($IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$snapId);
-			} elsif($irelpath =~ /^$IWWEM::WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+			} elsif($irelpath =~ /^$IWWEM::InternalWorkflowList::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				my($wfexam)=$1;
 				my($examId)=$2;
 				$kind='example';
@@ -178,7 +179,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 				# Workflows and enactions
 				my($jobdir)=undef;
 				
-				if($irelpath =~ /^$IWWEM::WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+				if($irelpath =~ /^$IWWEM::InternalWorkflowList::ENACTIONPREFIX([^:]+)$/) {
 					$jobdir=$IWWEM::Config::JOBDIR.'/'.$1;
 					$kind='enaction';
 				} else {
@@ -194,7 +195,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 						foreach my $exam (@eraseExam) {
 							push(@predone,[
 								'example',
-								$IWWEM::WorkflowCommon::EXAMPLEPREFIX.$exam->getAttribute('uuid'),
+								$IWWEM::InternalWorkflowList::EXAMPLEPREFIX.$exam->getAttribute('uuid'),
 								1,
 								$exam->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL),
 								$exam->getAttribute('name')
@@ -209,7 +210,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 						foreach my $snap (@eraseSnap) {
 							push(@predone,[
 								'snapshot',
-								$IWWEM::WorkflowCommon::SNAPSHOTPREFIX.$snap->getAttribute('uuid'),
+								$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX.$snap->getAttribute('uuid'),
 								1,
 								$snap->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL),
 								$snap->getAttribute('name')
@@ -274,7 +275,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 			my($prettyname)=undef;
 			my($viewerURL)=IWWEM::WorkflowCommon::enactionGUIURI($query);
 			
-			if($irelpath =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			if($irelpath =~ /^$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				my($wfsnap)=$1;
 				my($snapId)=$2;
 				$kind='snapshot';
@@ -312,7 +313,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 					# And tmp catfile must be removed
 					unlink($catfile);
 				};
-			} elsif($irelpath =~ /^$IWWEM::WorkflowCommon::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+			} elsif($irelpath =~ /^$IWWEM::InternalWorkflowList::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 				my($wfexam)=$1;
 				my($examId)=$2;
 				$kind='example';
@@ -348,7 +349,7 @@ if($command eq $IWWEM::WorkflowCommon::COMMANDERASE) {
 				my($jobdir)=$codedir;
 				my($destdir)=undef;
 				
-				if($irelpath =~ /^$IWWEM::WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+				if($irelpath =~ /^$IWWEM::InternalWorkflowList::ENACTIONPREFIX([^:]+)$/) {
 					$jobdir.='/'.$1;
 					$destdir=$IWWEM::Config::JOBDIR.'/'.$1;
 					$kind='enaction';

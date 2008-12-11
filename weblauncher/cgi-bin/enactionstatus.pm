@@ -42,6 +42,7 @@ use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
 use IWWEM::Taverna1WorkflowKind;
+use IWWEM::InternalWorkflowList;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -357,7 +358,7 @@ sub sendEnactionReport($\@;$$$$$) {
 		my($es)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionstatus');
 		$es->setAttribute('jobId',$jobId);
 		$es->setAttribute('time',LockNLog::getPrintableNow());
-		$es->setAttribute('relURI',$IWWEM::WorkflowCommon::VIRTJOBDIR);
+		$es->setAttribute('relURI',$IWWEM::InternalWorkflowList::VIRTJOBDIR);
 	
 		# Time to know the overall status of this enaction
 		my($state)=undef;
@@ -365,20 +366,20 @@ sub sendEnactionReport($\@;$$$$$) {
 		my($wfsnap)=undef;
 		my($origJobId)=undef;
 		
-		if(index($jobId,$IWWEM::WorkflowCommon::SNAPSHOTPREFIX)==0) {
+		if(index($jobId,$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX)==0) {
 			$origJobId=$jobId;
-			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				$wfsnap=$1;
 				$jobId=$2;
 				$jobdir=$IWWEM::WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
 				# It is an snapshot, so the relative URI changes
-				$es->setAttribute('relURI',$IWWEM::WorkflowCommon::VIRTWORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR);
+				$es->setAttribute('relURI',$IWWEM::InternalWorkflowList::VIRTWORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR);
 			}
 		} else {
 			# For completion, we handle qualified job Ids
-			$jobId =~ s/^$IWWEM::WorkflowCommon::ENACTIONPREFIX//;
+			$jobId =~ s/^$IWWEM::InternalWorkflowList::ENACTIONPREFIX//;
 			$jobdir=$IWWEM::Config::JOBDIR . '/' .$jobId;
-			$origJobId=$IWWEM::WorkflowCommon::ENACTIONPREFIX.$jobId;
+			$origJobId=$IWWEM::InternalWorkflowList::ENACTIONPREFIX.$jobId;
 		}
 	
 		# Is it a valid job id?
@@ -589,7 +590,7 @@ sub sendEnactionReport($\@;$$$$$) {
 	
 							# Generating a pending operation
 							my($penduuid,$penddir,$PH)=IWWEM::WorkflowCommon::genPendingOperationsDir($IWWEM::WorkflowCommon::COMMANDADD);
-							my($fullsnapuuid)=$IWWEM::WorkflowCommon::SNAPSHOTPREFIX."$workflowId:$uuid";
+							my($fullsnapuuid)=$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX."$workflowId:$uuid";
 							print $PH "$fullsnapuuid\n";
 							close($PH);
 							

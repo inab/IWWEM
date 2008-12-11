@@ -43,6 +43,7 @@ use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
 use IWWEM::Taverna1WorkflowKind;
+use IWWEM::InternalWorkflowList;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -335,30 +336,30 @@ sub gatherWorkflowList(;$) {
 	if(index($id,'http://')==0 || index($id,'ftp://')==0) {
 		$subId=$id;
 		@dirstack=();
-	} elsif(index($id,$IWWEM::WorkflowCommon::ENACTIONPREFIX)==0) {
-		$baseListDir=$IWWEM::WorkflowCommon::VIRTJOBDIR;
+	} elsif(index($id,$IWWEM::InternalWorkflowList::ENACTIONPREFIX)==0) {
+		$baseListDir=$IWWEM::InternalWorkflowList::VIRTJOBDIR;
 		$listDir=$IWWEM::Config::JOBDIR;
-		$uuidPrefix=$IWWEM::WorkflowCommon::ENACTIONPREFIX;
+		$uuidPrefix=$IWWEM::InternalWorkflowList::ENACTIONPREFIX;
 		
-		if($id =~ /^$IWWEM::WorkflowCommon::ENACTIONPREFIX([^:]+)$/) {
+		if($id =~ /^$IWWEM::InternalWorkflowList::ENACTIONPREFIX([^:]+)$/) {
 			$subId=$1;
 		}
-	} elsif($id =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+)/) {
-		$baseListDir=$IWWEM::WorkflowCommon::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+	} elsif($id =~ /^$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX([^:]+)/) {
+		$baseListDir=$IWWEM::InternalWorkflowList::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 		$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
-		$uuidPrefix=$IWWEM::WorkflowCommon::SNAPSHOTPREFIX . $1 . ':';
+		$uuidPrefix=$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX . $1 . ':';
 		
 		$isSnapshot=1;
 		
-		if($id =~ /^$IWWEM::WorkflowCommon::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+		if($id =~ /^$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 			$subId=$2;
 		}
 	} else {
-		$baseListDir=$IWWEM::WorkflowCommon::VIRTWORKFLOWDIR;
+		$baseListDir=$IWWEM::InternalWorkflowList::VIRTWORKFLOWDIR;
 		$listDir=$IWWEM::Config::WORKFLOWDIR;
-		$uuidPrefix=$IWWEM::WorkflowCommon::WORKFLOWPREFIX;
+		$uuidPrefix=$IWWEM::InternalWorkflowList::WORKFLOWPREFIX;
 		
-		if($id =~ /^$IWWEM::WorkflowCommon::WORKFLOWPREFIX([^:]+)$/) {
+		if($id =~ /^$IWWEM::InternalWorkflowList::WORKFLOWPREFIX([^:]+)$/) {
 			$subId=$1;
 		} elsif(length($id)>0) {
 			$subId=$id;

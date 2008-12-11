@@ -70,6 +70,11 @@ sub new(;$) {
 	return bless($self,$class);
 }
 
+# Static method
+sub UnderstandsId($) {
+	croak("Unimplemented method");
+}
+
 ###########
 # Methods #
 ###########

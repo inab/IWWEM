@@ -53,7 +53,6 @@ use vars qw($REPORTFILE $STATICSTATUSFILE);
 
 use vars qw($LAUNCHERDIR);
 
-use vars qw($VIRTWORKFLOWDIR $VIRTJOBDIR $VIRTIDDIR $VIRTRESULTSDIR);
 use vars qw($RESULTSDIR $ETCRELDIR $ETCDIR);
 
 use vars qw($COMMANDFILE $PENDINGERASEFILE $PENDINGADDFILE);
@@ -66,7 +65,6 @@ use vars qw($PATTERNSFILE);
 
 use vars qw($BACLAVAPARAM $PARAMWFID $PARAMWORKFLOWDEP $PARAMWORKFLOW $PARAMISLAND $PARAMALTVIEWERURI);
 use vars qw($PARAMPREFIX $ENCODINGPREFIX $MIMEPREFIX);
-use vars qw($SNAPSHOTPREFIX $EXAMPLEPREFIX $ENACTIONPREFIX $WORKFLOWPREFIX);
 use vars qw($WFD_NS $PAT_NS $BACLAVA_NS);
 
 use vars qw($PARAMSAVEEX $PARAMSAVEEXDESC $CATALOGFILE $RESPONSIBLEFILE $LOCKFILE);
@@ -80,8 +78,6 @@ use vars qw(%GRAPHREP);
 use vars qw($RESPONSIBLENAME $RESPONSIBLEMAIL);
 
 use vars qw($LICENSENAME $LICENSEURI);
-
-use vars qw(@PATHCHECK $WFKIND $ENKIND);
 
 # Workflow files constants
 $RESPONSIBLENAME='responsibleName';
@@ -115,13 +111,7 @@ $LICENSESRELDIR='licenses';
 $LICENSESDIR=$FindBin::Bin . '/../' .$LICENSESRELDIR;
 $LICENSESFILE=$LICENSESDIR.'/licenses.xml';
 
-# Virtual dirs
-$VIRTWORKFLOWDIR = 'workflows';
-$VIRTJOBDIR = 'enactions';
-$VIRTIDDIR = 'id';
-
 $RESULTSDIR = 'Results';
-$VIRTRESULTSDIR = $RESULTSDIR;
 
 # Patterns file
 $PATTERNSFILE = $ETCDIR . '/' . 'EVpatterns.xml';
@@ -146,10 +136,6 @@ $BACLAVAPARAM='BACLAVA_FILE';
 $PARAMPREFIX='PARAM_';
 $ENCODINGPREFIX='ENCODING_';
 $MIMEPREFIX='MIME_';
-$SNAPSHOTPREFIX='snapshot:';
-$EXAMPLEPREFIX='example:';
-$ENACTIONPREFIX='enaction:';
-$WORKFLOWPREFIX='workflow:';
 
 $CATALOGFILE='catalog.xml';
 $RESPONSIBLEFILE='responsible.xml';
@@ -186,103 +172,6 @@ $COMMENTES=$COMMENTPRE.'enactionstatus'.$COMMENTPOST;
 
 $LICENSESTART=('-' x 30)."LICENSE URI START".('-' x 30);
 $LICENSESTOP= ('-' x 30)."LICENSE URI  STOP".('-' x 30);
-
-use vars qw($ISRAWFILE $ISFORBIDDEN $ISEXAMPLE $ISINPUT $ISOUTPUT $ISRAWDIR $ISIDDIR $ISENDIR);
-# undef means a raw file
-$ISRAWFILE=undef;
-# -1 means a forbidden file/dir
-$ISFORBIDDEN=-1;
-# 0, 1 or 2 mean a raw file which is handled as a result.
-$ISEXAMPLE=0;
-$ISINPUT=1;
-$ISOUTPUT=2;
-# 10 means a raw directory
-$ISRAWDIR=10;
-$ISIDDIR=11;
-# 20 means an enaction/snapshot directory
-$ISENDIR=20;
-
-my($DEPSUBTREE)=[$DEPDIR,$ISRAWDIR,[
-		["^[0-9a-f].+[0-9a-f]\\.xml",undef,undef],
-	]
-];	# Contains only files and no catalog at all
-
-
-my($ENACTSUBTREE)=[
-	$DEPSUBTREE,
-	[$VIRTRESULTSDIR,$ISRAWDIR,[
-			['^.+',$ISIDDIR,[
-					[$INPUTSFILE,$ISINPUT,undef],
-					[$OUTPUTSFILE,$ISOUTPUT,undef],
-					[$ITERATIONSDIR,$ISRAWDIR,[
-							["^[0-9]+",$ISRAWDIR,[
-									[$INPUTSFILE,$ISINPUT,undef],
-									[$OUTPUTSFILE,$ISOUTPUT,undef],
-								]
-							],
-						]
-					],
-				]
-			],
-		]
-	],	# Contains lots of directories
-	[$WORKFLOWFILE,$ISRAWFILE,undef],
-	[$SVGFILE,$ISRAWFILE,undef],
-	[$PDFFILE,$ISRAWFILE,undef],
-	[$PNGFILE,$ISRAWFILE,undef],
-	[$REPORTFILE,$ISRAWFILE,undef],
-	[$INPUTSFILE,$ISINPUT,undef],
-	[$OUTPUTSFILE,$ISOUTPUT,undef],
-];
-
-$WFKIND=[
-	$VIRTWORKFLOWDIR,
-	$IWWEM::Config::WORKFLOWDIR,
-	[
-		["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,[
-				[$EXAMPLESDIR,$ISRAWDIR,[
-						[$CATALOGFILE,$ISFORBIDDEN,undef],
-						["^[0-9a-fA-F].+[0-9a-fA-F]\\.xml",$ISEXAMPLE,undef]
-					]
-				],	# Contains files
-				[$SNAPSHOTSDIR,$ISRAWDIR,[
-						[$CATALOGFILE,$ISFORBIDDEN,undef],
-						["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,$ENACTSUBTREE]
-					]
-				],	# Contains directories
-				$DEPSUBTREE,
-				[$WORKFLOWFILE,$ISRAWFILE,undef],
-				[$SVGFILE,$ISRAWFILE,undef],
-				[$PDFFILE,$ISRAWFILE,undef],
-				[$PNGFILE,$ISRAWFILE,undef],
-			]
-		],
-	]
-];
-
-$ENKIND=[
-	$VIRTJOBDIR,
-	$IWWEM::Config::JOBDIR,
-	[
-		["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,$ENACTSUBTREE],
-	]
-];
-
-@PATHCHECK=(
-	$WFKIND,
-	$ENKIND, 
-	[
-		$VIRTIDDIR,
-		undef,
-		[
-			["^${WORKFLOWPREFIX}[^:]+",$ISIDDIR,undef],
-			["^${ENACTIONPREFIX}[^:]+",$ISIDDIR,undef],
-			["^${SNAPSHOTPREFIX}[^:]+:[^:]+",$ISIDDIR,undef],
-			["^${EXAMPLEPREFIX}[^:]+:[^:]+",$ISEXAMPLE,undef],
-		]
-	]
-);
-
 
 # Method declaration
 sub genUUID();

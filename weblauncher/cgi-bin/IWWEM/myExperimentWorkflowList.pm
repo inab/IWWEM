@@ -28,7 +28,7 @@
 
 use strict;
 
-package IWWEM::InternalWorkflowList;
+package IWWEM::myExperimentWorkflowList;
 
 use Carp qw(croak);
 use Date::Parse;
@@ -74,7 +74,13 @@ sub new(;$) {
 	
 	# Now, it is time to gather WF information!
 	my($id)=undef;
-	$id=$self->{id}  if(exists($self->{id}));
+	if(exists($self->{id})) {
+		$id=$self->{id};
+		$id=substr($id,length($MYEXP_PREFIX))  if(index($id,$MYEXP_PREFIX)==0);
+		$id=undef  if(length($id)==0);
+		# Last, resave the id!
+		$self->{id}=$id;
+	}
 	
 	$self->{baseListDir}=$MYEXP_BASE_URL;
 	
@@ -112,6 +118,16 @@ sub new(;$) {
 	$self->{GATHERED}=[];
 	
 	return bless($self,$class);
+}
+
+# Static method
+sub UnderstandsId($) {
+	# Very special case for multiple inheritance handling
+	# This is the seed
+	my($self)=shift;
+	my($class)=ref($self) || $self;
+	
+	return index($_[0],$MYEXP_PREFIX)==0;
 }
 
 sub getDomainClass() {
