@@ -42,7 +42,7 @@ use IWWEM::Config;
 use IWWEM::WorkflowCommon;
 use IWWEM::InternalWorkflowList;
 use IWWEM::Taverna1WorkflowKind;
-use workflowmanager; 
+use IWWEM::SelectiveWorkflowList;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -216,8 +216,10 @@ foreach my $param ($query->param()) {
 }
 
 # Parsing input workflows
+
+my($wfl)=IWWEM::SelectiveWorkflowList->new($id);
 if($retval==0 && !$query->cgi_error() && defined($hasInputWorkflow)) {
-	($retval,$retvalmsg)=workflowmanager::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps);
+	($retval,$retvalmsg)=$wfl->parseInlineWorkflows($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps);
 }
 
 # We must signal here errors and exit
@@ -232,8 +234,6 @@ if($retval==-1 || $query->cgi_error()) {
 }
 
 # Second step, workflow repository report
-my($p_workflowlist,$baseListDir,$listDir,$uuidPrefix,$isSnapshot)=workflowmanager::gatherWorkflowList($id);
-
-workflowmanager::sendWorkflowList($query,$retval,$retvalmsg,@{$p_workflowlist},$baseListDir,$listDir,$uuidPrefix,$isSnapshot,$dataislandTag);
+$wfl->sendWorkflowList(\*STDOUT,$query,$retval,$retvalmsg,$dataislandTag);
 
 exit 0;

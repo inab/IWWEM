@@ -104,7 +104,7 @@ sub parseInlineWorkflows($$$$$$;$$$) {
 	
 	my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
 	# TODO: I cannot guess (yet), so it is fixed :-(
-	return $self->{WFKINDHASH}{'Taverna1'}->patchWorkflow(@_);
+	return $self->{WFKINDHASH}{'Taverna1'}->parseInlineWorkflows(@_);
 }
 
 1;

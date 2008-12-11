@@ -169,78 +169,83 @@ sub new(;$) {
 	my(@dirstack)=('.');
 	my(@workflowlist)=();
 	
-	$id=''  unless(defined($id));
-	my($baseListDir)=undef;
-	my($listDir)=undef;
-	my($subId)=undef;
-	my($uuidPrefix)=undef;
-	my($isSnapshot)=undef;
-	if(index($id,'http://')==0 || index($id,'ftp://')==0) {
-		$subId=$id;
-		@dirstack=();
-	} elsif(index($id,$ENACTIONPREFIX)==0) {
-		$baseListDir=$VIRTJOBDIR;
-		$listDir=$IWWEM::Config::JOBDIR;
-		$uuidPrefix=$ENACTIONPREFIX;
+	# If second parameter is not defined, then gather the list!
+	if(scalar(@_)<2 || !defined($_[1])) {
 		
-		if($id =~ /^$ENACTIONPREFIX([^:]+)$/) {
-			$subId=$1;
-		}
-	} elsif($id =~ /^$SNAPSHOTPREFIX([^:]+)/) {
-		$baseListDir=$VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
-		$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
-		$uuidPrefix=$SNAPSHOTPREFIX . $1 . ':';
-		
-		$isSnapshot=1;
-		
-		if($id =~ /^$SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
-			$subId=$2;
-		}
-	} else {
-		$baseListDir=$VIRTWORKFLOWDIR;
-		$listDir=$IWWEM::Config::WORKFLOWDIR;
-		$uuidPrefix=$WORKFLOWPREFIX;
-		
-		if($id =~ /^$WORKFLOWPREFIX([^:]+)$/) {
-			$subId=$1;
-		} elsif(length($id)>0) {
+		$id=''  unless(defined($id));
+		my($baseListDir)=undef;
+		my($listDir)=undef;
+		my($subId)=undef;
+		my($uuidPrefix)=undef;
+		my($isSnapshot)=undef;
+		if(index($id,'http://')==0 || index($id,'ftp://')==0) {
 			$subId=$id;
+			@dirstack=();
+		} elsif(index($id,$ENACTIONPREFIX)==0) {
+			$baseListDir=$VIRTJOBDIR;
+			$listDir=$IWWEM::Config::JOBDIR;
+			$uuidPrefix=$ENACTIONPREFIX;
+			
+			if($id =~ /^$ENACTIONPREFIX([^:]+)$/) {
+				$subId=$1;
+			}
+		} elsif($id =~ /^$SNAPSHOTPREFIX([^:]+)/) {
+			$baseListDir=$VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+			$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+			$uuidPrefix=$SNAPSHOTPREFIX . $1 . ':';
+			
+			$isSnapshot=1;
+			
+			if($id =~ /^$SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+				$subId=$2;
+			}
+		} else {
+			$baseListDir=$VIRTWORKFLOWDIR;
+			$listDir=$IWWEM::Config::WORKFLOWDIR;
+			$uuidPrefix=$WORKFLOWPREFIX;
+			
+			if($id =~ /^$WORKFLOWPREFIX([^:]+)$/) {
+				$subId=$1;
+			} elsif(length($id)>0) {
+				$subId=$id;
+			}
 		}
-	}
-	
-	# Looking for workflows
-	foreach my $dir (@dirstack) {
-		my($WFDIR);
-		my($fdir)=$listDir.'/'.$dir;
-		if(opendir($WFDIR,$fdir)) {
-			my($entry);
-			my(@posdirstack)=();
-			my($foundworkflowdir)=undef;
-			while($entry=readdir($WFDIR)) {
-				next if(index($entry,'.')==0);
-				
-				my($fentry)=$fdir.'/'.$entry;
-				my($rentry)=($dir ne '.')?($dir.'/'.$entry):$entry;
-				if($entry eq $IWWEM::WorkflowCommon::WORKFLOWFILE) {
-					$foundworkflowdir=1;
-				} elsif(-d $fentry && (!defined($subId) || ($subId eq $entry))) {
-					push(@posdirstack,$rentry);
+		
+		# Looking for workflows
+		foreach my $dir (@dirstack) {
+			my($WFDIR);
+			my($fdir)=$listDir.'/'.$dir;
+			if(opendir($WFDIR,$fdir)) {
+				my($entry);
+				my(@posdirstack)=();
+				my($foundworkflowdir)=undef;
+				while($entry=readdir($WFDIR)) {
+					next if(index($entry,'.')==0);
+					
+					my($fentry)=$fdir.'/'.$entry;
+					my($rentry)=($dir ne '.')?($dir.'/'.$entry):$entry;
+					if($entry eq $IWWEM::WorkflowCommon::WORKFLOWFILE) {
+						$foundworkflowdir=1;
+					} elsif(-d $fentry && (!defined($subId) || ($subId eq $entry))) {
+						push(@posdirstack,$rentry);
+					}
+				}
+				closedir($WFDIR);
+				# We are only saving found subdirectories when
+				# this is not a workflow directory
+				if(defined($foundworkflowdir)) {
+					push(@workflowlist,$dir);
+				} else {
+					push(@dirstack,@posdirstack);
 				}
 			}
-			closedir($WFDIR);
-			# We are only saving found subdirectories when
-			# this is not a workflow directory
-			if(defined($foundworkflowdir)) {
-				push(@workflowlist,$dir);
-			} else {
-				push(@dirstack,@posdirstack);
-			}
 		}
+		
+		$self->{WORKFLOWLIST}=\@workflowlist;
+		$self->{baseListDir}=$baseListDir;
+		$self->{GATHERED}=[$listDir,$uuidPrefix,$isSnapshot];
+			
 	}
-	
-	$self->{WORKFLOWLIST}=\@workflowlist;
-	$self->{baseListDir}=$baseListDir;
-	$self->{GATHERED}=[$listDir,$uuidPrefix,$isSnapshot];
 	
 	return bless($self,$class);
 }
@@ -261,6 +266,7 @@ sub getDomainClass() {
 	return 'IWWEM';
 }
 
+#	my($wf,$listDir,$uuidPrefix,$isSnapshot)=@_;
 sub getWorkflowInfo($@) {
 	my($self)=shift;
 	
@@ -440,6 +446,24 @@ sub getWorkflowInfo($@) {
 	
 	return $retnode;
 	
+}
+
+#		my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
+sub parseInlineWorkflows($$$$$$;$$$) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	return $self->{TAVERNA1}->parseInlineWorkflows(@_);
+}
+
+#	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
+sub patchWorkflow($$$$$;$$$) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	return $self->{TAVERNA1}->patchWorkflow(@_);
 }
 
 sub launchJob() {

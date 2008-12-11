@@ -21,9 +21,12 @@ sub new(;$) {
 	
 	my($self)=$proto->SUPER::new(@_);
 	
-	my($id)=undef;
-	$id=$self->{id}  if(exists($self->{id}));
-	foreach my $paradigm (@PARADIGMS) {
-		return $paradigm->new(@_)  if($paradigm->UnderstandsId($id));
-	} 
+	
+	if(exists($self->{id})) {
+		my($id)=$self->{id};
+		foreach my $paradigm (@PARADIGMS) {
+			return $paradigm->new(@_)  if($paradigm->UnderstandsId($id));
+		}
+	}
+	return IWWEM::InternalWorkflowList->new(@_);
 }

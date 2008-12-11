@@ -41,7 +41,7 @@ use XML::LibXML;
 use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
-use workflowmanager;
+use IWWEM::InternalWorkflowList;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -219,13 +219,14 @@ my($jobdir)=undef;
 
 $responsibleName=''  unless(defined($responsibleName));
 
+my($iwfl)=IWWEM::InternalWorkflowList->new(undef,1);
 if($retval==0 && !$query->cgi_error()) {
 	if(defined($hasInputWorkflow)) {
 		$workflowId=undef;
 
 		my($p_res)=undef;
-		($retval,$retvalmsg,$p_res)=workflowmanager::parseInlineWorkflows($query,$parser,$responsibleMail,$responsibleName,undef,undef,$hasInputWorkflowDeps,undef,$IWWEM::Config::JOBDIR,1);
-
+		($retval,$retvalmsg,$p_res)=$iwfl->parseInlineWorkflows($query,$responsibleMail,$responsibleName,undef,undef,$hasInputWorkflowDeps,undef,$IWWEM::Config::JOBDIR,1);
+		
 		if($retval==0 && scalar(@{$p_res})>0) {
 			$jobid=$p_res->[0];
 			$jobdir = $IWWEM::Config::JOBDIR . '/' .$jobid;
@@ -363,7 +364,7 @@ if($retval==0 && !$query->cgi_error() && defined($workflowId)) {
 	# As network resources are supported by parse_file, nice!
 	my($WFmaindoc)=$parser->parse_file($wabspath);
 	
-	($retval,$retvalmsg)=workflowmanager::patchWorkflow($query,$parser,undef,$jobid,$jobdir,undef,$WFmaindoc,$hasInputWorkflowDeps,1,1);
+	($retval,$retvalmsg)=$iwfl->patchWorkflow($query,$jobid,$jobdir,undef,$WFmaindoc,$hasInputWorkflowDeps,1,1);
 }
 
 if($retval==0 && !$query->cgi_error() && defined($baclavafound)) {

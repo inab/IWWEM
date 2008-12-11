@@ -229,6 +229,7 @@ sub getWorkflowInfo($$$$$) {
 	return $wfe;
 }
 
+#	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
 sub patchWorkflow($$$$$;$$$) {
 	my($self)=shift;
 	
@@ -524,6 +525,7 @@ sub patchWorkflow($$$$$;$$$) {
 	return ($retval,$retvalmsg);
 }
 
+#		my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
 sub parseInlineWorkflows($$$$$$;$$$) {
 	my($self)=shift;
 	

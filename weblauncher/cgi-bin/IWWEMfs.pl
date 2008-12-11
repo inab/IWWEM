@@ -40,7 +40,6 @@ use IWWEM::Config;
 use IWWEM::WorkflowCommon;
 use IWWEM::Taverna1WorkflowKind;
 use IWWEM::InternalWorkflowList;
-use workflowmanager;
 use enactionstatus;
 use IWWEMproxy;
 
@@ -135,8 +134,8 @@ if(defined($vpath) && length($vpath)>0) {
 		$relpath=substr($relpath,1);
 		if(length($relpath)==0) {
 			# Whole information listing, as workflows
-			my($p_workflowlist,$baseListDir,$listDir,$uuidPrefix,$isSnapshot)=workflowmanager::gatherWorkflowList();
-			workflowmanager::sendWorkflowList($query,$retval,undef,@{$p_workflowlist},$baseListDir,$listDir,$uuidPrefix,$isSnapshot,$dataislandTag);
+			my($wfl)=IWWEM::InternalWorkflowList->new();
+			$wfl->sendWorkflowList(\*STDOUT,$query,$retval,undef,$dataislandTag);
 		} else {
 			my($kind)=undef;
 			foreach my $check (@IWWEM::WorkflowCommon::PATHCHECK) {
@@ -269,8 +268,8 @@ sub processFSPath($$$$$$$$) {
 		if($iddepth==0) {
 			# Listing of all workflows or all enactions as workflows.
 			my($wfid)=($globalkind->[0] eq $IWWEM::InternalWorkflowList::VIRTJOBDIR) ? $IWWEM::InternalWorkflowList::ENACTIONPREFIX : undef;
-			my($p_workflowlist,$baseListDir,$listDir,$uuidPrefix,$isSnapshot)=workflowmanager::gatherWorkflowList($wfid);
-			workflowmanager::sendWorkflowList($query,$retval,undef,@{$p_workflowlist},$baseListDir,$listDir,$uuidPrefix,$isSnapshot,$dataislandTag);
+			my($wfl)=IWWEM::InternalWorkflowList->new($wfid);
+			$wfl->sendWorkflowList(\*STDOUT,$query,$retval,undef,$dataislandTag);
 		} elsif($iddepth==1) {
 			# Single workflows/enactions
 			unless(defined($isWSDL)) {
@@ -280,8 +279,8 @@ sub processFSPath($$$$$$$$) {
 					enactionstatus::sendEnactionReport($query,@jobs);
 				} else {
 					# Description as a workflow list for workflows...
-					my($p_workflowlist,$baseListDir,$listDir,$uuidPrefix,$isSnapshot)=workflowmanager::gatherWorkflowList($idhist[0]);
-					workflowmanager::sendWorkflowList($query,$retval,undef,@{$p_workflowlist},$baseListDir,$listDir,$uuidPrefix,$isSnapshot,$dataislandTag);
+					my($wfl)=IWWEM::InternalWorkflowList->new($idhist[0]);
+					$wfl->sendWorkflowList(\*STDOUT,$query,$retval,undef,$dataislandTag);
 				}
 			} else {
 				generateWSDL((($globalkind->[0] eq $IWWEM::InternalWorkflowList::VIRTJOBDIR)?$IWWEM::InternalWorkflowList::ENACTIONPREFIX:$IWWEM::InternalWorkflowList::WORKFLOWPREFIX).$idhist[0]);
@@ -401,12 +400,13 @@ sub generateWSDL($) {
 			$subId=$id;
 		}
 	}
+	
+	my($wfl)=IWWEM::InternalWorkflowList->new($id);
+	my($desc)=$wfl->getWorkflowInfo($subId,$listDir,$uuidPrefix,$isSnapshot);
+	
 	my $parser = XML::LibXML->new();
 	my $context = XML::LibXML::XPathContext->new();
-	$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 	$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
-	
-	my($desc)=workflowmanager::getWorkflowInfo($parser,$context,$listDir,$subId,$uuidPrefix,$isSnapshot);
 	
 	# TODO Translate to WSDL using an XSLT
 }

@@ -66,6 +66,8 @@ sub new(;$) {
 	$self->{baseListDir}="";
 	
 	$self->{UNIVERSAL}=IWWEM::UniversalWorkflowKind->new($self->{PARSER},$self->{CONTEXT});
+	$self->{TAVERNA1}=IWWEM::Taverna1WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
+	$self->{TAVERNA2}=IWWEM::Taverna2WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
 	
 	return bless($self,$class);
 }
@@ -87,6 +89,7 @@ sub getDomainClass() {
 	croak("Unimplemented method");
 }
 
+#	my($OUTPUT,$query,$retval,$retvalmsg,$dataislandTag)=@_;
 sub sendWorkflowList($$$$;$) {
 	my($self)=shift;
 	
@@ -142,6 +145,15 @@ sub sendWorkflowList($$$$;$) {
 	}
 }
 
+#		my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
+sub parseInlineWorkflows($$$$$$;$$$) {
+	croak("Unimplemented method");
+}
+
+#	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
+sub patchWorkflow($$$$$;$$$) {
+	croak("Unimplemented method");
+}
 
 sub launchJob($$$$$) {
 	my($self)=shift;

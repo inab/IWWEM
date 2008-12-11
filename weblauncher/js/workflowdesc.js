@@ -109,18 +109,7 @@ OutputSnapshot.prototype = {
 
 function WorkflowDesc(wfD,WFBase) {
 	this.WFBase=WFBase;
-	this.uuid = wfD.getAttribute('uuid');
-	this.path = wfD.getAttribute('path');
-	this.isAbsolute=path.indexOf('ftp:')==0 || path.indexOf('http:')==0 || path.indexOf('https:')==0;
-	//this.svgpath = wfD.getAttribute('svg');
-	this.title = wfD.getAttribute('title');
-	this.lsid = wfD.getAttribute('lsid');
-	this.author = wfD.getAttribute('author');
-	this.date = wfD.getAttribute('date');
-	this.responsibleMail = wfD.getAttribute('responsibleMail');
-	this.responsibleName = wfD.getAttribute('responsibleName');
-	this.licenseName = wfD.getAttribute('licenseName');
-	this.licenseURI = wfD.getAttribute('licenseURI');
+	
 	this.graph = {};
 	
 	var depends=new Array();
@@ -137,11 +126,21 @@ function WorkflowDesc(wfD,WFBase) {
 	this.description=undefined;
 	this.hasInputs=undefined;
 	this.hasExamples=undefined;
+	this.isReference=undefined;
 	
+	for(var child=wfD.firstChild;child;child=child.nextSibling) {
+		if(child.nodeType == 1 && GeneralView.getLocalName(child)=='release') {
+			wfD=child;
+			break;
+		}
+	}
 	for(var child=wfD.firstChild;child;child=child.nextSibling) {
 		// Only element children, please!
 		if(child.nodeType == 1) {
 			switch(GeneralView.getLocalName(child)) {
+				case 'releaseRef':
+					this.isReference=true;
+					break;
 				case 'description':
 					// This is needed because there are some
 					// differences among the standars
@@ -182,12 +181,27 @@ function WorkflowDesc(wfD,WFBase) {
 		}
 	}
 	
-	// Now, handling SVG special case
-	var svgpath = ('image/svg+xml' in this.graph)?this.graph['image/svg+xml']:wfD.getAttribute('svg');
-	if(svgpath.indexOf('ftp:')==0 || svgpath.indexOf('http:')==0 || svgpath.indexOf('https:')==0) {
-		this.svgpath=svgpath;
-	} else {
-		this.svgpath=this.WFBase+'/'+svgpath;
+	if(!this.isReference) {
+		this.uuid = wfD.getAttribute('uuid');
+		this.path = wfD.getAttribute('path');
+		this.isAbsolute=path.indexOf('ftp:')==0 || path.indexOf('http:')==0 || path.indexOf('https:')==0;
+		//this.svgpath = wfD.getAttribute('svg');
+		this.title = wfD.getAttribute('title');
+		this.lsid = wfD.getAttribute('lsid');
+		this.author = wfD.getAttribute('author');
+		this.date = wfD.getAttribute('date');
+		this.responsibleMail = wfD.getAttribute('responsibleMail');
+		this.responsibleName = wfD.getAttribute('responsibleName');
+		this.licenseName = wfD.getAttribute('licenseName');
+		this.licenseURI = wfD.getAttribute('licenseURI');
+		
+		// Now, handling SVG special case
+		var svgpath = ('image/svg+xml' in this.graph)?this.graph['image/svg+xml']:wfD.getAttribute('svg');
+		if(svgpath.indexOf('ftp:')==0 || svgpath.indexOf('http:')==0 || svgpath.indexOf('https:')==0) {
+			this.svgpath=svgpath;
+		} else {
+			this.svgpath=this.WFBase+'/'+svgpath;
+		}
 	}
 }
 
