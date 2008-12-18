@@ -444,15 +444,42 @@ The textual content of this element is the description of the example (possibly 
     </xsd:complexType>
     
     <xsd:attributeGroup name="wfTypeAttrGroup">
-        <xsd:attribute name="workflowType" use="optional" default="Taverna1">
+        <xsd:attribute name="workflowType" use="optional" default="application/vnd.taverna.scufl+xml">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[The workflow type reported by this workflow domain class]]></xsd:documentation>
             </xsd:annotation>
             <xsd:simpleType>
                 <xsd:restriction base="xsd:string">
                     <xsd:enumeration value="any"/>
-                    <xsd:enumeration value="Taverna1"/>
-                    <xsd:enumeration value="Taverna2"/>
+                    <xsd:enumeration value="application/vnd.taverna.scufl+xml">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[Taverna 1 Workflow]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:enumeration>
+                    <xsd:enumeration value="taverna2beta">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[Taverna 2 Beta Workflow]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:enumeration>
+                    <xsd:enumeration value="GWorkflowDL"/>
+                    <xsd:enumeration value="WSVLAM"/>
+                    <xsd:enumeration value="Manual Web Service">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[Manual Web Service Workflow]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:enumeration>
+                    <xsd:enumeration value="Makefile">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[Makefile Workflow]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:enumeration>
+                    <xsd:enumeration value="trident_opc"/>
+                    <xsd:enumeration value="Chemistry Plan"/>
+                    <xsd:enumeration value="application/xaml+xml">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[Trident (XOML) Workflow]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:enumeration>
                 </xsd:restriction>
             </xsd:simpleType>
         </xsd:attribute>
@@ -568,6 +595,7 @@ results.]]></xsd:documentation>
                     </xsd:annotation>
                     <xsd:complexType>
                         <xsd:attributeGroup ref="iwwem:workflowRefAttrGroup"/>
+                        <xsd:attributeGroup ref="iwwem:wfTypeAttrGroup"/>
                     </xsd:complexType>
                 </xsd:element>
             </xsd:choice>

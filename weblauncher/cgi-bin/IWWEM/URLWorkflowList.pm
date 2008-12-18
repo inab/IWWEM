@@ -107,11 +107,11 @@ sub getWorkflowInfo($@) {
 		my($wfKind)='UNIVERSAL';
 		#my($wfcatmutex)=LockNLog::SimpleMutex->new($wfdir.'/'.$IWWEM::WorkflowCommon::LOCKFILE,$regen);
 			my($uuid)=$uuidPrefix.$wf;
-			$retnode = $self->{$wfKind}->getWorkflowInfo($wf,$uuid,$listDir,$relwffile,$isSnapshot);
+			$retnode = $self->{WFH}{$wfKind}->getWorkflowInfo($wf,$uuid,$listDir,$relwffile,$isSnapshot);
 			
 			my($outputDoc)=$retnode->ownerDocument();
 			my($release)=$retnode->firstChild();
-			while(defined($release) && $release->localname() ne 'release') {
+			while(defined($release) && ($release->nodeType()!=XML::LibXML::XML_ELEMENT_NODE || $release->localname() ne 'release')) {
 				$release=$release->nextSibling();
 			}
 			

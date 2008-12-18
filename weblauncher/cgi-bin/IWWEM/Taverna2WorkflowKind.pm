@@ -35,9 +35,10 @@ use base qw(IWWEM::AbstractWorkflowKind);
 
 use IWWEM::WorkflowCommon;
 
-use vars qw($T2FLOW_NS);
+use vars qw($T2FLOW_NS $T2FLOW_MIME);
 
 $T2FLOW_NS = 'http://taverna.sf.net/2008/xml/t2flow';
+$T2FLOW_MIME = 'taverna2beta';
 
 ##############
 # Prototypes #
@@ -56,6 +57,7 @@ sub new(;$$) {
 	
 	my($context)=$self->{CONTEXT};
 	$context->registerNs('t2',$T2FLOW_NS);
+	$context->registerNs('impl','');
 	
 	return bless($self,$class);
 }
@@ -92,7 +94,7 @@ sub getWorkflowInfo($$$$$) {
 		# Getting dataflow from workflow definition
 		my($t2root)=$doc->documentElement();
 		my($dataflow)=$t2root->firstChild();
-		while(defined($dataflow) && ($dataflow->localname() ne 'dataflow' || $dataflow->namespaceURI() ne $T2FLOW_NS || $dataflow->getAttribute('role') ne 'top')) {
+		while(defined($dataflow) && ($dataflow->nodeType()!=XML::LibXML::XML_ELEMENT_NODE || $dataflow->localname() ne 'dataflow' || $dataflow->namespaceURI() ne $T2FLOW_NS || $dataflow->getAttribute('role') ne 'top')) {
 			$dataflow=$dataflow->nextSibling();
 		}
 		if(defined($dataflow) && $t2root->namespaceURI() eq $T2FLOW_NS && $t2root->localname() eq 'workflow') {
@@ -101,10 +103,19 @@ sub getWorkflowInfo($$$$$) {
 			
 			# At this moment, no description :-(
 			# We need some specifications!!!!
-			my($desctext)='';
+			my(@nodelist) = $context->findnodes('t2:annotations/t2:annotation_chain/impl:net.sf.taverna.t2.annotation.AnnotationChainImpl/impl:annotationAssertions/impl:net.sf.taverna.t2.annotation.AnnotationAssertionImpl/impl:annotationBean[@class="net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription"]',$dataflow);
+			my($desctext)=(scalar(@nodelist)>0)?$nodelist[0]->textContent():'';
+			
 			$wfe->setAttribute('uuid',$uuid);
-			my(@nodelist) = $context->findnodes('t2:name',$dataflow);
-			my($title)=(scalar(@nodelist)>0)?$nodelist[0]->textContent():'';
+			
+			@nodelist = $context->findnodes('t2:annotations/t2:annotation_chain/impl:net.sf.taverna.t2.annotation.AnnotationChainImpl/impl:annotationAssertions/impl:net.sf.taverna.t2.annotation.AnnotationAssertionImpl/impl:annotationBean[@class="net.sf.taverna.t2.annotation.annotationbeans.DescriptiveTitle"]',$dataflow);
+			my($title)=undef;
+			if(scalar(@nodelist)>0) {
+				$title=$nodelist[0]->textContent();
+			} else {
+				@nodelist = $context->findnodes('t2:name',$dataflow);
+				$title=(scalar(@nodelist)>0)?$nodelist[0]->textContent():'';
+			}
 			$wfe->setAttribute('title',$title);
 
 			my $release = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'release');
@@ -114,10 +125,13 @@ sub getWorkflowInfo($$$$$) {
 			$release->setAttribute('uuid',$uuid);
 			
 			$release->setAttribute('lsid',$dataflow->getAttribute('id'));
-			$release->setAttribute('author','');
+			
+			@nodelist = $context->findnodes('t2:annotations/t2:annotation_chain/impl:net.sf.taverna.t2.annotation.AnnotationChainImpl/impl:annotationAssertions/impl:net.sf.taverna.t2.annotation.AnnotationAssertionImpl/impl:annotationBean[@class="net.sf.taverna.t2.annotation.annotationbeans.Author"]',$dataflow);
+			$release->setAttribute('author',(scalar(@nodelist)>0)?$nodelist[0]->textContent():'');
+			
 			$release->setAttribute('title',$title);
 			$release->setAttribute('path',$relwffile);
-			$release->setAttribute('workflowType','Taverna2');
+			$release->setAttribute('workflowType',$T2FLOW_MIME);
 			
 			my($licenseName)=undef;
 			my($licenseURI)=undef;

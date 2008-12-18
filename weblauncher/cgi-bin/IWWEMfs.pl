@@ -138,7 +138,7 @@ if(defined($vpath) && length($vpath)>0) {
 			$wfl->sendWorkflowList(\*STDOUT,$query,$retval,undef,$dataislandTag);
 		} else {
 			my($kind)=undef;
-			foreach my $check (@IWWEM::WorkflowCommon::PATHCHECK) {
+			foreach my $check (@IWWEM::InternalWorkflowList::PATHCHECK) {
 				my($virt)=$check->[0];
 				if(substr($relpath,0,length($virt)) eq $virt) {
 					$kind=$check;
@@ -175,7 +175,7 @@ if(defined($vpath) && length($vpath)>0) {
 				
 				$patherr=processFSPath($query,$relpath,$kind,$dataislandTag,$raw,$asMime,$charset,$withName);
 			} else {
-				$patherr="Your path does not follow any of these items: ".IWWEM::WorkflowCommon::genCheckList(@IWWEM::WorkflowCommon::PATHCHECK);
+				$patherr="Your path does not follow any of these items: ".IWWEM::InternalWorkflowList::genCheckList(@IWWEM::InternalWorkflowList::PATHCHECK);
 			}
 		}
 	} else {
@@ -246,7 +246,7 @@ sub processFSPath($$$$$$$$) {
 				$lastkind=$newkind;
 			} else {
 				unless(defined($patherr)) {
-					$patherr='Path fragment '.$relid.' does not match any of these items: '.IWWEM::WorkflowCommon::genCheckList(@{$kindhist[$#kindhist][2]});
+					$patherr='Path fragment '.$relid.' does not match any of these items: '.IWWEM::InternalWorkflowList::genCheckList(@{$kindhist[$#kindhist][2]});
 				}
 				last;
 			}

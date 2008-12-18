@@ -33,6 +33,13 @@ function WorkflowReport(genview,reportDivId) {
 	
 	// Last update date
 	var b=genview.createElement('b');
+	b.innerHTML='Version:&nbsp;';
+	reportDiv.appendChild(b);
+	this.versionContainer=genview.createElement('span');
+	reportDiv.appendChild(this.versionContainer);
+	reportDiv.appendChild(genview.thedoc.createTextNode(' '));
+	
+	var b=genview.createElement('b');
 	b.innerHTML='Date:&nbsp;';
 	reportDiv.appendChild(b);
 	this.dateContainer=genview.createElement('span');
@@ -55,12 +62,23 @@ function WorkflowReport(genview,reportDivId) {
 	reportDiv.appendChild(this.uuidContainer);
 	reportDiv.appendChild(genview.createElement('br'));
 	
+	// Workflow Type info
+	b=genview.createElement('b');
+	b.innerHTML='Workflow&nbsp;type:&nbsp;';
+	reportDiv.appendChild(b);
+	this.wfTypeContainer=genview.createElement('span');
+	reportDiv.appendChild(this.wfTypeContainer);
+	reportDiv.appendChild(genview.createElement('br'));
+	
 	// LSID info
+	var lsidSwitch = this.lsidSwitch = genview.createElement('span');
 	b=genview.createElement('b');
 	b.innerHTML='Taverna&nbsp;LSID:&nbsp;';
-	reportDiv.appendChild(b);
+	lsidSwitch.appendChild(b);
 	this.lsidContainer=genview.createElement('span');
-	reportDiv.appendChild(this.lsidContainer);
+	lsidSwitch.appendChild(this.lsidContainer);
+	lsidSwitch.setAttribute('style','display:none;');
+	reportDiv.appendChild(lsidSwitch);
 	
 	// Author info
 	var p=genview.createElement('p');
@@ -120,10 +138,12 @@ function WorkflowReport(genview,reportDivId) {
 
 WorkflowReport.prototype={
 	clearView: function() {
+		GeneralView.freeContainer(this.versionContainer);
 		GeneralView.freeContainer(this.dateContainer);
 		GeneralView.freeContainer(this.titleContainer);
 		GeneralView.freeContainer(this.uuidContainer);
 		GeneralView.freeContainer(this.lsidContainer);
+		GeneralView.freeContainer(this.wfTypeContainer);
 		GeneralView.freeContainer(this.authorContainer);
 		GeneralView.freeContainer(this.uploaderContainer);
 		GeneralView.freeContainer(this.licenseContainer);
@@ -135,18 +155,24 @@ WorkflowReport.prototype={
 	
 	updateView: function(workflow) {
 		// Basic information
-		this.dateContainer.innerHTML = workflow.date;
+		this.versionContainer.appendChild(this.genview.thedoc.createTextNode(workflow.version));
+		this.dateContainer.appendChild(this.genview.thedoc.createTextNode(workflow.date));
 		this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
-		this.uuidContainer.innerHTML = workflow.uuid;
-		this.lsidContainer.innerHTML = workflow.lsid;
-		this.authorContainer.innerHTML = (workflow.author && workflow.author.length>0)?GeneralView.preProcess(workflow.author):'<i>(anonymous)</i>';
-		if(workflow.responsibleMail && workflow.responsibleMail.length>0) {
-			var email=workflow.responsibleMail;
-			var ename=(workflow.responsibleName && workflow.responsibleName.length>0)?GeneralView.preProcess(workflow.responsibleName):email;
-			this.uploaderContainer.innerHTML = '<a href="mailto:'+email+'">'+ename+'</a>';
+		this.uuidContainer.appendChild(this.genview.thedoc.createTextNode(workflow.uuid));
+		this.wfTypeContainer.appendChild(this.genview.thedoc.createTextNode(workflow.getWorkflowType()));
+		if(workflow.lsid && workflow.lsid.length>0) {
+			this.lsidContainer.appendChild(this.genview.thedoc.createTextNode(workflow.lsid));
+			this.lsidSwitch.setAttribute('style','display:default');
 		} else {
-			this.uploaderContainer.innerHTML = '<i>(unknown)</i>';
+			this.lsidSwitch.setAttribute('style','display:none')
 		}
+		this.authorContainer.innerHTML = (workflow.author && workflow.author.length>0)?GeneralView.preProcess(workflow.author):'<i>(anonymous)</i>';
+		var email=workflow.responsibleMail;
+		var ename=(workflow.responsibleName && workflow.responsibleName.length>0)?GeneralView.preProcess(workflow.responsibleName):((email && email.length>0)?email:'<i>(unknown)</i>');
+		if(email && email.length>0) {
+			ename = '<a href="mailto:'+email+'">'+ename+'</a>';
+		}
+		this.uploaderContainer.innerHTML = ename;
 		
 		if(workflow.licenseURI && workflow.licenseURI.length>0) {
 			var lname=(workflow.licenseName && workflow.licenseName.length>0)?GeneralView.preProcess(workflow.licenseName):workflow.licenseURI;

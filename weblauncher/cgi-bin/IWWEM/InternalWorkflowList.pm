@@ -147,10 +147,12 @@ $ENKIND=[
 		]
 	]
 );
+
 ##############
 # Prototypes #
 ##############
 sub new(;$);
+sub genCheckList(\@);
 
 ###############
 # Constructor #
@@ -259,7 +261,7 @@ sub UnderstandsId($) {
 	
 	my($id)=shift;
 	
-	return index($id,$WORKFLOWPREFIX)==0 || index($id,$ENACTIONPREFIX)==0 || index($id,$SNAPSHOTPREFIX)==0 || (index($id,'/')==-1 && index($id,':')==-1 );
+	return !defined($id) || index($id,$WORKFLOWPREFIX)==0 || index($id,$ENACTIONPREFIX)==0 || index($id,$SNAPSHOTPREFIX)==0 || (index($id,'/')==-1 && index($id,':')==-1 );
 }
 
 sub getDomainClass() {
@@ -297,7 +299,13 @@ sub getWorkflowInfo($@) {
 			$snapshotscat = $wfdir .'/'. $IWWEM::WorkflowCommon::SNAPSHOTSDIR . '/' . $IWWEM::WorkflowCommon::CATALOGFILE;
 			$wfresp=$wfdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
 			
-			my(@stat_selffile)=stat($FindBin::Bin .'/workflowmanager.pm');
+			my(@stat_selffile)=stat($FindBin::Bin .'/IWWEM/InternalWorkflowList.pm');
+			my(@stat_selffile2)=();
+			@stat_selffile2=stat($FindBin::Bin .'/IWWEM/Taverna1WorkflowKind.pm');
+			@stat_selffile=@stat_selffile2  if($stat_selffile2[9]>$stat_selffile[9]);
+			@stat_selffile2=stat($FindBin::Bin .'/IWWEM/Taverna2WorkflowKind.pm');
+			@stat_selffile=@stat_selffile2  if($stat_selffile2[9]>$stat_selffile[9]);
+			
 			my(@stat_wfcat)=stat($wfcat);
 			if(scalar(@stat_wfcat)>0 && $stat_wfcat[9]>$stat_selffile[9]) {
 				my(@stat_wffile)=stat($wffile);
@@ -310,8 +318,8 @@ sub getWorkflowInfo($@) {
 
 						if(scalar(@stat_snapshotscat)>0 && $stat_wfcat[9]>$stat_snapshotscat[9]) {
 							my(@stat_wfresp)=stat($wfresp);
-
-							if(scalar(@stat_wfresp)>0 || $stat_wfcat[9]>$stat_wfresp[9]) {
+							
+							if(scalar(@stat_wfresp)>0 && $stat_wfcat[9]>$stat_wfresp[9]) {
 								# Catalog is outdated related to snapshots
 								$regen=undef;
 							}
@@ -329,12 +337,12 @@ sub getWorkflowInfo($@) {
 		#my($wfcatmutex)=LockNLog::SimpleMutex->new($wfdir.'/'.$IWWEM::WorkflowCommon::LOCKFILE,$regen);
 		if(defined($regen)) {
 			my($uuid)=$uuidPrefix.$wf;
-			$retnode = $self->{$wfKind}->getWorkflowInfo($wf,$uuid,$listDir,$relwffile,$isSnapshot);
+			$retnode = $self->{WFH}{$wfKind}->getWorkflowInfo($wf,$uuid,$listDir,$relwffile,$isSnapshot);
 			
 			if(defined($retnode) && defined($wfcat)) {
 				my($outputDoc)=$retnode->ownerDocument();
 				my($release)=$retnode->firstChild();
-				while(defined($release) && $release->localname() ne 'release') {
+				while(defined($release) && ($release->nodeType()!=XML::LibXML::XML_ELEMENT_NODE || $release->localname() ne 'release')) {
 					$release=$release->nextSibling();
 				}
 				
@@ -365,7 +373,7 @@ sub getWorkflowInfo($@) {
 				
 				# Adding links to its graphical representations
 				my($refnode)=$release->firstChild();
-				while(defined($refnode) && $refnode->localname() ne 'description') {
+				while(defined($refnode) && ($refnode->nodeType()!=XML::LibXML::XML_ELEMENT_NODE || $refnode->localname() ne 'description')) {
 					$refnode=$refnode->nextSibling();
 				}
 				
@@ -454,7 +462,7 @@ sub parseInlineWorkflows($$$$$$;$$$) {
 	
 	croak("This is an instance method!")  unless(ref($self));
 	
-	return $self->{TAVERNA1}->parseInlineWorkflows(@_);
+	return $self->{WFH}{$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME}->parseInlineWorkflows(@_);
 }
 
 #	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
@@ -463,7 +471,7 @@ sub patchWorkflow($$$$$;$$$) {
 	
 	croak("This is an instance method!")  unless(ref($self));
 	
-	return $self->{TAVERNA1}->patchWorkflow(@_);
+	return $self->{WFH}{$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME}->patchWorkflow(@_);
 }
 
 sub launchJob() {
@@ -472,6 +480,20 @@ sub launchJob() {
 	croak("This is an instance method!")  unless(ref($self));
 	
 	my($wfile,$jobdir,$p_baclava,$inputFileMap,$saveInputsFile)=@_;
+}
+
+# Static package method
+sub genCheckList(\@) {
+	my($p_IAR)=@_;
+	my($retval)=undef;
+	foreach my $token (@{$p_IAR}) {
+		if(defined($retval)) {
+			$retval .= ', '.$token->[0];
+		} else {
+			$retval=$token->[0];
+		}
+	}
+	return $retval;
 }
 
 1;

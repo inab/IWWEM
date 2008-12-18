@@ -157,23 +157,38 @@
 		/>
 	</target>
 	
-	<target name="deploy" depends="deploy.backends,deploy.frontends" description="It deploys the whole project to the destination repository">
+	<target name="deploy" depends="deploy.backends,deploy.frontends,deploy.gui" description="It deploys the whole project to the destination repository">
 	</target>
 
-	<target name="deploy.frontends" depends="compile.frontends" description="It deploys the whole project frontends to the destination repository">
+	<target name="deploy.frontends.gui.pre" description="It creates the remote destination directory">
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
 			keyfile="${deploy.ssh.keyfile}"
 			passphrase="${deploy.ssh.passphrase}"
-			command="mkdir -v -p '${deploy.ssh.dir}'"
+			command="mkdir -v -p '${deploy.ssh.dir}/cgi-bin'"
 		/>
 		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}" keyfile="${deploy.ssh.keyfile}" passphrase="${deploy.ssh.passphrase}">
-			<fileset dir="${iwwem.weblauncher.src}">
-				<exclude name="cgi-bin/inb-maven"/>
-				<exclude name="cgi-bin/inb-maven/**"/>
-				<exclude name="cgi-bin/INBWorkflowLauncher"/>
-				<exclude name="cgi-bin/INBWorkflowLauncher/**"/>
+			<fileset dir="${iwwem.weblauncher.src}" defaultexcludes="true">
+				<include name="etc"/>
+				<include name="etc/**"/>
+				<include name="docs"/>
+				<include name="docs/**"/>
+				<include name="style"/>
+				<include name="style/**"/>
+				<exclude name="**/.svn"/>
+				<exclude name="**/.svn/**"/>
+			</fileset>
+		</scp>
+	</target>
+	
+	<target name="deploy.frontends" depends="compile.frontends,deploy.frontends.gui.pre" description="It deploys the whole project frontends to the destination repository">
+		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}/cgi-bin" keyfile="${deploy.ssh.keyfile}" passphrase="${deploy.ssh.passphrase}">
+			<fileset dir="${iwwem.weblauncher.src}/cgi-bin">
+				<exclude name="inb-maven"/>
+				<exclude name="inb-maven/**"/>
+				<exclude name="INBWorkflowLauncher"/>
+				<exclude name="INBWorkflowLauncher/**"/>
 				<exclude name="**/.svn"/>
 				<exclude name="**/.svn/**"/>
 			</fileset>
@@ -192,6 +207,23 @@
 			passphrase="${deploy.ssh.passphrase}"
 			command="cd '${deploy.ssh.dir}'/cgi-bin &amp;&amp; chmod -v ugo+x workflowmanager enactionlauncher enactionstatus IWWEMproxy IWWEMfs IWWEMconfirm"
 		/>
+	</target>
+	
+	<target name="deploy.gui" depends="deploy.frontends.gui.pre" description="It deploys the whole project GUI to the destination repository">
+		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}" keyfile="${deploy.ssh.keyfile}" passphrase="${deploy.ssh.passphrase}">
+			<fileset dir="${iwwem.weblauncher.src}">
+				<exclude name="cgi-bin"/>
+				<exclude name="cgi-bin/**"/>
+				<exclude name="etc"/>
+				<exclude name="etc/**"/>
+				<exclude name="docs"/>
+				<exclude name="docs/**"/>
+				<exclude name="style"/>
+				<exclude name="style/**"/>
+				<exclude name="**/.svn"/>
+				<exclude name="**/.svn/**"/>
+			</fileset>
+		</scp>
 	</target>
 	
 	<target name="freshdeploy" depends="deploy" description="Fresh installation of IWWE&amp;M (it avoids first run stalls)">

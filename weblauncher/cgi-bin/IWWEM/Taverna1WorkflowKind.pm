@@ -35,10 +35,10 @@ use base qw(IWWEM::AbstractWorkflowKind);
 
 use IWWEM::WorkflowCommon;
 
-use vars qw($XSCUFL_NS);
+use vars qw($XSCUFL_NS $XSCUFL_MIME);
 
 $XSCUFL_NS = 'http://org.embl.ebi.escience/xscufl/0.1alpha';
-
+$XSCUFL_MIME = 'application/vnd.taverna.scufl+xml';
 ##############
 # Prototypes #
 ##############
@@ -109,7 +109,7 @@ sub getWorkflowInfo($$$$$) {
 			$release->setAttribute('author',$desc->getAttribute('author'));
 			$release->setAttribute('title',$desc->getAttribute('title'));
 			$release->setAttribute('path',$relwffile);
-			$release->setAttribute('workflowType','Taverna1');
+			$release->setAttribute('workflowType',$XSCUFL_MIME);
 			
 			my($licenseName)=undef;
 			my($licenseURI)=undef;
@@ -153,9 +153,16 @@ sub getWorkflowInfo($$$$$) {
 				}
 				
 				# MIME types handling
-				my(@mimetypes)=$source->getElementsByTagNameNS($XSCUFL_NS,'mimetype');
+				my(@mimetypes)=$context->findnodes('.//s:mimeType',$source);
+				if(scalar(@mimetypes)==0) {
+					push(@mimetypes,'text/plain');
+				} else {
+					foreach my $mime (@mimetypes) {
+						$mime=$mime->textContent();
+					}
+				}				
+				#my(@mimetypes)=$source->getElementsByTagNameNS($XSCUFL_NS,'mimetype');
 				# Taverna default mime type
-				push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
 				foreach my $mime (@mimetypes) {
 					my $mtype = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'mime');
 					$mtype->setAttribute('type',$mime);
@@ -181,7 +188,15 @@ sub getWorkflowInfo($$$$$) {
 				}
 				
 				# MIME types handling
-				my(@mimetypes)=$sink->getElementsByTagNameNS($XSCUFL_NS,'mimetype');
+				my(@mimetypes)=$context->findnodes('.//s:mimeType',$sink);
+				if(scalar(@mimetypes)==0) {
+					push(@mimetypes,'text/plain');
+				} else {
+					foreach my $mime (@mimetypes) {
+						$mime=$mime->textContent();
+					}
+				}				
+				#$sink->getElementsByTagNameNS($XSCUFL_NS,'mimetype');
 				# Taverna default mime type
 				push(@mimetypes,'text/plain')  if(scalar(@mimetypes)==0);
 				foreach my $mime (@mimetypes) {
@@ -222,6 +237,7 @@ sub getWorkflowInfo($$$$$) {
 						$output->appendChild($secnode);
 					}
 				}
+				$release->appendChild($output);
 			}
 		}
 	#});

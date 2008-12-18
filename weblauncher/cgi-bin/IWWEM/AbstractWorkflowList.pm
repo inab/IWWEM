@@ -33,6 +33,9 @@ package IWWEM::AbstractWorkflowList;
 use Carp qw(croak);
 
 use IWWEM::WorkflowCommon;
+use IWWEM::Taverna1WorkflowKind;
+use IWWEM::Taverna2WorkflowKind;
+use Encode;
 
 ##############
 # Prototypes #
@@ -65,9 +68,9 @@ sub new(;$) {
 	$self->{WORKFLOWLIST}=[];
 	$self->{baseListDir}="";
 	
-	$self->{UNIVERSAL}=IWWEM::UniversalWorkflowKind->new($self->{PARSER},$self->{CONTEXT});
-	$self->{TAVERNA1}=IWWEM::Taverna1WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
-	$self->{TAVERNA2}=IWWEM::Taverna2WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
+	$self->{WFH}{UNIVERSAL}=IWWEM::UniversalWorkflowKind->new($self->{PARSER},$self->{CONTEXT});
+	$self->{WFH}{$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME}=IWWEM::Taverna1WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
+	$self->{WFH}{$IWWEM::Taverna2WorkflowKind::T2FLOW_MIME}=IWWEM::Taverna2WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
 	
 	return bless($self,$class);
 }
@@ -125,7 +128,8 @@ sub sendWorkflowList($$$$;$) {
 	}
 	
 	foreach my $wf (@{$p_workflowlist}) {
-		$domain->appendChild($outputDoc->importNode($self->getWorkflowInfo($wf,@{$self->{GATHERED}})));
+		my($winfo)=$self->getWorkflowInfo($wf,@{$self->{GATHERED}});
+		$domain->appendChild($outputDoc->importNode($winfo));
 	}
 	
 	print $OUTPUT $query->header(-type=>(defined($dataislandTag)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store',-expires=>'-1');
@@ -160,7 +164,7 @@ sub launchJob($$$$$) {
 	
 	croak("This is an instance method!")  unless(ref($self));
 	
-	return $self->{UNIVERSAL}->launchJob(@_);
+	return $self->{WFH}{UNIVERSAL}->launchJob(@_);
 }
 
 1;

@@ -166,79 +166,130 @@ sub getWorkflowInfo($@) {
 			
 			my($child)=undef;
 			my($title)='';
+			my($description)='';
 			my($responsibleName)='';
 			my($date)='';
 			my(@mimes)=();
 			my($license)='';
 			my($wfuri)=undef;
-			for($child=$exproot->firstChild();$child->nextSibling();$child=$child->nextSibling()) {
-				my($lname)=$child->localname();
-				if($lname eq 'title') {
-					$title=$child->textContent();
-				} elsif($lname eq 'uploader') {
-					$responsibleName=$child->textContent();
-				} elsif($lname eq 'created-at') {
-					$date=LockNLog::getPrintableDate(str2time($child->textContent()));
-				} elsif($lname eq 'preview') {
-					push(@mimes,[$child->textContent(),'image/png']);
-				} elsif($lname eq 'svg') {
-					push(@mimes,[$child->textContent(),'image/svg+xml']);
-				} elsif($lname eq 'license-type') {
-					$license=$child->textContent();
-				} elsif($lname eq 'content-uri') {
-					$wfuri=$child->textContent();
-				} elsif($lname eq 'tags') {
-					# TODO: myExperiment tags parsing
-				}
-			}
-			
 			my($wfKind)='UNIVERSAL';
+			my($version)=$exproot->getAttribute('version');
 			
-			my($uuid)=$MYEXP_PREFIX.$wf;
-			$wfe = $self->{$wfKind}->getWorkflowInfo($wfuri,$uuid,undef,undef,undef);
-			
-			if(defined($wfe)) {
-				my($outputDoc)=$wfe->ownerDocument();
-				my($release)=$wfe->firstChild();
-				while(defined($release) && $release->localname() ne 'release') {
-					$release=$release->nextSibling();
-				}
-				
-				$release->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,'');
-				$release->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
-				
-				# The date
-				$release->setAttribute('date',$date);
-				
-				# Licenses
-				my($licenseName)=$license;
-				my($licenseURI)='';
-				if(exists($self->{LICDOC})) {
-					my(@lics)=$context->findnodes("//lic:license[lic:alias='$license']",$self->{LICDOC});
-					if(scalar(@lics)>0) {
-						$licenseName=$lics[0]->getAttribute('name');
-						$licenseURI=$lics[0]->getAttribute('abbrevURI') || $lics[0]->getAttribute('uri');
+			for($child=$exproot->firstChild();$child->nextSibling();$child=$child->nextSibling()) {
+				if($child->nodeType()==XML::LibXML::XML_ELEMENT_NODE) {
+					my($lname)=$child->localname();
+					if($lname eq 'title') {
+						$title=$child->textContent();
+					} elsif($lname eq 'description') {
+						$description=$child->textContent();
+					} elsif($lname eq 'uploader') {
+						$responsibleName=$child->textContent();
+					} elsif($lname eq 'created-at') {
+						$date=LockNLog::getPrintableDate(str2time($child->textContent()));
+					} elsif($lname eq 'preview') {
+						my($prelink)=$child->textContent();
+						my($premime)=($prelink =~ /\.jpg$/)?'image/jpg':(($prelink =~ /\.png$/)?'image/png':'image/*');
+						push(@mimes,[$prelink,$premime]);
+					} elsif($lname eq 'svg') {
+						push(@mimes,[$child->textContent(),'image/svg+xml']);
+					} elsif($lname eq 'license-type') {
+						$license=$child->textContent();
+					} elsif($lname eq 'content-uri') {
+						$wfuri=$child->textContent();
+					} elsif($lname eq 'content-type') {
+						$wfKind=$child->textContent();
+					} elsif($lname eq 'tags') {
+						# TODO: myExperiment tags parsing
 					}
 				}
-				$release->setAttribute('licenseName',$licenseName);
-				$release->setAttribute('licenseURI',$licenseURI);
-				
+			}
 		
-				# Adding links to its graphical representations
-				my($refnode)=$release->firstChild();
-				while(defined($refnode) && $refnode->localname() ne 'description') {
-					$refnode=$refnode->nextSibling();
-				}
-				
-				foreach my $mime (@mimes) {
-						my($gchild)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'graph');
-						$gchild->setAttribute('mime',$mime->[1]);
-						$gchild->appendChild($outputDoc->createTextNode($mime->[0]));
-						$release->insertAfter($gchild,$refnode);
-						$refnode=$gchild;
+			my($uuid)=$MYEXP_PREFIX.$wf;
+			if(exists($self->{WFH}{$wfKind})) {
+				eval {
+					$wfe = $self->{WFH}{$wfKind}->getWorkflowInfo($wfuri,$uuid,undef,undef,undef);
+				};
+				if($@) {
+					print STDERR "MINIPANIC!!!! $@\n";
 				}
 			}
+			unless(defined($wfe)) {
+				my($outputDoc)=XML::LibXML::Document->new('1.0','UTF-8');
+				$wfe = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'workflow');
+				$outputDoc->setDocumentElement($wfe);
+
+				# At this moment, no description :-(
+				# We need some specifications!!!!
+				$wfe->setAttribute('uuid',$uuid);
+				$wfe->setAttribute('title',$title);
+				
+				my $release = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'release');
+				$wfe->appendChild($release);
+				
+
+				$release->setAttribute('uuid',$uuid);
+
+				$release->setAttribute('lsid','');
+				# As we don't know how to parse this workflow kind,
+				# we have to assume that the uploader is the author :-(
+				$release->setAttribute('author',$responsibleName);
+				$release->setAttribute('title',$title);
+				$release->setAttribute('path',$wfuri);
+				$release->setAttribute('workflowType',$wfKind);
+				
+				# Getting the workflow description
+				my($wdesc)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'description');
+				$wdesc->appendChild($outputDoc->createCDATASection($description));
+				$release->appendChild($wdesc);
+				
+				# As we know nothing about this workflow kind
+			}
+				
+			my($outputDoc)=$wfe->ownerDocument();
+			my($release)=$wfe->firstChild();
+			$release->setAttribute('version',$version);
+			while(defined($release) && ($release->nodeType()!=XML::LibXML::XML_ELEMENT_NODE || $release->localname() ne 'release')) {
+				$release=$release->nextSibling();
+			}
+
+			$release->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,'');
+			$release->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+
+			# The date
+			$release->setAttribute('date',$date);
+
+			# Licenses
+			my($licenseName)=$license;
+			my($licenseURI)='';
+			if(exists($self->{LICDOC})) {
+				my(@lics)=$context->findnodes("//lic:license[lic:alias='$license']",$self->{LICDOC});
+				if(scalar(@lics)>0) {
+					$licenseName=$lics[0]->getAttribute('name');
+					$licenseURI=$lics[0]->getAttribute('abbrevURI') || $lics[0]->getAttribute('uri');
+				}
+			}
+			$release->setAttribute('licenseName',$licenseName);
+			$release->setAttribute('licenseURI',$licenseURI);
+
+
+			# Adding links to its graphical representations
+			my($refnode)=$release->firstChild();
+			while(defined($refnode) && ($refnode->nodeType()!=XML::LibXML::XML_ELEMENT_NODE || $refnode->localname() ne 'description')) {
+				$refnode=$refnode->nextSibling();
+			}
+
+			foreach my $mime (@mimes) {
+					my($gchild)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'graph');
+					$gchild->setAttribute('mime',$mime->[1]);
+					$gchild->appendChild($outputDoc->createTextNode($mime->[0]));
+					$release->insertAfter($gchild,$refnode);
+					$refnode=$gchild;
+			}
 		};
+		
+		if($@) {
+			print STDERR "PANIC!!!! $@\n";
+		}
 
 	}
 	

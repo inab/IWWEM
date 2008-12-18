@@ -187,8 +187,6 @@ sub sendResponsibleConfirmedMail($$$$$$$;$$$);
 sub sendResponsiblePendingMail($$$$$$$$);
 sub sendEnactionMail($$$;$);
 
-sub genCheckList(\@);
-
 # Method bodies
 sub genUUID() {
 	my($randname)=undef;
@@ -423,19 +421,6 @@ sub sendResponsiblePendingMail($$$$$$$$) {
 			(defined($prettyname)?(" (known as $prettyname)"):'').
 			" you must confirm it by visiting\r\n\r\n$operURL\r\n\r\n    The INB Interactive Web Workflow Enactor & Manager system"
 	});
-}
-
-sub genCheckList(\@) {
-	my($p_IAR)=@_;
-	my($retval)=undef;
-	foreach my $token (@{$p_IAR}) {
-		if(defined($retval)) {
-			$retval .= ', '.$token->[0];
-		} else {
-			$retval=$token->[0];
-		}
-	}
-	return $retval;
 }
 
 1;

@@ -55,8 +55,8 @@ sub new(;$$) {
 	my($t1)=IWWEM::Taverna1WorkflowKind->new(@_);
 	my($t2)=IWWEM::Taverna2WorkflowKind->new(@_);
 	$self->{WFKINDSHASH}={
-		'Taverna1' => $t1,
-		'Taverna2' => $t2,
+		$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME => $t1,
+		$IWWEM::Taverna2WorkflowKind::T2FLOW_MIME => $t2,
 	};
 	$self->{WFKINDS}=[
 		$t1,
@@ -91,7 +91,7 @@ sub patchWorkflow($$$$$;$$$) {
 	croak("This is an instance method!")  unless(ref($self));
 	
 	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
-	my($tavkind)=($WFmaindoc->documentElement() eq 'scufl')?'Taverna1':'Taverna2';
+	my($tavkind)=($WFmaindoc->documentElement() eq 'scufl')?$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME:$IWWEM::Taverna2WorkflowKind::T2FLOW_MIME;
 	
 	return $self->{WFKINDHASH}{$tavkind}->patchWorkflow(@_);
 }
@@ -104,7 +104,7 @@ sub parseInlineWorkflows($$$$$$;$$$) {
 	
 	my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
 	# TODO: I cannot guess (yet), so it is fixed :-(
-	return $self->{WFKINDHASH}{'Taverna1'}->parseInlineWorkflows(@_);
+	return $self->{WFKINDHASH}{$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME}->parseInlineWorkflows(@_);
 }
 
 1;

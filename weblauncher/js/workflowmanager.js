@@ -165,25 +165,28 @@ function ManagerView(genview) {
 	var pageTitle=this.genview.getElementById('titleB');
 	var qsParm={};
 	WidgetCommon.parseQS(qsParm);
-	var newTitle='';
+	var newTitle=undefined;
 	if(('id' in qsParm) && qsParm['id']!=undefined && qsParm['id']!=null && qsParm['id'].length > 0) {
 		this.restrictId=qsParm['id'];
 		
-		WidgetCommon.addEventListener(this.openEnactionButton,'click',function() {
-			manview.doOpenEnaction();
-		},false);
-		
-		// Setting up the title
-		var newTitle='Interactive Enaction Inspector v'+IWWEM.Version;
-		// Deactivating buttons!!!
-		var useDiv=this.genview.getElementById('useDiv');
-		useDiv.style.display='none';
-	} else {
+		if(this.restrictId.indexOf('enaction:')==0 || this.restrictId.indexOf('snapshot:')==0) {
+			WidgetCommon.addEventListener(this.openEnactionButton,'click',function() {
+				manview.doOpenEnaction();
+			},false);
+
+			// Setting up the title
+			newTitle='Interactive Enaction Inspector v'+IWWEM.Version;
+			// Deactivating buttons!!!
+			var useDiv=this.genview.getElementById('useDiv');
+			useDiv.style.display='none';
+		}
+	}
+	if(newTitle==undefined) {
 		// Deactivating buttons!!!
 		this.openEnactionButton.style.display='none';
 		this.relaunchButton.style.display='none';
 		// Setting up the title
-		var newTitle='Interactive Web Workflow Enactor & Manager v'+IWWEM.Version;
+		newTitle='Interactive Web Workflow Enactor & Manager v'+IWWEM.Version;
 	}
 	this.genview.thedoc.title=newTitle;
 	pageTitle.innerHTML='';
@@ -210,7 +213,7 @@ ManagerView.prototype = {
 		});
 	},
 	
-	/**/
+	/* */
 	getCurrentWorkflow: function () {
 		var workflow;
 		if(this.wfselect.selectedIndex!=-1) {
@@ -224,18 +227,22 @@ ManagerView.prototype = {
 	updateView: function (/*optional*/callbackFunc) {
 		var workflow = this.getCurrentWorkflow();
 		if(workflow) {
-			// SVG graph
-			//this.svg.loadSVG(this.svgdivid,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
-			var wfreport=this.wfreport;
-			var parentno=this.genview.getElementById(this.svgdivid).parentNode;
-			var maxwidth=(parentno.offsetWidth-32)+'px';
-			var maxheight=(parentno.offsetHeight-32)+'px';
-			this.svg.loadSVG(this.svgdivid,workflow.getSVGPath(),maxwidth,maxheight,function() {
-				wfreport.updateView(workflow);
-				if(typeof callbackFunc=='function') {
-					callbackFunc();
-				}
-			});
+			if(workflow.isReference) {
+				this.reloadList(workflow.uuid,undefined,callbackFunc);
+			} else {
+				// SVG graph
+				//this.svg.loadSVG(this.svgdivid,this.WFBase+'/'+workflow.svgpath,'100mm','120mm');
+				var wfreport=this.wfreport;
+				var parentno=this.genview.getElementById(this.svgdivid).parentNode;
+				var maxwidth=(parentno.offsetWidth-32)+'px';
+				var maxheight=(parentno.offsetHeight-32)+'px';
+				this.svg.loadSVG(this.svgdivid,workflow.getSVGPath(),maxwidth,maxheight,function() {
+					wfreport.updateView(workflow);
+					if(typeof callbackFunc=='function') {
+						callbackFunc();
+					}
+				});
+			}
 		} else {
 			this.clearView(callbackFunc);
 		}
@@ -252,12 +259,12 @@ ManagerView.prototype = {
 	},
 	
 	/* This method fills in the known information about the workflow */
-	fillWorkflowList: function (listDOM,/*optional*/callbackFunc) {
+	fillWorkflowList: function (listDOM,/*optional*/callbackFunc,viewAdd,wfCallback) {
 		if(listDOM) {
 			// First, remove its graphical traces
 			var me=this;
 			this.clearView(function() {
-				me.fillWorkflowListInternal(listDOM);
+				me.fillWorkflowListInternal(listDOM,viewAdd,wfCallback);
 				if(typeof callbackFunc=='function') {
 					callbackFunc();
 				}
@@ -265,11 +272,13 @@ ManagerView.prototype = {
 		}
 	},
 			
-	fillWorkflowListInternal: function (listDOM) {
-		// Second, remove its content
-		this.wfA={};
-		//GeneralView.freeSelect(this.wfselect);
-		this.wfselect.clear();
+	fillWorkflowListInternal: function (listDOM, /* optional */viewAdd,wfCallback) {
+		if(viewAdd==undefined) {
+			// Second, remove its content
+			this.wfA={};
+			//GeneralView.freeSelect(this.wfselect);
+			this.wfselect.clear();
+		}
 
 		// Third, populate it!
 		/*
@@ -283,22 +292,29 @@ ManagerView.prototype = {
 			listDOM.tagName &&
 			GeneralView.getLocalName(listDOM)=='workflowlist'
 		) {
-			var sortArr=new Array();
-			this.WFBase = new Array();
+			var sortArr=undefined;
+			if(viewAdd==undefined) {
+				sortArr=new Array();
+				this.WFBase = new Array();
+			}
 			for(var domain=listDOM.firstChild ; domain ; domain=domain.nextSibling) {
 				if(domain.nodeType==1 && GeneralView.getLocalName(domain)=='domain') {
 					var WFBase = domain.getAttribute('relURI');
 					if(WFBase.indexOf('ftp:')!=0 && WFBase.indexOf('http:')!=0 && WFBase.indexOf('https:')!=0 && WFBase.charAt(0)!='/' && IWWEM.FSBase!=undefined) {
 						WFBase = IWWEM.FSBase + '/'+ WFBase;
 					}
-					this.WFBase.push(WFBase);
+					// Only add on fresh shows
+					if(viewAdd==undefined) {
+						this.WFBase.push(WFBase);
+					}
 					for(var child=domain.firstChild ; child ; child=child.nextSibling) {
 						if(child.nodeType==1) {
-							 switch(GeneralView.getLocalName(child)) {
+							switch(GeneralView.getLocalName(child)) {
 								case 'workflow':
 									var workflow=new WorkflowDesc(child,WFBase);
 									this.wfA[workflow.uuid]=workflow;
-									sortArr.push(workflow);
+									if(sortArr!=undefined)
+										sortArr.push(workflow);
 									break;
 
 								case 'message':
@@ -315,39 +331,48 @@ ManagerView.prototype = {
 				}
 			}
 			
-			// Now, time to sort this... TODO
-			var sortFunc=function (a,b) {
-				if(a.WFBase < b.WFBase)  return -1;
-				if(a.WFBase > b.WFBase)  return 1;
-				if(a.title < b.title)  return -1;
-				if(a.title > b.title)  return 1;
-				if(a.date < b.date)  return 1;
-				if(a.date > b.date)  return -1;
-				
-				return 0;
-			};
-			
-			if(this.restrictId!=undefined) {
-				sortFunc=function (a,b) {
-					if(a.date < b.date)  return 1;
-					if(a.date > b.date)  return -1;
-					if(a.title < b.title)  return -1;
-					if(a.title > b.title)  return 1;
+			if(sortArr!=undefined) {
+				// Now, time to sort this... TODO
+				var sortFunc=function (a,b) {
 					if(a.WFBase < b.WFBase)  return -1;
 					if(a.WFBase > b.WFBase)  return 1;
+					var atitle=a.title.toLowerCase();
+					var btitle=b.title.toLowerCase();
+					if(atitle < btitle)  return -1;
+					if(atitle > btitle)  return 1;
+					if(a.date < b.date)  return 1;
+					if(a.date > b.date)  return -1;
+					
 					return 0;
 				};
-			}
-			
-			sortArr=sortArr.sort(sortFunc);
-			
-			// And show it!
-			for(var soi=0;soi<sortArr.length;soi++) {
-				var workflow=sortArr[soi];
-				var wfO = workflow.generateOption(this.genview);
+				
+				if(this.restrictId!=undefined) {
+					sortFunc=function (a,b) {
+						if(a.date < b.date)  return 1;
+						if(a.date > b.date)  return -1;
+						var atitle=a.title.toLowerCase();
+						var btitle=b.title.toLowerCase();
+						if(atitle < btitle)  return -1;
+						if(atitle > btitle)  return 1;
+						if(a.WFBase < b.WFBase)  return -1;
+						if(a.WFBase > b.WFBase)  return 1;
+						return 0;
+					};
+				}
+				
+				sortArr=sortArr.sort(sortFunc);
+				
+				// And show it!
+				for(var soi=0;soi<sortArr.length;soi++) {
+					var workflow=sortArr[soi];
+					var wfO = workflow.generateOption(this.genview);
 
-				// Last: save selection!
-				this.wfselect.add(wfO);
+					// Last: save selection!
+					this.wfselect.add(wfO);
+				}
+			} else {
+				// Show just the element!
+				this.updateView(wfCallback);
 			}
 		} else {
 			this.WFBase=[];
@@ -355,7 +380,7 @@ ManagerView.prototype = {
 		}
 	},
 	
-	reloadList: function (/* optional */ wfToErase) {
+	reloadList: function (/* optional */ wf, wfToErase, wfCallback) {
 		// In progress request
 		if(this.listRequest)  return;
 
@@ -363,12 +388,15 @@ ManagerView.prototype = {
 		this.check.setCheck(false);
 		
 		var qsParm = {};
-		if(this.restrictId!=undefined) {
+		if(wf!=undefined && wfToErase==undefined) {
+			qsParm['id']=Base64._utf8_encode(wf);
+		} else if(this.restrictId!=undefined) {
 			qsParm['id']=Base64._utf8_encode(this.restrictId);
 		}
-		if(wfToErase!=undefined) {
-			qsParm['eraseId']=Base64._utf8_encode(wfToErase);
+		if(wf!=undefined && wfToErase!=undefined) {
+			qsParm['eraseId']=Base64._utf8_encode(wf);
 		}
+		
 		var listQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/workflowmanager");
 		var listRequest = this.listRequest = new XMLHttpRequest();
 		var manview=this;
@@ -382,19 +410,23 @@ ManagerView.prototype = {
 					try {
 						var response = genview.parseRequest(listRequest,"fetching workflow repository status");
 						if(response!=undefined) {
+							var viewAdd=undefined;
+							if(wf!=undefined && wfToErase==undefined)
+								viewAdd=wf;
 							manview.fillWorkflowList(response.documentElement.cloneNode(true),function() {
 								manview.closeReloadFrame();
 								manview.reloadButton.className='button';
 								manview.updateTextSpan.innerHTML='Update';
 								manview.listRequest=undefined;
-								if(wfToErase!=undefined)
-									alert('Workflow erase will be effective when original uploader confirms it');
-							});
+								if(wf!=undefined && wfToErase!=undefined)
+									alert('Workflow '+wf+' erase will be effective when original uploader confirms it');
+							},viewAdd,wfCallback);
 							doClose=undefined;
 						}
 					} catch(e) {
 						genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+WidgetCommon.DebugError(e)+'</pre>');
 					}
+					
 					// Removing 'Loading...' frame
 					if(doClose) {
 						manview.closeReloadFrame();
@@ -419,7 +451,7 @@ ManagerView.prototype = {
 		if(this.check.checked && this.wfselect.selectedIndex!=-1) {
 			var sureErase=confirm('Are you REALLY sure you want to erase this workflow?');
 			if(sureErase) {
-				this.reloadList(this.wfselect.options[this.wfselect.selectedIndex].value);
+				this.reloadList(this.wfselect.options[this.wfselect.selectedIndex].value,true);
 			}
 		}
 	},

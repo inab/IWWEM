@@ -56,7 +56,7 @@ function InputExample(workflow,inEx) {
 	this.uuid=inEx.getAttribute('uuid');
 	this.date=inEx.getAttribute('date');
 	this.path=inEx.getAttribute('path');
-	this.isAbsolute=path.indexOf('ftp:')==0 || path.indexOf('http:')==0 || path.indexOf('https:')==0;
+	this.isAbsolute=this.path.indexOf('ftp:')==0 || this.path.indexOf('http:')==0 || this.path.indexOf('https:')==0;
 	this.responsibleMail = inEx.getAttribute('responsibleMail');
 	this.responsibleName = inEx.getAttribute('responsibleName');
 	this.description = WidgetCommon.getTextContent(inEx);
@@ -181,15 +181,18 @@ function WorkflowDesc(wfD,WFBase) {
 		}
 	}
 	
+	this.uuid = wfD.getAttribute('uuid');
+	this.title = wfD.getAttribute('title');
 	if(!this.isReference) {
-		this.uuid = wfD.getAttribute('uuid');
 		this.path = wfD.getAttribute('path');
-		this.isAbsolute=path.indexOf('ftp:')==0 || path.indexOf('http:')==0 || path.indexOf('https:')==0;
+		this.isAbsolute=this.path.indexOf('ftp:')==0 || this.path.indexOf('http:')==0 || this.path.indexOf('https:')==0;
 		//this.svgpath = wfD.getAttribute('svg');
-		this.title = wfD.getAttribute('title');
 		this.lsid = wfD.getAttribute('lsid');
 		this.author = wfD.getAttribute('author');
 		this.date = wfD.getAttribute('date');
+		this.version = wfD.getAttribute('version');
+		this.basedOn = wfD.getAttribute('basedOn');
+		this.workflowType = wfD.getAttribute('workflowType');
 		this.responsibleMail = wfD.getAttribute('responsibleMail');
 		this.responsibleName = wfD.getAttribute('responsibleName');
 		this.licenseName = wfD.getAttribute('licenseName');
@@ -197,13 +200,14 @@ function WorkflowDesc(wfD,WFBase) {
 		
 		// Now, handling SVG special case
 		var svgpath = ('image/svg+xml' in this.graph)?this.graph['image/svg+xml']:wfD.getAttribute('svg');
-		if(svgpath.indexOf('ftp:')==0 || svgpath.indexOf('http:')==0 || svgpath.indexOf('https:')==0) {
-			this.svgpath=svgpath;
-		} else {
-			this.svgpath=this.WFBase+'/'+svgpath;
-		}
+		this.svgpath=svgpath;
 	}
 }
+
+WorkflowDesc.WFTYPE={
+	'application/vnd.taverna.scufl+xml': 'Taverna1',
+	'taverna2beta': 'Taverna2 (beta)',
+};
 
 WorkflowDesc.prototype = {
 //	generateOption: function (/* optional */ genview) {
@@ -216,10 +220,17 @@ WorkflowDesc.prototype = {
 //	}
 	generateOption: function (/* optional */ genview) {
 		if(!genview)  genview=document;
-		return  new GeneralView.Option(genview,this.uuid,this.title+' ['+this.lsid+']');
+		var texto=this.title;
+		if(this.lsid)
+			texto +=' ['+this.lsid+']';
+		return  new GeneralView.Option(genview,this.uuid,texto);
 		// wfO.id = this.uuid;
 		
 		return wfO;
+	},
+	
+	getWorkflowType: function () {
+		return (this.workflowType in WorkflowDesc.WFTYPE)?WorkflowDesc.WFTYPE[this.workflowType]:this.workflowType;
 	},
 	
 	/**
