@@ -34,6 +34,7 @@ use Carp qw(croak);
 use base qw(IWWEM::AbstractWorkflowKind);
 
 use IWWEM::WorkflowCommon;
+use File::Path;
 
 use vars qw($XSCUFL_NS $XSCUFL_MIME);
 
