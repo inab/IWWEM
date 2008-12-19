@@ -49,13 +49,14 @@
 	<target name="checkout-local-biomoby" depends="init">
 		<delete dir="${taverna.biomoby.src}" includeemptydirs="true">
 		</delete>
+		<!--
 		<cvs cvsRoot=":pserver:anonymous@taverna.cvs.sourceforge.net:/cvsroot/taverna"
 			compressionlevel="3"
 			package="taverna1.0/taverna-biomoby"
 			dest="${taverna.biomoby.src}"
 			failonerror="true"
 		/>
-		<!--
+		-->
 		<exec executable="cvs" failonerror="true">
 			<arg value="-z3"/>
 			<arg value="-d:pserver:anonymous@taverna.cvs.sourceforge.net:/cvsroot/taverna"/>
@@ -64,7 +65,6 @@
 			<arg value="${taverna.biomoby.src}"/>
 			<arg value="taverna1.0/taverna-biomoby"/>
 		</exec>
-		-->
 	</target>
 	
 	<target name="prepare-local-biomoby" depends="init">
