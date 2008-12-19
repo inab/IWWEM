@@ -216,7 +216,7 @@ public class INBWorkflowParserWrapper {
 	 * Taverna libraries on your classpath (ie. the pom.xml dependencies).
 	 */
 	public static final String TAVERNA_BASE_VERSION = "1.7.2.0";
-	public static final String TAVERNA_MINOR_VERSION = "1.7.2.0";
+	public static final String TAVERNA_MINOR_VERSION = "1.7-SNAPSHOT";
 	private static final String SCRIPT_NAME="inbworkflowparser";
 
 	private static final String[][] ParamDescs={
@@ -246,9 +246,9 @@ public class INBWorkflowParserWrapper {
 	private static final String TAVERNA_RAVEN_GROUP_ID = TAVERNA_GROUP_ID + ".raven";
 
 	private static final String[][] SystemArtifactList={
-		{TAVERNA_RAVEN_GROUP_ID,"raven",TAVERNA_BASE_VERSION},
+		{TAVERNA_RAVEN_GROUP_ID,"raven",TAVERNA_MINOR_VERSION},
 		{TAVERNA_GROUP_ID,"taverna-core",TAVERNA_BASE_VERSION},
-		{TAVERNA_RAVEN_GROUP_ID,"raven-log4j",TAVERNA_BASE_VERSION},
+		{TAVERNA_RAVEN_GROUP_ID,"raven-log4j",TAVERNA_MINOR_VERSION},
 		{TAVERNA_GROUP_ID,"taverna-bootstrap",TAVERNA_BASE_VERSION},
 		{TAVERNA_SCUFL_GROUP_ID,"scufl-model",TAVERNA_BASE_VERSION},
 		{TAVERNA_BACLAVA_GROUP_ID,"baclava-core",TAVERNA_BASE_VERSION},
