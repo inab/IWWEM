@@ -92,6 +92,8 @@
 	<target name="install-local-biomoby" depends="init">
 		<exec dir="${taverna.biomoby.src}" executable="mvn" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-P"/>
+			<arg value="override"/>
 			<arg value="-s"/>
 			<arg value="${iwwem.antfile.dir}/settings-maven.xml"/>
 			<arg value="install"/>

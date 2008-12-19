@@ -21,4 +21,46 @@ Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 -->
 <settings>
 	<localRepository>${env.IWWEM_WEBLAUNCHER}/cgi-bin/inb-maven</localRepository>
+	<profiles>
+		<profile>
+			<id>override</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<repositories>
+				<repository>
+					<releases />
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<id>mygrid-repository</id>
+					<name>myGrid Repository</name>
+					<url>http://www.mygrid.org.uk/maven/repository</url>
+				</repository>
+				<repository>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+					<snapshots />
+					<id>mygrid-snapshot-repository</id>
+					<name>myGrid Snapshot Repository</name>
+					<url>
+						http://www.mygrid.org.uk/maven/snapshot-repository
+					</url>
+				</repository>
+				<repository>
+					<id>mobycentral</id>
+					<name>MobyCentral Repository</name>
+					<!--
+					<url>http://mobycentral.icapture.ubc.ca/maven</url>
+					-->
+					<url>http://moby.ucalgary.ca/moby_maven/</url>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<releases />
+				</repository>
+			</repositories>
+		</profile>
+	</profiles>
 </settings>
