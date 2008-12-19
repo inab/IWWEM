@@ -297,7 +297,7 @@ public class INBWorkflowParserWrapper {
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-soaplab-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-wsdl-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-apiconsumer-processor",TAVERNA_BASE_VERSION},
-		{"biomoby.org","taverna-biomoby",TAVERNA_BASE_VERSION},
+		{"org.biomoby","taverna-biomoby",TAVERNA_BASE_VERSION},
 		{TAVERNA_GROUP_ID,"taverna-contrib",TAVERNA_BASE_VERSION},
 //		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
 	};
