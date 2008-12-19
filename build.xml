@@ -162,7 +162,8 @@
 	<target name="deploy" depends="deploy.backends,deploy.frontends,deploy.gui" description="It deploys the whole project to the destination repository">
 	</target>
 
-	<target name="deploy.frontends.gui.pre" description="It creates the remote destination directory">
+	<!-- description="It creates the remote destination directory" -->
+	<target name="deploy.frontends.gui.pre">
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
@@ -178,6 +179,8 @@
 				<include name="docs/**"/>
 				<include name="style"/>
 				<include name="style/**"/>
+				<include name="licenses"/>
+				<include name="licenses/**"/>
 				<exclude name="**/.svn"/>
 				<exclude name="**/.svn/**"/>
 			</fileset>
@@ -222,6 +225,8 @@
 				<exclude name="docs/**"/>
 				<exclude name="style"/>
 				<exclude name="style/**"/>
+				<exclude name="licenses"/>
+				<exclude name="licenses/**"/>
 				<exclude name="**/.svn"/>
 				<exclude name="**/.svn/**"/>
 			</fileset>
