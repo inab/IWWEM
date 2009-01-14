@@ -70,7 +70,7 @@ sub new(;$$) {
 # Methods #
 ###########
 
-sub getWorkflowInfo($$$$$) {
+sub getWorkflowInfo($$$) {
 	my($self)=shift;
 	
 	croak("This is an instance method!")  unless(ref($self));
@@ -84,6 +84,21 @@ sub getWorkflowInfo($$$$$) {
 	return $wfe;
 }
 
+#	my($WFmaindoc)=@_;
+sub canPatch($) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($WFmaindoc)=@_;
+
+	foreach my $kind (@{$self->{WFKINDS}}) {
+		return 1  if($kind->canPatch($WFmaindoc));
+	}
+	
+	return undef;
+}
+
 #	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
 sub patchWorkflow($$$$$;$$$) {
 	my($self)=shift;
@@ -91,20 +106,27 @@ sub patchWorkflow($$$$$;$$$) {
 	croak("This is an instance method!")  unless(ref($self));
 	
 	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
-	my($tavkind)=($WFmaindoc->documentElement() eq 'scufl')?$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME:$IWWEM::Taverna2WorkflowKind::T2FLOW_MIME;
+
+	foreach my $kind (@{$self->{WFKINDS}}) {
+		return $kind->patchWorkflow(@_)  if($kind->canPatch($WFmaindoc));
+	}
 	
-	return $self->{WFKINDHASH}{$tavkind}->patchWorkflow(@_);
+	return undef;
 }
 
-#	my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
-sub parseInlineWorkflows($$$$$$;$$$) {
+#	my($WFmaindoc,$licenseURI,$licenseName)=@_;
+sub patchEmbeddedLicence($$$) {
 	my($self)=shift;
 	
 	croak("This is an instance method!")  unless(ref($self));
 	
-	my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
-	# TODO: I cannot guess (yet), so it is fixed :-(
-	return $self->{WFKINDHASH}{$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME}->parseInlineWorkflows(@_);
+	my($WFmaindoc,$licenseURI,$licenseName)=@_;
+
+	foreach my $kind (@{$self->{WFKINDS}}) {
+		return $kind->patchEmbeddedLicence(@_)  if($kind->canPatch($WFmaindoc));
+	}
+	
+	return undef;
 }
 
 1;

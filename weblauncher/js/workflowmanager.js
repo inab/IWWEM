@@ -483,6 +483,8 @@ function NewWorkflowView(genview,restrictId) {
 	var newwfview = this;
 	this.newWFStyleText=new GeneralView.Check(genview.getElementById('newWFStyleText'), function() { newwfview.setTextControl(); });
 	this.newWFStyleFile=new GeneralView.Check(genview.getElementById('newWFStyleFile'), function() { newwfview.setFileControl(); });
+	this.newWFStyleRef=new GeneralView.Check(genview.getElementById('newWFStyleRef'), function() { newwfview.setRefControl(); });
+	this.currControl=undefined;
 	
 	// Either from a list or set by hand
 	this.newWFLicList=new GeneralView.Check(genview.getElementById('newWFLicList'), function() { newwfview.setLicenseList(); });
@@ -538,7 +540,9 @@ NewWorkflowView.prototype = {
 	
 	setTextControl: function() {
 		this.newWFStyleText.doCheck();
-		this.newWFStyleFile.doUncheck();
+		if(this.currControl)
+			this.currControl.doUncheck();
+		this.currControl=this.newWFStyleText;
 		this.clearView();
 		var textbox = this.genview.createElement('textarea');
 		this.newWFControl = textbox;
@@ -551,7 +555,9 @@ NewWorkflowView.prototype = {
 	
 	setFileControl: function() {
 		this.newWFStyleFile.doCheck();
-		this.newWFStyleText.doUncheck();
+		if(this.currControl)
+			this.currControl.doUncheck();
+		this.currControl=this.newWFStyleFile;
 		this.clearView();
 		var filecontrol = this.genview.createCustomizedFileControl("workflow");
 		this.newWFControl = filecontrol;
@@ -559,6 +565,18 @@ NewWorkflowView.prototype = {
 		// We are appending the fake control!
 		//this.newWFContainer.appendChild(filecontrol.parentNode);
 		this.newWFContainer.appendChild(filecontrol);
+	},
+	
+	setRefControl: function() {
+		this.newWFStyleRef.doCheck();
+		if(this.currControl)
+			this.currControl.doUncheck();
+		this.currControl=this.newWFStyleRef;
+		this.clearView();
+		var textbox = this.genview.createInput("workflowRef",'');
+		this.newWFControl = textbox;
+		
+		this.newWFContainer.appendChild(textbox);
 	},
 	
 	setLicenseList: function() {

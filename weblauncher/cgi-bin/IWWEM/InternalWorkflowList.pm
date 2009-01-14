@@ -33,133 +33,40 @@ package IWWEM::InternalWorkflowList;
 use Carp qw(croak);
 use base qw(IWWEM::AbstractWorkflowList);
 
+use Date::Parse;
+use Encode;
+use FindBin;
+use XML::LibXML;
+use File::Path;
+use Socket;
+
+use lib "$FindBin::Bin";
+use IWWEM::InternalWorkflowList::Constants;
+use IWWEM::InternalWorkflowList::Confirmation;
 use IWWEM::WorkflowCommon;
 use IWWEM::UniversalWorkflowKind;
 
-use vars qw($SNAPSHOTPREFIX $EXAMPLEPREFIX $ENACTIONPREFIX $WORKFLOWPREFIX);
-$SNAPSHOTPREFIX='snapshot:';
-$EXAMPLEPREFIX='example:';
-$ENACTIONPREFIX='enaction:';
-$WORKFLOWPREFIX='workflow:';
+use IWWEM::Config;
+use IWWEM::Taverna1WorkflowKind;
 
-use vars qw($VIRTWORKFLOWDIR $VIRTJOBDIR $VIRTIDDIR $VIRTRESULTSDIR);
+use lib "$FindBin::Bin/LockNLog";
+use lib "$FindBin::Bin/../LockNLog";
+use LockNLog;
 
-# Virtual dirs
-$VIRTWORKFLOWDIR = 'workflows';
-$VIRTJOBDIR = 'enactions';
-$VIRTIDDIR = 'id';
-$VIRTRESULTSDIR = $IWWEM::WorkflowCommon::RESULTSDIR;
-
-use vars qw($ISRAWFILE $ISFORBIDDEN $ISEXAMPLE $ISINPUT $ISOUTPUT $ISRAWDIR $ISIDDIR $ISENDIR);
-# undef means a raw file
-$ISRAWFILE=undef;
-# -1 means a forbidden file/dir
-$ISFORBIDDEN=-1;
-# 0, 1 or 2 mean a raw file which is handled as a result.
-$ISEXAMPLE=0;
-$ISINPUT=1;
-$ISOUTPUT=2;
-# 10 means a raw directory
-$ISRAWDIR=10;
-$ISIDDIR=11;
-# 20 means an enaction/snapshot directory
-$ISENDIR=20;
-
-my($DEPSUBTREE)=[$IWWEM::WorkflowCommon::DEPDIR,$ISRAWDIR,[
-		["^[0-9a-f].+[0-9a-f]\\.xml",undef,undef],
-	]
-];	# Contains only files and no catalog at all
-
-
-my($ENACTSUBTREE)=[
-	$DEPSUBTREE,
-	[$VIRTRESULTSDIR,$ISRAWDIR,[
-			['^.+',$ISIDDIR,[
-					[$IWWEM::WorkflowCommon::INPUTSFILE,$ISINPUT,undef],
-					[$IWWEM::WorkflowCommon::OUTPUTSFILE,$ISOUTPUT,undef],
-					[$IWWEM::WorkflowCommon::ITERATIONSDIR,$ISRAWDIR,[
-							["^[0-9]+",$ISRAWDIR,[
-									[$IWWEM::WorkflowCommon::INPUTSFILE,$ISINPUT,undef],
-									[$IWWEM::WorkflowCommon::OUTPUTSFILE,$ISOUTPUT,undef],
-								]
-							],
-						]
-					],
-				]
-			],
-		]
-	],	# Contains lots of directories
-	[$IWWEM::WorkflowCommon::WORKFLOWFILE,$ISRAWFILE,undef],
-	[$IWWEM::WorkflowCommon::SVGFILE,$ISRAWFILE,undef],
-	[$IWWEM::WorkflowCommon::PDFFILE,$ISRAWFILE,undef],
-	[$IWWEM::WorkflowCommon::PNGFILE,$ISRAWFILE,undef],
-	[$IWWEM::WorkflowCommon::REPORTFILE,$ISRAWFILE,undef],
-	[$IWWEM::WorkflowCommon::INPUTSFILE,$ISINPUT,undef],
-	[$IWWEM::WorkflowCommon::OUTPUTSFILE,$ISOUTPUT,undef],
-];
-
-use vars qw(@PATHCHECK $WFKIND $ENKIND);
-
-$WFKIND=[
-	$VIRTWORKFLOWDIR,
-	$IWWEM::Config::WORKFLOWDIR,
-	[
-		["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,[
-				[$IWWEM::WorkflowCommon::EXAMPLESDIR,$ISRAWDIR,[
-						[$IWWEM::WorkflowCommon::CATALOGFILE,$ISFORBIDDEN,undef],
-						["^[0-9a-fA-F].+[0-9a-fA-F]\\.xml",$ISEXAMPLE,undef]
-					]
-				],	# Contains files
-				[$IWWEM::WorkflowCommon::SNAPSHOTSDIR,$ISRAWDIR,[
-						[$IWWEM::WorkflowCommon::CATALOGFILE,$ISFORBIDDEN,undef],
-						["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,$ENACTSUBTREE]
-					]
-				],	# Contains directories
-				$DEPSUBTREE,
-				[$IWWEM::WorkflowCommon::WORKFLOWFILE,$ISRAWFILE,undef],
-				[$IWWEM::WorkflowCommon::SVGFILE,$ISRAWFILE,undef],
-				[$IWWEM::WorkflowCommon::PDFFILE,$ISRAWFILE,undef],
-				[$IWWEM::WorkflowCommon::PNGFILE,$ISRAWFILE,undef],
-			]
-		],
-	]
-];
-
-$ENKIND=[
-	$VIRTJOBDIR,
-	$IWWEM::Config::JOBDIR,
-	[
-		["^[0-9a-fA-F].+[0-9a-fA-F]",$ISIDDIR,$ENACTSUBTREE],
-	]
-];
-
-@PATHCHECK=(
-	$WFKIND,
-	$ENKIND, 
-	[
-		$VIRTIDDIR,
-		undef,
-		[
-			["^${WORKFLOWPREFIX}[^:]+",$ISIDDIR,undef],
-			["^${ENACTIONPREFIX}[^:]+",$ISIDDIR,undef],
-			["^${SNAPSHOTPREFIX}[^:]+:[^:]+",$ISIDDIR,undef],
-			["^${EXAMPLEPREFIX}[^:]+:[^:]+",$ISEXAMPLE,undef],
-		]
-	]
-);
 
 ##############
 # Prototypes #
 ##############
-sub new(;$);
+sub new(;$$);
 sub genCheckList(\@);
+sub sendEnactionReport($\@;$$$$$$);
 
 ###############
 # Constructor #
 ###############
 
 # Constructor must do the tasks done by gatherWorkflowList in the past
-sub new(;$) {
+sub new(;$$) {
 	my($proto)=shift;
 	my($class)=ref($proto) || $proto;
 	
@@ -183,30 +90,30 @@ sub new(;$) {
 		if(index($id,'http://')==0 || index($id,'ftp://')==0) {
 			$subId=$id;
 			@dirstack=();
-		} elsif(index($id,$ENACTIONPREFIX)==0) {
-			$baseListDir=$VIRTJOBDIR;
+		} elsif(index($id,$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX)==0) {
+			$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR;
 			$listDir=$IWWEM::Config::JOBDIR;
-			$uuidPrefix=$ENACTIONPREFIX;
+			$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX;
 			
-			if($id =~ /^$ENACTIONPREFIX([^:]+)$/) {
+			if($id =~ /^$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX([^:]+)$/) {
 				$subId=$1;
 			}
-		} elsif($id =~ /^$SNAPSHOTPREFIX([^:]+)/) {
-			$baseListDir=$VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+		} elsif($id =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+)/) {
+			$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 			$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
-			$uuidPrefix=$SNAPSHOTPREFIX . $1 . ':';
+			$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX . $1 . ':';
 			
 			$isSnapshot=1;
 			
-			if($id =~ /^$SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			if($id =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				$subId=$2;
 			}
 		} else {
-			$baseListDir=$VIRTWORKFLOWDIR;
+			$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR;
 			$listDir=$IWWEM::Config::WORKFLOWDIR;
-			$uuidPrefix=$WORKFLOWPREFIX;
+			$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX;
 			
-			if($id =~ /^$WORKFLOWPREFIX([^:]+)$/) {
+			if($id =~ /^$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX([^:]+)$/) {
 				$subId=$1;
 			} elsif(length($id)>0) {
 				$subId=$id;
@@ -261,11 +168,101 @@ sub UnderstandsId($) {
 	
 	my($id)=shift;
 	
-	return !defined($id) || index($id,$WORKFLOWPREFIX)==0 || index($id,$ENACTIONPREFIX)==0 || index($id,$SNAPSHOTPREFIX)==0 || (index($id,'/')==-1 && index($id,':')==-1 );
+	return !defined($id) || index($id,$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX)==0 || index($id,$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX)==0 || index($id,$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX)==0 || (index($id,'/')==-1 && index($id,':')==-1 );
 }
 
 sub getDomainClass() {
 	return 'IWWEM';
+}
+
+sub getWorkflowURI($) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($id)=@_;
+	
+	my($baseListDir,$listDir,$uuidPrefix,$subId,$isSnapshot);
+	if(index($id,$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX)==0) {
+		$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR;
+		$listDir=$IWWEM::Config::JOBDIR;
+		$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX;
+		
+		if($id =~ /^$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX([^:]+)$/) {
+			$subId=$1;
+		}
+	} elsif($id =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+)/) {
+		$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+		$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+		$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX . $1 . ':';
+		
+		$isSnapshot=1;
+		
+		if($id =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			$subId=$2;
+		}
+	} else {
+		$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR;
+		$listDir=$IWWEM::Config::WORKFLOWDIR;
+		$uuidPrefix='';
+		
+		if($id =~ /^$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX([^:]+)$/) {
+			$subId=$1;
+		} elsif(length($id)>0) {
+			$subId=$id;
+		}
+	}
+	my($relwffile)=$subId.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
+	my($wffile)=$listDir.'/'.$relwffile;
+	
+	return $wffile;
+}
+
+sub resolveWorkflowId($) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($id)=@_;
+	my($workflowId)=undef;
+	my($originalInput)=undef;
+	my($retval)=0;
+	
+	my($wabspath)=undef;
+	if($id =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+		$workflowId=$1;
+		my($wabsbasepath)=$IWWEM::Config::WORKFLOWDIR . '/' . $workflowId . '/' . $IWWEM::WorkflowCommon::SNAPSHOTSDIR . '/' . $2 . '/';
+		$wabspath=$wabsbasepath . $IWWEM::WorkflowCommon::WORKFLOWFILE;
+		
+		$originalInput=$wabsbasepath . $IWWEM::WorkflowCommon::INPUTSFILE;
+	} elsif($id =~ /^$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX([^:]+)$/) {
+		my($ENHAND);
+		my($wabsbasepath)=$IWWEM::Config::JOBDIR . '/' . $1 . '/';
+		if(open($ENHAND,'<',$wabsbasepath . $IWWEM::WorkflowCommon::WFIDFILE)) {
+			$workflowId=<$ENHAND>;
+			close($ENHAND);
+		} else {
+			$retval=2;
+			last;
+		}
+		$wabspath=$wabsbasepath . $IWWEM::WorkflowCommon::WORKFLOWFILE;
+		
+		$originalInput=$wabsbasepath . $IWWEM::WorkflowCommon::INPUTSFILE;
+	} else {
+		if($id =~ /^$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX([^:]+)$/) {
+			$workflowId=$1;
+		} else {
+			$workflowId=$id;
+		}
+		$wabspath=$IWWEM::Config::WORKFLOWDIR . '/' . $workflowId . '/' . $IWWEM::WorkflowCommon::WORKFLOWFILE;
+	}
+	
+	# Is it a 'sure' path?
+	if(index($id,'/')!=-1 || ! -f $wabspath) {
+		$retval = 2;
+	}
+	
+	return ($workflowId,$originalInput,$retval);
 }
 
 #	my($wf,$listDir,$uuidPrefix,$isSnapshot)=@_;
@@ -290,54 +287,52 @@ sub getWorkflowInfo($@) {
 		my($wfresp)=undef;
 		
 		my($regen)=1;
-		unless(index($wf,'http://')==0 || index($wf,'ftp://')==0) {
-			$relwffile=$wf.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
-			$wfdir=$listDir.'/'.$wf;
-			$wffile=$listDir.'/'.$relwffile;
-			$wfcat=$wfdir.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
-			$examplescat = $wfdir .'/'. $IWWEM::WorkflowCommon::EXAMPLESDIR . '/' . $IWWEM::WorkflowCommon::CATALOGFILE;
-			$snapshotscat = $wfdir .'/'. $IWWEM::WorkflowCommon::SNAPSHOTSDIR . '/' . $IWWEM::WorkflowCommon::CATALOGFILE;
-			$wfresp=$wfdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
-			
-			my(@stat_selffile)=stat($FindBin::Bin .'/IWWEM/InternalWorkflowList.pm');
-			my(@stat_selffile2)=();
-			@stat_selffile2=stat($FindBin::Bin .'/IWWEM/Taverna1WorkflowKind.pm');
-			@stat_selffile=@stat_selffile2  if($stat_selffile2[9]>$stat_selffile[9]);
-			@stat_selffile2=stat($FindBin::Bin .'/IWWEM/Taverna2WorkflowKind.pm');
-			@stat_selffile=@stat_selffile2  if($stat_selffile2[9]>$stat_selffile[9]);
-			
-			my(@stat_wfcat)=stat($wfcat);
-			if(scalar(@stat_wfcat)>0 && $stat_wfcat[9]>$stat_selffile[9]) {
-				my(@stat_wffile)=stat($wffile);
+		$relwffile=$wf.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
+		$wfdir=$listDir.'/'.$wf;
+		$wffile=$listDir.'/'.$relwffile;
+		$wfcat=$wfdir.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
+		$examplescat = $wfdir .'/'. $IWWEM::WorkflowCommon::EXAMPLESDIR . '/' . $IWWEM::WorkflowCommon::CATALOGFILE;
+		$snapshotscat = $wfdir .'/'. $IWWEM::WorkflowCommon::SNAPSHOTSDIR . '/' . $IWWEM::WorkflowCommon::CATALOGFILE;
+		$wfresp=$wfdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
+		
+		# my(@stat_selffile)=stat($FindBin::Bin .'/IWWEM/InternalWorkflowList.pm');
+		my(@stat_selffile)=stat(__FILE__);
+		my(@stat_selffile2)=();
+		@stat_selffile2=stat($FindBin::Bin .'/IWWEM/Taverna1WorkflowKind.pm');
+		@stat_selffile=@stat_selffile2  if($stat_selffile2[9]>$stat_selffile[9]);
+		@stat_selffile2=stat($FindBin::Bin .'/IWWEM/Taverna2WorkflowKind.pm');
+		@stat_selffile=@stat_selffile2  if($stat_selffile2[9]>$stat_selffile[9]);
+		
+		my(@stat_wfcat)=stat($wfcat);
+		if(scalar(@stat_wfcat)>0 && $stat_wfcat[9]>$stat_selffile[9]) {
+			my(@stat_wffile)=stat($wffile);
 
-				if(scalar(@stat_wffile)==0 || $stat_wfcat[9]>$stat_wffile[9]) {
-					my(@stat_examplescat)=stat($examplescat);
+			if(scalar(@stat_wffile)==0 || $stat_wfcat[9]>$stat_wffile[9]) {
+				my(@stat_examplescat)=stat($examplescat);
 
-					if(scalar(@stat_examplescat)>0 && $stat_wfcat[9]>$stat_examplescat[9]) {
-						my(@stat_snapshotscat)=stat($snapshotscat);
+				if(scalar(@stat_examplescat)>0 && $stat_wfcat[9]>$stat_examplescat[9]) {
+					my(@stat_snapshotscat)=stat($snapshotscat);
 
-						if(scalar(@stat_snapshotscat)>0 && $stat_wfcat[9]>$stat_snapshotscat[9]) {
-							my(@stat_wfresp)=stat($wfresp);
-							
-							if(scalar(@stat_wfresp)>0 && $stat_wfcat[9]>$stat_wfresp[9]) {
-								# Catalog is outdated related to snapshots
-								$regen=undef;
-							}
+					if(scalar(@stat_snapshotscat)>0 && $stat_wfcat[9]>$stat_snapshotscat[9]) {
+						my(@stat_wfresp)=stat($wfresp);
+						
+						if(scalar(@stat_wfresp)>0 && $stat_wfcat[9]>$stat_wfresp[9]) {
+							# Catalog is outdated related to snapshots
+							$regen=undef;
 						}
 					}
 				}
 			}
-		} else {
-			$wffile=$wf;
 		}
 		
-		# With this variable it is possible to swtich among different 
+		# With this variable it is possible to switch among different 
 		# representations
 		my($wfKind)='UNIVERSAL';
 		#my($wfcatmutex)=LockNLog::SimpleMutex->new($wfdir.'/'.$IWWEM::WorkflowCommon::LOCKFILE,$regen);
 		if(defined($regen)) {
 			my($uuid)=$uuidPrefix.$wf;
-			$retnode = $self->{WFH}{$wfKind}->getWorkflowInfo($wf,$uuid,$listDir,$relwffile,$isSnapshot);
+			
+			$retnode = $self->{WFH}{$wfKind}->getWorkflowInfo($uuid,$wffile,$relwffile);
 			
 			if(defined($retnode) && defined($wfcat)) {
 				my($outputDoc)=$retnode->ownerDocument();
@@ -416,6 +411,8 @@ sub getWorkflowInfo($@) {
 					if(defined($examplescat)) {
 						my($examples)=$parser->parse_file($examplescat);
 						for my $child ($examples->documentElement()->getChildrenByTagNameNS($IWWEM::WorkflowCommon::WFD_NS,'example')) {
+							# This sentence is for security
+							$child->removeAttribute($IWWEM::WorkflowCommon::AUTOUUID);
 							$release->appendChild($outputDoc->importNode($child));
 						}
 					}
@@ -456,22 +453,144 @@ sub getWorkflowInfo($@) {
 	
 }
 
-#		my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
-sub parseInlineWorkflows($$$$$$;$$$) {
+#		my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$param,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$autoUUID)=@_;
+sub parseInlineWorkflows($$$$$$$;$$$) {
 	my($self)=shift;
 	
 	croak("This is an instance method!")  unless(ref($self));
 	
-	return $self->{WFH}{$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME}->parseInlineWorkflows(@_);
-}
+	my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$param,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$autoUUID)=@_;
+	
+	my($parser,$context)=($self->{PARSER},$self->{CONTEXT});
 
-#	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
-sub patchWorkflow($$$$$;$$$) {
-	my($self)=shift;
+	unless(defined($responsibleMail) && $responsibleMail =~ /[^\@]+\@[^\@]+\.[^\@]+/) {
+		return (10,(defined($responsibleMail)?"$responsibleMail is not a valid e-mail address":'Responsible mail has not been set using '.$IWWEM::WorkflowCommon::RESPONSIBLEMAIL.' CGI parameter'),[]);
+	}
+
+	unless(defined($licenseURI) && length($licenseURI)>0) {
+		$licenseName=$IWWEM::Config::DEFAULT_LICENSE_NAME;
+		$licenseURI=$IWWEM::Config::DEFAULT_LICENSE_URI;
+	} elsif(!defined($licenseName) || $licenseName eq '') {
+		$licenseName='PRIVATE';
+	}
 	
-	croak("This is an instance method!")  unless(ref($self));
+	my($isCreation)=undef;
+	unless(defined($basedir)) {
+		$basedir=$IWWEM::Config::WORKFLOWDIR;
+		$isCreation=1;
+	} else {
+		$doFreezeWorkflowDeps=1;
+	}
 	
-	return $self->{WFH}{$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME}->patchWorkflow(@_);
+	my($retval)=0;
+	my($retvalmsg)=undef;
+	my(@goodwf)=();
+	
+	# Now, time to recognize the content
+	my @UPHL=();
+	@UPHL=$query->upload($param)  if($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOW);
+
+	unless($query->cgi_error()) {
+
+		my($isfh)=1;
+
+		if(scalar(@UPHL)==0) {
+			@UPHL=$query->param($param);
+			$isfh=undef;
+		}
+
+		foreach my $UPH (@UPHL) {
+			# Generating a pending operation
+			my($penduuid,$penddir,$PH)=(undef,undef,undef);
+			unless(defined($autoUUID) && ($autoUUID eq '' || $autoUUID eq '1')) {
+				($penduuid,$penddir,$PH)=IWWEM::InternalWorkflowList::Confirmation::genPendingOperationsDir($IWWEM::InternalWorkflowList::Confirmation::COMMANDADD);
+			}
+			
+			# Generating a unique identifier
+			my($randname);
+			my($randfilexml);
+			my($randdir);
+			do {
+				$randname=IWWEM::WorkflowCommon::genUUID();
+				$randdir=$basedir.'/'.$randname;
+			} while(-d $randdir);
+			
+			# Creating workflow directory so it is reserved
+			mkpath($randdir);
+			my($realranddir)=$randdir;
+			
+			# And now, creating the pending workflow directory!
+			unless(defined($autoUUID) && ($autoUUID eq '' || $autoUUID eq '1')) {
+				$randdir=$penddir.'/'.$randname;
+				mkpath($randdir);
+				# And annotate it
+				print $PH "$randname\n";
+				close($PH);
+			}
+			
+			# Responsible file creation
+			my($wfAutoUUID,$err)=IWWEM::WorkflowCommon::createResponsibleFile($randdir,$responsibleMail,$responsibleName);
+			
+			# Saving the workflow data
+			$randfilexml = $randdir . '/' . $IWWEM::WorkflowCommon::WORKFLOWFILE;
+			
+			my($WFmaindoc);
+			
+			eval {
+				if($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOW) {
+					# CGI provides fake filehandlers :-(
+					# so we have to use the push parser
+					my($RXML);
+					if(open($RXML,'>',$randfilexml)) {
+						if(defined($isfh)) {
+							my($line);
+							while(read($UPH,$line,65536)) {
+								print $RXML $line;
+							}
+							# Rewind the handler
+							seek($UPH,0,0);
+						} else {
+							print $RXML $UPH;
+						}
+						close($RXML);
+						$WFmaindoc=$parser->parse_file($randfilexml);
+					}
+				} elsif($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOWREF || $param eq $IWWEM::WorkflowCommon::PARAMWFID) {
+					my($swl)=IWWEM::SelectiveWorkflowList->new($UPH,1);
+					my($wfuri)=$swl->getWorkflowURI($UPH);
+					$WFmaindoc=$parser->parse_file($wfuri);
+					$WFmaindoc->toFile($randfilexml);
+				}
+			};
+			
+			if($@ || !defined($WFmaindoc)) {
+				$retval=2;
+				$retvalmsg = ''  unless(defined($retvalmsg));
+				$retvalmsg .= 'Error while parsing input workflow: '.$@;
+				rmtree($randdir);
+				last;
+			}
+			
+			my($doSaveDoc)=$self->{WFH}{UNIVERSAL}->patchEmbeddedLicence($WFmaindoc,$licenseURI,$licenseName);
+			
+			($retval,$retvalmsg)=$self->patchWorkflow($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc);
+			
+			# Erasing all...
+			if($retval!=0) {
+				rmtree($randdir);
+				unless(defined($autoUUID) && ($autoUUID eq '' || $autoUUID eq '1')) {
+					rmtree($realranddir);
+				}
+				last;
+			} elsif(!defined($autoUUID) || ($autoUUID ne '' && $autoUUID ne '1')) {
+				IWWEM::InternalWorkflowList::Confirmation::sendResponsiblePendingMail($query,undef,$penduuid,'workflow',$IWWEM::InternalWorkflowList::Confirmation::COMMANDADD,$randname,$responsibleMail,undef,$autoUUID);
+			}
+			
+			push(@goodwf,$randname);
+		}
+	}
+	
+	return ($retval,$retvalmsg,\@goodwf);
 }
 
 sub launchJob() {
@@ -494,6 +613,800 @@ sub genCheckList(\@) {
 		}
 	}
 	return $retval;
+}
+
+#	my($query,$p_iwwemId,$autoUUID)=@_;
+sub eraseId($\@;$) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	my($parser,$context)=($self->{PARSER},$self->{CONTEXT});
+	my($query,$p_iwwemId,$autoUUID)=@_;
+	
+	foreach my $irelpath (@{$p_iwwemId}) {
+		# We are only erasing what it is valid...
+		next  if(length($irelpath)==0 || index($irelpath,'/')==0 || index($irelpath,'../')!=-1);
+		
+		# Checking rules should be inserted here...
+		my($kind)=undef;
+		my($resMail)=undef;
+		my($prettyname)=undef;
+		if($irelpath =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+			my($wfsnap)=$1;
+			my($snapId)=$2;
+			$kind='snapshot';
+			eval {
+				my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
+				my($catdoc)=$parser->parse_file($catfile);
+
+				my($transsnapId)=IWWEM::WorkflowCommon::patchXMLString($snapId);
+				my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transsnapId']",$catdoc);
+				foreach my $snap (@eraseSnap) {
+					$prettyname=$snap->getAttribute('name');
+					$resMail=$snap->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+					last;
+				}
+			};
+		} elsif($irelpath =~ /^$IWWEM::InternalWorkflowList::Constants::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+			my($wfexam)=$1;
+			my($examId)=$2;
+			$kind='example';
+			eval {
+				my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
+				my($catdoc)=$parser->parse_file($catfile);
+
+				my($transexamId)=IWWEM::WorkflowCommon::patchXMLString($examId);
+				my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$transexamId']",$catdoc);
+				foreach my $exam (@eraseExam) {
+					$prettyname=$exam->getAttribute('name');
+					$resMail=$exam->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+					last;
+				}
+			};
+		} else {
+			my($jobdir)=undef;
+			
+			if($irelpath =~ /^$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX([^:]+)$/) {
+				$jobdir=$IWWEM::Config::JOBDIR.'/'.$1;
+				$kind='enaction';
+			} else {
+				$jobdir=$IWWEM::Config::WORKFLOWDIR.'/'.$irelpath;
+				$kind='workflow';
+			}
+			
+			eval {
+				my($responsiblefile)=$jobdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
+				my($rp)=$parser->parse_file($responsiblefile);
+				$resMail=$rp->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+				
+				my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
+				my($wf)=$parser->parse_file($workflowfile);
+				
+				my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
+				if(scalar(@nodelist)>0) {
+					$prettyname=$nodelist[0]->getAttribute('title');
+				}
+				
+			};
+		}
+		
+		if(defined($resMail)) {
+			my($penduuid,$penddir,$PH)=IWWEM::InternalWorkflowList::Confirmation::genPendingOperationsDir($IWWEM::InternalWorkflowList::Confirmation::COMMANDERASE);
+
+			print $PH "$irelpath\n";
+			close($PH);
+			
+			IWWEM::InternalWorkflowList::Confirmation::sendResponsiblePendingMail($query,undef,$penduuid,$kind,$IWWEM::InternalWorkflowList::Confirmation::COMMANDERASE,$irelpath,$resMail,$prettyname,$autoUUID);
+		}
+	}
+}
+
+#	my($query,$p_jobIdList,$snapshotName,$snapshotDesc,$responsibleMail,$responsibleName,$dispose,$autoUUID)=@_;
+sub sendEnactionReport($\@;$$$$$$) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	my($parser,$context)=($self->{PARSER},$self->{CONTEXT});
+
+	my($query,$p_jobIdList,$snapshotName,$snapshotDesc,$responsibleMail,$responsibleName,$dispose,$autoUUID)=@_;
+	
+	my($outputDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+	my($root)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionreport');
+	$outputDoc->setDocumentElement($root);
+	
+	$root->appendChild($outputDoc->createComment( encode('UTF-8',$IWWEM::WorkflowCommon::COMMENTES) ));
+	
+	# Disposal execution
+	foreach my $jobId (@{$p_jobIdList}) {
+		my($es)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionstatus');
+		$es->setAttribute('jobId',$jobId);
+		$es->setAttribute('time',LockNLog::getPrintableNow());
+		$es->setAttribute('relURI',$IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR);
+	
+		# Time to know the overall status of this enaction
+		my($state)=undef;
+		my($jobdir)=undef;
+		my($wfsnap)=undef;
+		my($origJobId)=undef;
+		
+		if(index($jobId,$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX)==0) {
+			$origJobId=$jobId;
+			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
+				$wfsnap=$1;
+				$jobId=$2;
+				$jobdir=$IWWEM::WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
+				# It is an snapshot, so the relative URI changes
+				$es->setAttribute('relURI',$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR);
+			}
+		} else {
+			# For completion, we handle qualified job Ids
+			$jobId =~ s/^$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX//;
+			$jobdir=$IWWEM::Config::JOBDIR . '/' .$jobId;
+			$origJobId=$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX.$jobId;
+		}
+	
+		# Is it a valid job id?
+		my($termstat)=undef;
+		my($doGen)=1;
+		if(index($jobId,'/')==-1 && defined($jobdir) && -d $jobdir && -r $jobdir) {
+			# Disposal execution
+			if(defined($dispose) && $dispose eq '1') {
+	
+				my($pidfile)=$jobdir . '/PID';
+				my($PID);
+				if(!defined($wfsnap) && ! -f ($jobdir . '/FATAL') && -f $pidfile && open($PID,'<',$pidfile)) {
+					my($killpid)=<$PID>;
+					close($PID);
+	
+					# Now we have a pid, we can check for the enaction job
+					if(! -f ($jobdir . '/FINISH') && ! -f ($jobdir . '/FAILED.txt') && kill(0,$killpid)) {
+						if(kill(TERM => -$killpid)) {
+							sleep(1);
+							# You must die!!!!!!!!!!
+							kill(KILL => -$killpid)  if(kill(0,$killpid));
+						}
+					}
+				}
+				$state = 'disposed';
+				
+	
+				my($kind)=undef;
+				my($resMail)=undef;
+				my($prettyname)=undef;
+				if(defined($wfsnap)) {
+					$kind='snapshot';
+					eval {
+						my($catfile)=$jobdir.'/../'.$IWWEM::WorkflowCommon::CATALOGFILE;
+						my($catdoc)=$parser->parse_file($catfile);
+						
+						my($transjobId)=IWWEM::WorkflowCommon::patchXMLString($jobId);
+						my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transjobId']",$catdoc);
+						foreach my $snap (@eraseSnap) {
+							$prettyname=$snap->getAttribute('name');
+							$resMail=$snap->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+							last;
+						}
+					};
+				} else {
+					$kind='enaction';
+					
+					eval {
+						my($responsiblefile)=$jobdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
+						my($rp)=$parser->parse_file($responsiblefile);
+						$resMail=$rp->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+						
+						my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
+						my($wf)=$parser->parse_file($workflowfile);
+						
+						my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
+						if(scalar(@nodelist)>0) {
+							$prettyname=$nodelist[0]->getAttribute('title');
+						}
+						
+					};
+				}
+				
+				# Sending e-mail to confirm the pass
+				if(defined($resMail)) {
+					my($penduuid,$penddir,$PH)=IWWEM::InternalWorkflowList::Confirmation::genPendingOperationsDir($IWWEM::InternalWorkflowList::Confirmation::COMMANDERASE);
+	
+					print $PH "$origJobId\n";
+					close($PH);
+					
+					IWWEM::InternalWorkflowList::Confirmation::sendResponsiblePendingMail($query,undef,$penduuid,$kind,$IWWEM::InternalWorkflowList::Confirmation::COMMANDERASE,$origJobId,$resMail,$prettyname,$autoUUID);
+				}
+			} else {
+				# Getting static info
+				my($staticfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::STATICSTATUSFILE;
+				my(@stat_staticfile)=stat($staticfile);
+				# my(@stat_selffile)=stat($FindBin::Bin .'/IWWEM/InternalWorkflowList.pm');
+				my(@stat_selffile)=stat(__FILE__);
+				if(scalar(@stat_staticfile)>0 && $stat_staticfile[9]>$stat_selffile[9]) {
+					eval {
+						my($staticdoc)=$parser->parse_file($staticfile);
+						$es=$outputDoc->importNode($staticdoc->documentElement());
+						$doGen=undef;
+					};
+				}
+				
+				if(defined($doGen)) {
+					my($ppidfile)=$jobdir . '/PPID';
+					my($includeSubs)=1;
+					my($PPID);
+					my($enactionReport)=undef;
+					if(defined($wfsnap)) {
+						$state = 'frozen';
+						$termstat=1;
+						$enactionReport=_getStoredEnactionReport($outputDoc,$jobdir);
+					} elsif(-f $jobdir . '/FATAL' || ! -f $ppidfile) {
+						$state='dead';
+						$termstat=1;
+						$enactionReport=_getStoredEnactionReport($outputDoc,$jobdir);
+					} elsif(!defined($wfsnap) && open($PPID,'<',$ppidfile)) {
+						my($ppid)=<$PPID>;
+						close($PPID);
+	
+						my($pidfile)=$jobdir . '/PID';
+						my($PID);
+						unless(-f $pidfile) {
+							# So it could be queued
+							$enactionReport=_getStoredEnactionReport($outputDoc,$jobdir);
+							$state = 'queued';
+							$includeSubs=undef;
+						} elsif(open($PID,'<',$pidfile)) {
+							my($pid)=<$PID>;
+							close($PID);
+	
+							# Now we have a pid, we can check for the enaction job
+							if( -f $jobdir . '/FINISH') {
+								$state = 'finished';
+								$termstat=1;
+								$enactionReport=_getStoredEnactionReport($outputDoc,$jobdir);
+							} elsif( -f $jobdir . '/FAILED.txt') {
+								$state = 'error';
+								$termstat=1;
+								$enactionReport=_getStoredEnactionReport($outputDoc,$jobdir);
+							} elsif(kill(0,$pid) > 0) {
+								# It could be still running...
+								unless(defined($dispose)) {
+									if( -f $jobdir . '/START') {
+										# So, let's fetch the state
+										$enactionReport=_getFreshEnactionReport($outputDoc,$jobdir . '/socket');
+	
+										$state = 'running';
+									} else {
+										# So it could be queued
+										#$state = 'unknown';
+										$state = 'queued';
+										$includeSubs=undef;
+									}
+								} else {
+									$state = 'killed';
+									$enactionReport=_getStoredEnactionReport($outputDoc,$jobdir);
+									$enactionReport=_getFreshEnactionReport($outputDoc,$jobdir . '/socket')  unless(defined($enactionReport));
+									if(defined($enactionReport) && $enactionReport->localname eq 'enactionReport') {
+										my($erDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+										$erDoc->setDocumentElement($erDoc->importNode($enactionReport->firstChild()));
+										$erDoc->toFile($jobdir.'/'.$IWWEM::WorkflowCommon::REPORTFILE);
+									}
+									$termstat=1;
+									if(kill(TERM => -$pid)) {
+										sleep(1);
+										# You must die!!!!!!!!!!
+										kill(KILL => -$pid)  if(kill(0,$pid));
+									}
+								}
+							} else {
+								$state = 'dead';
+								$termstat=1;
+								$enactionReport=_getStoredEnactionReport($outputDoc,$jobdir);
+							}
+						} else {
+							$state = 'fatal';
+							$includeSubs=undef;
+						}
+	
+						if($state ne 'fatal' && defined($enactionReport) && $enactionReport->localname eq 'enactionReportError') {
+							$state='fatal';
+						}
+					} else {
+						$state = 'fatal';
+						$includeSubs=undef;
+					}
+					
+					if(defined($enactionReport)) {
+						$es->appendChild($enactionReport);
+					}
+					
+					# Now including subinformation...
+					if(defined($includeSubs)) {
+						my($estamp)=undef;
+						my($failedSth)=_processStep($jobdir,$outputDoc,$es,(defined($enactionReport) && $enactionReport->localname eq 'enactionReport')?$enactionReport:undef,\$estamp);
+						$state='dubious'  if($state eq 'finished' && defined($failedSth));
+						
+						$es->setAttribute('time',LockNLog::getPrintableDate($estamp))  if(defined($estamp));
+					}
+				}
+				# Status report
+				
+				# Disallowed snapshots over snapshots!
+				if(defined($snapshotName) && defined($responsibleMail) && !defined($wfsnap)) {
+					my($workflowId)=undef;
+					# Trying to get the workflowId
+					my($WFID);
+					if(open($WFID,'<',$jobdir.'/'.$IWWEM::WorkflowCommon::WFIDFILE)) {
+						$workflowId=<$WFID>;
+						close($WFID);
+					}
+					
+					# So, let's take a snapshot!
+					if(defined($workflowId) && index($workflowId,'/')==-1) {
+						# First, read the catalog
+						my($snapbasedir)=$IWWEM::WorkflowCommon::WORKFLOWDIR .'/'.$workflowId.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+						eval {
+							my($uuid);
+							my($snapdir);
+							do {
+								$uuid=IWWEM::WorkflowCommon::genUUID();
+								$snapdir=$snapbasedir.'/'.$uuid;
+							} while(-d $snapdir);
+							mkpath($snapdir);
+	
+							# Generating a pending operation
+							my($penduuid,$penddir,$PH)=IWWEM::InternalWorkflowList::Confirmation::genPendingOperationsDir($IWWEM::InternalWorkflowList::Confirmation::COMMANDADD);
+							my($fullsnapuuid)=$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX."$workflowId:$uuid";
+							print $PH "$fullsnapuuid\n";
+							close($PH);
+							
+							# Now, the new files
+							my($pendsnapdir)=$penddir.'/'.$uuid;
+							my($pendcatalogfile)=$penddir.'/'.$uuid.'_'.$IWWEM::WorkflowCommon::CATALOGFILE;
+							
+							# Partial catalog
+							my($catdoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+	
+							# Last but one, register snapshot
+							my($snapnode)=$catdoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'snapshot');
+							# First in unqualified form
+							$snapnode->setAttribute('name',$snapshotName);
+							$snapnode->setAttribute('uuid',$uuid);
+							$snapnode->setAttribute('date',LockNLog::getPrintableNow());
+							$snapnode->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+							$snapnode->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+							my($snapAutoUUID)=IWWEM::WorkflowCommon::genUUID();
+							$snapnode->setAttribute($IWWEM::WorkflowCommon::AUTOUUID,$snapAutoUUID);
+							if(defined($snapshotDesc) && length($snapshotDesc)>0) {
+								$snapnode->appendChild($catdoc->createCDATASection($snapshotDesc));
+							}
+							
+							$catdoc->setDocumentElement($snapnode);
+							$catdoc->toFile($pendcatalogfile);
+							
+							if(system("cp","-dpr",$jobdir,$pendsnapdir)==0) {
+								# Taking last snapshot info!
+								my($erDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+								my($enactionReport)=_getStoredEnactionReport($erDoc,$jobdir);
+								$enactionReport=_getFreshEnactionReport($erDoc,$jobdir . '/socket')  unless(defined($enactionReport));
+								if(defined($enactionReport) && $enactionReport->localname eq 'enactionReport') {
+									$erDoc->setDocumentElement($enactionReport->firstChild);
+									$erDoc->toFile($pendsnapdir.'/'.$IWWEM::WorkflowCommon::REPORTFILE);
+								}
+								# Static info is erased, so it is regenerated
+								unlink($pendsnapdir.'/'.$IWWEM::WorkflowCommon::STATICSTATUSFILE);
+	
+								
+								IWWEM::InternalWorkflowList::Confirmation::sendResponsiblePendingMail($query,undef,$penduuid,'snapshot',$IWWEM::InternalWorkflowList::Confirmation::COMMANDADD,$fullsnapuuid,$responsibleMail,$snapshotName,$autoUUID);
+								# And let's add it to the report
+								# in qualified form
+								$snapnode->setAttribute('uuid',$fullsnapuuid);
+								$es->insertBefore($outputDoc->importNode($snapnode),$es->firstChild());
+							} else {
+								rmtree($snapdir);
+								rmtree($penddir);
+							}
+						};
+	
+						# TODO: report, checks...
+						#unless($@) {
+						#}
+					}
+				}
+				
+			}
+		}
+		
+		# Do we have to generate information?
+		if(defined($doGen)) {
+			$state='unknown'  unless(defined($state));
+	
+			$es->setAttribute('state',$state);
+	
+			# The title
+			eval {
+				my $wf = $parser->parse_file($jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE);
+				my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
+				if(scalar(@nodelist)>0) {
+					$es->setAttribute('title',$nodelist[0]->getAttribute('title'));
+				}
+			};
+	
+			# Now, the responsible person
+			my($responsibleMail)='';
+			my($responsibleName)='';
+			eval {
+				if(defined($wfsnap)) {
+					my $cat = $parser->parse_file($jobdir.'/../'.$IWWEM::WorkflowCommon::CATALOGFILE);
+					my($transjobId)=IWWEM::WorkflowCommon::patchXMLString($jobId);
+					my(@snaps)=$context->findnodes("//sn:snapshot[\@uuid='$transjobId']",$cat);
+					foreach my $snapNode (@snaps) {
+						$responsibleMail=$snapNode->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+						$responsibleName=$snapNode->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME);
+						last;
+					}
+				} else {
+					my $res = $parser->parse_file($jobdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE);
+					$responsibleMail=$res->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+					$responsibleName=$res->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME);
+				}
+			};
+			$es->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+			$es->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+		}
+		
+		# Do we have to save the report as an static one?
+		if(defined($termstat)) {
+			eval {
+				my($staticDoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+				$staticDoc->setDocumentElement($staticDoc->importNode($es));
+				$staticDoc->toFile($jobdir.'/'.$IWWEM::WorkflowCommon::STATICSTATUSFILE);
+			};
+		}
+		# Last, attach
+		$root->appendChild($es);
+	}
+	
+	print $query->header(-type=>'text/xml',-charset=>'UTF-8',-cache=>'no-cache, no-store',-expires=>'-1');
+	
+	$outputDoc->toFH(\*STDOUT);
+}
+
+###########################
+# ENACTION STATUS PARSING #
+###########################
+
+# Methods prototypes
+sub _appendInputs($$$);
+sub _appendOutputs($$$);
+sub _appendIO($$$$);
+sub _appendResults($$$;$$);
+sub _processStep($$$;$$);
+sub _getFreshEnactionReport($$);
+sub _getStoredEnactionReport($$);
+sub _parseEnactionReport($$;$);
+
+# Methods declarations
+sub _appendInputs($$$) {
+	_appendIO($_[0],$_[1],$_[2],'input');
+}
+
+sub _appendOutputs($$$) {
+	_appendIO($_[0],$_[1],$_[2],'output');
+}
+
+sub _appendIO($$$$) {
+	my($iofile,$outputDoc,$parent,$iotagname)=@_;
+	
+	if(-f $iofile && -s $iofile) {
+		my($handler)=EnactionStatusSAX->new($outputDoc,$parent,$iotagname);
+		my($parser)=XML::LibXML->new(Handler=>$handler);
+		eval {
+			$parser->parse_file($iofile);
+		};
+		if($@) {
+			print STDERR "PARTIAL ERROR with $iofile: $@";
+		}
+	}
+}
+
+sub _processStep($$$;$$) {
+	my($basedir,$outputDoc,$es,$enactionReport,$p_stamp)=@_;
+	
+	my($inputsfile)=$basedir . '/' . $IWWEM::WorkflowCommon::INPUTSFILE;
+	my($outputsfile)=$basedir . '/' . $IWWEM::WorkflowCommon::OUTPUTSFILE;
+	my($resultsdir)=$basedir . '/Results';
+	_appendInputs($inputsfile,$outputDoc,$es);
+	_appendOutputs($outputsfile,$outputDoc,$es);
+	return _appendResults($resultsdir,$outputDoc,$es,$enactionReport,$p_stamp);
+}
+
+sub _appendResults($$$;$$) {
+	my($resultsdir,$outputDoc,$parent,$enactionReport,$p_stamp)=@_;
+	
+	my($failedSth)=undef;
+	
+	if(-d $resultsdir) {
+		my($RDIR);
+		my($context)=undef;
+
+		if(defined($enactionReport)) {
+			my($context)=XML::LibXML::XPathContext->new();
+			foreach my $erentry ($context->findnodes(".//processor",$enactionReport)) {
+				my($entry)=$erentry->getAttribute('name');
+				
+				my($step)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'step');
+				$step->setAttribute('name',$entry);
+				
+				my($state)=undef;
+				my($includeSubs)=1;
+				
+				# Additional info, provided by the report
+				my($sched)=undef;
+				my($run)=undef;
+				my($runnumber)=undef;
+				my($runmax)=undef;
+				my($stop)=undef;
+				my(@errreport)=();
+
+				foreach my $child ($erentry->childNodes) {
+					if($child->nodeType==XML::LibXML::XML_ELEMENT_NODE) {
+						my($name)=$child->localName();
+						my($val)=undef;
+						if($name eq 'ProcessScheduled') {
+							$val=str2time($child->getAttribute('TimeStamp'));
+							$sched=LockNLog::getPrintableDate($val);
+						} elsif($name eq 'Invoking') {
+							$val=str2time($child->getAttribute('TimeStamp'));
+							$run=LockNLog::getPrintableDate($val);
+						} elsif($name eq 'InvokingWithIteration') {
+							$val=str2time($child->getAttribute('TimeStamp'));
+							$run=LockNLog::getPrintableDate($val);
+							$runnumber=$child->getAttribute('IterationNumber');
+							$runmax=$child->getAttribute('IterationTotal');
+						} elsif($name eq 'ProcessComplete') {
+							$val=str2time($child->getAttribute('TimeStamp'));
+							$stop=LockNLog::getPrintableDate($val);
+							$state='finished';
+						} elsif($name eq 'ServiceFailure') {
+							$val=str2time($child->getAttribute('TimeStamp'));
+							$stop=LockNLog::getPrintableDate($val);
+							$state='error';
+							$failedSth=1;
+						} elsif($name eq 'ServiceError') {
+							push(@errreport,[$child->getAttribute('Message'),$child->textContent()]);
+						}
+						${$p_stamp}=$val  unless(!defined($val) || (defined(${$p_stamp}) && ${$p_stamp}>=$val));
+					}
+				}
+				unless(defined($state)) {
+					if(defined($run)) {
+						$state='running';
+					} else {
+						$state='queued';
+						$includeSubs=undef;
+					}
+				}
+
+				$step->setAttribute('state',$state);
+				
+				# Adding the extra info
+				my($extra)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'extraStepInfo');
+				$extra->setAttribute('sched',$sched)  if(defined($sched));
+				$extra->setAttribute('start',$run)  if(defined($run));
+				$extra->setAttribute('stop',$stop)  if(defined($stop));
+				$extra->setAttribute('iterNumber',$runnumber)  if(defined($runnumber));
+				$extra->setAttribute('iterMax',$runmax)  if(defined($runmax));
+				foreach my $errmsg (@errreport) {
+					my($err)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'stepError');
+					$err->setAttribute('header',$errmsg->[0]);
+					$err->appendChild($outputDoc->createCDATASection($errmsg->[1]));
+					$extra->appendChild($err);
+				}
+
+				$step->appendChild($extra);
+				
+				if(defined($includeSubs)) {
+					my($jobdir)=$resultsdir .'/'. $entry;
+					_appendInputs($jobdir . '/' . $IWWEM::WorkflowCommon::INPUTSFILE,$outputDoc,$step);
+					_appendOutputs($jobdir . '/' . $IWWEM::WorkflowCommon::OUTPUTSFILE,$outputDoc,$step);
+					
+					my($iteratedir)=$jobdir . '/'. $IWWEM::WorkflowCommon::ITERATIONSDIR;
+					if(-d $iteratedir) {
+						my($iternode)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'iterations');
+						$step->appendChild($iternode);
+						my($subFailed)=_appendResults($iteratedir,$outputDoc,$iternode);
+						$failedSth=1  if(defined($subFailed));
+					}
+				}
+				
+				$parent->appendChild($step);
+			}
+		} elsif(opendir($RDIR,$resultsdir)) {
+			my($entry);
+			my($context)=undef;
+			
+			while($entry=readdir($RDIR)) {
+				# No hidden element, please!
+				my($jobdir)=$resultsdir .'/'. $entry;
+				next  if($entry eq '.' || $entry eq '..' || ! -d $jobdir);
+				
+				my($step)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'step');
+				$step->setAttribute('name',$entry);
+				my($state)=undef;
+				my($includeSubs)=1;
+				
+				if( -f $jobdir . '/FINISH') {
+					$state = 'finished';
+				} elsif( -f $jobdir . '/FAILED.txt') {
+					$state = 'error';
+					$failedSth=1;
+				} elsif( -f $jobdir . '/START') {
+					$state = 'running';
+				} else {
+					# So it could be queued
+					$state = 'queued';
+					$includeSubs=undef;
+				}
+				
+				$step->setAttribute('state',$state);
+				
+				if(defined($includeSubs)) {
+					_appendInputs($jobdir . '/' . $IWWEM::WorkflowCommon::INPUTSFILE,$outputDoc,$step);
+					_appendOutputs($jobdir . '/' . $IWWEM::WorkflowCommon::OUTPUTSFILE,$outputDoc,$step);
+					
+					my($iteratedir)=$jobdir . '/Iterations';
+					if(-d $iteratedir) {
+						my($iternode)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'iterations');
+						$step->appendChild($iternode);
+						my($subFailed)=_appendResults($iteratedir,$outputDoc,$iternode);
+						$failedSth=1  if(defined($subFailed));
+					}
+				}
+				
+				$parent->appendChild($step);
+			}
+			closedir($RDIR);
+		}
+	}
+	
+	return $failedSth;
+}
+
+sub _getFreshEnactionReport($$) {
+	my($outputDoc,$portfile)=@_;
+	
+	my($buffer)=undef;
+	eval {
+		my($PORTFILE);
+		die "FATAL ERROR: Unable to read portfile $ARGV[0]\n"  unless(open($PORTFILE,'<',$portfile));
+
+		my($line)=undef;
+		while($line=<$PORTFILE>) {
+			last;
+		}
+		die "ERROR: Unable to read $portfile contents!\n"  unless(defined($line));
+		close($PORTFILE);
+		chomp($line);
+
+		my($host,$port)=split(/:/,$line,2);
+		die "ERROR: Line '$line' from $portfile is invalid!\n"
+		unless(defined($port) && int($port) eq $port && $port > 0);
+
+		my($proto)= (getprotobyname('tcp'))[2];
+
+		# get the port address
+		my($iaddr) = inet_aton($host);
+		my($paddr) = pack_sockaddr_in($port, $iaddr);
+		# create the socket, connect to the port
+		my($SOCKET);
+		socket($SOCKET, PF_INET, SOCK_STREAM, $proto) or die "SOCKET ERROR: $!";
+		connect($SOCKET, $paddr) or die "CONNECT SOCKET ERROR: $!";
+
+		$buffer='';
+		while ($line = <$SOCKET>) {
+			$buffer.=$line;
+		}
+		close($SOCKET) or die "CLOSE SOCKET ERROR: $!"; 
+	};
+	
+	my($enactionReportError)=($@)?$@:undef;
+	
+	return _parseEnactionReport($outputDoc,$buffer,$enactionReportError);
+}
+
+sub _getStoredEnactionReport($$) {
+	my($outputDoc,$dir)=@_;
+	
+	my($ER);
+	my($rep)='';
+	
+	if(open($ER,'<',$dir.'/'.$IWWEM::WorkflowCommon::REPORTFILE)) {
+		my($line)=undef;
+		while($line=<$ER>) {
+			$rep .= $line;
+		}
+		close($ER);
+		return _parseEnactionReport($outputDoc,$rep,undef);
+	} else {
+		return undef;
+	}
+}
+
+sub _parseEnactionReport($$;$) {
+	my($outputDoc,$enactionReport,$enactionReportError)=@_;
+	
+	my($er)=undef;
+	my($parser)=XML::LibXML->new();
+	my($repnode)=undef;
+	
+	if(!defined($enactionReportError) && defined($enactionReport)) {
+		eval {
+			# Beware decode!
+			my($crap)=$enactionReport;
+			my($er)=$parser->parse_string(decode('UTF-8', $crap));
+			$repnode=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionReport');
+			$repnode->appendChild($outputDoc->importNode($er->documentElement));
+		};
+
+		if($@) {
+			$enactionReportError=$@
+		}
+	}
+	
+	unless(defined($repnode) || defined($enactionReportError)) {
+		$enactionReportError='Undefined error, please contact IWWE&M developer';
+	}
+	
+	if(defined($enactionReportError)) {
+		$repnode=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionReportError');
+		$enactionReportError .= "\n\nOffending content:\n\n$enactionReport"  if(defined($enactionReport));
+		$repnode->appendChild($outputDoc->createCDATASection($enactionReportError));
+	}
+	
+	return $repnode;
+}
+
+
+
+package EnactionStatusSAX;
+
+use strict;
+use XML::SAX::Base;
+use XML::SAX::Exception;
+use lib "$FindBin::Bin";
+use IWWEM::WorkflowCommon;
+
+use base qw(XML::SAX::Base);
+
+###############
+# Constructor #
+###############
+sub new($$$) {
+	my($proto)=shift;
+	my($class)=ref($proto) || $proto;
+	my($outputDoc,$parent,$iotagname)=@_;
+	
+	my($self)=$proto->SUPER::new();
+	
+	$self->{outputDoc}=$outputDoc;
+	$self->{parent}=$parent;
+	$self->{iotagname}=$iotagname;
+	
+	return bless($self,$class);
+}
+
+########################
+# SAX instance methods #
+########################
+sub start_element {
+	my($self,$elem)=@_;
+	
+	my($elname)=$elem->{LocalName};
+
+	if($elem->{NamespaceURI} eq $IWWEM::WorkflowCommon::BACLAVA_NS && $elname eq 'dataThing') {
+		my($ionode)=$self->{outputDoc}->createElementNS($IWWEM::WorkflowCommon::WFD_NS,$self->{iotagname});
+		$ionode->setAttribute('name',$elem->{Attributes}{'{}key'}{Value});
+		$self->{parent}->appendChild($ionode);
+	}
 }
 
 1;

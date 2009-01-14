@@ -134,6 +134,38 @@ sub getDomainClass() {
 	return 'myExperiment';
 }
 
+sub getWorkflowURI($) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($parser)=$self->{PARSER};
+	my($id)=@_;
+	
+	# It is required a full description
+	my($wfuri)=undef;
+	eval {
+		my($expdoc)=$parser->parse_file($MYEXP_WF_URL.$id);
+		my($exproot)=$expdoc->documentElement();
+		
+		my($child)=undef;
+		
+		for($child=$exproot->firstChild();$child->nextSibling();$child=$child->nextSibling()) {
+			if($child->nodeType()==XML::LibXML::XML_ELEMENT_NODE) {
+				my($lname)=$child->localname();
+				if($lname eq 'content-uri') {
+					$wfuri=$child->textContent();
+				}
+			}
+		}
+	};
+	if($@) {
+		print STDERR "PANIC!!!! $@\n";
+	}
+		
+	return $wfuri;
+}
+
 sub getWorkflowInfo($@) {
 	my($self)=shift;
 	
@@ -207,7 +239,8 @@ sub getWorkflowInfo($@) {
 			my($uuid)=$MYEXP_PREFIX.$wf;
 			if(exists($self->{WFH}{$wfKind})) {
 				eval {
-					$wfe = $self->{WFH}{$wfKind}->getWorkflowInfo($wfuri,$uuid,undef,undef,undef);
+					# $wfe = $self->{WFH}{$wfKind}->getWorkflowInfo($wfuri,$uuid,undef,undef,undef);
+					$wfe = $self->{WFH}{$wfKind}->getWorkflowInfo($uuid,$wfuri,$wfuri);
 				};
 				if($@) {
 					print STDERR "MINIPANIC!!!! $@\n";

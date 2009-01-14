@@ -38,7 +38,7 @@ use Socket;
 
 use lib "$FindBin::Bin";
 use IWWEM::WorkflowCommon;
-use enactionstatus;
+use IWWEM::InternalWorkflowList;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -58,6 +58,7 @@ my($snapshotName)=undef;
 my($snapshotDesc)=undef;
 my($responsibleMail)=undef;
 my($responsibleName)=undef;
+my($autoUUID)=undef;
 
 # First step, parameter storage (if any!)
 PARAMPARSE:
@@ -93,6 +94,12 @@ foreach my $param ($query->param()) {
 	} elsif($param eq $IWWEM::WorkflowCommon::RESPONSIBLENAME) {
 		$responsibleName = $query->param($param);
 		@paramvalarr = ( $responsibleName );
+	} elsif($param eq $IWWEM::WorkflowCommon::AUTOUUID) {
+		my($paramval) = $query->param($param);
+		unless($paramval eq '1' || $paramval eq '') {
+			$autoUUID = $paramval;
+			@paramvalarr = ( $autoUUID );
+		}
 	}
 	last  if($query->cgi_error());
 	
@@ -121,6 +128,9 @@ if($retval ne '0' || $query->cgi_error()) {
 	exit 0;
 }
 
-enactionstatus::sendEnactionReport($query,@jobIdList,$snapshotName,$snapshotDesc,$responsibleMail,$responsibleName,$dispose);
+# This object is needed in some cases...
+my($iwfl)=IWWEM::InternalWorkflowList->new(undef,1);
+
+$iwfl->sendEnactionReport($query,\@jobIdList,$snapshotName,$snapshotDesc,$responsibleMail,$responsibleName,$dispose,$autoUUID);
 
 exit 0;

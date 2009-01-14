@@ -55,15 +55,11 @@ use vars qw($LAUNCHERDIR);
 
 use vars qw($RESULTSDIR $ETCRELDIR $ETCDIR);
 
-use vars qw($COMMANDFILE $PENDINGERASEFILE $PENDINGADDFILE);
-
 use vars qw($ITERATIONSDIR);
-
-use vars qw($COMMANDADD $COMMANDERASE);
 
 use vars qw($PATTERNSFILE);
 
-use vars qw($BACLAVAPARAM $PARAMWFID $PARAMWORKFLOWDEP $PARAMWORKFLOW $PARAMISLAND $PARAMALTVIEWERURI);
+use vars qw($BACLAVAPARAM $PARAMWFID $PARAMWORKFLOWDEP $PARAMWORKFLOWREF $PARAMWORKFLOW $PARAMISLAND $PARAMALTVIEWERURI);
 use vars qw($PARAMPREFIX $ENCODINGPREFIX $MIMEPREFIX);
 use vars qw($WFD_NS $PAT_NS $BACLAVA_NS);
 
@@ -75,13 +71,15 @@ use vars qw($LICENSESTART $LICENSESTOP);
 
 use vars qw(%GRAPHREP);
 
-use vars qw($RESPONSIBLENAME $RESPONSIBLEMAIL);
+use vars qw($RESPONSIBLENAME $RESPONSIBLEMAIL $AUTOUUID);
 
 use vars qw($LICENSENAME $LICENSEURI);
 
 # Workflow files constants
 $RESPONSIBLENAME='responsibleName';
 $RESPONSIBLEMAIL='responsibleMail';
+$AUTOUUID='autoUUID';
+
 $LICENSENAME='licenseName';
 $LICENSEURI='licenseURI';
 
@@ -119,15 +117,10 @@ $PATTERNSFILE = $ETCDIR . '/' . 'EVpatterns.xml';
 # Launcher directory
 $LAUNCHERDIR = $FindBin::Bin.'/INBWorkflowLauncher';
 
-$PENDINGERASEFILE='eraselist.txt';
-$PENDINGADDFILE='addlist.txt';
-$COMMANDFILE='.command';
-$COMMANDADD='add';
-$COMMANDERASE='erase';
-
 $PARAMWFID='id';
 $PARAMWORKFLOW='workflow';
 $PARAMWORKFLOWDEP='workflowDep';
+$PARAMWORKFLOWREF='workflowRef';
 $PARAMISLAND='dataIsland';
 $PARAMALTVIEWERURI='altViewerURI';
 $PARAMSAVEEX='exampleName';
@@ -173,18 +166,19 @@ $COMMENTES=$COMMENTPRE.'enactionstatus'.$COMMENTPOST;
 $LICENSESTART=('-' x 30)."LICENSE URI START".('-' x 30);
 $LICENSESTOP= ('-' x 30)."LICENSE URI  STOP".('-' x 30);
 
+use vars qw($AUTOUUID);
+
+$AUTOUUID='autoUUID';
+
 # Method declaration
 sub genUUID();
 sub patchXMLString($);
 sub depatchPath($);
 
 sub getCGIBaseURI($);
-sub genPendingOperationsDir($);
 sub createResponsibleFile($$;$);
 sub createMailer();
 sub enactionGUIURI($;$$);
-sub sendResponsibleConfirmedMail($$$$$$$;$$$);
-sub sendResponsiblePendingMail($$$$$$$$);
 sub sendEnactionMail($$$;$);
 
 # Method bodies
@@ -283,43 +277,12 @@ sub getCGIBaseURI($) {
 	return "$proto://$host$port$relpath";
 }
 
-# Generates a pending operation directory structure
-sub genPendingOperationsDir($) {
-	my($oper)=@_;
-	
-	# Generating a unique identifier
-	my($randname);
-	my($randfilexml);
-	my($randdir);
-	do {
-		$randname=IWWEM::WorkflowCommon::genUUID();
-		$randdir=$IWWEM::Config::CONFIRMDIR.'/'.$randname;
-	} while(-d $randdir);
-
-	# Creating workflow directory
-	mkpath($randdir);
-	my($COM);
-	my($FH);
-	if(open($COM,'>',$randdir.'/'.$IWWEM::WorkflowCommon::COMMANDFILE)) {
-		print $COM $oper;
-		close($COM);
-		if($oper eq $IWWEM::WorkflowCommon::COMMANDADD) {
-			# touch
-			open($FH,'>',$randdir.'/'.$IWWEM::WorkflowCommon::PENDINGADDFILE);
-		} elsif($oper eq $IWWEM::WorkflowCommon::COMMANDERASE) {
-			# touch
-			open($FH,'>',$randdir.'/'.$IWWEM::WorkflowCommon::PENDINGERASEFILE);
-		}
-	}
-	
-	return ($randname,$randdir,$FH);
-}
-
 # Responsible name and mail must be already in UTF-8!
 sub createResponsibleFile($$;$) {
 	my($basedir,$responsibleMail,$responsibleName)=@_;
 	
 	$responsibleName=''  unless(defined($responsibleName));
+	my($autoUUID)=genUUID();
 	
 	eval {
 		my($resdoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
@@ -327,11 +290,12 @@ sub createResponsibleFile($$;$) {
 		$resroot->appendChild($resdoc->createComment( encode('UTF-8',$IWWEM::WorkflowCommon::COMMENTEL) ));
 		$resroot->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
 		$resroot->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+		$resroot->setAttribute($IWWEM::WorkflowCommon::AUTOUUID,$autoUUID);
 		$resdoc->setDocumentElement($resroot);
 		$resdoc->toFile($basedir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE);
 	};
 	
-	return $@;
+	return ($@,$autoUUID);
 }
 
 sub createMailer() {
@@ -366,28 +330,6 @@ sub enactionGUIURI($;$$) {
 	return $operURL;
 }
 
-sub sendResponsibleConfirmedMail($$$$$$$;$$$) {
-	my($smtp,$code,$kind,$command,$irelpath,$responsibleMail,$prettyname,$query,$enId,$viewerURI)=@_;
-	
-	$smtp=IWWEM::WorkflowCommon::createMailer()  unless(defined($smtp));
-	my($prettyop)=($command eq $IWWEM::WorkflowCommon::COMMANDADD)?'added':'disposed';
-	
-	my($operURL)=IWWEM::WorkflowCommon::enactionGUIURI($query,$enId,$viewerURI);
-	my($addmesg)='';
-	if(defined($operURL)) {
-		$addmesg="You can browse it at\r\n\r\n$operURL\r\n";
-	}
-	
-	return $smtp->MailMsg({
-		from=>"\"$IWWEM::Common::IWWEMmailname\" <$IWWEM::Common::IWWEMmailaddr>",
-		to=>"\"IWWE&M user\" <$responsibleMail>",
-		subject=>"Your $kind $irelpath has just been $prettyop",
-		msg=>"Dear IWWE&M user,\r\n    as you have just confirmed petition ".
-			$code.", your $kind $irelpath".(defined($prettyname)?(" (known as $prettyname)"):'').
-			" has just been $prettyop\r\n$addmesg\r\n    The INB Interactive Web Workflow Enactor & Manager system"
-	});
-}
-
 sub sendEnactionMail($$$;$) {
 	my($query,$jobId,$responsibleMail,$hasFinished)=@_;
 	
@@ -396,30 +338,10 @@ sub sendEnactionMail($$$;$) {
 	my($status)=defined($hasFinished)?'finished':'started';
 	my($dataStatus)=defined($hasFinished)?'results':'progress';
 	return $smtp->MailMsg({
-		from=>"\"$IWWEM::Common::IWWEMmailname\" <$IWWEM::Common::IWWEMmailaddr>",
+		from=>"\"$IWWEM::MailConfig::IWWEMmailname\" <$IWWEM::MailConfig::IWWEMmailaddr>",
 		to=>"\"IWWE&M user\" <$responsibleMail>",
 		subject=>"Your enaction $jobId has just $status",
 		msg=>"Dear IWWE&M user,\r\n    your enaction $jobId has just $status. You can see the $dataStatus at\r\n\r\n$operURL\r\n\r\nThe INB Interactive Web Workflow Enactor & Manager system"
-	});
-}
-
-sub sendResponsiblePendingMail($$$$$$$$) {
-	my($query,$smtp,$code,$kind,$command,$irelpath,$responsibleMail,$prettyname)=@_;
-	
-	$smtp=IWWEM::WorkflowCommon::createMailer()  unless(defined($smtp));
-	my($prettyop)=($command eq $IWWEM::WorkflowCommon::COMMANDADD)?'addition':'deletion';
-	
-	my($operURL)=IWWEM::WorkflowCommon::getCGIBaseURI($query);
-	$operURL =~ s/cgi-bin\/[^\/]+$//;
-	$operURL.="cgi-bin/IWWEMconfirm?code=$code";
-	
-	return $smtp->MailMsg({
-		from=>"\"$IWWEM::Common::IWWEMmailname\" <$IWWEM::Common::IWWEMmailaddr>",
-		to=>"\"IWWE&M user\" <$responsibleMail>",
-		subject=>"Confirmation for $prettyop of $kind $irelpath",
-		msg=>"Dear IWWE&M user,\r\n    before the $prettyop of $kind $irelpath".
-			(defined($prettyname)?(" (known as $prettyname)"):'').
-			" you must confirm it by visiting\r\n\r\n$operURL\r\n\r\n    The INB Interactive Web Workflow Enactor & Manager system"
 	});
 }
 

@@ -69,8 +69,13 @@ sub new(;$$) {
 # Methods #
 ###########
 
-#	my($wf,$uuid,$listDir,$relwffile,$isSnapshot)=@_;
-sub getWorkflowInfo($$$$$) {
+#	my($uuid,$wffile,$relwffile)=@_;
+sub getWorkflowInfo($$$) {
+	croak("Unimplemented method");
+}
+
+#	my($WFmaindoc)=@_;
+sub canPatch($) {
 	croak("Unimplemented method");
 }
 
@@ -79,7 +84,12 @@ sub patchWorkflow($$$$$;$$$) {
 	croak("Unimplemented method");
 }
 
-#	my($wfile,$jobdir,$p_baclava,$inputFileMap,$saveInputsFile)=@_;
+#	#	my($WFmaindoc,$licenseURI,$licenseName)=@_;
+sub patchEmbeddedLicence($$$) {
+	croak("Unimplemented method");
+}
+
+my($wfile,$jobdir,$p_baclava,$inputFileMap,$saveInputsFile)=@_;
 sub launchJob($$$$$) {
 	croak("Unimplemented method");
 }

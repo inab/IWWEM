@@ -1,0 +1,69 @@
+<html>
+<head>
+	<title>Interactive Web Workflow Enactor &amp; Manager (loading)</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+	<!--
+		$Id: workflowmanager.html 256 2008-10-09 17:11:44Z jmfernandez $
+		workflowmanager.html
+		from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
+		Author: José María Fernández González (C) 2007-2008
+		Institutions:
+		*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+		*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+
+		This file is part of IWWE&M, the Interactive Web Workflow Enactor & Manager.
+
+		IWWE&M is free software: you can redistribute it and/or modify
+		it under the terms of the GNU Affero General Public License as published by
+		the Free Software Foundation, either version 3 of the License, or
+		(at your option) any later version.
+
+		IWWE&M is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU Affero General Public License for more details.
+
+		You should have received a copy of the GNU Affero General Public License
+		along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
+
+		Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
+		Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
+	-->
+	<link rel="shortcut icon" href="style/IWWEM-favicon.ico" type="image/vnd.microsoft.icon">
+	<link rel="icon" href="style/IWWEM-favicon.ico" type="image/vnd.microsoft.icon">
+
+	<link rel="stylesheet" type="text/css" href="style/IWWEM-styles.css">
+
+	<script type="text/javascript" src="js/ORFandDB-widgetCommon/browserdetect/BrowserDetect.js"></script>
+
+	<script type="text/javascript" language="JavaScript" src="js/adobesvgcheck/svgcheck.js"></script>
+	<script type="text/vbscript" language="VBScript" src="js/adobesvgcheck/svgcheck.vbs"></script>
+	<script type="text/javascript" language="JavaScript"><!--
+if(BrowserDetect.browser=='Explorer') {
+	checkAndGetSVGViewer();
+}
+// -->
+	</script>
+
+	<script type="text/javascript" src="js/ORFandDB-widgetCommon/widgetCommon.js"></script>
+
+	<script type="text/javascript" src="etc/IWWEM-config.js"></script>
+	
+	<script type="text/javascript" language="JavaScript"><!--
+function onInit() {
+	var pageTitle=WidgetCommon.getElementById('titleB');
+	var newTitle='Interactive Web Workflow Enactor & Manager v'+IWWEM.Version;
+	document.title=newTitle;
+	pageTitle.innerHTML='';
+	pageTitle.appendChild(document.createTextNode(newTitle));
+}
+// -->
+	</script>
+</head>
+<body onload="onInit()">
+	<div style="clear:both;text-align:center;"><a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <b id="titleB">Interactive Web Workflow Enactor &amp; Manager <i><blink>(loading)</blink></i></b></div>
+	<div style="clear:both;text-align:center;"><iframe src="style/IWWEM-logo.svg" style="border:none;"></iframe></div>
+<div class="license">IWWE&amp;M code is under <a target="_blank" href="http://www.gnu.org/licenses/agpl.html"><img src="licenses/agplv3-88x31.png" style="vertical-align:middle" alt="AGPLv3" title="AGPLv3" border="0"></a> license. Source code is available at <a target="_blank" href="http://trac.bioinfo.cnio.es/trac/iwwem">IWWE&amp;M Trac server</a>.<br>Original IWWE&amp;M concept, design and coding done by Jos&eacute; Mar&iacute;a Fern&aacute;ndez, <a target="_blank" href="http://www.inab.org/">INB</a> (C) 2008-2009.</div>	
+</body>
+</html>

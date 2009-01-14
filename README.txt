@@ -1,11 +1,11 @@
-INBWorkflowLauncher 0.1.0
+INBWorkflowLauncher 0.3.0
 =========================
 
 Introduction
 ------------
 
-This program is a wrapper around Taverna libraries, so
-Taverna workflows which don't need interactions can be
+This program is a wrapper around Taverna1 libraries, so
+Taverna1 workflows which don't need interactions can be
 run from command line.
 
 This program is based on Taverna's 1.6.2.0 example program

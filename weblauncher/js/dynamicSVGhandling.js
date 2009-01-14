@@ -220,11 +220,13 @@ TavernaSVG.prototype = {
 				this.once=undefined;
 				// Due ANOTHER WebKit bug, we cannot set width and height to 100%
 				// because most of the dynamic elements of the page are hidden :-(
-				if(this.asEmbed) {
-					this.svgobj.style.width  = '95%';
-					this.svgobj.style.height = '95%';
-				} else {
-					this.svgobj.setAttribute("style",this.defaultPreStyle+" width:95%;height:95%;");
+				if(this.svgobj) {
+					if(this.asEmbed) {
+						this.svgobj.style.width  = '95%';
+						this.svgobj.style.height = '95%';
+					} else {
+						this.svgobj.setAttribute("style",this.defaultPreStyle+" width:95%;height:95%;");
+					}
 				}
 			}
 		}
@@ -311,75 +313,81 @@ TavernaSVG.prototype = {
 				if(HEADrequest.onload) {
 					HEADrequest.onload=function() {};
 					HEADrequest.onerror=function() {};
-					HEADrequestonload=undefined;
-					HEADrequestonerror=undefined;
-					HEADrequest=undefined;
 				}
-			}
-		};
-
-		HEADrequestonerror = function() {
-			if(HEADrequest) {
-				if(thissvg.defaultsvg!=undefined) {
-					thissvg.rawLoadSVG(load,node,thissvg.defaultid,thissvg.badurl,thissvg.defaultbestScaleW,thissvg.defaultbestScaleH,callOnFinish,thedoc);
-				} else {
-					// Error path
-					if(typeof callOnFinish=='function') {
-						callOnFinish();
-					}
-				}
-				if(HEADrequest.onload) {
-					HEADrequest.onload=function() {};
-					HEADrequest.onerror=function() {};
-					HEADrequestonload=undefined;
-					HEADrequestonerror=undefined;
-					HEADrequest=undefined;
-				}
-			}
-		};
-
-		var onreadystatechange = function() {
-			if(HEADrequest.readyState==4) {
-				HEADrequest.onreadystatechange=function() {};
-				if(HEADrequest.status==200 || HEADrequest.status==304) {
-					HEADrequestonload();
-				} else {
-					HEADrequestonerror();
-				}
+				HEADrequestonload=undefined;
+				HEADrequestonerror=undefined;
 				HEADrequest=undefined;
 			}
 		};
 		
-		var dovar=1;
-		if(HEADrequest.addEventListener) {
-			try {
-				HEADrequest.addEventListener('load',HEADrequestonload,false);
-				HEADrequest.addEventListener('error',HEADrequestonerror,false);
-				dovar=undefined;
-			} catch(e) {
+		// HEAD checks are subjected to the same restrictions as GET, POST and PUT requests.
+		// So check whether we can apply it!
+		var basehref = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
+		if((url.indexOf('http://')!=0 && url.indexOf('https://')!=0 && url.indexOf('ftp://')!=0) || url.indexOf(basehref)==0) {
+			HEADrequestonerror = function() {
+				if(HEADrequest) {
+					if(thissvg.defaultsvg!=undefined) {
+						thissvg.rawLoadSVG(load,node,thissvg.defaultid,thissvg.badurl,thissvg.defaultbestScaleW,thissvg.defaultbestScaleH,callOnFinish,thedoc);
+					} else {
+						// Error path
+						if(typeof callOnFinish=='function') {
+							callOnFinish();
+						}
+					}
+					if(HEADrequest.onload) {
+						HEADrequest.onload=function() {};
+						HEADrequest.onerror=function() {};
+					}
+					HEADrequestonload=undefined;
+					HEADrequestonerror=undefined;
+					HEADrequest=undefined;
+				}
+			};
+
+			var onreadystatechange = function() {
+				if(HEADrequest.readyState==4) {
+					HEADrequest.onreadystatechange=function() {};
+					if(HEADrequest.status==200 || HEADrequest.status==304) {
+						HEADrequestonload();
+					} else {
+						HEADrequestonerror();
+					}
+					HEADrequest=undefined;
+				}
+			};
+
+			var dovar=1;
+			if(HEADrequest.addEventListener) {
 				try {
-					HEADrequest.addEventListener('readystatechange',onreadystatechange,false);
+					HEADrequest.addEventListener('load',HEADrequestonload,false);
+					HEADrequest.addEventListener('error',HEADrequestonerror,false);
 					dovar=undefined;
 				} catch(e) {
-					// IgnoreIT!(R)
+					try {
+						HEADrequest.addEventListener('readystatechange',onreadystatechange,false);
+						dovar=undefined;
+					} catch(e) {
+						// IgnoreIT!(R)
+					}
 				}
 			}
-		}
-		
-		if(dovar) {
-			if(HEADrequest.onload) {
-				HEADrequest.onload=HEADrequestonload;
-				HEADrequest.onerror=HEADrequestonerror;
-			} else {
-				HEADrequest.onreadystatechange=onreadystatechange;
+
+			if(dovar) {
+				if(HEADrequest.onload) {
+					HEADrequest.onload=HEADrequestonload;
+					HEADrequest.onerror=HEADrequestonerror;
+				} else {
+					HEADrequest.onreadystatechange=onreadystatechange;
+				}
 			}
+
+
+			// Now it is time to send the query
+			HEADrequest.open('HEAD',url,true);
+			HEADrequest.send(null);
+		} else {
+			HEADrequestonload();
 		}
-
-		
-		// Now it is time to send the query
-		HEADrequest.open('HEAD',url,true);
-		HEADrequest.send(null);
-
 	},
 	
 	rawLoadSVG: function(load,node,nodeid,url,bestScaleW,bestScaleH,callOnFinish,thedoc) {
@@ -416,8 +424,8 @@ TavernaSVG.prototype = {
 					if(BrowserDetect.browser!='Konqueror') {
 						delete window['SVGtrampoline'];
 					}
-					thissvg.SVGrescale(bestScaleW,bestScaleH);
 				}
+				thissvg.SVGrescale(bestScaleW,bestScaleH);
 				try {
 					if(typeof callOnFinish=='function') {
 						callOnFinish();
@@ -427,11 +435,22 @@ TavernaSVG.prototype = {
 				}
 				thissvg.loading=setTimeout(thissvg.timeoutLoad,163);
 			};
-
+			
 			objres.setAttribute("wmode","transparent");
 			//objres.onload=finishfunc;
 			objres.addEventListener('load',finishfunc,false);
+			objres.onreadystatechange=function (evt) { alert('PetaZetaERRC!'); };
+			objres.onabort=function (evt) { alert('PetaZetaERRA!'); };
+			objres.onerror=function (evt) { alert('PetaZetaERRE!'); };
+			objres.onprogress=function (evt) { alert('PetaZetaERRP!'); };
 
+			/*
+			var fallback=thedoc.createElement('p');
+			fallback.appendChild(thedoc.createTextNode("Mielda Blanca"));
+
+			objres.appendChild(fallback);
+			*/
+			
 			/* Trying to add some error control path, with no success :-(
 			objres.addEventListener('error',function(evt) {alert("CUA CUA CUA CUA");},false);
 			var fallback=thedoc.createElement('script');
@@ -486,6 +505,23 @@ TavernaSVG.prototype = {
 			oldsvgobj.style.visibility='hidden';
 		}
 		node.appendChild(objres);
+		var jaa=setTimeout(function() {
+			/*
+			var fav='';
+			for(var facet in objres.contentDocument) {
+				try {
+					//fav+=facet+':'+objres[facet]+"\n";
+					fav+=facet+"\n";
+				} catch(e) {
+				}
+			}
+			alert(fav);
+			*/
+			alert(objres.clientWidth+' '+objres.clientHeight);
+			
+			clearTimeout(jaa);
+			jaa=undefined;
+		},5000);
 		// And this is needed due a Webkit bug! Nuts!
 		if(oldsvgobj) {
 			oldsvgobj.parentNode.removeChild(oldsvgobj);

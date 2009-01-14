@@ -60,7 +60,7 @@ Currently, IWWE&amp;M has 6 frontends, used by AJAX GUIs:
 <p>First of all, all these frontends have lots of parameters, and some of them may contain international characters, like Spanish <span class="value">&ntilde;</span> or French and Catalonian <span class="value">&ccedil;</span>. So, all these frontends expect that must of their parameters <b>are encoded in UTF-8</b>, no more, no less. The only exceptions are <span class="parameter">PARAM_</span> prefixed parameters passed as files, whose encoding can be driven by their corresponding <span class="parameter">ENCODING_</span> prefixed parameters</p>
 <p>All these frontends use the concept of Ids: workflow Ids, example Ids, enaction Ids, snapshot Ids and confirmation Ids. All the unqualified Ids have the format of an <a href="http://en.wikipedia.org/wiki/UUID">UUID</a>, but there are some differences when the IDs are fully qualified:</p>
 <ul>
-<li>Any unqualified workflow Id has the format of an UUID, for instance <span class="value">2365b91b-b7ae-4aa9-ae70-e8be4f40c0b3</span>. In some contexts, workflow Ids can be used in its unqualified representation, but its qualified representation would be <span class="value">workflow:2365b91b-b7ae-4aa9-ae70-e8be4f40c0b3</span>. So its qualified format is <span class="value">workflow:{wUUID}</span>, where <span class="value">wUUID</span> is the workflow Id. An external public workflow (one which is not stored in IWWE&amp;M) would be referenced using its URI (which is not always an URL).</li>
+<li>Any unqualified workflow Id has the format of an UUID, for instance <span class="value">2365b91b-b7ae-4aa9-ae70-e8be4f40c0b3</span>. In some contexts, workflow Ids can be used in its unqualified representation, but its qualified representation would be <span class="value">workflow:2365b91b-b7ae-4aa9-ae70-e8be4f40c0b3</span>. So its qualified format is <span class="value">workflow:{wUUID}</span>, where <span class="value">wUUID</span> is the workflow Id. An external public workflow (one which is not stored in IWWE&amp;M) would be referenced using its URI (which is not always an URL). For instance, <span class="value">myExperiment:58</span>.</li>
 <li>As an example Id depends on a workflow, a fully qualified example Id has the format of <span class="value">example:{wUUID}:{eUUID}</span>, where <span class="value">wUUID</span> is the workflow Id and <span class="value">eUUID</span> is the example Id.
 For instance:
 <div align="center"><span class="value">example:0b4d3b5c-d4e7-4697-a831-7be74a35943b:f81c2a2a-3a85-454a-a9fe-077b2fcc6201</span></div>
@@ -99,9 +99,12 @@ parameters are used for the workflow repository maintenance:
 When this parameter is set with an identifier (workflow Id, qualified enaction Id, qualified snapshot Id), <span class="frontend">workflowmanager</span> frontend change its default behavior, listing only this information instead of the default one (whole workflow repository listing). When this parameter is set with special keyword <span class="value">enaction:</span>, <span class="frontend">workflowmanager</span> frontend change its default behavior, listing whole enaction repository information as workflows. Last, when this parameter is set to a partially qualified snapshot Id, in the form of <span class="value">snapshot:{wUUID}</span>, <span class="frontend">workflowmanager</span> frontend change its default behavior, listing whole snapshot information associated to workflow <span class="value">{wUUID}</span> as workflows.
 </li>
 <li><u><span class="parameter">eraseId</span> <i>(optional, multiple)</i></u>:
-When this parameter is set with an identifier (workflow Ids, qualified example Ids, qualified enaction Ids, qualified snapshot Ids), <span class="frontend">workflowmanager</span> frontend disposes all the resources associated
-to the element labeled with that identifier before returning the workflow repository status. This parameter can be set many times,
-doing all the erasing operations at once.
+When this parameter is set with an identifier (workflow Ids, qualified example Ids, qualified enaction Ids, qualified snapshot Ids), <span class="frontend">workflowmanager</span> frontend disposes all the resources associated to the element labeled with that identifier before returning the workflow repository status. This parameter can be set many times, doing all the erasing operations at once.
+</li>
+<li><u><span class="parameter">autoUUID</span> <i>(optional)</i></u>:
+When this parameter is set, <span class="frontend">workflowmanager</span> frontend uses it as automatable authentication token. This token has some different meanings, because it can be the one from a trusted user so it adds workflows, or from a trusted owner of something which is going to be erased.
+</li>
+<li><u><span class="parameter">workflowRef</span> <i>(optional)</i></u>: This parameter was designed to upload new workflows by reference, usually from other repositories. This parameter must be either a valid internal or external workflow Id, a valid qualified enaction Id or a valid qualified snapshot Id associated to the corresponding resource in the workflow repository. If you want to upload a workflow by content, then <span class="parameter">workflow</span> parameter must be used.
 </li>
 <li><u><span class="parameter">workflow</span> and <span class="parameter">workflowDep</span> <i>(optional, multiple)</i></u>:
 These parameters were designed to upload new workflows to the workflow repository. So, the best enviroment to use them is in a POST transfer, in multipar/form-data style, optionally transferring them as files. <span class="parameter">workflow</span> parameters represent the workflows to be added, in <a href="http://www.mygrid.org.uk/usermanual1.7/scufl_language_wb_features.html">Taverna SCUFL format</a>. As any of the uploaded workflows can have locally referenced dependencies, <span class="parameter">workflowDep</span> parameters can be used to upload those local dependencies along with the workflows to upload. This step is not needed when there is no external dependency (i.e. the dependencies are already embedded in the workflows), or the dependencies are referenced with HTTP, HTTPS or FTP urls. The workflow addition operation is not effective until it is confirmed (see <span class="frontend"><a href="#IWWEMconfirm">IWWEMconfirm</a></span> and <span class="parameter">responsibleMail</span> parameter).
@@ -152,7 +155,7 @@ parse pure XML loaded in embedded FRAMEs or IFRAMEs due browser limitations. Whe
 by an <tt>xml</tt> tag (for Internet Explorer), and when parameter is <span class="value">2</span>, the content is wrapped by a <tt>div</tt> tag
 (for Konqueror).
 </li>
-<li><u><span class="parameter">id</span> <i>(required)</i></u>: This parameter must be either a valid workflow Id, a valid qualified enaction Id or a valid qualified snapshot Id associated to the corresponding resource in the workflow repository. If this parameter is not used, then <span class="parameter">workflow</span> parameter must be used.
+<li><u><span class="parameter">workflowRef</span> or its alias <span class="parameter">id</span> <i>(required)</i></u>: This parameter must be either a valid internal or external workflow Id, a valid qualified enaction Id or a valid qualified snapshot Id associated to the corresponding resource in the workflow repository. If this parameter is not used, then <span class="parameter">workflow</span> parameter must be used.
 </li>
 <li><u><span class="parameter">reusePrevInput</span> <i>(optional)</i></u>: When <span class="parameter">id</span> parameter is either a qualified enaction Id or a qualified snapshot Id, this parameter is set and no other input has been sent, the input from previous enaction or snapshot is reused. Otherwise, it is ignored.
 </li>
@@ -172,6 +175,9 @@ These parameters were designed to upload new workflows to the workflow repositor
 <li><u><span class="parameter">responsibleMail</span> and <span class="parameter">responsibleName</span><i>(optional)</i></u>:
 Parameter <span class="parameter">responsibleMail</span> must be set with a valid e-mail address when optional <span class="parameter">exampleName</span> parameter is set, because it is the e-mail address of the responsible person of the example (different from the workflow author and workflow responsible).
 An e-mail is sent to the responsible person when enaction is just starting and when enaction has just finished. Parameter <span class="parameter">responsibleName</span> can be set to the name of the responsible person of the example to be inserted.
+</li>
+<li><u><span class="parameter">autoUUID</span> <i>(optional)</i></u>:
+When this parameter is set, <span class="frontend">enactionlauncher</span> frontend uses it as automatable authentication token. This token has some different meanings, because it can be the one from a trusted user so it adds examples.
 </li>
 <li><u><span class="parameter">onlySaveAsExample</span> <i>(optional, deprecated)</i></u>: When <span class="parameter">exampleName</span> is set, <span class="parameter">id</span> parameter is a workflow Id, a qualified enaction Id or a qualified snapshot Id, and this parameter is set, only save parameters stage is done and no enaction process is issued.
 </li>
@@ -214,6 +220,9 @@ be taken. <span class="parameter">snapshotName</span> has no restrictions in its
 <li><u><span class="parameter">responsibleMail</span> and <span class="parameter">responsibleName</span><i>(optional)</i></u>:
 Parameter <span class="parameter">responsibleMail</span> must be set with a valid e-mail address when optional <span class="parameter">snapshotName</span> parameter is set, because it is the e-mail address of the responsible person of the snapshot (different from the enaction responsible).
 Parameter <span class="parameter">responsibleName</span> can be set to the name of the responsible person of the snapshot to be inserted.
+</li>
+<li><u><span class="parameter">autoUUID</span> <i>(optional)</i></u>:
+When this parameter is set, <span class="frontend">enactionstatus</span> frontend uses it as automatable authentication token. This token has some different meanings, because it can be the one from a trusted user so it adds snapshots, or from a trusted owner of something which is going to be disposed.
 </li>
 </ul>
 
@@ -285,6 +294,8 @@ and the addition operations from <span class="frontend"><a href="#workflowmanage
 
 <ul>
 <li><u><span class="parameter">code</span> <i>(required)</i></u>: The confirmation Id, or code, which confirms the operation.
+</li>
+<li><u><span class="parameter">reject</span> <i>(optional)</i></u>: If it is set, the actions of the operation are rejected.
 </li>
 </ul>
 

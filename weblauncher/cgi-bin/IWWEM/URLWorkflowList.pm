@@ -1,7 +1,7 @@
 #!/usr/bin/perl -W
 
 # $Id: Config.pm 256 2008-10-09 17:11:44Z jmfernandez $
-# IWWEM/InternalWorkflowList.pm
+# IWWEM/URLWorkflowList.pm
 # from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 # Author: José María Fernández González (C) 2007-2008
 # Institutions:
@@ -88,6 +88,16 @@ sub getDomainClass() {
 	return 'URL';
 }
 
+sub getWorkflowURI($) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($id)=@_;
+	
+	return $id;
+}
+
 sub getWorkflowInfo($@) {
 	my($self)=shift;
 	
@@ -107,7 +117,7 @@ sub getWorkflowInfo($@) {
 		my($wfKind)='UNIVERSAL';
 		#my($wfcatmutex)=LockNLog::SimpleMutex->new($wfdir.'/'.$IWWEM::WorkflowCommon::LOCKFILE,$regen);
 			my($uuid)=$uuidPrefix.$wf;
-			$retnode = $self->{WFH}{$wfKind}->getWorkflowInfo($wf,$uuid,$listDir,$relwffile,$isSnapshot);
+			$retnode = $self->{WFH}{$wfKind}->getWorkflowInfo($uuid,$wf,$wf);
 			
 			my($outputDoc)=$retnode->ownerDocument();
 			my($release)=$retnode->firstChild();

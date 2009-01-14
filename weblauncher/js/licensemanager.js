@@ -36,7 +36,7 @@ function License(/*optional*/ licDOM,baseURI) {
 			this.abbrevURI=licDOM.getAttribute('abbrevURI');
 			this.logo=new Array();
 			for(var logo=licDOM.firstChild;logo;logo=logo.nextSibling) {
-				if(logo.nodeType==1) {
+				if(logo.nodeType==1 && GeneralView.getLocalName(logo)=='logo') {
 					var width=logo.getAttribute('width');
 					if(width==undefined || !width)  width=undefined;
 					

@@ -88,17 +88,21 @@ sub getWorkflowInfo($@) {
 	croak("Unimplemented method");
 }
 
+sub getWorkflowURI($) {
+	croak("Unimplemented method");
+}
+
 sub getDomainClass() {
 	croak("Unimplemented method");
 }
 
-#	my($OUTPUT,$query,$retval,$retvalmsg,$dataislandTag)=@_;
-sub sendWorkflowList($$$$;$) {
+#	my($OUTPUT,$query,$retval,$retvalmsg,$dataislandTag,$autoUUID)=@_;
+sub sendWorkflowList($$$$;$$) {
 	my($self)=shift;
 	
 	croak("This is an instance method!")  unless(ref($self));
 	
-	my($OUTPUT,$query,$retval,$retvalmsg,$dataislandTag)=@_;
+	my($OUTPUT,$query,$retval,$retvalmsg,$dataislandTag,$autoUUID)=@_;
 	
 	my($p_workflowlist,$baseListDir)=($self->{WORKFLOWLIST},$self->{baseListDir});
 		
@@ -118,9 +122,10 @@ sub sendWorkflowList($$$$;$) {
 	$root->appendChild($domain);
 	
 	# Attached Error Message (if any)
-	if($retval!=0) {
+	if($retval!=0 || defined($autoUUID)) {
 		my($message)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'message');
 		$message->setAttribute('retval',$retval);
+		$message->setAttribute('autoUUID',$autoUUID);
 		if(defined($retvalmsg)) {
 			$message->appendChild($outputDoc->createCDATASection($retvalmsg));
 		}
@@ -149,14 +154,18 @@ sub sendWorkflowList($$$$;$) {
 	}
 }
 
-#		my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
-sub parseInlineWorkflows($$$$$$;$$$) {
+#		my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$param,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$autoUUID)=@_;
+sub parseInlineWorkflows($$$$$$$;$$$) {
 	croak("Unimplemented method");
 }
 
 #	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
 sub patchWorkflow($$$$$;$$$) {
-	croak("Unimplemented method");
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	return $self->{WFH}{UNIVERSAL}->patchWorkflow(@_);
 }
 
 sub launchJob($$$$$) {
@@ -165,6 +174,26 @@ sub launchJob($$$$$) {
 	croak("This is an instance method!")  unless(ref($self));
 	
 	return $self->{WFH}{UNIVERSAL}->launchJob(@_);
+}
+
+sub resolveWorkflowId($) {
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($id)=@_;
+	
+	return ($id,undef,0);
+}
+			
+#	my($query,$p_iwwemId,$autoUUID)=@_;
+sub eraseId($\@;$) {
+	croak("Unimplemented method");
+}
+
+#	my($query,$p_jobIdList,$snapshotName,$snapshotDesc,$responsibleMail,$responsibleName,$dispose,$autoUUID)=@_;
+sub sendEnactionReport($\@;$$$$$$) {
+	croak("Unimplemented method");
 }
 
 1;

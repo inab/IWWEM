@@ -233,6 +233,17 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
         </xsd:attribute>
     </xsd:attributeGroup>
     
+    <xsd:attributeGroup name="autoUUIDAttrs">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Attributes for automated operations over workflows, enactions, ...]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute name="autoUUID" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[Unique code used to automate operations]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:attributeGroup>
+    
     <xsd:attributeGroup name="responsibleAttrs">
         <xsd:annotation>
             <xsd:documentation><![CDATA[Attributes for content with a responsible (workflows, enactions, ...)]]></xsd:documentation>
@@ -247,7 +258,26 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
                 <xsd:documentation><![CDATA[The name of the uploader and responsible]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+        <xsd:attributeGroup ref="iwwem:autoUUIDAttrs"/>
     </xsd:attributeGroup>
+    
+    <xsd:element name="trustedUsers">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[The list of trusted users]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence minOccurs="1" maxOccurs="1">
+                <xsd:element name="trustedUser" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation><![CDATA[A trusted user]]></xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:attributeGroup ref="iwwem:responsibleAttrs"/>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
 
     <xsd:attributeGroup name="catalogAttrs">
         <xsd:annotation>
@@ -737,6 +767,7 @@ this element is included to tell that it was done properly.
                 </xsd:element>
             </xsd:sequence>
             <xsd:attributeGroup ref="iwwem:TimeJob"/>
+            <xsd:attributeGroup ref="iwwem:autoUUIDAttrs"/>
         </xsd:complexType>
     </xsd:element>
 

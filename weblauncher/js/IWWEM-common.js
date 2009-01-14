@@ -691,14 +691,21 @@ GeneralView.prototype = {
 		return this.thedoc.createElement(tagName);
 	},
 	
-	createHiddenInput: function(thename,thevalue) {
+	createHiddenInput: function(thename,thevalue,/* optional */ thetype) {
+		if(thetype==undefined || thetype=='')
+			thetype='hidden';
+		
 		var input = this.createElement('input');
-		input.type="hidden";
+		input.type=thetype;
 		input.name=thename;
 		// This value must be 1 for IE data islands
 		input.value=thevalue;
 		
 		return input;
+	},
+	
+	createInput: function(thename,thevalue) {
+		return this.createHiddenInput(thename,thevalue,'text');
 	},
 	
 	/**

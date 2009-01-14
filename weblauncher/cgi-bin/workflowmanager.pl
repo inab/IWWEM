@@ -35,7 +35,6 @@ use File::Temp;
 use FindBin;
 use LWP::UserAgent;
 use URI;
-use XML::LibXML;
 
 use lib "$FindBin::Bin";
 use IWWEM::Config;
@@ -58,7 +57,7 @@ my($retvalmsg)=undef;
 my($dataisland)=undef;
 my($dataislandTag)=undef;
 my($id)=undef;
-my($hasInputWorkflow)=undef;
+my($wfparam)=undef;
 my($hasInputWorkflowDeps)=undef;
 my($doFreezeWorkflowDeps)=undef;
 
@@ -68,10 +67,11 @@ my($responsibleName)=undef;
 my($licenseURI)=undef;
 my($licenseName)=undef;
 
-my $parser = XML::LibXML->new();
-my $context = XML::LibXML::XPathContext->new();
-$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
-$context->registerNs('sn',$IWWEM::WorkflowCommon::WFD_NS);
+# This object is needed in some cases...
+my($iwfl)=IWWEM::InternalWorkflowList->new(undef,1);
+
+my(@toErase)=();
+my($autoUUID)=undef;
 
 # First step, parameter storage (if any!)
 foreach my $param ($query->param()) {
@@ -100,87 +100,10 @@ foreach my $param ($query->param()) {
 			$dataislandTag='div';
 		}
 	} elsif($param eq 'eraseId') {
-		my(@iwwemId)=$query->param($param);
+		@toErase=$query->param($param);
 		last if($query->cgi_error());
-		
-		foreach my $irelpath (@iwwemId) {
-			# We are only erasing what it is valid...
-			next  if(length($irelpath)==0 || index($irelpath,'/')==0 || index($irelpath,'../')!=-1);
-			
-			# Checking rules should be inserted here...
-			my($kind)=undef;
-			my($resMail)=undef;
-			my($prettyname)=undef;
-			if($irelpath =~ /^$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
-				my($wfsnap)=$1;
-				my($snapId)=$2;
-				$kind='snapshot';
-				eval {
-					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
-					my($catdoc)=$parser->parse_file($catfile);
-
-					my($transsnapId)=IWWEM::WorkflowCommon::patchXMLString($snapId);
-					my(@eraseSnap)=$context->findnodes("//sn:snapshot[\@uuid='$transsnapId']",$catdoc);
-					foreach my $snap (@eraseSnap) {
-						$prettyname=$snap->getAttribute('name');
-						$resMail=$snap->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
-						last;
-					}
-				};
-			} elsif($irelpath =~ /^$IWWEM::InternalWorkflowList::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
-				my($wfexam)=$1;
-				my($examId)=$2;
-				$kind='example';
-				eval {
-					my($catfile)=$IWWEM::Config::WORKFLOWDIR .'/'.$wfexam.'/'.$IWWEM::WorkflowCommon::EXAMPLESDIR.'/'.$IWWEM::WorkflowCommon::CATALOGFILE;
-					my($catdoc)=$parser->parse_file($catfile);
-
-					my($transexamId)=IWWEM::WorkflowCommon::patchXMLString($examId);
-					my(@eraseExam)=$context->findnodes("//sn:example[\@uuid='$transexamId']",$catdoc);
-					foreach my $exam (@eraseExam) {
-						$prettyname=$exam->getAttribute('name');
-						$resMail=$exam->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
-						last;
-					}
-				};
-			} else {
-				my($jobdir)=undef;
-				
-				if($irelpath =~ /^$IWWEM::InternalWorkflowList::ENACTIONPREFIX([^:]+)$/) {
-					$jobdir=$IWWEM::Config::JOBDIR.'/'.$1;
-					$kind='enaction';
-				} else {
-					$jobdir=$IWWEM::Config::WORKFLOWDIR.'/'.$irelpath;
-					$kind='workflow';
-				}
-				
-				eval {
-					my($responsiblefile)=$jobdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
-					my($rp)=$parser->parse_file($responsiblefile);
-					$resMail=$rp->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
-					
-					my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
-					my($wf)=$parser->parse_file($workflowfile);
-					
-					my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
-					if(scalar(@nodelist)>0) {
-						$prettyname=$nodelist[0]->getAttribute('title');
-					}
-					
-				};
-			}
-			
-			if(defined($resMail)) {
-				my($penduuid,$penddir,$PH)=IWWEM::WorkflowCommon::genPendingOperationsDir($IWWEM::WorkflowCommon::COMMANDERASE);
-
-				print $PH "$irelpath\n";
-				close($PH);
-				
-				IWWEM::WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,$kind,$IWWEM::WorkflowCommon::COMMANDERASE,$irelpath,$resMail,$prettyname);
-			}
-		}
-	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOW) {
-		$hasInputWorkflow=1;
+	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOW || $param eq $IWWEM::WorkflowCommon::PARAMWORKFLOWREF) {
+		$wfparam=$param;
 	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOWDEP) {
 		$hasInputWorkflowDeps=1;
 	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWFID) {
@@ -189,6 +112,9 @@ foreach my $param ($query->param()) {
 		$paramval = $responsibleMail = $query->param($param);
 	} elsif($param eq $IWWEM::WorkflowCommon::RESPONSIBLENAME) {
 		$paramval = $responsibleName = $query->param($param);
+	} elsif($param eq $IWWEM::WorkflowCommon::AUTOUUID) {
+		$paramval = $query->param($param);
+		$autoUUID = $paramval  unless($paramval eq '1' || $paramval eq '');
 	} elsif($param eq $IWWEM::WorkflowCommon::LICENSEURI) {
 		$paramval = $licenseURI = $query->param($param);
 	} elsif($param eq $IWWEM::WorkflowCommon::LICENSENAME) {
@@ -215,11 +141,13 @@ foreach my $param ($query->param()) {
 	}
 }
 
-# Parsing input workflows
+# All the erase job is now done here...
+$iwfl->eraseId($query,\@toErase,$autoUUID)  if(scalar(@toErase)>0);
 
+# Parsing workflows query
 my($wfl)=IWWEM::SelectiveWorkflowList->new($id);
-if($retval==0 && !$query->cgi_error() && defined($hasInputWorkflow)) {
-	($retval,$retvalmsg)=$wfl->parseInlineWorkflows($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps);
+if($retval==0 && !$query->cgi_error() && defined($wfparam)) {
+	($retval,$retvalmsg)=$iwfl->parseInlineWorkflows($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$wfparam,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,undef,$autoUUID);
 }
 
 # We must signal here errors and exit

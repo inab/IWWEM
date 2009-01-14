@@ -40,8 +40,11 @@ use XML::LibXML;
 # And now, my own libraries!
 use lib "$FindBin::Bin";
 use IWWEM::Config;
+use IWWEM::InternalWorkflowList::Constants;
+use IWWEM::InternalWorkflowList::Confirmation;
 use IWWEM::WorkflowCommon;
 use IWWEM::InternalWorkflowList;
+use IWWEM::SelectiveWorkflowList;
 
 use lib "$FindBin::Bin/LockNLog";
 use LockNLog;
@@ -52,7 +55,7 @@ my($query)=CGI->new();
 # Web applications do need this!
 $|=1;
 	
-my($hasInputWorkflow)=undef;
+my($wfparam)=undef;
 my($hasInputWorkflowDeps)=undef;
 my($workflowId)=undef;
 my($wabspath)=undef;
@@ -64,6 +67,7 @@ my($baclavafound)=undef;
 
 my($responsibleMail)=undef;
 my($responsibleName)=undef;
+my($autoUUID)=undef;
 
 my(@inputdesc)=();
 my(@inputMap)=();
@@ -110,56 +114,25 @@ foreach my $param ($query->param()) {
 		} else {
 			$dataislandTag='div';
 		}
-	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOW) {
-		$hasInputWorkflow=1;
+	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOW || $param eq $IWWEM::WorkflowCommon::PARAMWORKFLOWREF || $param eq $IWWEM::WorkflowCommon::PARAMWFID) {
+		$wfparam=$param;
 		$wfilefetched=1;
+		if($param ne $IWWEM::WorkflowCommon::PARAMWORKFLOW) {
+			my($id)=$query->param($param);
+			
+			my($swl)=IWWEM::SelectiveWorkflowList->new($id,1);
+			$wabspath=$swl->getWorkflowURI($id);
+			if(defined($wabspath)) {
+				($workflowId,$originalInput,$retval)=$swl->resolveWorkflowId($id);
+			}
+			
+			$wfilefetched=1;
+			# Deps should be done later...
+		}
 	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWORKFLOWDEP) {
 		$hasInputWorkflowDeps=1;
 	} elsif($param eq $IWWEM::WorkflowCommon::PARAMALTVIEWERURI) {
 		$paramval = $altViewerURI = $query->param($param);
-	} elsif($param eq $IWWEM::WorkflowCommon::PARAMWFID) {
-		my($id)=$query->param($param);
-		my($isnet)=undef;
-		
-		if(index($id,"http://")==0 || index($id,"ftp://")==0) {
-			$workflowId=$id;
-			$wabspath=$id;
-			$isnet=1;
-		} elsif($id =~ /^$IWWEM::InternalWorkflowList::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
-			$workflowId=$1;
-			my($wabsbasepath)=$IWWEM::Config::WORKFLOWDIR . '/' . $workflowId . '/' . $IWWEM::WorkflowCommon::SNAPSHOTSDIR . '/' . $2 . '/';
-			$wabspath=$wabsbasepath . $IWWEM::WorkflowCommon::WORKFLOWFILE;
-			
-			$originalInput=$wabsbasepath . $IWWEM::WorkflowCommon::INPUTSFILE;
-		} elsif($id =~ /^$IWWEM::InternalWorkflowList::ENACTIONPREFIX([^:]+)$/) {
-			my($ENHAND);
-			my($wabsbasepath)=$IWWEM::Config::JOBDIR . '/' . $1 . '/';
-			if(open($ENHAND,'<',$wabsbasepath . $IWWEM::WorkflowCommon::WFIDFILE)) {
-				$workflowId=<$ENHAND>;
-				close($ENHAND);
-			} else {
-				$retval=2;
-				last;
-			}
-			$wabspath=$wabsbasepath . $IWWEM::WorkflowCommon::WORKFLOWFILE;
-			
-			$originalInput=$wabsbasepath . $IWWEM::WorkflowCommon::INPUTSFILE;
-		} else {
-			if($id =~ /^$IWWEM::InternalWorkflowList::WORKFLOWPREFIX([^:]+)$/) {
-				$workflowId=$1;
-			} else {
-				$workflowId=$id;
-			}
-			$wabspath=$IWWEM::Config::WORKFLOWDIR . '/' . $workflowId . '/' . $IWWEM::WorkflowCommon::WORKFLOWFILE;
-		}
-		
-		# Is it a 'sure' path?
-		if(!defined($isnet) && (index($id,'/')!=-1 || ! -f $wabspath)) {
-			$retval = 2;
-			last;
-		}
-		$wfilefetched=defined($isnet)?0:1;
-		# Deps should be done later...
 	} elsif($param eq $IWWEM::WorkflowCommon::BACLAVAPARAM) {
 		$baclavafound=1;
 	} elsif($param eq 'reusePrevInput') {
@@ -174,6 +147,9 @@ foreach my $param ($query->param()) {
 		$paramval = $responsibleMail = $query->param($param);
 	} elsif($param eq $IWWEM::WorkflowCommon::RESPONSIBLENAME) {
 		$paramval = $responsibleName = $query->param($param);
+	} elsif($param eq $IWWEM::WorkflowCommon::AUTOUUID) {
+		$paramval = $query->param($param);
+		$autoUUID = $paramval  unless($paramval eq '1' || $paramval eq '');
 	} elsif(length($param)>length($IWWEM::WorkflowCommon::PARAMPREFIX) && index($param,$IWWEM::WorkflowCommon::PARAMPREFIX)==0) {
 		push(@parseParam,$param);
 	} elsif(length($param)>length($IWWEM::WorkflowCommon::ENCODINGPREFIX) && index($param,$IWWEM::WorkflowCommon::ENCODINGPREFIX)==0) {
@@ -216,16 +192,15 @@ my($parser)=XML::LibXML->new();
 # Step Zero, job directory
 my($jobid)=undef;
 my($jobdir)=undef;
+my($enAutoUUID,$enerr)=();
 
 $responsibleName=''  unless(defined($responsibleName));
 
 my($iwfl)=IWWEM::InternalWorkflowList->new(undef,1);
 if($retval==0 && !$query->cgi_error()) {
-	if(defined($hasInputWorkflow)) {
-		$workflowId=undef;
-
+	if(defined($wfparam) && $wfparam eq $IWWEM::WorkflowCommon::PARAMWORKFLOW) {
 		my($p_res)=undef;
-		($retval,$retvalmsg,$p_res)=$iwfl->parseInlineWorkflows($query,$responsibleMail,$responsibleName,undef,undef,$hasInputWorkflowDeps,undef,$IWWEM::Config::JOBDIR,1);
+		($retval,$retvalmsg,$p_res)=$iwfl->parseInlineWorkflows($query,$responsibleMail,$responsibleName,undef,undef,$wfparam,$hasInputWorkflowDeps,undef,$IWWEM::Config::JOBDIR,1);
 		
 		if($retval==0 && scalar(@{$p_res})>0) {
 			$jobid=$p_res->[0];
@@ -237,12 +212,12 @@ if($retval==0 && !$query->cgi_error()) {
 			$jobdir = $IWWEM::Config::JOBDIR . '/' .$jobid;
 		} while (-d $jobdir);
 		mkpath($jobdir);
-		IWWEM::WorkflowCommon::createResponsibleFile($jobdir,$responsibleMail,$responsibleName);
-		my($VIE);
-		if(open($VIE,'>',$jobdir.'/'.$IWWEM::WorkflowCommon::VIEWERFILE)) {
-			print $VIE $altViewerURI;
-			close($VIE);
-		}
+		($enAutoUUID,$enerr)=IWWEM::WorkflowCommon::createResponsibleFile($jobdir,$responsibleMail,$responsibleName);
+	}
+	my($VIE);
+	if(open($VIE,'>',$jobdir.'/'.$IWWEM::WorkflowCommon::VIEWERFILE)) {
+		print $VIE $altViewerURI;
+		close($VIE);
 	}
 }
 
@@ -391,7 +366,7 @@ if($retval==0 && !$query->cgi_error() && defined($baclavafound)) {
 				my($origWFID)=undef;
 				my($exId)=undef;
 				
-				if($exfile =~ /^$IWWEM::InternalWorkflowList::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
+				if($exfile =~ /^$IWWEM::InternalWorkflowList::Constants::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
 					$origWFID=$1;
 					$exId=$2;
 				} else {
@@ -465,8 +440,8 @@ if($retval==0 && !$query->cgi_error() && defined($exampleName) && defined($workf
 	
 	# Generating a pending operation
 	my($PH);
-	($penduuid,$penddir,$PH)=IWWEM::WorkflowCommon::genPendingOperationsDir($IWWEM::WorkflowCommon::COMMANDADD);
-	$fullexampleuuid=$IWWEM::InternalWorkflowList::EXAMPLEPREFIX."$workflowId:$exampleuuid";
+	($penduuid,$penddir,$PH)=IWWEM::InternalWorkflowList::Confirmation::genPendingOperationsDir($IWWEM::InternalWorkflowList::Confirmation::COMMANDADD);
+	$fullexampleuuid=$IWWEM::InternalWorkflowList::Constants::EXAMPLEPREFIX."$workflowId:$exampleuuid";
 	print $PH "$fullexampleuuid\n";
 	close($PH);
 	
@@ -484,6 +459,8 @@ if($retval==0 && !$query->cgi_error() && defined($exampleName) && defined($workf
 	$example->setAttribute('date',LockNLog::getPrintableNow());
 	$example->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
 	$example->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+	my($exAutoUUID)=IWWEM::WorkflowCommon::genUUID();
+	$example->setAttribute($IWWEM::WorkflowCommon::AUTOUUID,$exAutoUUID);
 	if(defined($exampleDesc) && length($exampleDesc) > 0) {
 		$example->appendChild($catalog->createCDATASection($exampleDesc));
 	}
@@ -545,7 +522,7 @@ if(defined($penduuid)) {
 		@inputdesc,
 		@saveExample
 	);
-	IWWEM::WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'example',$IWWEM::WorkflowCommon::COMMANDADD,$fullexampleuuid,$responsibleMail,$exampleName);
+	IWWEM::InternalWorkflowList::Confirmation::sendResponsiblePendingMail($query,undef,$penduuid,'example',$IWWEM::InternalWorkflowList::Confirmation::COMMANDADD,$fullexampleuuid,$responsibleMail,$exampleName,$autoUUID);
 }
 
 # Second step, workflow launching
@@ -583,6 +560,7 @@ unless(defined($cpid)) {
 	my($root)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionlaunched');
 	$root->setAttribute('time',LockNLog::getPrintableNow());
 	$root->setAttribute('jobId',$jobid);
+	$root->setAttribute($IWWEM::WorkflowCommon::AUTOUUID,$enAutoUUID);
 	$root->appendChild($outputDoc->createComment( encode('UTF-8',$IWWEM::WorkflowCommon::COMMENTEL) ));
 	$outputDoc->setDocumentElement($root);
 	

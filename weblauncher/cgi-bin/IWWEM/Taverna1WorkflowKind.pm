@@ -65,26 +65,15 @@ sub new(;$$) {
 # Methods #
 ###########
 
-sub getWorkflowInfo($$$$$) {
+#	my($uuid,$wffile,$relwffile)=@_;
+sub getWorkflowInfo($$$) {
 	my($self)=shift;
 	
 	croak("This is an instance method!")  unless(ref($self));
 	
 	my($parser,$context)=($self->{PARSER},$self->{CONTEXT});
-	my($wf,$uuid,$listDir,$relwffile,$isSnapshot)=@_;
+	my($uuid,$wffile,$relwffile)=@_;
 	
-	my($wffile)=undef;
-	my($wfresp,$examplescat,$snapshotscat)=();
-	if(defined($relwffile)) {
-		$wffile=$listDir.'/'.$relwffile;
-		my($wfdir)=$listDir.'/'.$wf;
-		$wffile=$listDir.'/'.$relwffile;
-		$examplescat = $wfdir .'/'. $IWWEM::WorkflowCommon::EXAMPLESDIR . '/' . $IWWEM::WorkflowCommon::CATALOGFILE;
-		$snapshotscat = $wfdir .'/'. $IWWEM::WorkflowCommon::SNAPSHOTSDIR . '/' . $IWWEM::WorkflowCommon::CATALOGFILE;
-		$wfresp=$wfdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
-	} else {
-		$relwffile=$wffile=$wf;
-	}
 	#$wfcatmutex->mutex(sub {
 		my($outputDoc)=XML::LibXML::Document->new('1.0','UTF-8');
 		my $doc = $parser->parse_file($wffile);
@@ -244,6 +233,26 @@ sub getWorkflowInfo($$$$$) {
 	#});
 	
 	return $wfe;
+}
+
+#	my($WFmaindoc)=@_;
+sub canPatch($) {
+	croak("Unimplemented method");
+	my($self)=shift;
+	
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($WFmaindoc)=@_;
+	my($WFroot)=undef;
+	my($localname)=undef;
+	my($ns)=undef;
+	if(defined($WFmaindoc) && UNIVERSAL::isa($WFmaindoc,'XML::LibXML::Document')) {
+		$WFroot=$WFmaindoc->documentElement();
+		$localname=$WFroot->localname();
+		$ns=$WFroot->namespaceURI();
+	}
+	
+	return (defined($localname) && defined($ns) && ($localname eq 'scufl') && ($ns eq $XSCUFL_NS)); 
 }
 
 #	my($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc)=@_;
@@ -542,156 +551,38 @@ sub patchWorkflow($$$$$;$$$) {
 	return ($retval,$retvalmsg);
 }
 
-#		my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
-sub parseInlineWorkflows($$$$$$;$$$) {
+#	my($WFmaindoc,$licenseURI,$licenseName)=@_;
+sub patchEmbeddedLicence($$$) {
 	my($self)=shift;
 	
 	croak("This is an instance method!")  unless(ref($self));
 	
-	my($query,$responsibleMail,$responsibleName,$licenseURI,$licenseName,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$basedir,$dontPending)=@_;
+	my($WFmaindoc,$licenseURI,$licenseName)=@_;
 	
-	my($parser,$context)=($self->{PARSER},$self->{CONTEXT});
+	my($doSaveDoc)=undef;
+	my @desclist = $WFmaindoc->getElementsByTagNameNS($XSCUFL_NS,'workflowdescription');
+	if(scalar(@desclist)>0) {
+		my($desc)=$desclist[0];
+		my($desctext)=$desc->textContent();
 
-	unless(defined($responsibleMail) && $responsibleMail =~ /[^\@]+\@[^\@]+\.[^\@]+/) {
-		return (10,(defined($responsibleMail)?"$responsibleMail is not a valid e-mail address":'Responsible mail has not been set using '.$IWWEM::WorkflowCommon::RESPONSIBLEMAIL.' CGI parameter'),[]);
-	}
-
-	unless(defined($licenseURI) && length($licenseURI)>0) {
-		$licenseName=$IWWEM::Config::DEFAULT_LICENSE_NAME;
-		$licenseURI=$IWWEM::Config::DEFAULT_LICENSE_URI;
-	} elsif(!defined($licenseName) || $licenseName eq '') {
-		$licenseName='PRIVATE';
-	}
-	
-	my($isCreation)=undef;
-	unless(defined($basedir)) {
-		$basedir=$IWWEM::Config::WORKFLOWDIR;
-		$isCreation=1;
-	} else {
-		$doFreezeWorkflowDeps=1;
-	}
-	
-	my($retval)=0;
-	my($retvalmsg)=undef;
-	my(@goodwf)=();
-	
-	# Now, time to recognize the content
-	my($param)=$IWWEM::WorkflowCommon::PARAMWORKFLOW;
-	my @UPHL=$query->upload($param);
-
-	unless($query->cgi_error()) {
-
-		my($isfh)=1;
-
-		if(scalar(@UPHL)==0) {
-			@UPHL=$query->param($param);
-			$isfh=undef;
-		}
-
-		foreach my $UPH (@UPHL) {
-			# Generating a pending operation
-			my($penduuid,$penddir,$PH)=(undef,undef,undef);
-			unless(defined($dontPending)) {
-				($penduuid,$penddir,$PH)=IWWEM::WorkflowCommon::genPendingOperationsDir($IWWEM::WorkflowCommon::COMMANDADD);
+		# Catching the defined license
+		unless(defined($desctext) && $desctext =~ /^$IWWEM::WorkflowCommon::LICENSESTART\n[ \t]*([^ \n]+)[ \t]+([^\n]+)[ \t]*\n$IWWEM::WorkflowCommon::LICENSESTOP$/ms) {
+			# Stamping the license
+			if(defined($desctext)) {
+				chomp($desctext);
+			} else {
+				$desctext='';
 			}
-			
-			# Generating a unique identifier
-			my($randname);
-			my($randfilexml);
-			my($randdir);
-			do {
-				$randname=IWWEM::WorkflowCommon::genUUID();
-				$randdir=$basedir.'/'.$randname;
-			} while(-d $randdir);
-			
-			# Creating workflow directory so it is reserved
-			mkpath($randdir);
-			my($realranddir)=$randdir;
-			
-			# And now, creating the pending workflow directory!
-			unless(defined($dontPending)) {
-				$randdir=$penddir.'/'.$randname;
-				mkpath($randdir);
-				# And annotate it
-				print $PH "$randname\n";
-				close($PH);
+			$desctext .= "\n$IWWEM::WorkflowCommon::LICENSESTART\n$licenseURI $licenseName\n$IWWEM::WorkflowCommon::LICENSESTOP\n";
+			while($desc->lastChild) {
+				$desc->removeChild($desc->lastChild);
 			}
-			
-			# Responsible file creation
-			IWWEM::WorkflowCommon::createResponsibleFile($randdir,$responsibleMail,$responsibleName);
-			
-			# Saving the workflow data
-			$randfilexml = $randdir . '/' . $IWWEM::WorkflowCommon::WORKFLOWFILE;
-			
-			my($WFmaindoc);
-			
-			eval {
-				# CGI provides fake filehandlers :-(
-				# so we have to use the push parser
-				if(defined($isfh)) {
-					my($line);
-					while($line=<$UPH>) {
-						$parser->parse_chunk($line);
-					}
-					# Rewind the handler
-					seek($UPH,0,0);
-				} else {
-					$parser->parse_chunk($UPH);
-				}
-				$WFmaindoc=$parser->parse_chunk('',1);
-				$WFmaindoc->toFile($randfilexml);
-			};
-			
-			if($@) {
-				$retval=2;
-				$retvalmsg = ''  unless(defined($retvalmsg));
-				$retvalmsg .= 'Error while parsing input workflow: '.$@;
-				rmtree($randdir);
-				last;
-			}
-			
-			my($doSaveDoc)=undef;
-			my @desclist = $WFmaindoc->getElementsByTagNameNS($XSCUFL_NS,'workflowdescription');
-			if(scalar(@desclist)>0) {
-				my($desc)=$desclist[0];
-				my($desctext)=$desc->textContent();
-
-				# Catching the defined license
-				unless(defined($desctext) && $desctext =~ /^$IWWEM::WorkflowCommon::LICENSESTART\n[ \t]*([^ \n]+)[ \t]+([^\n]+)[ \t]*\n$IWWEM::WorkflowCommon::LICENSESTOP$/ms) {
-					# Stamping the license
-					if(defined($desctext)) {
-						chomp($desctext);
-					} else {
-						$desctext='';
-					}
-					$desctext .= "\n$IWWEM::WorkflowCommon::LICENSESTART\n$licenseURI $licenseName\n$IWWEM::WorkflowCommon::LICENSESTOP\n";
-					while($desc->lastChild) {
-						$desc->removeChild($desc->lastChild);
-					}
-					$desc->appendChild($WFmaindoc->createCDATASection($desctext));
-					$doSaveDoc=1;
-				}
-			}
-			
-			
-			($retval,$retvalmsg)=$self->patchWorkflow($query,$randname,$randdir,$isCreation,$WFmaindoc,$hasInputWorkflowDeps,$doFreezeWorkflowDeps,$doSaveDoc);
-			
-			# Erasing all...
-			if($retval!=0) {
-				rmtree($randdir);
-				unless(defined($dontPending)) {
-					rmtree($realranddir);
-				}
-				last;
-			} elsif(!defined($dontPending)) {
-				IWWEM::WorkflowCommon::sendResponsiblePendingMail($query,undef,$penduuid,'workflow',$IWWEM::WorkflowCommon::COMMANDADD,$randname,$responsibleMail,undef);
-			}
-			
-			push(@goodwf,$randname);
+			$desc->appendChild($WFmaindoc->createCDATASection($desctext));
+			$doSaveDoc=1;
 		}
 	}
 	
-	return ($retval,$retvalmsg,\@goodwf);
+	return $doSaveDoc;
 }
 
 #	my($wfile,$jobdir,$p_baclava,$inputFileMap,$saveInputsFile)=@_;
