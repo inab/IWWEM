@@ -46,25 +46,30 @@ $DEFAULT_LICENSE_URI='http://creativecommons.org/licenses/by-sa/3.0/legalcode';
 # Relative Storage dir, the parent of workflow and job directories
 my($STORAGERELDIR)='Storage';
 
+# Absolute storage dir
+use vars qw($STORAGEDIR);
+
+$STORAGEDIR = $FindBin::Bin. '/'.$STORAGERELDIR;
+
 use vars qw($WORKFLOWRELDIR);
 $WORKFLOWRELDIR = 'workflows';
 
 use vars qw($WORKFLOWDIR);
-$WORKFLOWDIR = $FindBin::Bin. '/'.$STORAGERELDIR.'/' . $WORKFLOWRELDIR;
+$WORKFLOWDIR = $STORAGEDIR.'/' . $WORKFLOWRELDIR;
 
 # Base directory for jobs
 use vars qw($JOBRELDIR);
 $JOBRELDIR = 'jobs';
 
 use vars qw($JOBDIR);
-$JOBDIR = $FindBin::Bin . '/'.$STORAGERELDIR.'/' .$JOBRELDIR;
+$JOBDIR = $STORAGEDIR.'/' .$JOBRELDIR;
 
 # Base directory for user confirmations
 use vars qw($CONFIRMRELDIR);
 $CONFIRMRELDIR='.pending';
 
 use vars qw($CONFIRMDIR);
-$CONFIRMDIR=$FindBin::Bin.'/'.$STORAGERELDIR.'/'.$CONFIRMRELDIR;
+$CONFIRMDIR = $STORAGEDIR.'/'.$CONFIRMRELDIR;
 
 # Maven directory used by raven instance inside
 # workflowparser and workflowlauncher

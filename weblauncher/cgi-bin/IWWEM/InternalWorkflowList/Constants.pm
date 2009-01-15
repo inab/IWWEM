@@ -1,6 +1,6 @@
 #!/usr/bin/perl -W
 
-# $Id: Constants.pm 270 2008-12-11 17:42:02Z jmfernandez $
+# $Id$
 # IWWEM/InternalWorkflowList/Constants.pm
 # from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 # Author: José María Fernández González (C) 2007-2008
@@ -147,9 +147,5 @@ $ENKIND=[
 		]
 	]
 );
-
-use vars qw($TRUSTEDUSERSFILE);
-
-$TRUSTEDUSERSFILE='trustedUsers.xml';
 
 1;

@@ -369,7 +369,7 @@ sub processFSPath($$$$$$$$) {
 			}
 		} else {
 			$patherr='No valid path from '.join('/',@idhist);
-			print STDERR "JOIN ",join('/',@idhist),"\n";
+			print STDERR "JOIN PATH ERR ",join('/',@idhist),"\n";
 		}
 	}
 	

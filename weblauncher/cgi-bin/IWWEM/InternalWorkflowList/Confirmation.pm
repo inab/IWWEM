@@ -1,6 +1,6 @@
 #!/usr/bin/perl -W
 
-# $Id: Confirmation.pm 270 2008-12-11 17:42:02Z jmfernandez $
+# $Id$
 # IWWEM/InternalWorkflowList/Confirmation.pm
 # from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 # Author: José María Fernández González (C) 2007-2008
@@ -412,6 +412,7 @@ sub sendResponsiblePendingMail($$$$$$$$;$) {
 	my($query,$smtp,$code,$kind,$command,$irelpath,$responsibleMail,$prettyname,$autoUUID)=@_;
 	
 	# TODO: Add automatic confirmation logic here!
+	
 	my($autoconfirm)=undef;
 	if(defined($autoconfirm)) {
 		my(@res)=doConfirm($query,'0',$code);

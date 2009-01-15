@@ -1,5 +1,5 @@
 /*
-	$Id: datatreeview.js 1266 2008-04-07 13:21:47Z jmfernandez $
+	$Id$
 	datatreeview.js
 	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 	Author: José María Fernández González (C) 2007-2008

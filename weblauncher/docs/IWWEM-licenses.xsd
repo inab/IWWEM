@@ -7,7 +7,7 @@
     xmlns:ilic="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/licenses"
 >
     <xsd:annotation>
-        <xsd:documentation><![CDATA[$Id: IWWEM-messages.xsd 1460 2008-09-22 15:05:23Z jmfernandez $
+        <xsd:documentation><![CDATA[$Id$
 	
 This file is part of IWWE&M, the Interactive Web Workflow Enactor & Manager.
 

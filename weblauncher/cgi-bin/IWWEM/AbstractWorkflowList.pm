@@ -1,6 +1,6 @@
 #!/usr/bin/perl -W
 
-# $Id: Config.pm 256 2008-10-09 17:11:44Z jmfernandez $
+# $Id$
 # IWWEM/AbstractWorkflowList.pm
 # from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 # Author: José María Fernández González (C) 2007-2008
