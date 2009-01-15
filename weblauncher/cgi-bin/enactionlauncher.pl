@@ -212,7 +212,7 @@ if($retval==0 && !$query->cgi_error()) {
 			$jobdir = $IWWEM::Config::JOBDIR . '/' .$jobid;
 		} while (-d $jobdir);
 		mkpath($jobdir);
-		($enAutoUUID,$enerr)=IWWEM::WorkflowCommon::createResponsibleFile($jobdir,$responsibleMail,$responsibleName);
+		($enerr,$enAutoUUID)=IWWEM::WorkflowCommon::createResponsibleFile($jobdir,$responsibleMail,$responsibleName);
 	}
 	my($VIE);
 	if(open($VIE,'>',$jobdir.'/'.$IWWEM::WorkflowCommon::VIEWERFILE)) {

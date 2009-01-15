@@ -529,7 +529,7 @@ sub parseInlineWorkflows($$$$$$$;$$$) {
 			}
 			
 			# Responsible file creation
-			my($wfAutoUUID,$err)=IWWEM::WorkflowCommon::createResponsibleFile($randdir,$responsibleMail,$responsibleName);
+			my($err,$wfAutoUUID)=IWWEM::WorkflowCommon::createResponsibleFile($randdir,$responsibleMail,$responsibleName);
 			
 			# Saving the workflow data
 			$randfilexml = $randdir . '/' . $IWWEM::WorkflowCommon::WORKFLOWFILE;
