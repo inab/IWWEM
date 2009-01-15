@@ -47,7 +47,6 @@ use IWWEM::WorkflowCommon;
 use IWWEM::UniversalWorkflowKind;
 
 use IWWEM::Config;
-use IWWEM::Taverna1WorkflowKind;
 
 use lib "$FindBin::Bin/LockNLog";
 use lib "$FindBin::Bin/../LockNLog";
@@ -680,13 +679,9 @@ sub eraseId($\@;$) {
 				$resMail=$rp->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 				
 				my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
-				my($wf)=$parser->parse_file($workflowfile);
-				
-				my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
-				if(scalar(@nodelist)>0) {
-					$prettyname=$nodelist[0]->getAttribute('title');
-				}
-				
+				my($uwk)=IWWEM::UniversalWorkflowKind->new();
+				my($wi)=$uwk->getWorkflowInfo($irelpath,$workflowfile,$workflowfile);
+				$prettyname=$wi->getAttribute('title');
 			};
 		}
 		
@@ -796,13 +791,9 @@ sub sendEnactionReport($\@;$$$$$$) {
 						$resMail=$rp->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
 						
 						my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
-						my($wf)=$parser->parse_file($workflowfile);
-						
-						my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
-						if(scalar(@nodelist)>0) {
-							$prettyname=$nodelist[0]->getAttribute('title');
-						}
-						
+						my($uwk)=IWWEM::UniversalWorkflowKind->new();
+						my($wi)=$uwk->getWorkflowInfo($origJobId,$workflowfile,$workflowfile);
+						$prettyname=$wi->getAttribute('title');
 					};
 				}
 				
@@ -1023,10 +1014,12 @@ sub sendEnactionReport($\@;$$$$$$) {
 	
 			# The title
 			eval {
-				my $wf = $parser->parse_file($jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE);
-				my @nodelist = $wf->getElementsByTagNameNS($IWWEM::Taverna1WorkflowKind::XSCUFL_NS,'workflowdescription');
-				if(scalar(@nodelist)>0) {
-					$es->setAttribute('title',$nodelist[0]->getAttribute('title'));
+				my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
+				my($uwk)=IWWEM::UniversalWorkflowKind->new();
+				my($wi)=$uwk->getWorkflowInfo($origJobId,$workflowfile,$workflowfile);
+				my($prettyname)=$wi->getAttribute('title');
+				if(defined($prettyname) && length($prettyname)>0) {
+					$es->setAttribute('title',$prettyname);
 				}
 			};
 	

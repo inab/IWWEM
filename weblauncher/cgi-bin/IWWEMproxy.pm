@@ -547,9 +547,6 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 		} else {
 			$p_bacio=$bacio;
 		}
-		my($context)=XML::LibXML::XPathContext->new();
-		$context->registerNs('b',$IWWEM::WorkflowCommon::BACLAVA_NS);
-		$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
 		my($miniIOMode,$minibacio);
 		foreach my $mini (@{$p_bacio}) {
 			($miniIOMode,$minibacio)=@{$mini};

@@ -40,7 +40,6 @@ use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
 use IWWEM::InternalWorkflowList;
-use IWWEM::Taverna1WorkflowKind;
 use IWWEM::SelectiveWorkflowList;
 
 use lib "$FindBin::Bin/LockNLog";

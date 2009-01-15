@@ -38,7 +38,6 @@ use XML::LibXML;
 use lib "$FindBin::Bin";
 use IWWEM::Config;
 use IWWEM::WorkflowCommon;
-use IWWEM::Taverna1WorkflowKind;
 use IWWEM::InternalWorkflowList;
 use IWWEM::InternalWorkflowList::Constants;
 use IWWEMproxy;
