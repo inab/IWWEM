@@ -238,7 +238,7 @@ sub doConfirm($$$;$) {
 					my($email)=undef;
 					my($kind)=undef;
 					my($prettyname)=undef;
-					my($viewerURL)=IWWEM::WorkflowCommon::enactionGUIURI($query);
+					my($viewerURL)=undef;
 					
 					if($irelpath =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 						my($wfsnap)=$1;
@@ -448,7 +448,7 @@ sub sendResponsibleConfirmedMail($$$$$$$;$$$) {
 	
 	my($operURL)=IWWEM::WorkflowCommon::enactionGUIURI($query,$enId,$viewerURI);
 	my($addmesg)='';
-	if(defined($operURL)) {
+	if(defined($enId) && defined($operURL)) {
 		$addmesg="You can browse it at\r\n\r\n$operURL\r\n";
 	}
 	

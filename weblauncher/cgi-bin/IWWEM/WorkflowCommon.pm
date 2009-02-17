@@ -172,6 +172,9 @@ use vars qw($AUTOUUID);
 
 $AUTOUUID='autoUUID';
 
+use vars qw($JOBIDPAT);
+$JOBIDPAT='@JOBID@';
+
 # Method declaration
 sub genUUID();
 sub patchXMLString($);
@@ -181,7 +184,7 @@ sub getCGIBaseURI($);
 sub createResponsibleFile($$;$);
 sub createMailer();
 sub enactionGUIURI($;$$);
-sub sendEnactionMail($$$;$);
+sub sendEnactionMail($$$;$$);
 
 # Method bodies
 sub genUUID() {
@@ -318,25 +321,29 @@ sub enactionGUIURI($;$$) {
 	
 	my($operURL)=undef;
 	
-	if(defined($jobId)) {
+	if(defined($query)) {
 		if(defined($viewerURI)) {
 			$operURL=$viewerURI;
 		} else {
 			$operURL = IWWEM::WorkflowCommon::getCGIBaseURI($query);
 			$operURL =~ s/cgi-bin\/[^\/]+$//;
 			$operURL.="enactionviewer.html";
+			$operURL.="?jobId=$JOBIDPAT"  if(defined($jobId));
 		}
-		$operURL.="?jobId=$jobId"  if(defined($jobId));
+
+		if(defined($jobId)) {
+			$operURL =~ s/$JOBIDPAT/$jobId/g;
+		}
 	}
 	
 	return $operURL;
 }
 
-sub sendEnactionMail($$$;$) {
-	my($query,$jobId,$responsibleMail,$hasFinished)=@_;
+sub sendEnactionMail($$$;$$) {
+	my($query,$jobId,$responsibleMail,$operURL,$hasFinished)=@_;
 	
 	my($smtp)=IWWEM::WorkflowCommon::createMailer();
-	my($operURL)=IWWEM::WorkflowCommon::enactionGUIURI($query,$jobId);
+	$operURL=IWWEM::WorkflowCommon::enactionGUIURI($query,$jobId)  unless(defined($operURL));
 	my($status)=defined($hasFinished)?'finished':'started';
 	my($dataStatus)=defined($hasFinished)?'results':'progress';
 	return $smtp->MailMsg({

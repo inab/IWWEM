@@ -85,7 +85,7 @@ my(@saveExample)=();
 my(@parseParam)=();
 my(%encodingHash)=();
 my(%mimeHash)=();
-my($altViewerURI)=IWWEM::WorkflowCommon::enactionGUIURI($query);
+my($altViewerURI)=undef;
 
 # First step, parameter and workflow storage (if any!)
 PARAMPROC:
@@ -197,6 +197,7 @@ my($enAutoUUID,$enerr)=();
 $responsibleName=''  unless(defined($responsibleName));
 
 my($iwfl)=IWWEM::InternalWorkflowList->new(undef,1);
+my($callURI)=undef;
 if($retval==0 && !$query->cgi_error()) {
 	if(defined($wfparam) && $wfparam eq $IWWEM::WorkflowCommon::PARAMWORKFLOW) {
 		my($p_res)=undef;
@@ -214,9 +215,10 @@ if($retval==0 && !$query->cgi_error()) {
 		mkpath($jobdir);
 		($enerr,$enAutoUUID)=IWWEM::WorkflowCommon::createResponsibleFile($jobdir,$responsibleMail,$responsibleName);
 	}
+	$callURI=IWWEM::WorkflowCommon::enactionGUIURI($query,$jobid,$altViewerURI);
 	my($VIE);
 	if(open($VIE,'>',$jobdir.'/'.$IWWEM::WorkflowCommon::VIEWERFILE)) {
-		print $VIE $altViewerURI;
+		print $VIE $callURI;
 		close($VIE);
 	}
 }
@@ -610,7 +612,7 @@ unless(defined($cpid)) {
 				rmtree($jobdir);
 			} else {
 				# Mail is sent here, just after running!
-				IWWEM::WorkflowCommon::sendEnactionMail($query,$jobid,$responsibleMail,1);
+				IWWEM::WorkflowCommon::sendEnactionMail($query,$jobid,$responsibleMail,$callURI,1);
 			}
 		} else {
 			# I'm the grandson, which can be killed
@@ -625,7 +627,7 @@ unless(defined($cpid)) {
 					}
 					
 					# Mail is sent here, just before running!
-					IWWEM::WorkflowCommon::sendEnactionMail($query,$jobid,$responsibleMail);
+					IWWEM::WorkflowCommon::sendEnactionMail($query,$jobid,$responsibleMail,$callURI);
 					
 					exec($IWWEM::WorkflowCommon::LAUNCHERDIR.'/bin/inbworkflowlauncher',
 						'-baseDir',$IWWEM::Config::MAVENDIR,
