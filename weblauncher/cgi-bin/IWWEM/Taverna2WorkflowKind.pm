@@ -243,7 +243,6 @@ sub getWorkflowInfo($$$) {
 
 #	my($WFmaindoc)=@_;
 sub canPatch($) {
-	croak("Unimplemented method");
 	my($self)=shift;
 	
 	croak("This is an instance method!")  unless(ref($self));
