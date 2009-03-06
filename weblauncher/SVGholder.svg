@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	xmlns="http://www.w3.org/2000/svg"
+	contentScriptType="text/ecmascript"
+	zoomAndPan="magnify"
+	contentStyleType="text/css"
+	width="100%"
+	height="100%"
+	preserveAspectRatio="xMidYMid meet"
+	onload="StartHolder(evt)"
+	version="1.0"
+>
+	<script
+		xlink:actuate="onLoad" xlink:type="simple" xlink:show="other"
+		type="text/ecmascript"
+		xlink:href="etc/IWWEM-config.js"
+		id="config" />
+	<script
+		xlink:actuate="onLoad" xlink:type="simple" xlink:show="other"
+		type="text/ecmascript"
+		xlink:href="js/SVG/throbber.js"
+		id="config" />
+	<script
+		xlink:actuate="onLoad" xlink:type="simple" xlink:show="other"
+		type="text/ecmascript"
+		xlink:href="js/SVG/SVGmapApp.js"
+		id="script1" />
+	<script
+		xlink:actuate="onLoad" xlink:type="simple" xlink:show="other"
+		type="text/ecmascript"
+		xlink:href="js/SVG/SVGtooltip.js"
+		id="script2" />
+	<script
+		xlink:actuate="onLoad" xlink:type="simple" xlink:show="other"
+		type="text/ecmascript"
+		xlink:href="js/SVG/SVGzoom.js"
+		id="script3" />
+	<script
+		xlink:actuate="onLoad" xlink:type="simple" xlink:show="other"
+		type="text/ecmascript"
+		xlink:href="js/SVG/SVGtrampoline.js"
+		id="script4" />
+	<script xlink:actuate="onLoad" xlink:type="simple" xlink:show="other" type="text/ecmascript"><![CDATA[/*
+/*
+	This SVG script is used to init the trampoline
+	from an onload event from the SVG
+*/
+var timeout=undefined;
+var timeoutFunc=undefined;
+
+function doTimeoutFunc() {
+	if(typeof timeoutFunc=='function') {
+		timeoutFunc();
+	}
+}
+
+function StartHolder(LoadEvent) {
+	var SVGDoc  = LoadEvent.target.ownerDocument;
+	var SVGroot = SVGDoc.documentElement;
+	
+	var tramp = new SVGtramp(SVGDoc,1,IWWEM.Logo,IWWEM.Unknown);
+	
+	/*
+	//var newSVG  = 'workflow3.svg';
+	//var newSVG  = 'workflowX.svg';
+	var newSVG  = 'cgi-bin/IWWEMfs/workflows/964beebf-6076-4553-b3ba-2b815ca920c8/workflow.svg';
+	//var newSVG  = 'cgi-bin/IWWEMfs/workflows/caca/workflow.svg';
+	//var newSVG  = 'workflowmanager.html';
+	timeoutFunc=function() {
+		tramp.loadSVG(newSVG,true);
+		clearTimeout(timeout);
+		timeout=undefined;
+		timeoutFunc=undefined;
+	};
+	timeout=setTimeout("doTimeoutFunc()",5000);
+	*/
+	
+	// And at last, the hooks for the parent
+	if(window.parent) {
+		window.parent.SVGtrampoline = tramp;
+	} else if(window.top) {
+		window.top.SVGtrampoline = tramp;
+	}
+}
+]]></script>
+</svg>

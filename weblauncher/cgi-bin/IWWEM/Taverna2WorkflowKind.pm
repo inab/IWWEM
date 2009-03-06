@@ -35,19 +35,20 @@ use base qw(IWWEM::AbstractWorkflowKind);
 
 use IWWEM::WorkflowCommon;
 
-use vars qw($T2FLOW_NS $T2FLOW_MIME);
+use vars qw($T2FLOW_NS $T2FLOW_MIME $T2FLOW_BETA_MIME);
 
 $T2FLOW_NS = 'http://taverna.sf.net/2008/xml/t2flow';
-$T2FLOW_MIME = 'taverna2beta';
+$T2FLOW_MIME = 'application/vnd.taverna.t2flow+xml';
+$T2FLOW_BETA_MIME = 'taverna2beta';
 
 ##############
 # Prototypes #
 ##############
 sub new(;$$);
 
-###############
-# Constructor #
-###############
+##################
+# Static methods #
+##################
 
 sub new(;$$) {
 	my($proto)=shift;
@@ -60,6 +61,14 @@ sub new(;$$) {
 	$context->registerNs('impl','');
 	
 	return bless($self,$class);
+}
+
+sub getMIMEList() {
+	return ($T2FLOW_BETA_MIME,$T2FLOW_MIME);
+}
+
+sub getRootNS() {
+	return $T2FLOW_NS;
 }
 
 ###########

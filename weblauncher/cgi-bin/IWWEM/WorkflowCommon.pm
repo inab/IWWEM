@@ -45,17 +45,11 @@ use lib "$FindBin::Bin/..";
 use IWWEM::Config;
 use IWWEM::MailConfig;
 
-use vars qw($WORKFLOWFILE $SVGFILE $PNGFILE $PDFFILE $WFIDFILE $VIEWERFILE $DEPDIR $EXAMPLESDIR $SNAPSHOTSDIR);
-
 use vars qw($INPUTSFILE $OUTPUTSFILE);
 
 use vars qw($REPORTFILE $STATICSTATUSFILE);
 
 use vars qw($LAUNCHERDIR);
-
-use vars qw($RESULTSDIR $ETCRELDIR $ETCDIR);
-
-use vars qw($ITERATIONSDIR);
 
 use vars qw($PATTERNSFILE);
 
@@ -64,37 +58,48 @@ use vars qw($PARAMPREFIX $ENCODINGPREFIX $MIMEPREFIX);
 
 use vars qw($PARAMSAVEEX $PARAMSAVEEXDESC $CATALOGFILE $RESPONSIBLEFILE $LOCKFILE);
 
-use vars qw(%GRAPHREP);
-
 use vars qw($RESPONSIBLENAME $RESPONSIBLEMAIL $AUTOUUID);
-
-use vars qw($LICENSENAME $LICENSEURI);
 
 # Workflow files constants
 $RESPONSIBLENAME='responsibleName';
 $RESPONSIBLEMAIL='responsibleMail';
 $AUTOUUID='autoUUID';
 
+use vars qw($LICENSENAME $LICENSEURI);
+
 $LICENSENAME='licenseName';
 $LICENSEURI='licenseURI';
 
+use vars qw($WORKFLOWFILE $SVGFILE $PNGFILE $JPEGFILE $GIFFILE $PDFFILE $WFIDFILE $VIEWERFILE);
 $WORKFLOWFILE='workflow.xml';
 $SVGFILE='workflow.svg';
 $PDFFILE='workflow.pdf';
 $PNGFILE='workflow.png';
+$JPEGFILE='workflow.jpg';
+$GIFFILE='workflow.gif';
 $WFIDFILE='WFID';
 $VIEWERFILE='viewerURI.url';
+
+use vars qw(%GRAPHREP %GRAPHREPINV);
 
 %GRAPHREP=(
 	$IWWEM::WorkflowCommon::SVGFILE => 'image/svg+xml',
 	$IWWEM::WorkflowCommon::PNGFILE => 'image/png',
-	$IWWEM::WorkflowCommon::PDFFILE => 'application/pdf'
+	$IWWEM::WorkflowCommon::PDFFILE => 'application/pdf',
+	$IWWEM::WorkflowCommon::JPEGFILE => 'image/jpeg',
+	$IWWEM::WorkflowCommon::GIFFILE => 'image/gif'
 );
+
+%GRAPHREPINV=reverse(%GRAPHREP);
+
+use vars qw($DEPDIR $EXAMPLESDIR $SNAPSHOTSDIR $ITERATIONSDIR);
 
 $DEPDIR='dependencies';
 $EXAMPLESDIR='examples';
 $SNAPSHOTSDIR='snapshots';
 $ITERATIONSDIR='Iterations';
+
+use vars qw($ETCRELDIR $ETCDIR);
 
 $ETCRELDIR = 'etc';
 $ETCDIR = $FindBin::Bin . '/../' .$ETCRELDIR;
@@ -103,6 +108,8 @@ use vars qw($LICENSESRELDIR $LICENSESDIR $LICENSESFILE);
 $LICENSESRELDIR='licenses';
 $LICENSESDIR=$FindBin::Bin . '/../' .$LICENSESRELDIR;
 $LICENSESFILE=$LICENSESDIR.'/licenses.xml';
+
+use vars qw($RESULTSDIR);
 
 $RESULTSDIR = 'Results';
 

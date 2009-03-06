@@ -111,6 +111,7 @@ function WorkflowDesc(wfD,WFBase) {
 	this.WFBase=WFBase;
 	
 	this.graph = {};
+	this.graphAlt = {};
 	
 	var depends=new Array();
 	var inputs={};
@@ -150,10 +151,15 @@ function WorkflowDesc(wfD,WFBase) {
 				case 'graph':
 					// Graph information
 					var gpath=WidgetCommon.getTextContent(child);
+					var mime=child.getAttribute('mime');
 					if(gpath.indexOf('ftp:')==0 || gpath.indexOf('http:')==0 || gpath.indexOf('https:')==0) {
-						this.graph[child.getAttribute('mime')]=gpath;
+						this.graph[mime]=gpath;
 					} else {
-						this.graph[child.getAttribute('mime')]=this.WFBase+'/'+gpath;
+						this.graph[mime]=this.WFBase+'/'+gpath;
+					}
+					var altURI=child.getAttribute('altURI');
+					if(altURI) {
+						this.graphAlt[mime]='cgi-bin/IWWEMfs/'+altURI;
 					}
 					break;
 				case 'dependsOn':
@@ -199,7 +205,7 @@ function WorkflowDesc(wfD,WFBase) {
 		this.licenseURI = wfD.getAttribute('licenseURI');
 		
 		// Now, handling SVG special case
-		var svgpath = ('image/svg+xml' in this.graph)?this.graph['image/svg+xml']:wfD.getAttribute('svg');
+		var svgpath = ('image/svg+xml' in this.graphAlt)?this.graphAlt['image/svg+xml']:(('image/svg+xml' in this.graph)?this.graph['image/svg+xml']:wfD.getAttribute('svg'));
 		this.svgpath=svgpath;
 	}
 }
@@ -207,6 +213,7 @@ function WorkflowDesc(wfD,WFBase) {
 WorkflowDesc.WFTYPE={
 	'application/vnd.taverna.scufl+xml': 'Taverna1',
 	'taverna2beta': 'Taverna2 (beta)',
+	'application/vnd.taverna.t2flow+xml': 'Taverna2'
 };
 
 WorkflowDesc.prototype = {
@@ -274,4 +281,3 @@ WorkflowDesc.prototype = {
 		return retval;
 	}
 };
-

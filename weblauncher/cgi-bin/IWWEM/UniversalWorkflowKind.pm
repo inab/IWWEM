@@ -52,18 +52,32 @@ sub new(;$$) {
 	
 	my($self)=$proto->SUPER::new(@_);
 	
-	my($t1)=IWWEM::Taverna1WorkflowKind->new(@_);
-	my($t2)=IWWEM::Taverna2WorkflowKind->new(@_);
-	$self->{WFKINDSHASH}={
-		$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME => $t1,
-		$IWWEM::Taverna2WorkflowKind::T2FLOW_MIME => $t2,
-	};
-	$self->{WFKINDS}=[
-		$t1,
-		$t2,
-	];
+	$self->{WFKINDSHASH}={};
+	$self->{WFKINDS}=[];
+	foreach my $KIND (('IWWEM::Taverna1WorkflowKind','IWWEM::Taverna2WorkflowKind')) {
+		my($t)=$KIND->new(@_);
+		foreach my $MIME ($KIND->getMIMEList()) {
+			$self->{WFKINDSHASH}{$MIME}=$t;
+		}
+		push(@{$self->{WFKINDS}},$t);
+	}
+	
+	#my($t1)=IWWEM::Taverna1WorkflowKind->new(@_);
+	#my($t2)=IWWEM::Taverna2WorkflowKind->new(@_);
+	#$self->{WFKINDSHASH}={
+	#	$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME => $t1,
+	#	$IWWEM::Taverna2WorkflowKind::T2FLOW_MIME => $t2,
+	#};
+	#$self->{WFKINDS}=[
+	#	$t1,
+	#	$t2,
+	#];
 	
 	return bless($self,$class);
+}
+
+sub getMIMEList() {
+	return ('UNIVERSAL');
 }
 
 ###########

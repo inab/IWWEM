@@ -33,17 +33,18 @@ var IWWEM={
 	// To be used when there was a problem loading any SVG
 	Unknown:	'style/unknown.svg',
 	/* DO NOT CHANGE NEXT LINES UNLESS YOU ARE ADDING A NEW PLUGIN!!! */
-	Plugins: [
+	Plugins: new Array(
 		'js/prettify/prettify.js',		// Prettify
 		'js/FCKeditor/fckeditor.js',	// FCKEditor
 		'applets/jmol/Jmol.js',				// JMol Javascript
-		'js/IWWEMprettyXML.js',			// IWWE&M's own XML pretty printer
-	],
+		'js/IWWEMprettyXML.js'			// IWWE&M's own XML pretty printer
+	),
 	/* DO NOT CHANGE NEXT LINES UNLESS YOU EXACTLY KNOW WHAT YOU ARE DOING!!! */
 	FSBase:		'cgi-bin/IWWEMfs',
 	ProxyBase:	'cgi-bin/IWWEMproxy',
-	CommonDeps: [
-		'js/dynamicSVGhandling.js',		// Dynamic SVG handling code
+	CommonDeps: new Array(
+		// Dynamic SVG handling code
+		'js/dynamicSVGhandling.js',
 		// These JavaScripts are needed for data viewer integration
 		// into WorkflowManager and EnactionViewer
 		'js/base64.js',
@@ -51,7 +52,7 @@ var IWWEM={
 		'js/databrowser.js',
 		'js/datamatcher.js',
 		'js/datatreeview.js',
-		'js/enactionstep.js',
-	],
+		'js/enactionstep.js'
+	),
 	Loaded: undefined
 };

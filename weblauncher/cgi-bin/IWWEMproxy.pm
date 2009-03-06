@@ -36,6 +36,7 @@ use CGI;
 use MIME::Base64;
 use XML::LibXML;
 #use File::Path;
+use LWP::UserAgent;
 
 use lib "$FindBin::Bin";
 use IWWEM::Config;
@@ -173,41 +174,82 @@ sub doAnswer($$$\@;$) {
 
 sub rawAnswer($$\@;$) {
 	my($query,$fromFile,$p_headerPars,$asMime)=@_;
-	
-	my($FH);
-	if(open($FH,'<',$fromFile)) {
-		unless(defined($asMime)) {
-			my($varpos)=rindex($fromFile,'/');
-			if($varpos!=-1) {
-				my($basename)=substr($fromFile,$varpos+1);
-				my($dotpos)=rindex($basename,'.');
-				if($dotpos!=-1) {
-					my($ext)=substr($basename,$dotpos+1);
-					my($MIMEFILE);
-					if(open($MIMEFILE,'<',$IWWEM::WorkflowCommon::ETCDIR . '/mime.types')) {
-						my(@mimelines)=<$MIMEFILE>;
-						close($MIMEFILE);
-						my(@greplines)=grep(/^[-\w]+\/[-.+\w]+[ \t]+.*[ \t]$ext/,@mimelines);
-						if(scalar(@greplines)>0) {
-							$asMime=$greplines[0];
-							chomp($asMime);
-							if(defined($asMime) && length($asMime)>0) {
-								$asMime =~ s/[ \t].*$//;
-							}
-						}
-					}
-				}
-			}
-			$asMime='application/octet-stream'  unless(defined($asMime));
-		}
-		my(@headerPars)=(-type=>$asMime);
-		doAnswer($query,$FH,$fromFile,@headerPars);
-		close($FH);
-	} else {
+
+	unless(defined($fromFile)) {
 		# 404
 		print $query->header(-status=> '404 Not Found'),
 			$query->start_html('IWWEMfs message'),
 			$query->h2('Request not processed because real file for virtual path does not exist');
+	}
+	
+	if(index($fromFile,'http://')==0 || index($fromFile,'https://')==0 || index($fromFile,'ftp://')==0) {
+		# Proxy work
+		my $ua = LWP::UserAgent->new();
+		$ua->agent("IWWEM/0.7 ");
+		my($first)=1;
+		my($resp)=$ua->get($fromFile, ':content_cb' => sub {
+			my($chunk,$respint,$proto)=@_;
+			
+			if(defined($first)) {
+				# Headers here
+				$first=undef;
+				
+				my(@headers)=();
+				push(@headers,@{$p_headerPars})  if(defined($p_headerPars) && ref($p_headerPars) eq 'ARRAY');
+				
+				# Transferring relevant headers
+				for my $header (('Date','Content-Length','Content-Type','Content-Transfer-Encoding','Last-Modified','Expires','Cache-Control')) {
+					push(@headers,'-'.$header => $respint->header($header))  if(defined($respint->header($header)));
+				}
+				
+				print $query->header(@headers);
+			}
+			
+			print $chunk;
+		}
+		);
+		unless($resp->is_success) {
+			print $query->header(-status=> $resp->status_line),
+				$query->start_html('IWWEMfs message'),
+				$query->h2('Request not processed because virtual path is unreachable');
+		}
+	} else {
+		my($FH);
+		if(open($FH,'<',$fromFile)) {
+			unless(defined($asMime)) {
+				my($varpos)=rindex($fromFile,'/');
+				if($varpos!=-1) {
+					my($basename)=substr($fromFile,$varpos+1);
+					my($dotpos)=rindex($basename,'.');
+					if($dotpos!=-1) {
+						my($ext)=substr($basename,$dotpos+1);
+						my($MIMEFILE);
+						if(open($MIMEFILE,'<',$IWWEM::WorkflowCommon::ETCDIR . '/mime.types')) {
+							my(@mimelines)=<$MIMEFILE>;
+							close($MIMEFILE);
+							my(@greplines)=grep(/^[-\w]+\/[-.+\w]+[ \t]+.*[ \t]$ext/,@mimelines);
+							if(scalar(@greplines)>0) {
+								$asMime=$greplines[0];
+								chomp($asMime);
+								if(defined($asMime) && length($asMime)>0) {
+									$asMime =~ s/[ \t].*$//;
+								}
+							}
+						}
+					}
+				}
+				$asMime='application/octet-stream'  unless(defined($asMime));
+			}
+			my(@headerPars)=(-type=>$asMime);
+			push(@headerPars,@{$p_headerPars})  if(defined($p_headerPars) && ref($p_headerPars) eq 'ARRAY');
+			doAnswer($query,$FH,$fromFile,@headerPars);
+			close($FH);
+		} else {
+			# 404
+			print $query->header(-status=> '404 Not Found'),
+				$query->start_html('IWWEMfs message'),
+				$query->h2('Request not processed because real file for virtual path does not exist');
+		}
 	}
 }
 
@@ -365,7 +407,7 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 			eval {
 				my($context)=XML::LibXML::XPathContext->new();
 				$context->registerNs('b',$IWWEM::WorkflowCommon::BACLAVA_NS);
-				$context->registerNs('s',$IWWEM::Taverna1WorkflowKind::XSCUFL_NS);
+				$context->registerNs('s',$IWWEM::Taverna1WorkflowKind->getRootNS());
 				
 				my(%xpathvars)=();
 				my($varbase)='var';

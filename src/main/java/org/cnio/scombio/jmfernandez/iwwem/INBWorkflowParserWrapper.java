@@ -26,10 +26,12 @@
 	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 */
 
-package org.cnio.scombio.jmfernandez.taverna;
+package org.cnio.scombio.jmfernandez.iwwem;
 
 /* This code is based on the example from Taverna source repository (see comments below) */
 
+import java.awt.Dimension;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -48,11 +50,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+//import net.hanjava.svg.EmfWriterGraphics;
 import net.sf.taverna.raven.repository.Artifact;
 import net.sf.taverna.raven.repository.BasicArtifact;
 import net.sf.taverna.raven.repository.Repository;
 import net.sf.taverna.raven.repository.impl.LocalRepository;
 
+import org.apache.batik.bridge.BridgeContext;
+import org.apache.batik.bridge.GVTBuilder;
+import org.apache.batik.bridge.UserAgentAdapter;
+import org.apache.batik.gvt.GraphicsNode;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.batik.transcoder.image.ImageTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
@@ -64,6 +71,7 @@ import org.apache.fop.svg.PDFTranscoder;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
+import org.cnio.scombio.jmfernandez.iwwem.PatchDotSVG.DumbUserAgent;
 
 import org.embl.ebi.escience.scufl.Processor;
 import org.embl.ebi.escience.scufl.ScuflException;
@@ -230,6 +238,7 @@ public class INBWorkflowParserWrapper {
 		{"-dotgraph","1","File where to save workflow graph in DOT format"},
 		{"-pnggraph","1","File where to save workflow graph in PNG format"},
 		{"-pdfgraph","1","File where to save workflow graph in PDF format"},
+//		{"-emfgraph","1","File where to save workflow graph in EMF format"},
 		{"-expandSubWorkflows","0","Sub-Workflows are expanded when workflow graph is generated"},
 		{"-collapseSubWorkflows","0","Sub-Workflows are collapsed when workflow graph is generated"},
 		{"-topDownOrientation","0","Workflow graph layout must be top-down"},
@@ -268,6 +277,7 @@ public class INBWorkflowParserWrapper {
 		{"org.apache.xmlgraphics","batik-transcoder","1.7"},
 		{"org.apache.xmlgraphics","batik-codec","1.7"},
 		{"org.apache.xmlgraphics","batik-swing","1.7"},
+//		{"org.freehep","freehep-graphicsio-emf","2.1.1"},
 		{"xerces","xercesImpl","2.6.2"},
 		{"xalan","xalan","2.5.2"},
 		{"log4j","log4j","1.2.12"},
@@ -310,6 +320,7 @@ public class INBWorkflowParserWrapper {
 		"http://mirrors.sunsite.dk/maven2/",
 		"http://www.ibiblio.org/maven2/",
 		"http://www.mygrid.org.uk/maven/snapshot-repository/",
+		"http://download.java.net/maven/2"
 	};
 
 	private static HashMap<String,Integer> OptionHash=new HashMap<String,Integer>();
@@ -358,6 +369,8 @@ public class INBWorkflowParserWrapper {
 	protected File PNGFile;
 
 	protected File PDFFile;
+
+//	protected File EMFFile;
 
 	boolean alignmentParam=false;
 	boolean expandWorkflowParam=false;
@@ -719,6 +732,8 @@ public class INBWorkflowParserWrapper {
 			PNGFile = NewFile(values.get(0));
 		} else if (param.equals("-pdfgraph")) {
 			PDFFile = NewFile(values.get(0));
+//		} else if (param.equals("-emfgraph")) {
+//			EMFFile = NewFile(values.get(0));
 		} else if (param.equals("-topDownOrientation")) {
 			alignmentParam=false;
 		} else if (param.equals("-leftRightOrientation")) {
@@ -790,7 +805,7 @@ public class INBWorkflowParserWrapper {
 	private void generateWorkflowGraph(ScuflModel model)
 		throws FileNotFoundException,IOException
 	{
-		if(dotFile!=null || SVGFile!=null || PNGFile!=null || PDFFile!=null) {
+		if(dotFile!=null || SVGFile!=null || PNGFile!=null || PDFFile!=null /*|| EMFFile!=null*/) {
 			DotView dotView=new DotView(model);
 			// Here the different graph drawing parameters
 			dotView.setPortDisplay(DotView.BOUND);
@@ -813,7 +828,7 @@ public class INBWorkflowParserWrapper {
 
 			}
 
-			if(SVGFile!=null || PNGFile!=null || PDFFile!=null) {
+			if(SVGFile!=null || PNGFile!=null || PDFFile!=null /*|| EMFFile!=null*/) {
 				// Translating to SVG!!!!!
 				SVGDocument svg=ScuflSVGDiagram.getSVG(dotContent);
 
@@ -871,6 +886,41 @@ public class INBWorkflowParserWrapper {
 						foe.close();
 					}
 				}
+				
+				/*
+				if(EMFFile!=null) {
+					// These lines are from net.hanjava.svg.SVG2EMF class
+					// created by behumble@hanjava.net
+					
+					// And next patch is needed by automatic SVG zoom code
+					// But it cannot be applied until some Batik initialization
+					// constrains have been overcome.
+					UserAgentAdapter dua=pds.new DumbUserAgent();
+					GVTBuilder builder = new GVTBuilder();
+					BridgeContext ctx = new BridgeContext(dua);
+					ctx.setDynamic(true);
+					// Needed to build up the internal infrastructure
+					// GraphicsNode gn = builder.build(ctx, svg);
+					GraphicsNode rootNode = builder.build(ctx, svg);
+					ctx.dispose();
+
+					// x,y can be non-(0,0)
+					Rectangle2D bounds = rootNode.getBounds();
+					int w = (int)(bounds.getX() + bounds.getWidth());
+					int h = (int)(bounds.getY() + bounds.getHeight());
+
+					// write to EmfWriter
+					FileOutputStream emfStream = new FileOutputStream(EMFFile);
+					//EmfWriterGraphics eg2d = new EmfWriterGraphics(emfStream, new Dimension(w, h));
+					org.freehep.graphicsio.emf.EMFGraphics2D eg2d = new EmfWriterGraphics(emfStream, new Dimension(w, h));
+					eg2d.setDeviceIndependent(true);
+					eg2d.startExport();
+					rootNode.paint(eg2d);
+					eg2d.dispose();
+					eg2d.endExport();
+					emfStream.close();
+				}
+				*/
 			}
 		}
 	}

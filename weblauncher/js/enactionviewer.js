@@ -26,9 +26,25 @@
 	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 */
 
-var ENDEPS=[];
+var ENDEPS=new Array();
+
+var ENLOADINGFRAMES={
+	'reloadEnaction':	{
+		src:	"style/big-ajax-loader.gif",
+		alt:	"Reloading enaction information"
+	},
+	'extractData':	{
+		src:	"style/big-ajax-extract.gif",
+		alt:	"Extracting data from input"
+	},
+	'preprocessData':	{
+		src:	"style/big-ajax-process.gif",
+		alt:	"Pre-processing data to be shown"
+	}
+};
 
 function EnactionViewerCustomInit() {
+	this.addLoadingFrames(ENLOADINGFRAMES);
 	this.enactview=new EnactionView(this);
 	this.enactview.init();
 }
@@ -220,8 +236,8 @@ EnactionView.prototype = {
 				enactview.internalDispose(function() {
 					var qsParm={};
 					WidgetCommon.parseQS(qsParm);
-					if(('jobId' in qsParm) && qsParm['jobId'] && qsParm['jobId'].length > 0) {
-						var jobId=qsParm['jobId'].toString();
+					if(('jobId' in qsParm) && qsParm['jobId']!=undefined && qsParm['jobId'].length > 0 && qsParm['jobId'][0].length > 0) {
+						var jobId=qsParm['jobId'][0];
 						if(jobId.indexOf('enaction:')==0) {
 							jobId=jobId.substring(jobId.indexOf(':')+1);
 						}
@@ -710,6 +726,9 @@ EnactionView.prototype = {
 		// In progress request
 		if(this.enactQueryReq)  return;
 		
+		// Start the wait clock
+		this.genview.busy(true);
+		
 		// Kill pending timer!
 		if(this.updateTimer) {
 			clearTimeout(this.updateTimer);
@@ -788,8 +807,11 @@ EnactionView.prototype = {
 								me.updateTextSpan.innerHTML='Update';
 							}
 							// Removing 'Loading...' frame
+							// or anything similar
+							genview.busy(false);
 						});
 					} catch(e) {
+						genview.busy(false);
 						genview.setMessage(
 							'<blink><h1 style="color:red">FATAL ERROR: Unable to complete reload!</h1></blink><pre>'+
 							WidgetCommon.DebugError(e)+'</pre>'

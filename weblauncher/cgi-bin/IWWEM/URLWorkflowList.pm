@@ -74,7 +74,7 @@ sub new(;$) {
 	return bless($self,$class);
 }
 
-# Static method
+# Static methods
 sub UnderstandsId($) {
 	# Very special case for multiple inheritance handling
 	# This is the seed
@@ -84,10 +84,20 @@ sub UnderstandsId($) {
 	return index($_[0],'http://')==0 || index($_[0],'https://')==0 || index($_[0],'ftp://')==0;
 }
 
+sub Prefix() {
+	# Very special case for multiple inheritance handling
+	# This is the seed
+	my($self)=shift;
+	my($class)=ref($self) || $self;
+	
+	return undef;
+}
+
 sub getDomainClass() {
 	return 'URL';
 }
 
+# Dynamic methods
 sub getWorkflowURI($) {
 	my($self)=shift;
 	

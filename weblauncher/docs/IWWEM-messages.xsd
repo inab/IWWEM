@@ -536,9 +536,14 @@ The textual content of this element is the description of the example (possibly 
                                 <xsd:complexType>
                                     <xsd:simpleContent>
                                         <xsd:extension base="xsd:anyURI">
-                                            <xsd:attribute name="mime" type="xsd:string">
+                                            <xsd:attribute name="mime" type="xsd:string" use="required">
                                                 <xsd:annotation>
                                                     <xsd:documentation><![CDATA[MIME type of this graph image]]></xsd:documentation>
+                                                </xsd:annotation>
+                                            </xsd:attribute>
+                                            <xsd:attribute name="altURI" type="xsd:anyURI" use="optional">
+                                                <xsd:annotation>
+                                                    <xsd:documentation><![CDATA[Alternate URI pointing to the same content]]></xsd:documentation>
                                                 </xsd:annotation>
                                             </xsd:attribute>
                                         </xsd:extension>

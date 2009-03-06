@@ -1,6 +1,6 @@
 #!/usr/bin/perl -W
 
-# $Id: IWWEMproxy.pl 1278 2008-04-09 13:09:38Z jmfernandez $
+# $Id$
 # IWWEMconfirm.pl
 # from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
 # Author: José María Fernández González (C) 2007-2008

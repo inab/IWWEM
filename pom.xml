@@ -20,9 +20,9 @@
 -->
 <project>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.cnio.scombio.jmfernandez.taverna</groupId>
+	<groupId>org.cnio.scombio.jmfernandez.iwwem</groupId>
 	<artifactId>workflowlauncher</artifactId>
-	<version>0.3.0</version>
+	<version>0.4.0</version>
 	<name>INB workflow launcher, based on Taverna's workflow launcher example</name>
 	<description>
 		A workflow launcher which is able to instantiate a workflow
@@ -50,19 +50,19 @@
 					<programs>
 						<program>
 							<mainClass>
-								org.cnio.scombio.jmfernandez.taverna.INBWorkflowLauncherWrapper
+								org.cnio.scombio.jmfernandez.iwwem.INBWorkflowLauncherWrapper
 							</mainClass>
 							<name>inbworkflowlauncher</name>
 						</program>
 						<program>
 							<mainClass>
-								org.cnio.scombio.jmfernandez.taverna.INBWorkflowParserWrapper
+								org.cnio.scombio.jmfernandez.iwwem.INBWorkflowParserWrapper
 							</mainClass>
 							<name>inbworkflowparser</name>
 						</program>
 						<program>
 							<mainClass>
-								org.cnio.scombio.jmfernandez.taverna.PatchDotSVG
+								org.cnio.scombio.jmfernandez.iwwem.PatchDotSVG
 							</mainClass>
 							<name>patchDotSVG</name>
 						</program>
@@ -127,6 +127,13 @@
 			</snapshots>
 			<releases />
 		</repository>
+		<!--
+		<repository>
+			<id>freehep-maven</id>
+			<name>Maven FreeHEP</name>
+			<url>http://java.freehep.org/maven2</url>
+		</repository>
+		-->
 	</repositories>
 	<dependencies>
 		<dependency>
@@ -229,6 +236,15 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		
+		<!-- For EMF transcoding -->
+		<!--
+		<dependency>
+			<groupId>org.freehep</groupId>
+			<artifactId>freehep-graphicsio-emf</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+		-->
 	</dependencies>
 	<distributionManagement>
 		<!-- use the following if you're not using a snapshot version. -->

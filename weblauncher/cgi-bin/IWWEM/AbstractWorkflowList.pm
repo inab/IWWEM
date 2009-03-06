@@ -37,6 +37,18 @@ use IWWEM::Taverna1WorkflowKind;
 use IWWEM::Taverna2WorkflowKind;
 use Encode;
 
+use vars qw($V2RBASE %V2R);
+
+$V2RBASE = '/iwwem:workflow/iwwem:release[1]';
+%V2R=(
+	$IWWEM::WorkflowCommon::WORKFLOWFILE => '@path',
+	$IWWEM::WorkflowCommon::SVGFILE => 'iwwem:graph[@mime="image/svg+xml"]',
+	$IWWEM::WorkflowCommon::PNGFILE => 'iwwem:graph[@mime="image/png"]',
+	$IWWEM::WorkflowCommon::PDFFILE => 'iwwem:graph[@mime="application/pdf"]',
+	$IWWEM::WorkflowCommon::GIFFILE => 'iwwem:graph[@mime="image/gif"]',
+	$IWWEM::WorkflowCommon::JPEGFILE => 'iwwem:graph[@mime="image/jpeg"]',
+);
+
 ##############
 # Prototypes #
 ##############
@@ -62,21 +74,32 @@ sub new(;$) {
 	
 	my $parser = XML::LibXML->new();
 	my $context = XML::LibXML::XPathContext->new();
-	
+	$context->registerNs('iwwem',$IWWEM::WorkflowCommon::WFD_NS);
+
 	$self->{PARSER}=$parser;
 	$self->{CONTEXT}=$context;
 	$self->{WORKFLOWLIST}=[];
 	$self->{baseListDir}="";
 	
-	$self->{WFH}{UNIVERSAL}=IWWEM::UniversalWorkflowKind->new($self->{PARSER},$self->{CONTEXT});
-	$self->{WFH}{$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME}=IWWEM::Taverna1WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
-	$self->{WFH}{$IWWEM::Taverna2WorkflowKind::T2FLOW_MIME}=IWWEM::Taverna2WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
+	foreach my $KIND (('IWWEM::UniversalWorkflowKind','IWWEM::Taverna1WorkflowKind','IWWEM::Taverna2WorkflowKind')) {
+		my($t)=$KIND->new($self->{PARSER},$self->{CONTEXT});
+		foreach my $MIME ($KIND->getMIMEList()) {
+			$self->{WFH}{$MIME}=$t;
+		}
+	}
+	# $self->{WFH}{UNIVERSAL}=IWWEM::UniversalWorkflowKind->new($self->{PARSER},$self->{CONTEXT});
+	# $self->{WFH}{$IWWEM::Taverna1WorkflowKind::XSCUFL_MIME}=IWWEM::Taverna1WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
+	# $self->{WFH}{$IWWEM::Taverna2WorkflowKind::T2FLOW_MIME}=IWWEM::Taverna2WorkflowKind->new($self->{PARSER},$self->{CONTEXT});
 	
 	return bless($self,$class);
 }
 
 # Static method
 sub UnderstandsId($) {
+	croak("Unimplemented method");
+}
+
+sub Prefix() {
 	croak("Unimplemented method");
 }
 
@@ -94,6 +117,25 @@ sub getWorkflowURI($) {
 
 sub getDomainClass() {
 	croak("Unimplemented method");
+}
+
+sub virt2real($@) {
+	my($self)=shift;
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($global)=shift;
+	my(@idhist)=@_;
+	
+	if(scalar(@idhist)>=2 && exists($V2R{$idhist[1]})) {
+		my($wflDesc)=$self->getWorkflowInfo($idhist[0],@{$self->{GATHERED}});
+
+		my $context = $self->{CONTEXT};
+		print STDERR "carajo\n"  unless(defined($wflDesc));
+		my(@rels)=$context->findnodes($V2RBASE.'/'.$V2R{$idhist[1]},$wflDesc);
+		return $rels[0]->textContent;
+	} else {
+		return undef;
+	}
 }
 
 #	my($OUTPUT,$query,$retval,$retvalmsg,$dataislandTag,$autoUUID)=@_;
@@ -134,7 +176,7 @@ sub sendWorkflowList($$$$;$$) {
 	
 	foreach my $wf (@{$p_workflowlist}) {
 		my($winfo)=$self->getWorkflowInfo($wf,@{$self->{GATHERED}});
-		$domain->appendChild($outputDoc->importNode($winfo));
+		$domain->appendChild($outputDoc->importNode($winfo))  if(defined($winfo));
 	}
 	
 	print $OUTPUT $query->header(-type=>(defined($dataislandTag)?'text/html':'text/xml'),-charset=>'UTF-8',-cache=>'no-cache, no-store',-expires=>'-1');

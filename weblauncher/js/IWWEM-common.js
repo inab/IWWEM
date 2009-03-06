@@ -29,8 +29,51 @@
 /* Window handling code */
 function GeneralView(customInit, /* optional */thedoc) {
 	this.thedoc = (thedoc)?thedoc:document;
-	this.outer=this.getElementById('outerAbsDiv');
-	this.shimmer=this.getElementById('shimmer');
+	
+	// Used for busy cursor and others
+	var thebody = this.thedoc.getElementsByTagName("body")[0];
+	this.thebody=thebody;
+	
+	// Shimmer
+	var shimmer = this.thedoc.createElement('iframe');
+	shimmer.className='hidden';
+	shimmer.frameBorder=0;
+	shimmer.src='about:blank';
+	shimmer.id='shimmer';
+	thebody.appendChild(shimmer);
+	
+	this.shimmer=shimmer;
+	
+	// OuterAbsDiv
+	var outer = this.thedoc.createElement('div');
+	outer.className='hidden';
+	outer.id='outerAbsDiv';
+	thebody.insertBefore(outer,thebody.firstChild);
+	
+	this.outer=outer;
+	
+	// Loading-like frames
+	var loading = this.thedoc.createElement('div');
+	loading.className='hidden';
+	var ltable=this.thedoc.createElement('table');
+	ltable.setAttribute('style','width:100%; height:100%;');
+	var ltr=this.thedoc.createElement('tr');
+	ltr.setAttribute('valign','middle');
+	var ltd=this.thedoc.createElement('td');
+	ltd.setAttribute('align','center');
+	var limg=this.thedoc.createElement('img');
+	limg.setAttribute('alt','Image not loaded (yet)');
+	limg.src='about:blank';
+	ltd.appendChild(limg);
+	ltr.appendChild(ltd);
+	ltable.appendChild(ltr);
+	loading.appendChild(ltable);
+	thebody.insertBefore(loading,shimmer);
+	
+	this.loadingImage=limg;
+	this.loadingDiv=loading;
+	this.loadingHash={};
+	
 	this.frameIds=new Array();
 	this.frameCounter=0;
 	this.messageDiv=this.getElementById('messageDiv');
@@ -483,6 +526,16 @@ GeneralView.prototype = {
 		GeneralView.freeContainer(this.messageDiv);
 	},
 	
+	busy:	function(/*optional*/ isBusy) {
+		this.thebody.className=(isBusy)?'busy':'';
+	},
+	
+	addLoadingFrames:	function(loadingHash) {
+		for(var divId in loadingHash) {
+			this.loadingHash[divId]=loadingHash[divId];
+		}
+	},
+	
 	openFrame: function (/* optional */ divId, useShimmer) {
 		if(this.visibleId) {
 			this.suspendFrame();
@@ -504,7 +557,15 @@ GeneralView.prototype = {
 				this.usingShimmer=1;
 			}
 			this.outer.className='outerAbsDiv';
-			var elem=this.getElementById(divId);
+			
+			var elem=undefined;
+			if(divId in this.loadingHash) {
+				elem=this.loadingDiv;
+				this.loadingImage.src=this.loadingHash[divId].src;
+				this.loadingImage.setAttribute('alt',this.loadingHash[divId].alt);
+			} else {
+				elem=this.getElementById(divId);
+			}
 			elem.className='transAbsDiv';
 			/* This is to take some times
 
@@ -518,9 +579,14 @@ GeneralView.prototype = {
 	
 	suspendFrame: function() {
 		if(this.visibleId) {
-			var elem=this.getElementById(this.visibleId);
+			var elem=(this.visibleId in this.loadingHash)?this.loadingDiv:this.getElementById(this.visibleId);
 
 			elem.className='hidden';
+			if(elem==this.loadingDiv) {
+				// Unload image if it is necessary
+				this.loadingImage.src='about:blank';
+				this.loadingImage.setAttribute('alt','Image not loaded (yet)');
+			}
 			this.outer.className='hidden';
 			if(this.usingShimmer) {
 				this.shimmer.className='hidden';

@@ -45,9 +45,9 @@ $XSCUFL_MIME = 'application/vnd.taverna.scufl+xml';
 ##############
 sub new(;$$);
 
-###############
-# Constructor #
-###############
+##################
+# Static methods #
+##################
 
 sub new(;$$) {
 	my($proto)=shift;
@@ -59,6 +59,14 @@ sub new(;$$) {
 	$context->registerNs('s',$XSCUFL_NS);
 	
 	return bless($self,$class);
+}
+
+sub getMIMEList() {
+	return ($XSCUFL_MIME);
+}
+
+sub getRootNS() {
+	return $XSCUFL_NS;
 }
 
 ###########

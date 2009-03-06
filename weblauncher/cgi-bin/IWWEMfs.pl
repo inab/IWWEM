@@ -40,6 +40,8 @@ use IWWEM::Config;
 use IWWEM::WorkflowCommon;
 use IWWEM::InternalWorkflowList;
 use IWWEM::InternalWorkflowList::Constants;
+use IWWEM::SelectiveWorkflowList;
+use IWWEM::FSConstants;
 use IWWEMproxy;
 
 use lib "$FindBin::Bin/LockNLog";
@@ -141,7 +143,7 @@ if(defined($vpath) && length($vpath)>0) {
 			$iwfl->sendWorkflowList(\*STDOUT,$query,$retval,undef,$dataislandTag);
 		} else {
 			my($kind)=undef;
-			foreach my $check (@IWWEM::InternalWorkflowList::Constants::PATHCHECK) {
+			foreach my $check (@IWWEM::FSConstants::PATHCHECK) {
 				my($virt)=$check->[0];
 				if(substr($relpath,0,length($virt)) eq $virt) {
 					$kind=$check;
@@ -152,14 +154,14 @@ if(defined($vpath) && length($vpath)>0) {
 			
 			if(defined($kind)) {
 				# It is from the identifiers namespace!
-				if($kind->[0] eq $IWWEM::InternalWorkflowList::Constants::VIRTIDDIR && length($relpath)>0) {
+				if($kind->[0] eq $IWWEM::FSConstants::VIRTIDDIR && length($relpath)>0) {
 					my($prepath,$idpath,$postpath)=split('/',$relpath,3);
 					unless((defined($prepath) && length($prepath)>0) || !defined($idpath) || length($idpath)==0) {
 						if($idpath =~ /^$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX([^:]+)$/) {
-							$kind=$IWWEM::InternalWorkflowList::Constants::ENKIND;
+							$kind=$IWWEM::FSConstants::ENKIND;
 							$relpath=$1;
 						} else {
-							$kind=$IWWEM::InternalWorkflowList::Constants::WFKIND;
+							$kind=$IWWEM::FSConstants::WFKIND;
 							if($idpath =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 								$relpath=join('/',$1,$IWWEM::WorkflowCommon::SNAPSHOTSDIR,$2);
 							} elsif($idpath =~ /^$IWWEM::InternalWorkflowList::Constants::EXAMPLEPREFIX([^:]+):([^:]+)$/) {
@@ -178,7 +180,7 @@ if(defined($vpath) && length($vpath)>0) {
 				
 				$patherr=processFSPath($query,$relpath,$kind,$dataislandTag,$raw,$asMime,$charset,$withName);
 			} else {
-				$patherr="Your path does not follow any of these items: ".IWWEM::InternalWorkflowList::genCheckList(@IWWEM::InternalWorkflowList::Constants::PATHCHECK);
+				$patherr="Your path does not follow any of these items: ".IWWEM::InternalWorkflowList::genCheckList(@IWWEM::FSConstants::PATHCHECK);
 			}
 		}
 	} else {
@@ -234,7 +236,7 @@ sub processFSPath($$$$$$$$) {
 
 				# Matching...
 				if((substr($virt,0,1) eq '^' && $relid =~ /$virt$/) || ($virt eq $relid)) {
-					if(defined($check->[1]) && $check->[1]==$IWWEM::InternalWorkflowList::Constants::ISFORBIDDEN) {
+					if(defined($check->[1]) && $check->[1]==$IWWEM::FSConstants::ISFORBIDDEN) {
 						$patherr='Path fragment '.$virt.' is forbidden at this point';
 					} else {
 						$newkind=$check;
@@ -270,13 +272,13 @@ sub processFSPath($$$$$$$$) {
 		
 		if($iddepth==0) {
 			# Listing of all workflows or all enactions as workflows.
-			my($wfid)=($globalkind->[0] eq $IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR) ? $IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX : undef;
+			my($wfid)=($globalkind->[0] eq $IWWEM::FSConstants::VIRTJOBDIR) ? $IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX : undef;
 			my($iwfl)=IWWEM::InternalWorkflowList->new($wfid);
 			$iwfl->sendWorkflowList(\*STDOUT,$query,$retval,undef,$dataislandTag);
 		} elsif($iddepth==1) {
 			# Single workflows/enactions
 			unless(defined($isWSDL)) {
-				if($globalkind->[0] eq $IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR) {
+				if($globalkind->[0] eq $IWWEM::FSConstants::VIRTJOBDIR) {
 					# Description as a status for enactions!
 					my(@jobs)=($idhist[0]);
 					
@@ -285,23 +287,28 @@ sub processFSPath($$$$$$$$) {
 					$iwfl->sendEnactionReport($query,\@jobs,undef,undef,undef,undef,undef,$autoUUID);
 				} else {
 					# Description as a workflow list for workflows...
-					my($iwfl)=IWWEM::InternalWorkflowList->new($idhist[0]);
-					$iwfl->sendWorkflowList(\*STDOUT,$query,$retval,undef,$dataislandTag);
+					my($swfl)=IWWEM::SelectiveWorkflowList->new($idhist[0]);
+					$swfl->sendWorkflowList(\*STDOUT,$query,$retval,undef,$dataislandTag);
+					#my($iwfl)=IWWEM::InternalWorkflowList->new($idhist[0]);
+					#$iwfl->sendWorkflowList(\*STDOUT,$query,$retval,undef,$dataislandTag);
 				}
 			} else {
-				generateWSDL((($globalkind->[0] eq $IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR)?$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX:$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX).$idhist[0]);
+				generateWSDL((($globalkind->[0] eq $IWWEM::FSConstants::VIRTJOBDIR)?$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX:$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX).$idhist[0]);
 			}
 		} elsif(!defined($kindclass)) {
-				my(@headers)=();
-				IWWEMproxy::rawAnswer($query,join('/',$globalkind->[1],@idhist),@headers);
+			my(@headers)=();
+			my($swfl)=IWWEM::SelectiveWorkflowList->new($idhist[0]);
+			my($path)=$swfl->virt2real($globalkind->[1],@idhist);
+
+			IWWEMproxy::rawAnswer($query,$path,@headers);
 		} elsif($iddepth==2) {
-			if($kindclass < $IWWEM::InternalWorkflowList::Constants::ISRAWDIR) {
-				IWWEMproxy::processBaclavaQuery($query,$retval,$idhist[0],$asMime,undef,undef,($kindclass == $IWWEM::InternalWorkflowList::Constants::ISOUTPUT)?'O':'I',$vpath,undef,$withName,$charset,$raw);
+			if($kindclass < $IWWEM::FSConstants::ISRAWDIR) {
+				IWWEMproxy::processBaclavaQuery($query,$retval,$idhist[0],$asMime,undef,undef,($kindclass == $IWWEM::FSConstants::ISOUTPUT)?'O':'I',$vpath,undef,$withName,$charset,$raw);
 			} else {
 				$patherr='No digested information available from '.join('/',@idhist);
 			}
 		} elsif($iddepth==3) {
-			if($kindclass==$IWWEM::InternalWorkflowList::Constants::ISIDDIR && $globalkind->[0] eq $IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR) {
+			if($kindclass==$IWWEM::FSConstants::ISIDDIR && $globalkind->[0] eq $IWWEM::FSConstants::VIRTWORKFLOWDIR) {
 				my($jobId)=$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX.$idhist[0].':'.$idhist[2];
 				unless(defined($isWSDL)) {
 					# Description as a status for snapshots!
@@ -313,11 +320,11 @@ sub processFSPath($$$$$$$$) {
 				} else {
 					generateWSDL($jobId);
 				}
-			} elsif($kindclass==$IWWEM::InternalWorkflowList::Constants::ISEXAMPLE || ($globalkind->[0] eq $IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR && $kindclass==$IWWEM::InternalWorkflowList::Constants::ISIDDIR)) {
+			} elsif($kindclass==$IWWEM::FSConstants::ISEXAMPLE || ($globalkind->[0] eq $IWWEM::FSConstants::VIRTJOBDIR && $kindclass==$IWWEM::FSConstants::ISIDDIR)) {
 				my($jobId)=undef;
 				my($step)=undef;
 				
-				if($kindclass == $IWWEM::InternalWorkflowList::Constants::ISEXAMPLE) {
+				if($kindclass == $IWWEM::FSConstants::ISEXAMPLE) {
 					my($exid)=$idhist[2];
 					$exid =~ s/\.xml$//;
 					$jobId=$IWWEM::InternalWorkflowList::Constants::EXAMPLEPREFIX.$idhist[0].':'.$exid;
@@ -325,17 +332,17 @@ sub processFSPath($$$$$$$$) {
 					$jobId=$idhist[0];
 					$step=$idhist[2];
 				}
-				IWWEMproxy::processBaclavaQuery($query,$retval,$jobId,$asMime,$step,undef,($kindclass != $IWWEM::InternalWorkflowList::Constants::ISEXAMPLE)?'B':'I',$vpath,undef,$withName,$charset,$raw);
+				IWWEMproxy::processBaclavaQuery($query,$retval,$jobId,$asMime,$step,undef,($kindclass != $IWWEM::FSConstants::ISEXAMPLE)?'B':'I',$vpath,undef,$withName,$charset,$raw);
 			} else {
 				$patherr='No valid path from '.join('/',@idhist);
 			}
 		} elsif($iddepth==4 || $iddepth==6 || $iddepth==8) {
-			if($kindclass < $IWWEM::InternalWorkflowList::Constants::ISRAWDIR) {
+			if($kindclass < $IWWEM::FSConstants::ISRAWDIR) {
 				my($jobId)=undef;
 				my($step)=undef;
 				my($iteration)=undef;
 				
-				if($globalkind->[0] eq $IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR) {
+				if($globalkind->[0] eq $IWWEM::FSConstants::VIRTWORKFLOWDIR) {
 					$jobId=$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX.$idhist[0].':'.$idhist[2];
 					$step=$idhist[4]  if($iddepth==6);
 					$iteration=$idhist[6]  if($iddepth==8);
@@ -344,17 +351,17 @@ sub processFSPath($$$$$$$$) {
 					$step=$idhist[2];
 					$iteration=$idhist[4]  if($iddepth==6);
 				}
-				IWWEMproxy::processBaclavaQuery($query,$retval,$jobId,$asMime,$step,$iteration,($kindclass == $IWWEM::InternalWorkflowList::Constants::ISOUTPUT)?'O':'I',$vpath,undef,$withName,$charset,$raw);
+				IWWEMproxy::processBaclavaQuery($query,$retval,$jobId,$asMime,$step,$iteration,($kindclass == $IWWEM::FSConstants::ISOUTPUT)?'O':'I',$vpath,undef,$withName,$charset,$raw);
 			} else {
 				$patherr='No valid path from '.join('/',@idhist);
 			}
 		} elsif($iddepth==5 || $iddepth==7) {
-			if($kindclass==$IWWEM::InternalWorkflowList::Constants::ISIDDIR) {
+			if($kindclass==$IWWEM::FSConstants::ISIDDIR) {
 				my($jobId)=undef;
 				my($step)=undef;
 				my($iteration)=undef;
 				
-				if($globalkind->[0] eq $IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR) {
+				if($globalkind->[0] eq $IWWEM::FSConstants::VIRTWORKFLOWDIR) {
 					$jobId=$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX.$idhist[0].':'.$idhist[2];
 					$step=$idhist[4];
 					$iteration=$idhist[6]  if($iddepth==7);
@@ -363,7 +370,7 @@ sub processFSPath($$$$$$$$) {
 					$step=$idhist[2];
 					$iteration=$idhist[4];
 				}
-				IWWEMproxy::processBaclavaQuery($query,$retval,$jobId,$asMime,$step,$iteration,($kindclass != $IWWEM::InternalWorkflowList::Constants::ISINPUT)?'B':'I',$vpath,undef,$withName,$charset,$raw);
+				IWWEMproxy::processBaclavaQuery($query,$retval,$jobId,$asMime,$step,$iteration,($kindclass != $IWWEM::FSConstants::ISINPUT)?'B':'I',$vpath,undef,$withName,$charset,$raw);
 			} else {
 				$patherr='No valid path from '.join('/',@idhist);
 			}
@@ -381,7 +388,7 @@ sub generateWSDL($) {
 	
 	my($baseListDir,$listDir,$uuidPrefix,$subId,$isSnapshot);
 	if(index($id,$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX)==0) {
-		$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR;
+		$baseListDir=$IWWEM::FSConstants::VIRTJOBDIR;
 		$listDir=$IWWEM::Config::JOBDIR;
 		$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX;
 		
@@ -389,7 +396,7 @@ sub generateWSDL($) {
 			$subId=$1;
 		}
 	} elsif($id =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+)/) {
-		$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+		$baseListDir=$IWWEM::FSConstants::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 		$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 		$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX . $1 . ':';
 		
@@ -399,7 +406,7 @@ sub generateWSDL($) {
 			$subId=$2;
 		}
 	} else {
-		$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR;
+		$baseListDir=$IWWEM::FSConstants::VIRTWORKFLOWDIR;
 		$listDir=$IWWEM::Config::WORKFLOWDIR;
 		$uuidPrefix='';
 		

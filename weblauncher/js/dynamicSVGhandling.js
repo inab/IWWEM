@@ -309,11 +309,11 @@ TavernaSVG.prototype = {
 		var HEADrequestonerror=undefined;
 		var HEADrequestonload = function() {
 			if(HEADrequest) {
-				thissvg.rawLoadSVG(load,node,nodeid,url,bestScaleW,bestScaleH,callOnFinish,thedoc);
 				if(HEADrequest.onload) {
 					HEADrequest.onload=function() {};
 					HEADrequest.onerror=function() {};
 				}
+				thissvg.rawLoadSVG(load,node,nodeid,url,bestScaleW,bestScaleH,callOnFinish,thedoc);
 				HEADrequestonload=undefined;
 				HEADrequestonerror=undefined;
 				HEADrequest=undefined;
@@ -323,7 +323,7 @@ TavernaSVG.prototype = {
 		// HEAD checks are subjected to the same restrictions as GET, POST and PUT requests.
 		// So check whether we can apply it!
 		var basehref = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
-		if((url.indexOf('http://')!=0 && url.indexOf('https://')!=0 && url.indexOf('ftp://')!=0) || url.indexOf(basehref)==0) {
+		if(BrowserDetect.browser!='Opera' && ((url.indexOf('http://')!=0 && url.indexOf('https://')!=0 && url.indexOf('ftp://')!=0) || url.indexOf(basehref)==0)) {
 			HEADrequestonerror = function() {
 				if(HEADrequest) {
 					if(thissvg.defaultsvg!=undefined) {
@@ -337,6 +337,7 @@ TavernaSVG.prototype = {
 					if(HEADrequest.onload) {
 						HEADrequest.onload=function() {};
 						HEADrequest.onerror=function() {};
+						HEADrequest.onreadystatechange=function() {};
 					}
 					HEADrequestonload=undefined;
 					HEADrequestonerror=undefined;
@@ -345,7 +346,7 @@ TavernaSVG.prototype = {
 			};
 
 			var onreadystatechange = function() {
-				if(HEADrequest.readyState==4) {
+				if(!('readyState' in HEADrequest) || HEADrequest.readyState==4) {
 					HEADrequest.onreadystatechange=function() {};
 					if(HEADrequest.status==200 || HEADrequest.status==304) {
 						HEADrequestonload();
@@ -357,31 +358,33 @@ TavernaSVG.prototype = {
 			};
 
 			var dovar=1;
-			if(HEADrequest.addEventListener) {
-				try {
-					HEADrequest.addEventListener('load',HEADrequestonload,false);
-					HEADrequest.addEventListener('error',HEADrequestonerror,false);
-					dovar=undefined;
-				} catch(e) {
+			if(BrowserDetect.browser=='Opera') {
+				HEADrequest.onreadystatechange=onreadystatechange;
+			} else {
+				if(HEADrequest.addEventListener) {
 					try {
-						HEADrequest.addEventListener('readystatechange',onreadystatechange,false);
+						HEADrequest.addEventListener('load',HEADrequestonload,false);
+						HEADrequest.addEventListener('error',HEADrequestonerror,false);
 						dovar=undefined;
 					} catch(e) {
-						// IgnoreIT!(R)
+						try {
+							HEADrequest.onreadystatechange=onreadystatechange;
+							dovar=undefined;
+						} catch(e) {
+							// IgnoreIT!(R)
+						}
 					}
 				}
-			}
 
-			if(dovar) {
-				if(HEADrequest.onload) {
-					HEADrequest.onload=HEADrequestonload;
-					HEADrequest.onerror=HEADrequestonerror;
-				} else {
+				if(dovar) {
+					if('onload' in HEADrequest) {
+						HEADrequest.onload=HEADrequestonload;
+						HEADrequest.onerror=HEADrequestonerror;
+					}
 					HEADrequest.onreadystatechange=onreadystatechange;
 				}
 			}
-
-
+			
 			// Now it is time to send the query
 			HEADrequest.open('HEAD',url,true);
 			HEADrequest.send(null);
@@ -415,7 +418,9 @@ TavernaSVG.prototype = {
 		if(BrowserDetect.browser!='Explorer') {
 			var finishfunc = function(evt) {
 				//((evt.currentTarget)?evt.currentTarget:evt.srcElement).onload=function() {};
-				((evt.currentTarget)?evt.currentTarget:evt.srcElement).removeEventListener('load',finishfunc,false);
+				//((evt.currentTarget)?evt.currentTarget:evt.srcElement).removeEventListener('load',finishfunc,false);
+				
+				objres.removeEventListener('load',finishfunc,false);
 				// Transferring the trampoline!
 				if ('SVGtrampoline' in window && window.SVGtrampoline) {
 					thissvg.SVGtramp=window.SVGtrampoline;
@@ -438,11 +443,25 @@ TavernaSVG.prototype = {
 			
 			objres.setAttribute("wmode","transparent");
 			//objres.onload=finishfunc;
-			objres.addEventListener('load',finishfunc,false);
-			objres.onreadystatechange=function (evt) { alert('PetaZetaERRC!'); };
-			objres.onabort=function (evt) { alert('PetaZetaERRA!'); };
-			objres.onerror=function (evt) { alert('PetaZetaERRE!'); };
-			objres.onprogress=function (evt) { alert('PetaZetaERRP!'); };
+			
+			/*
+			if(BrowserDetect.browser=='Opera') {
+				objres.onreadystatechange = function(evt) {
+					alert('JIODE');
+					objres.onreadystatechange = function() {};
+					finishfunc(evt);
+				};
+			} else {
+			*/
+				objres.addEventListener('load',finishfunc,false);
+			/*
+			}
+			*/
+			
+			//objres.onreadystatechange=function (evt) { alert('PetaZetaERRC!'); };
+			//objres.onabort=function (evt) { alert('PetaZetaERRA!'); };
+			//objres.onerror=function (evt) { alert('PetaZetaERRE!'); };
+			//objres.onprogress=function (evt) { alert('PetaZetaERRP!'); };
 
 			/*
 			var fallback=thedoc.createElement('p');
@@ -495,7 +514,6 @@ TavernaSVG.prototype = {
 					thissvg._svgloadtimer=setTimeout(finishfuncIE,199);
 				}
 			};
-			//objres.onload=finishfuncIE;
 
 			thissvg._svgloadtimer=setTimeout(finishfuncIE,199);
 		}
@@ -505,8 +523,8 @@ TavernaSVG.prototype = {
 			oldsvgobj.style.visibility='hidden';
 		}
 		node.appendChild(objres);
+		/*
 		var jaa=setTimeout(function() {
-			/*
 			var fav='';
 			for(var facet in objres.contentDocument) {
 				try {
@@ -515,13 +533,23 @@ TavernaSVG.prototype = {
 				} catch(e) {
 				}
 			}
+			alert(objres.contentDocument.readyState);
 			alert(fav);
-			*/
+			fav='';
+			for(var facet in objres) {
+				try {
+					//fav+=facet+':'+objres[facet]+"\n";
+					fav+=facet+"\n";
+				} catch(e) {
+				}
+			}
+			alert(fav);
 			alert(objres.clientWidth+' '+objres.clientHeight);
 			
 			clearTimeout(jaa);
 			jaa=undefined;
 		},5000);
+		*/
 		// And this is needed due a Webkit bug! Nuts!
 		if(oldsvgobj) {
 			oldsvgobj.parentNode.removeChild(oldsvgobj);

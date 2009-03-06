@@ -42,6 +42,7 @@ use Socket;
 
 use lib "$FindBin::Bin";
 use IWWEM::InternalWorkflowList::Constants;
+use IWWEM::FSConstants;
 use IWWEM::InternalWorkflowList::Confirmation;
 use IWWEM::WorkflowCommon;
 use IWWEM::UniversalWorkflowKind;
@@ -90,7 +91,7 @@ sub new(;$$) {
 			$subId=$id;
 			@dirstack=();
 		} elsif(index($id,$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX)==0) {
-			$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR;
+			$baseListDir=$IWWEM::FSConstants::VIRTJOBDIR;
 			$listDir=$IWWEM::Config::JOBDIR;
 			$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX;
 			
@@ -98,7 +99,7 @@ sub new(;$$) {
 				$subId=$1;
 			}
 		} elsif($id =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+)/) {
-			$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+			$baseListDir=$IWWEM::FSConstants::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 			$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 			$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX . $1 . ':';
 			
@@ -108,7 +109,7 @@ sub new(;$$) {
 				$subId=$2;
 			}
 		} else {
-			$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR;
+			$baseListDir=$IWWEM::FSConstants::VIRTWORKFLOWDIR;
 			$listDir=$IWWEM::Config::WORKFLOWDIR;
 			$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX;
 			
@@ -158,7 +159,7 @@ sub new(;$$) {
 	return bless($self,$class);
 }
 
-# Static method
+# Static methods
 sub UnderstandsId($) {
 	# Very special case for multiple inheritance handling
 	# This is the seed
@@ -170,8 +171,27 @@ sub UnderstandsId($) {
 	return !defined($id) || index($id,$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX)==0 || index($id,$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX)==0 || index($id,$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX)==0 || (index($id,'/')==-1 && index($id,':')==-1 );
 }
 
+sub Prefix() {
+	# Very special case for multiple inheritance handling
+	# This is the seed
+	my($self)=shift;
+	my($class)=ref($self) || $self;
+	
+	return $IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX;
+}
+
 sub getDomainClass() {
 	return 'IWWEM';
+}
+
+# Dynamic methods
+sub virt2real($@) {
+	my($self)=shift;
+	croak("This is an instance method!")  unless(ref($self));
+	
+	my($global)=shift;
+	my(@idhist)=@_;
+	return join('/',$global,@idhist);
 }
 
 sub getWorkflowURI($) {
@@ -183,7 +203,7 @@ sub getWorkflowURI($) {
 	
 	my($baseListDir,$listDir,$uuidPrefix,$subId,$isSnapshot);
 	if(index($id,$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX)==0) {
-		$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR;
+		$baseListDir=$IWWEM::FSConstants::VIRTJOBDIR;
 		$listDir=$IWWEM::Config::JOBDIR;
 		$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::ENACTIONPREFIX;
 		
@@ -191,7 +211,7 @@ sub getWorkflowURI($) {
 			$subId=$1;
 		}
 	} elsif($id =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+)/) {
-		$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+		$baseListDir=$IWWEM::FSConstants::VIRTWORKFLOWDIR . '/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 		$listDir=$IWWEM::Config::WORKFLOWDIR .'/'.$1.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 		$uuidPrefix=$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX . $1 . ':';
 		
@@ -201,7 +221,7 @@ sub getWorkflowURI($) {
 			$subId=$2;
 		}
 	} else {
-		$baseListDir=$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR;
+		$baseListDir=$IWWEM::FSConstants::VIRTWORKFLOWDIR;
 		$listDir=$IWWEM::Config::WORKFLOWDIR;
 		$uuidPrefix='';
 		
@@ -716,7 +736,7 @@ sub sendEnactionReport($\@;$$$$$$) {
 		my($es)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'enactionstatus');
 		$es->setAttribute('jobId',$jobId);
 		$es->setAttribute('time',LockNLog::getPrintableNow());
-		$es->setAttribute('relURI',$IWWEM::InternalWorkflowList::Constants::VIRTJOBDIR);
+		$es->setAttribute('relURI',$IWWEM::FSConstants::VIRTJOBDIR);
 	
 		# Time to know the overall status of this enaction
 		my($state)=undef;
@@ -731,7 +751,7 @@ sub sendEnactionReport($\@;$$$$$$) {
 				$jobId=$2;
 				$jobdir=$IWWEM::WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
 				# It is an snapshot, so the relative URI changes
-				$es->setAttribute('relURI',$IWWEM::InternalWorkflowList::Constants::VIRTWORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR);
+				$es->setAttribute('relURI',$IWWEM::FSConstants::VIRTWORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR);
 			}
 		} else {
 			# For completion, we handle qualified job Ids

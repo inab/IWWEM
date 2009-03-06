@@ -1,0 +1,167 @@
+$Id$
+
+How to install Interactive Web Workflow Enactor & Manager 0.7.0
+===============================================================
+
+This file is part of IWWE&M, the Interactive Web Workflow Enactor & Manager.
+
+IWWE&M is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+IWWE&M is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
+
+Original IWWE&M concept, design and coding done by
+José María Fernández González, INB (C) 2008-2009.
+Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
+
+Introduction
+============
+
+If you are reading this, you either have a snapshot or a working copy of IWWE&M
+source code, or you have got it from Internet.
+
+As IWWE&M source code is publicly available from a Subversion repository, you can
+check it out using any Subversion client, like the Eclipse Subclipse plugin,
+TortoiseSVN, command line svn, etc... So these checkout instructions are focused
+on command-line.
+
+The way to get a fresh copy of IWWE&M sources from IWWE&M SVN repository is:
+
+svn co http://trac.bioinfo.cnio.es/svn/iwwem/trunk INBWorkflowLauncher
+
+so you have the fresh copy in INBWorkflowLauncher directory. When you have
+fulfilled all the IWWE&M installation pre-requisites then you can proceed on
+IWWE&M compilation and installation.
+
+Pre-requisites
+==============
+
+These instructions distinguishes between the compilation machine and
+the installation machine, which could not be the same. Both of them
+have more or less the same software pre-requisites.
+
+* Compilation machine
+
+	- You need a working Java JDK 1.5.x or 1.6.x. IWWE&M has been tested with both IBM JDK
+	  and Sun JDK. It should also work with Apple JDK.
+	- You also need both ant and maven build systems.
+	- You need a working Perl installation, with the next modules. Depending
+	  on the Perl version you have installed, some of them can be already
+	  integrated in the Perl core:
+	  	+ TimeDate (for Date::Parse)
+		+ Encode
+		+ CGI
+		+ LWP (aka libwww-perl)
+		+ Mail::Sender
+		+ URI
+		+ MIME::Base64
+		+ XML::LibXML
+		+ XML::SAX
+		+ File::Copy
+		+ File::Path
+		+ File::Temp
+		+ IO (for IO::Handle)
+		+ Time::HiRes
+		+ POSIX
+	- A working SSH client.
+
+* Installation machine
+
+	- You need a working Java JRE 1.5.x or 1.6.x. IWWE&M has been tested with both IBM JRE
+	  and Sun JRE. It should also work with Apple JDK.
+	- A recent Graphviz package (2.16.x or better) for its dot command. It is used by the
+	  Taverna core.
+	- You need a working Perl installation, with the next modules. Depending
+	  on the Perl version you have installed, some of them can be already
+	  integrated in the Perl core:
+	  	+ TimeDate (for Date::Parse)
+		+ Encode
+		+ CGI
+		+ LWP (aka libwww-perl)
+		+ Mail::Sender
+		+ URI
+		+ MIME::Base64
+		+ XML::LibXML
+		+ XML::SAX
+		+ File::Copy
+		+ File::Path
+		+ File::Temp
+		+ IO (for IO::Handle)
+		+ Time::HiRes
+		+ POSIX
+	- A working Apache web server. It should work with other web servers, but
+	  it has not been tested.
+		+ A separate user should be created for IWWE&M, and then Apache should
+		  be set up to handle mod_userdir. In that way, CGI processes from
+		  IWWE&M will be run with that separate user.
+		+ cgi-bin directories must be set for CGIs in subdirectories
+		
+			<Directory /home/*/public_html/*/cgi-bin>
+				Options ExecCGI
+				SetHandler cgi-script
+			</Directory>
+
+	- A working SSH server, so IWWE&M can be installed from the compilation
+	  machine.
+	- Bash shell.
+	- Enough storage for the workflow repository (which includes the enactions
+	  and snapshots).
+
+Setup steps
+===========
+
+0.- In the compilation machine, obtain a copy of the IWWE&M sources.
+    For instance, from a svn checkout (explained above).
+
+1.- Change to the directory where the sources are living, and edit build.properties, where
+    you can set up the installation machine properties:
+	cd INBWorkflowLauncher
+	vi build.properties
+
+    The keys are:
+	* deploy.host is the installation machine. If the compilation and installation machine
+	  are the same, the localhost value is right.
+	* deploy.ssh.user is the user used for scp and ssh, which is going to own the IWWE&M
+	  installed files.
+	* deploy.ssh.dir is the directory where IWWE&M is going to live.
+	* deploy.ssh.keyfile is the keyfile used to authenticate on scp and ssh transfers.
+	  By default it is the one from the user.
+	* deploy.ssh.passphrase is the passphrase used to decrypt the keyfile, if it is needed.
+
+2.- Copy file weblauncher/cgi-bin/IWWEM/MailConfig.pm.example to
+    weblauncher/cgi-bin/IWWEM/MailConfig.pm , and then edit it. It contains the variables used
+    to setup IWWE&M mail parameters, like the SMTP server (variable $SMTPSERVER). If SMTP server
+    needs authentication, then $SMTP_ENCODED_CREDS, $SMTPUSER, $SMTPPASS variables are taken
+    into account. The first one is used to tell whether user and password are base64 encoded,
+    the second one is the user to send e-mail and the third one is the password to send e-mail.
+
+	Optional steps
+	- - - - - - - -
+
+3.- You can edit weblauncher/etc/IWWEM-config.js, where some variables used by IWWE&M AJAX GUIs
+    can be tweaked, like Version string and default logo.
+
+4.- File weblauncher/cgi-bin/IWWEM/Config.pm contains some IWWE&M frontends constants which can
+    be tweaked, like the number of max concurrent workflow enactions (variable $MAXJOBS) or
+    web URL path mappings (hash %HARDHOST).
+
+Install steps
+=============
+
+0.- If any of these steps fail, please open a new ticket on IWWE&M Trac:
+    http://trac.bioinfo.cnio.es/trac/iwwem/newticket
+1.- In the compilation machine, change to the directory where the sources are living and
+    compile everything:
+	cd INBWorkflowLauncher
+	ant compile
+
+2.- Now it is time to install the system on the installation machine:
+	ant deploy

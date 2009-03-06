@@ -36,10 +36,10 @@ use base qw(IWWEM::AbstractWorkflowList XML::SAX::Base);
 
 use IWWEM::WorkflowCommon;
 use IWWEM::UniversalWorkflowKind;
+use IWWEM::myExperimentWorkflowList::Constants;
 
-use vars qw($MYEXP_PREFIX $MYEXP_DOMAIN $MYEXP_BASE_URL $MYEXP_BASE_URI $MYEXP_LIST_URL $MYEXP_WF_URL);
+use vars qw($MYEXP_DOMAIN $MYEXP_BASE_URL $MYEXP_BASE_URI $MYEXP_LIST_URL $MYEXP_WF_URL);
 
-$MYEXP_PREFIX='myExperiment:';
 $MYEXP_DOMAIN='http://www.myexperiment.org/';
 $MYEXP_BASE_URL=$MYEXP_DOMAIN.'workflow';
 $MYEXP_BASE_URI=$MYEXP_DOMAIN.'workflows/';
@@ -76,7 +76,7 @@ sub new(;$) {
 	my($id)=undef;
 	if(exists($self->{id})) {
 		$id=$self->{id};
-		$id=substr($id,length($MYEXP_PREFIX))  if(index($id,$MYEXP_PREFIX)==0);
+		$id=substr($id,length($IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX))  if(index($id,$IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX)==0);
 		$id=undef  if(length($id)==0);
 		# Last, resave the id!
 		$self->{id}=$id;
@@ -120,20 +120,30 @@ sub new(;$) {
 	return bless($self,$class);
 }
 
-# Static method
+# Static methods
 sub UnderstandsId($) {
 	# Very special case for multiple inheritance handling
 	# This is the seed
 	my($self)=shift;
 	my($class)=ref($self) || $self;
 	
-	return index($_[0],$MYEXP_PREFIX)==0;
+	return index($_[0],$IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX)==0;
+}
+
+sub Prefix() {
+	# Very special case for multiple inheritance handling
+	# This is the seed
+	my($self)=shift;
+	my($class)=ref($self) || $self;
+	
+	return $IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX;
 }
 
 sub getDomainClass() {
 	return 'myExperiment';
 }
 
+# Dynamic methods
 sub getWorkflowURI($) {
 	my($self)=shift;
 	
@@ -183,18 +193,26 @@ sub getWorkflowInfo($@) {
 		$outputDoc->setDocumentElement($wfe);
 		
 		# It is required a brief reference
-		$wfe->setAttribute('uuid',$MYEXP_PREFIX.$wf->[0]);
+		$wfe->setAttribute('uuid',$IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX.$wf->[0]);
 		$wfe->setAttribute('title',$wf->[1]);
 		my $releaseRef = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'releaseRef');
-		$releaseRef->setAttribute('uuid',$MYEXP_PREFIX.$wf->[0]);
+		$releaseRef->setAttribute('uuid',$IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX.$wf->[0]);
 		$releaseRef->setAttribute('title',$wf->[1]);
 		$wfe->appendChild($releaseRef);
 	} else {
-		$wfid=$wf;
+		if(index($wf,$IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX)==0) {
+			$wfid=substr($wf,length($IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX));
+		} else {
+			$wfid=$wf;
+		}
+		
 		# It is required a full description
 		eval {
-			my($expdoc)=$parser->parse_file($MYEXP_WF_URL.$wf);
+			my($expdoc)=$parser->parse_file($MYEXP_WF_URL.$wfid);
 			my($exproot)=$expdoc->documentElement();
+			
+			# Not found!
+			return  if($exproot->localname eq 'error');
 			
 			my($child)=undef;
 			my($title)='';
@@ -220,7 +238,7 @@ sub getWorkflowInfo($@) {
 						$date=LockNLog::getPrintableDate(str2time($child->textContent()));
 					} elsif($lname eq 'preview') {
 						my($prelink)=$child->textContent();
-						my($premime)=($prelink =~ /\.jpg$/)?'image/jpg':(($prelink =~ /\.png$/)?'image/png':'image/*');
+						my($premime)=($prelink =~ /\.jpg$/)?'image/jpeg':(($prelink =~ /\.png$/)?'image/png':(($prelink =~ /\.gif$/)?'image/gif':'image/*'));
 						push(@mimes,[$prelink,$premime]);
 					} elsif($lname eq 'svg') {
 						push(@mimes,[$child->textContent(),'image/svg+xml']);
@@ -236,7 +254,7 @@ sub getWorkflowInfo($@) {
 				}
 			}
 		
-			my($uuid)=$MYEXP_PREFIX.$wf;
+			my($uuid)=$IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX.$wfid;
 			if(exists($self->{WFH}{$wfKind})) {
 				eval {
 					# $wfe = $self->{WFH}{$wfKind}->getWorkflowInfo($wfuri,$uuid,undef,undef,undef);
@@ -312,11 +330,16 @@ sub getWorkflowInfo($@) {
 			}
 
 			foreach my $mime (@mimes) {
-					my($gchild)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'graph');
-					$gchild->setAttribute('mime',$mime->[1]);
-					$gchild->appendChild($outputDoc->createTextNode($mime->[0]));
-					$release->insertAfter($gchild,$refnode);
-					$refnode=$gchild;
+				my($gchild)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'graph');
+				my($mtext)=$mime->[1];
+				$gchild->setAttribute('mime',$mtext);
+				print STDERR $mtext,"<\n";
+				if(exists($IWWEM::WorkflowCommon::GRAPHREPINV{$mtext})) {
+					$gchild->setAttribute('altURI',$IWWEM::FSConstants::VIRTIDDIR.'/'.$uuid.'/'.$IWWEM::WorkflowCommon::GRAPHREPINV{$mtext});
+				}
+				$gchild->appendChild($outputDoc->createTextNode($mime->[0]));
+				$release->insertAfter($gchild,$refnode);
+				$refnode=$gchild;
 			}
 		};
 		

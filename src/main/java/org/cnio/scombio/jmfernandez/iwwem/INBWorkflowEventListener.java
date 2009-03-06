@@ -25,7 +25,7 @@
 	Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
 	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 */
-package org.cnio.scombio.jmfernandez.taverna;
+package org.cnio.scombio.jmfernandez.iwwem;
 
 import java.io.File;
 import java.io.FileNotFoundException;

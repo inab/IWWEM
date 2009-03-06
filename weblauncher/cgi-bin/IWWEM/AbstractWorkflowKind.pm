@@ -39,9 +39,9 @@ use IWWEM::WorkflowCommon;
 ##############
 sub new(;$$);
 
-###############
-# Constructor #
-###############
+##################
+# Static methods #
+##################
 
 # Constructor must do the tasks done by gatherWorkflowList in the past
 sub new(;$$) {
@@ -63,6 +63,14 @@ sub new(;$$) {
 	$self->{CONTEXT}=$context;
 	
 	return bless($self,$class);
+}
+
+sub getMIMEList() {
+	croak("Unimplemented static method");
+}
+
+sub getRootNS() {
+	croak("Unimplemented static method");
 }
 
 ###########

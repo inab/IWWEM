@@ -127,7 +127,7 @@ parse pure XML loaded in embedded FRAMEs or IFRAMEs due browser limitations. Whe
 by an <tt>xml</tt> tag (for Internet Explorer), and when parameter is <span class="value">2</span>, the content is wrapped by a <tt>div</tt> tag
 (for Konqueror).
 </li>
-<li><u><span class="parameter">altViewerURI</span> <i>(optional)</i></u>: When a workflow is added,this parameter allows customizing the enaction viewer URI to use when an enaction is run.
+<li><u><span class="parameter">altViewerURI</span> <i>(optional)</i></u>: When a workflow is added,this parameter allows customizing the enaction viewer URI to use when an enaction is run. The URI can optionally contain the particle @JOBID@, so IWWE&amp; core knows where to put the job id when it has to build a GUI enaction URI.
 </li>
 </ul>
 
@@ -181,7 +181,7 @@ When this parameter is set, <span class="frontend">enactionlauncher</span> front
 </li>
 <li><u><span class="parameter">onlySaveAsExample</span> <i>(optional, deprecated)</i></u>: When <span class="parameter">exampleName</span> is set, <span class="parameter">id</span> parameter is a workflow Id, a qualified enaction Id or a qualified snapshot Id, and this parameter is set, only save parameters stage is done and no enaction process is issued.
 </li>
-<li><u><span class="parameter">altViewerURI</span> <i>(optional)</i></u>: When a job is launched, an e-mail with the URL to the enaction viewer is sent. This parameter allows customizing that enaction viewer URI just for this run.
+<li><u><span class="parameter">altViewerURI</span> <i>(optional)</i></u>: When a job is launched, an e-mail with the URL to the enaction viewer is sent. This parameter allows customizing that enaction viewer URI just for this run. The URI can optionally contain the particle @JOBID@, so IWWE&amp; core knows where to put the job id when it has to build a GUI enaction URI.
 </li>
 </ul>
 

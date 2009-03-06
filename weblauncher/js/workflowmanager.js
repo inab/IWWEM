@@ -26,14 +26,30 @@
 	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 */
 
-var WFDEPS=[
+var WFDEPS=new Array(
 	"js/licensemanager.js",
 	"js/workflowdesc.js",
-	"js/workflowreport.js",
-];
+	"js/workflowreport.js"
+);
+
+var WFLOADINGFRAMES={
+	reloadWorkflows:	{
+		src:	"style/big-ajax-loader.gif",
+		alt:	"Reloading workflows"
+	},
+	submitEnaction:	{
+		src:	"style/big-ajax-submit.gif",
+		alt:	"Submitting job"
+	},
+	extractData:	{
+		src:	"style/big-ajax-extract.gif",
+		alt:	"Extracting data from input"
+	}
+};
 
 function WorkflowManagerCustomInit() {
 	var genview=this;
+	this.addLoadingFrames(WFLOADINGFRAMES);
 	var manview = this.manview=new ManagerView(genview);
 	this.newwfview=new NewWorkflowView(genview,this.manview.restrictId);
 	this.newenactview=new NewEnactionView(manview);
@@ -114,6 +130,7 @@ function ManagerView(genview) {
 	
 	// To update on automatic changes of the selection box
 	this.wfselect.addEventListener('change',function () {
+		genview.busy(true);
 		manview.updateView(function() {
 			if(manview.wfselect.selectedIndex==-1) {
 				manview.openEnactionButton.className='buttondisabled';
@@ -129,6 +146,7 @@ function ManagerView(genview) {
 				manview.relaunchButton.className='button';
 				manview.deleteButton.className='button';
 			}
+			genview.busy(false);
 		});
 	},false);
 	
@@ -166,8 +184,8 @@ function ManagerView(genview) {
 	var qsParm={};
 	WidgetCommon.parseQS(qsParm);
 	var newTitle=undefined;
-	if(('id' in qsParm) && qsParm['id']!=undefined && qsParm['id']!=null && qsParm['id'].length > 0) {
-		this.restrictId=qsParm['id'];
+	if(('id' in qsParm) && qsParm['id']!=undefined && qsParm['id'].length>0 && qsParm['id'][0].length > 0) {
+		this.restrictId=qsParm['id'][0];
 		
 		if(this.restrictId.indexOf('enaction:')==0 || this.restrictId.indexOf('snapshot:')==0) {
 			WidgetCommon.addEventListener(this.openEnactionButton,'click',function() {
@@ -383,7 +401,10 @@ ManagerView.prototype = {
 	reloadList: function (/* optional */ wf, wfToErase, wfCallback) {
 		// In progress request
 		if(this.listRequest)  return;
-
+		
+		var genview=this.genview;
+		genview.busy(true);
+		
 		// First, uncheck the beast!
 		this.check.setCheck(false);
 		
@@ -400,7 +421,6 @@ ManagerView.prototype = {
 		var listQuery = WidgetCommon.generateQS(qsParm,"cgi-bin/workflowmanager");
 		var listRequest = this.listRequest = new XMLHttpRequest();
 		var manview=this;
-		var genview=this.genview;
 		genview.clearMessage();
 		try {
 			listRequest.onreadystatechange = function() {
@@ -420,6 +440,7 @@ ManagerView.prototype = {
 								manview.listRequest=undefined;
 								if(wf!=undefined && wfToErase!=undefined)
 									alert('Workflow '+wf+' erase will be effective when original uploader confirms it');
+								genview.busy(false);
 							},viewAdd,wfCallback);
 							doClose=undefined;
 						}
@@ -429,6 +450,7 @@ ManagerView.prototype = {
 					
 					// Removing 'Loading...' frame
 					if(doClose) {
+						genview.busy(false);
 						manview.closeReloadFrame();
 						manview.reloadButton.className='button';
 						manview.updateTextSpan.innerHTML='Update';
