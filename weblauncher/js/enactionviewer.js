@@ -100,7 +100,7 @@ function EnactionView(genview) {
 		enactview.disposeEnaction(1);
 	},false);
 	
-	//this.svg=new TavernaSVG();
+	//this.svg=new DynamicSVG();
 	
 	this.frameViewId=undefined;
 	this.frameOtherId=undefined;
@@ -184,7 +184,7 @@ function EnactionView(genview) {
 	};
 	
 	// At last, getting the enaction id
-	this.svg=new TavernaSVG(GeneralView.SVGDivId,IWWEM.Logo,IWWEM.Unknown,undefined,undefined,function() {
+	this.svg=new DynamicSVG(GeneralView.SVGDivId,undefined,IWWEM.Unknown,undefined,undefined,function() {
 		enactview.updateSVGSize();
 	});
 	// SVG resize

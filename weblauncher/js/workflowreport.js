@@ -155,11 +155,22 @@ WorkflowReport.prototype={
 	
 	updateView: function(workflow) {
 		// Basic information
-		this.versionContainer.appendChild(this.genview.thedoc.createTextNode(workflow.version));
+		GeneralView.freeContainer(this.versionContainer);
+		if(workflow.version!=undefined && workflow.version!='') {
+			this.versionContainer.appendChild(this.genview.thedoc.createTextNode(workflow.version));
+		} else {
+			var ispan=this.genview.createElement('i');
+			ispan.appendChild(this.genview.thedoc.createTextNode("(unknown)"));
+			this.versionContainer.appendChild(ispan);
+		}
+		GeneralView.freeContainer(this.dateContainer);
 		this.dateContainer.appendChild(this.genview.thedoc.createTextNode(workflow.date));
 		this.titleContainer.innerHTML = (workflow.title && workflow.title.length>0)?workflow.title:'<i>(no title)</i>';
+		GeneralView.freeContainer(this.uuidContainer);
 		this.uuidContainer.appendChild(this.genview.thedoc.createTextNode(workflow.uuid));
+		GeneralView.freeContainer(this.wfTypeContainer);
 		this.wfTypeContainer.appendChild(this.genview.thedoc.createTextNode(workflow.getWorkflowType()));
+		GeneralView.freeContainer(this.lsidContainer);
 		if(workflow.lsid && workflow.lsid.length>0) {
 			this.lsidContainer.appendChild(this.genview.thedoc.createTextNode(workflow.lsid));
 			this.lsidSwitch.setAttribute('style','display:default');
@@ -256,4 +267,3 @@ WorkflowReport.prototype={
 		}
 	}
 };
-

@@ -205,11 +205,19 @@ function WorkflowDesc(wfD,WFBase) {
 		this.licenseURI = wfD.getAttribute('licenseURI');
 		
 		// Now, handling SVG special case
-		var svgpath = ('image/svg+xml' in this.graphAlt)?this.graphAlt['image/svg+xml']:(('image/svg+xml' in this.graph)?this.graph['image/svg+xml']:wfD.getAttribute('svg'));
+		var svgpath = (WorkflowDesc.SVG_MIME in this.graphAlt)?this.graphAlt[WorkflowDesc.SVG_MIME]:((WorkflowDesc.SVG_MIME in this.graph)?this.graph[WorkflowDesc.SVG_MIME]:wfD.getAttribute('svg'));
 		this.svgpath=svgpath;
+		this.imagepath=svgpath;
+		for(var facet in this.graph) {
+			if(facet!=WorkflowDesc.SVG_MIME) {
+				this.imagepath = (facet in this.graphAlt)?this.graphAlt[facet]:this.graph[facet];
+				break;
+			}
+		}
 	}
 }
 
+WorkflowDesc.SVG_MIME='image/svg+xml';
 WorkflowDesc.WFTYPE={
 	'application/vnd.taverna.scufl+xml': 'Taverna1',
 	'taverna2beta': 'Taverna2 (beta)',
@@ -245,6 +253,13 @@ WorkflowDesc.prototype = {
 	*/
 	getSVGPath: function() {
 		return this.svgpath;
+	},
+	
+	/**
+		Get an image path
+	*/
+	getImagePath: function() {
+		return this.imagepath;
 	},
 	
 	/**

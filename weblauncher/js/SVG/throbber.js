@@ -57,7 +57,7 @@ function Throbber(SVGDoc,container,colour,nSlices,x,y,isDissolve) {
 	}
 	container.appendChild(throbberGroup);
 	this.container=container;
-	this.tOutId=undefined;
+	this.tid=undefined;
 }
 
 Throbber.lastId=0;
@@ -65,8 +65,15 @@ Throbber.XLINKNS='http://www.w3.org/1999/xlink';
 // These ones are here to circumvent ASV limitations
 Throbber.pending=new Object();
 Throbber.pendingTimer=new Object();
+Throbber.pendingSpeed=new Object();
 Throbber.doTick=function(slot) {
-	Throbber.pending[slot].tick();
+	if(slot in Throbber.pendingTimer) {
+		clearTimeout(Throbber.pendingTimer[slot]);
+	}
+	if(slot in Throbber.pending) {
+		Throbber.pending[slot].tick();
+		Throbber.pendingTimer[slot]=setTimeout("Throbber.doTick("+slot+")",Throbber.pendingSpeed[slot]);
+	}
 };
 
 Throbber.prototype={
@@ -102,17 +109,18 @@ Throbber.prototype={
 			speed=250;
 		}
 		this.stop();
-		var th=this;
+		Throbber.pendingSpeed[this.tid]=speed;
 		Throbber.pending[this.tid]=this;
-		var tOutId=setInterval("Throbber.doTick("+this.tid+")",speed);
-		Throbber.pendingTimer[this.tid]=tOutId;
+		Throbber.doTick(this.tid);
 	},
 	stop: function() {
 		if(this.tid in Throbber.pendingTimer) {
-			var tOutId=Throbber.pendingTimer[this.tid];
-			clearInterval(tOutId);
-			delete Throbber.pending[this.tid]
-			delete Throbber.pendingTimer[this.tid]
+			delete Throbber.pending[this.tid];
+			clearTimeout(Throbber.pendingTimer[this.tid]);
+			Throbber.pendingTimer[this.tid]=undefined;
+			Throbber.pendingSpeed[this.tid]=undefined;
+			delete Throbber.pendingTimer[this.tid];
+			delete Throbber.pendingSpeed[this.tid];
 		}
 	}
 };

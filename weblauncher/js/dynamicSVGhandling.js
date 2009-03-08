@@ -31,7 +31,10 @@
 	(which have an internal injected trampoline)
 */
 
-function TavernaSVG(/* optional */ nodeid,url,badurl,bestScaleW,bestScaleH,callOnFinish,thedoc) {
+function DynamicSVG(nodeid,/* optional */ url,badurl,bestScaleW,bestScaleH,callOnFinish,callOnError,thedoc) {
+	if(!url)
+		url='SVGholder.svg';
+	
 	this._svgloadtimer = undefined;
 	this.svglink = undefined;
 	this.svgobj = undefined;
@@ -40,6 +43,7 @@ function TavernaSVG(/* optional */ nodeid,url,badurl,bestScaleW,bestScaleH,callO
 	this.defaultbestScaleW = undefined;
 	this.defaultbestScaleH = undefined;
 	this.defaultCallOnFinish = undefined;
+	this.defaultCallOnError = undefined;
 	this.defaultthedoc = undefined;
 	
 	if(BrowserDetect.browser=='Konqueror' || BrowserDetect.browser=='Explorer') {
@@ -66,18 +70,19 @@ function TavernaSVG(/* optional */ nodeid,url,badurl,bestScaleW,bestScaleH,callO
 		me.loadQueuedSVG();
 	};
 	
-	if(nodeid && url) {
-		this.defaultid = nodeid;
-		this.defaultsvg = url;
+	this.defaultid = nodeid;
+	this.defaultsvg = url;
+	if(badurl) {
 		this.badurl = badurl;
 		this.defaultbestScaleW = bestScaleW;
 		this.defaultbestScaleH = bestScaleH;
 		this.defaultCallOnFinish = callOnFinish;
+		this.defaultCallOnError = callOnError;
 		this.defaultthedoc = thedoc;
 	}
 }
 
-TavernaSVG.prototype = {
+DynamicSVG.prototype = {
 	getTitleToNode: function() {
 		if(this.SVGtramp) {
 			return this.SVGtramp.titleToNode;
@@ -99,48 +104,60 @@ TavernaSVG.prototype = {
 	},
 	
 	clearSVGInternal: function (/* optional */ thedoc) {
-		// Before any creation, clear SVG trampoline and SVG object traces!
-		if(this.svglink) {
-			this.svglink.parentNode.removeChild(this.svglink);
-			this.svglink=undefined;
-		}
-		var svgobj=this.svgobj;
-		if(svgobj) {
-			if(!thedoc)  thedoc=document;
+		if(this.SVGtramp) {
 			// First, kill timer (if any!)
 			if(this._svgloadtimer) {
 				clearTimeout(this._svgloadtimer);
 				this._svgloadtimer=undefined;
 			}
-			/*
-			window.SVGtrampoline=undefined;
-			if(BrowserDetect.browser!='Explorer' && BrowserDetect.browser!='Konqueror') {
-				delete window['SVGtrampoline'];
-			}
-			*/
-			// Second, remove trampoline
-			this.SVGtramp=undefined;
-			this.once=1;
-			// Third, remove previous SVG
-			if(this.asEmbed) {
-				this.svgobj.style.display='none';
-				this.svgobj.style.visibility='hidden';
-			} else {
-				this.svgobj.setAttribute("style","display:none;visibility:hidden;");
-			}
-			/*
-			try {
-				this.svgobj.parentNode.removeChild(this.svgobj);
-			} catch(e) {
-				// Be silent about failures!
-				//alert('What!?!');
-			}
-			*/
-			// And any trace!
-			this.svgobj=undefined;
+			this.SVGtramp.clearSVG();
 			this.current=undefined;
+			this.once=1;
+			return undefined;
+		} else {
+			// Before any creation, clear SVG trampoline and SVG object traces!
+			if(this.svglink) {
+				this.svglink.parentNode.removeChild(this.svglink);
+				this.svglink=undefined;
+			}
+			var svgobj=this.svgobj;
+			if(svgobj) {
+				if(!thedoc)  thedoc=document;
+				// First, kill timer (if any!)
+				if(this._svgloadtimer) {
+					clearTimeout(this._svgloadtimer);
+					this._svgloadtimer=undefined;
+				}
+				/*
+				window.SVGtrampoline=undefined;
+				if(BrowserDetect.browser!='Explorer' && BrowserDetect.browser!='Konqueror') {
+					delete window['SVGtrampoline'];
+				}
+				*/
+				// Second, remove trampoline
+				this.SVGtramp=undefined;
+				this.once=1;
+				// Third, remove previous SVG
+				if(this.asEmbed) {
+					this.svgobj.style.display='none';
+					this.svgobj.style.visibility='hidden';
+				} else {
+					this.svgobj.setAttribute("style","display:none;visibility:hidden;");
+				}
+				/*
+				try {
+					this.svgobj.parentNode.removeChild(this.svgobj);
+				} catch(e) {
+					// Be silent about failures!
+					//alert('What!?!');
+				}
+				*/
+				// And any trace!
+				this.svgobj=undefined;
+				this.current=undefined;
+			}
+			return svgobj;
 		}
-		return svgobj;
 	},
 	
 	clearSVG: function (/* optional */ thedoc) {
@@ -149,10 +166,22 @@ TavernaSVG.prototype = {
 			svgobj.parentNode.removeChild(svgobj);
 		}
 	},
-
+	
+	initSVG: function (/* optional */callbackFunc, thedoc) {
+		this.removeSVG(callbackFunc,thedoc);
+	},
+	
 	removeSVG: function (/* optional */callbackFunc, thedoc) {
-		// Before any creation, clear SVG trampoline and SVG object traces!
-		if(this.defaultsvg!=undefined) {
+		if(this.SVGtramp) {
+			this.SVGtramp.clearSVG(1);
+			if(typeof callbackFunc=='function') {
+				try {
+					callbackFunc();
+				} catch(e) {
+					// DoNothing(R)
+				}
+			}
+		} else {
 			var defCall;
 			if(typeof callbackFunc=='function') {
 				if(typeof this.defaultCallOnFinish=='function') {
@@ -171,16 +200,7 @@ TavernaSVG.prototype = {
 			} else {
 				defCall=this.defaultCallOnFinish;
 			}
-			this.loadSVG(this.defaultid,this.defaultsvg,this.defaultbestScaleW,this.defaultbestScaleH,defCall,this.defaultthedoc);
-		} else {
-			this.clearSVG(thedoc);
-			if(typeof callbackFunc=='function') {
-				try {
-					callbackFunc();
-				} catch(e) {
-					// DoNothing(R)
-				}
-			}
+			this.loadSVG(this.defaultid,this.defaultsvg,this.defaultbestScaleW,this.defaultbestScaleH,defCall,this.defaultCallOnError,this.defaultthedoc);
 		}
 	},
 
@@ -199,6 +219,7 @@ TavernaSVG.prototype = {
 					}
 				}
 			} else {
+				// Ancient code
 				if(thedoc==undefined && this.current instanceof Array)  thedoc=this.current[5];
 				if(thedoc==undefined)  thedoc=document;
 				
@@ -232,8 +253,8 @@ TavernaSVG.prototype = {
 		}
 	},
 
-	loadSVG: function (nodeid,url,/* optional */ bestScaleW, bestScaleH, callOnFinish, thedoc) {
-		this.queue.push(new Array(nodeid,url,bestScaleW, bestScaleH, callOnFinish, thedoc));
+	loadSVG: function (nodeid,url,/* optional */ bestScaleW, bestScaleH, callOnFinish, callOnError, thedoc) {
+		this.queue.push(new Array(nodeid,url,bestScaleW, bestScaleH, callOnFinish, callOnError, thedoc));
 		if(!this.loading) {
 			this.loading=setTimeout(this.timeoutLoad,163);
 		}
@@ -246,6 +267,7 @@ TavernaSVG.prototype = {
 		var bestScaleW=undefined;
 		var bestScaleH=undefined;
 		var callOnFinish=undefined;
+		var callOnError=undefined;
 		var thedoc=undefined;
 		var load;
 		var node;
@@ -256,7 +278,8 @@ TavernaSVG.prototype = {
 			bestScaleW=load[2];
 			bestScaleH=load[3];
 			callOnFinish=load[4];
-			thedoc=load[5];
+			callOnError=load[5];
+			thedoc=load[6];
 			load=undefined;
 		}
 		var none=true;
@@ -265,10 +288,10 @@ TavernaSVG.prototype = {
 			this.noloaded++;
 			//if(this.noloaded <= 2 || nodeid!=load[0] || url!=load[1]) {
 			if(nodeid!=load[0] || url!=load[1]) {
-				var tmpdoc=load[5];
+				var tmpdoc=load[6];
 				if(!tmpdoc)  tmpdoc=document;
 				node=tmpdoc.getElementById(load[0]);
-				if(node) {
+				if(node || this.SVGtramp) {
 					none=false;
 					/*
 					if(!bestScaleW)  bestScaleW='400pt';
@@ -297,99 +320,144 @@ TavernaSVG.prototype = {
 		}
 		
 		// Let's create!
+		
 		nodeid=load[0];
 		url=load[1];
 		bestScaleW=load[2];
 		bestScaleH=load[3];
 		callOnFinish=load[4];
+		callOnError=load[5];
 		thedoc=tmpdoc;
-		
-		var thissvg=this;
-		var HEADrequest=new XMLHttpRequest();
-		var HEADrequestonerror=undefined;
-		var HEADrequestonload = function() {
-			if(HEADrequest) {
-				if(HEADrequest.onload) {
-					HEADrequest.onload=function() {};
-					HEADrequest.onerror=function() {};
-				}
-				thissvg.rawLoadSVG(load,node,nodeid,url,bestScaleW,bestScaleH,callOnFinish,thedoc);
-				HEADrequestonload=undefined;
-				HEADrequestonerror=undefined;
-				HEADrequest=undefined;
-			}
-		};
-		
-		// HEAD checks are subjected to the same restrictions as GET, POST and PUT requests.
-		// So check whether we can apply it!
-		var basehref = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
-		if(BrowserDetect.browser!='Opera' && ((url.indexOf('http://')!=0 && url.indexOf('https://')!=0 && url.indexOf('ftp://')!=0) || url.indexOf(basehref)==0)) {
-			HEADrequestonerror = function() {
-				if(HEADrequest) {
-					if(thissvg.defaultsvg!=undefined) {
-						thissvg.rawLoadSVG(load,node,thissvg.defaultid,thissvg.badurl,thissvg.defaultbestScaleW,thissvg.defaultbestScaleH,callOnFinish,thedoc);
-					} else {
-						// Error path
-						if(typeof callOnFinish=='function') {
-							callOnFinish();
-						}
+
+		if(this.SVGtramp) {
+			this.svglink.href=url;
+			thissvg=this;
+			this.SVGtramp.loadSVG(url,true,false,function() {
+				thissvg.once=1;
+
+				if(typeof callOnFinish=='function') {
+					try {
+						callOnFinish();
+					} catch(e) {
+						// DoNothing(R)
 					}
+				}
+				thissvg.loading=setTimeout(thissvg.timeoutLoad,163);
+			},function() {
+				thissvg.once=1;
+
+				if(typeof callOnError=='function') {
+					try {
+						callOnError();
+					} catch(e) {
+					// DoNothing(R)
+					}
+				} else if(typeof callOnFinish=='function') {
+					try {
+						callOnFinish();
+					} catch(e) {
+						// DoNothing(R)
+					}
+				}
+				thissvg.loading=setTimeout(thissvg.timeoutLoad,163);
+			});
+		} else {
+			var thissvg=this;
+			var HEADrequest=new XMLHttpRequest();
+			var HEADrequestonerror=undefined;
+			var HEADrequestonload = function() {
+				if(HEADrequest) {
 					if(HEADrequest.onload) {
 						HEADrequest.onload=function() {};
 						HEADrequest.onerror=function() {};
-						HEADrequest.onreadystatechange=function() {};
 					}
+					thissvg.rawLoadSVG(load,node,nodeid,url,bestScaleW,bestScaleH,callOnFinish,thedoc);
 					HEADrequestonload=undefined;
 					HEADrequestonerror=undefined;
 					HEADrequest=undefined;
 				}
 			};
 
-			var onreadystatechange = function() {
-				if(!('readyState' in HEADrequest) || HEADrequest.readyState==4) {
-					HEADrequest.onreadystatechange=function() {};
-					if(HEADrequest.status==200 || HEADrequest.status==304) {
-						HEADrequestonload();
-					} else {
-						HEADrequestonerror();
+			// HEAD checks are subjected to the same restrictions as GET, POST and PUT requests.
+			// So check whether we can apply it!
+			var basehref = window.location.pathname.substring(0,window.location.pathname.lastIndexOf('/'));
+			if(BrowserDetect.browser!='Opera' && ((url.indexOf('http://')!=0 && url.indexOf('https://')!=0 && url.indexOf('ftp://')!=0) || url.indexOf(basehref)==0)) {
+				HEADrequestonerror = function() {
+					if(HEADrequest) {
+						if(typeof callOnError == 'function') {
+							try {
+								callOnError();
+							} catch(e) {
+							}
+						} else if(thissvg.defaultsvg!=undefined) {
+							thissvg.rawLoadSVG(load,node,thissvg.defaultid,thissvg.badurl,thissvg.defaultbestScaleW,thissvg.defaultbestScaleH,callOnFinish,thedoc);
+						} else {
+							// Error path when there is no error path
+							if(typeof callOnFinish=='function') {
+								try {
+									callOnFinish();
+								} catch(e) {
+								
+								}
+							}
+						}
+						if(HEADrequest.onload) {
+							HEADrequest.onload=function() {};
+							HEADrequest.onerror=function() {};
+							HEADrequest.onreadystatechange=function() {};
+						}
+						HEADrequestonload=undefined;
+						HEADrequestonerror=undefined;
+						HEADrequest=undefined;
 					}
-					HEADrequest=undefined;
-				}
-			};
+				};
 
-			var dovar=1;
-			if(BrowserDetect.browser=='Opera') {
-				HEADrequest.onreadystatechange=onreadystatechange;
-			} else {
-				if(HEADrequest.addEventListener) {
-					try {
-						HEADrequest.addEventListener('load',HEADrequestonload,false);
-						HEADrequest.addEventListener('error',HEADrequestonerror,false);
-						dovar=undefined;
-					} catch(e) {
+				var onreadystatechange = function() {
+					if(!('readyState' in HEADrequest) || HEADrequest.readyState==4) {
+						HEADrequest.onreadystatechange=function() {};
+						if(HEADrequest.status==200 || HEADrequest.status==304) {
+							HEADrequestonload();
+						} else {
+							HEADrequestonerror();
+						}
+						HEADrequest=undefined;
+					}
+				};
+
+				var dovar=1;
+				if(BrowserDetect.browser=='Opera') {
+					HEADrequest.onreadystatechange=onreadystatechange;
+				} else {
+					if(HEADrequest.addEventListener) {
 						try {
-							HEADrequest.onreadystatechange=onreadystatechange;
+							HEADrequest.addEventListener('load',HEADrequestonload,false);
+							HEADrequest.addEventListener('error',HEADrequestonerror,false);
 							dovar=undefined;
 						} catch(e) {
-							// IgnoreIT!(R)
+							try {
+								HEADrequest.onreadystatechange=onreadystatechange;
+								dovar=undefined;
+							} catch(e) {
+								// IgnoreIT!(R)
+							}
 						}
+					}
+
+					if(dovar) {
+						if('onload' in HEADrequest) {
+							HEADrequest.onload=HEADrequestonload;
+							HEADrequest.onerror=HEADrequestonerror;
+						}
+						HEADrequest.onreadystatechange=onreadystatechange;
 					}
 				}
 
-				if(dovar) {
-					if('onload' in HEADrequest) {
-						HEADrequest.onload=HEADrequestonload;
-						HEADrequest.onerror=HEADrequestonerror;
-					}
-					HEADrequest.onreadystatechange=onreadystatechange;
-				}
+				// Now it is time to send the query
+				HEADrequest.open('HEAD',url,true);
+				HEADrequest.send(null);
+			} else {
+				HEADrequestonload();
 			}
-			
-			// Now it is time to send the query
-			HEADrequest.open('HEAD',url,true);
-			HEADrequest.send(null);
-		} else {
-			HEADrequestonload();
 		}
 	},
 	
@@ -419,7 +487,6 @@ TavernaSVG.prototype = {
 			var finishfunc = function(evt) {
 				//((evt.currentTarget)?evt.currentTarget:evt.srcElement).onload=function() {};
 				//((evt.currentTarget)?evt.currentTarget:evt.srcElement).removeEventListener('load',finishfunc,false);
-				
 				objres.removeEventListener('load',finishfunc,false);
 				// Transferring the trampoline!
 				if ('SVGtrampoline' in window && window.SVGtrampoline) {

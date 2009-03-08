@@ -170,25 +170,27 @@ span.magglass {
 	font-size: 20px;
 }
 
-span.radio , span.checkbox {
-	/* Black IE magic */
-	/*
-	behavior:url(hover.htc);
-	*/
+span.radio , span.checkbox , span.nWf {
+	height: 16px;
 	/*
 	width: 16px;
 	*/
-	height: 16px;
-	
-	background-repeat: no-repeat;
 	margin: 2px 2px 2px 2px;
-	cursor: pointer;
-	
 	text-align: left;
 	white-space: nowrap;
  	vertical-align: middle;
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	font-size: 14px;
+}
+
+span.radio , span.checkbox {
+	/* Black IE magic */
+	/*
+	behavior:url(hover.htc);
+	*/
+	
+	background-repeat: no-repeat;
+	cursor: pointer;
 }
 
 span.radio {

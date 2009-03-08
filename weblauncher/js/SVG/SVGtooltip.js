@@ -169,7 +169,11 @@ Title.prototype = {
 		doc = this.doc;
 		
 		if(this.contextElem && this.grp) {
-			this.contextElem.removeChild(this.grp);
+			try {
+				this.contextElem.removeChild(this.grp);
+			} catch(e) {
+				// Needed with new infrastructure
+			}
 		}
 		this.rec = doc.createElementNS(Title.SVGNS,"rect");
 		this.rec.setAttribute("y", -(this.size+5)+'px');

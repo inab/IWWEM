@@ -77,11 +77,15 @@ import org.w3c.dom.svg.SVGSVGElement;
  *
  */
 public class PatchDotSVG {
+	private static final String[] JSRES = {
+		"SVGmapApp.js",
+		"SVGtooltip.js",
+		"SVGzoom.js",
+		"SVGtrampoline.js",
+		"RunEvt.js"
+	};
 	
-	private static final String SVG_ZOOM="SVGzoom.js";
-	private static final String SVG_TOOLTIP="SVGtooltip.js";
-	private static final String SVG_TRAMPOLINE="SVGtrampoline.js";
-	private static final String SVG_JSINIT="RunScript(evt,1)";
+	private static final String SVG_JSINIT="RunEvt(evt,1)";
 	
 	private Logger logger;
 	
@@ -234,8 +238,7 @@ public class PatchDotSVG {
 
 			int bufferSize=16384;
 			char[] buffer=new char[bufferSize];
-			String[] trampres = {"SVGmapApp.js",SVG_TOOLTIP,SVG_ZOOM,SVG_TRAMPOLINE};
-			for(String svgres:trampres) {
+			for(String svgres:JSRES) {
 				StringBuilder trampcode=new StringBuilder();
 
 				InputStream SVGResHandler=cl.getResourceAsStream(svgres);

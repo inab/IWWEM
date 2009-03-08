@@ -32,6 +32,7 @@ package IWWEM::myExperimentWorkflowList;
 
 use Carp qw(croak);
 use Date::Parse;
+use Encode;
 use base qw(IWWEM::AbstractWorkflowList XML::SAX::Base);
 
 use IWWEM::WorkflowCommon;
@@ -335,7 +336,10 @@ sub getWorkflowInfo($@) {
 				$gchild->setAttribute('mime',$mtext);
 				print STDERR $mtext,"<\n";
 				if(exists($IWWEM::WorkflowCommon::GRAPHREPINV{$mtext})) {
-					$gchild->setAttribute('altURI',$IWWEM::FSConstants::VIRTIDDIR.'/'.$uuid.'/'.$IWWEM::WorkflowCommon::GRAPHREPINV{$mtext});
+					my($str)=encode('UTF-8',$uuid);
+					
+					$str =~ s/([^A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
+					$gchild->setAttribute('altURI',$IWWEM::FSConstants::VIRTIDDIR.'/'.$str.'/'.$IWWEM::WorkflowCommon::GRAPHREPINV{$mtext});
 				}
 				$gchild->appendChild($outputDoc->createTextNode($mime->[0]));
 				$release->insertAfter($gchild,$refnode);

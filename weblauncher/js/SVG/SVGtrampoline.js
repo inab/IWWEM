@@ -34,9 +34,24 @@ function SVGtramp(SVGDoc,/* optional */autoResize,defaultSVGURI,errorSVGURI) {
 	this.SVGDoc    = SVGDoc;
 	this.SVGroot   = this.SVGDoc.documentElement;
 	this.autoResize = autoResize;
-	this.mainContainer = SVGDoc.createElementNS(SVGtramp.SVGNS,"g");
 	this.svgElement=undefined;
-	this.SVGroot.appendChild(this.mainContainer);
+	
+	if(defaultSVGURI) {
+		this.mainContainer = SVGDoc.createElementNS(SVGtramp.SVGNS,"g");
+		this.SVGroot.appendChild(this.mainContainer);
+		var throbberContainer = this.throbberContainer = SVGDoc.createElementNS(SVGtramp.SVGNS,"svg");
+		throbberContainer.setAttribute('width','100%');
+		throbberContainer.setAttribute('height','100%');
+		throbberContainer.setAttribute('viewBox','-100 -100 200 200');
+		throbberContainer.setAttribute('zoomAndPan','magnify');
+		throbberContainer.setAttribute('preserveAspectRatio','xMidYMid meet');
+		throbberContainer.setAttribute('display','none');
+		this.SVGroot.appendChild(this.throbberContainer);
+		this.throbber=new Throbber(SVGDoc,this.throbberContainer);
+	} else {
+		this.mainContainer = undefined;
+		this.throbberContainer = undefined;
+	}
 	
 	// Setting up SVGNS to the value associated to the document
 	if(this.SVGroot.namespaceURI)
@@ -80,8 +95,50 @@ function SVGtramp(SVGDoc,/* optional */autoResize,defaultSVGURI,errorSVGURI) {
 		this.fullConvert=true;
 	}
 	
-	// Now it is time to find the g point ;-)
-	this.g_element=this.mainContainer;
+	if(this.mainContainer) {
+		// Now it is time to find the g point ;-)
+		this.g_element=this.mainContainer;
+	} else {
+		// SVG must enumerate itself when it is alone...
+		var nodes = this.SVGDoc.getElementsByTagNameNS(SVGtramp.SVGNS,"g");
+		var titleToNode=new Object();
+		var nodeToTitle=new Object();
+		for(var i=0; i<nodes.length ; i++) {
+			var node=nodes.item(i);
+			if(node.getAttribute("class") == 'node') {
+				var nodeId=node.getAttribute("id");
+				var titles=node.getElementsByTagNameNS(SVGtramp.SVGNS,'title');
+
+				if(titles.length>0) {
+					var textContent=SVGtramp.getTextContent(titles.item(0));
+					if(textContent && textContent.length > 0
+						&& textContent!='scufl_graph'
+						&& textContent.indexOf('cluster_')!=0
+						&& textContent.indexOf('WORKFLOWINTERNALSOURCECONTROL')==-1
+						&& textContent.indexOf('WORKFLOWINTERNALSINKCONTROL')==-1
+					) {
+						titleToNode[textContent]=nodeId;
+						nodeToTitle[nodeId]=textContent;
+
+						// Adding the bulbs
+						if(textContent.indexOf('WORKFLOWINTERNALSOURCE_')==-1
+							&& textContent.indexOf('WORKFLOWINTERNALSINK_')==-1
+						) {
+							this.addBulbs(node);
+						}
+					}
+				}
+			}
+		}
+
+		this.titleToNode=titleToNode;
+		this.nodeToTitle=nodeToTitle;
+		
+		// Now it is time to find the g point ;-)
+		if(nodes.length > 0) {
+			this.g_element = nodes.item(0);
+		}
+	}
 	
 	this.x=this.SVGroot.getAttribute("x");
 	if(this.x==undefined || this.x=='')  this.x="0";
@@ -125,7 +182,46 @@ function SVGtramp(SVGDoc,/* optional */autoResize,defaultSVGURI,errorSVGURI) {
 			}
 		}
 	}
+	
+	if(!this.mainContainer) {
+		// To allow zooming of content
+		var susId = this.suspendRedraw();
+		var viewbox=this.SVGroot.getAttribute('viewBox');
+		if(!viewbox) {
+			var vWidth  = this.createTypedLength(this.width);
+			var vHeight = this.createTypedLength(this.height);
+			var vX = this.createTypedLength(this.x);
+			var vY = this.createTypedLength(this.y);
 
+			vWidth.convertToSpecifiedUnits(vWidth.SVG_LENGTHTYPE_PX);
+			vHeight.convertToSpecifiedUnits(vHeight.SVG_LENGTHTYPE_PX);
+			vX.convertToSpecifiedUnits(vX.SVG_LENGTHTYPE_PX);
+			vY.convertToSpecifiedUnits(vY.SVG_LENGTHTYPE_PX);
+
+			this.SVGroot.setAttribute('viewBox',vX.valueInSpecifiedUnits+' '+vY.valueInSpecifiedUnits+' '+vWidth.valueInSpecifiedUnits+' '+vHeight.valueInSpecifiedUnits);
+		}
+		var zoompan=this.SVGroot.getAttribute('zoomAndPan');
+		if(!zoompan) {
+			this.SVGroot.setAttribute('zoomAndPan','magnify');
+		}
+		var preserve=this.SVGroot.getAttribute('preserveAspectRatio');
+		if(!preserve) {
+			this.SVGroot.setAttribute('preserveAspectRatio','xMidYMid meet');
+		}
+		if(this.autoResize) {
+			this.SVGroot.setAttribute('width','100%');
+			this.SVGroot.setAttribute('height','100%');
+			var eraseAttrs=new Array('x','y');
+			for(var ei=0;ei<eraseAttrs.length;ei++) {
+				var aval=this.SVGroot.getAttribute(eraseAttrs[ei]);
+				if(aval!=undefined && aval!='') {
+					this.SVGroot.removeAttribute(eraseAttrs[ei]);
+				}
+			}
+		}
+		this.unsuspendRedraw(susId);
+	}
+	
 	this.myMapApp=undefined;
 	this.zoom=undefined;
 	if(this.autoResize!=2) {
@@ -139,17 +235,23 @@ function SVGtramp(SVGDoc,/* optional */autoResize,defaultSVGURI,errorSVGURI) {
 		// The tooltips
 		try {
 		        this.tooltips = new Title(this.SVGDoc, this.myMapApp, 12);
+			if(!this.mainContainer)
+				this.tooltips.setEvents(this.g_element);
 		} catch(e) {
 			// IgnoreIT!(R)
 		}
 		
 		// And the zoom
 		try {
-			this.zoom=new SVGzoom(this.SVGDoc,this.myMapApp,undefined,1.5);
+			this.zoom=new SVGzoom(this.SVGDoc,this.myMapApp,this.g_element,1.5);
+			if(!this.mainContainer)
+				this.zoom.focusOn(this.g_element);
 		} catch(e) {
 			// IgnoreIT!(R)
 		}
 	}
+	
+
 	
 	this.defaultSVG=undefined;
 	this.errorSVG=undefined;
@@ -176,6 +278,7 @@ function SVGtramp(SVGDoc,/* optional */autoResize,defaultSVGURI,errorSVGURI) {
 }
 
 SVGtramp.SVGNS='http://www.w3.org/2000/svg';
+SVGtramp.XLINKNS='http://www.w3.org/1999/xlink';
 
 SVGtramp.getTextContent = function (oNode) {
 	var retval;
@@ -595,7 +698,7 @@ SVGtramp.prototype = {
 			if(!timeout)  timeout=60;
 			return this.SVGroot.suspendRedraw(timeout);
 		} catch(e) {
-			return null;
+			return undefined;
 		}
 	},
 
@@ -603,7 +706,8 @@ SVGtramp.prototype = {
 	{
 		// ASV doesn't implement suspendRedraw, so we wrap this in a try-block:
 		try {
-			this.SVGroot.unsuspendRedraw(susId);
+			if(susId)
+				this.SVGroot.unsuspendRedraw(susId);
 		} catch(e) {}
 	},
 	
@@ -704,21 +808,68 @@ SVGtramp.prototype = {
 		return false;
 	},
 	
+	clearSVG: function(/* optional */showDefault) {
+		var susId = this.suspendRedraw();
+		if(this.svgElement) {
+			this.mainContainer.removeChild(this.svgElement);
+			this.svgElement=undefined;
+		}
+
+		if(this.errorSVG)
+			this.errorSVG.setAttribute('display','none');
+		if(this.defaultSVG) {
+			if(showDefault) {
+				if(this.defaultSVG.getAttribute('display'))
+					this.defaultSVG.removeAttribute('display');
+			} else
+				this.defaultSVG.setAttribute('display','none');
+		}
+		
+		this.unsuspendRedraw(susId);
+	},
+	
+	// Inline external image
+	loadImage: function(newImage) {
+		var imageElement = this.SVGDoc.createElementNS(SVGtramp.SVGNS,"image");
+		imageElement.setAttributeNS(SVGtramp.XLINKNS,'href',newImage);
+		imageElement.setAttribute('width','100%');
+		imageElement.setAttribute('height','100%');
+		this.clearSVG();
+		this.svgElement=imageElement;
+		this.mainContainer.appendChild(imageElement);
+	},
+	
+	showThrobber: function() {
+		if(this.throbberContainer) {
+			if(this.throbberContainer.getAttribute('display'))
+				this.throbberContainer.removeAttribute('display');
+			this.throbber.start(100);
+		}
+	},
+	
+	hideThrobber: function() {
+		if(this.throbberContainer) {
+			this.throbber.stop();
+			this.throbberContainer.setAttribute('display','none');
+		}
+	},
+	
 	// Inline external SVG
 	loadSVG: function(newSVG,/*optional*/doUnpatch,isAlternate,callBack,callBackErr) {
 		var SVGDoc  = this.SVGDoc;
 		var SVGroot = SVGDoc.documentElement;
 		var tramp = this;
-		//var newSVG  = 'workflow3.svg';
-		//var newSVG  = 'workflowX.svg';
-		//var newSVG  = 'cgi-bin/IWWEMfs/workflows/964beebf-6076-4553-b3ba-2b815ca920c8/workflow.svg';
-		//var newSVG  = 'cgi-bin/IWWEMfs/workflows/caca/workflow.svg';
-		//var newSVG  = 'workflowmanager.html';
-
+		
 		var theNode = undefined;
+		
+		if(!isAlternate) {
+			this.clearSVG(true);
+			this.showThrobber();
+		}
 		var launcher = function(responseXML) {
 			if(doUnpatch) {
-				responseXML.removeAttribute('onload');
+				if(responseXML.getAttribute('onload'))
+					responseXML.removeAttribute('onload');
 				
 				// TODO: unpatch embedded JavaScript
 				var scripts=responseXML.getElementsByTagNameNS(SVGtramp.SVGNS,"script");
@@ -728,15 +879,8 @@ SVGtramp.prototype = {
 				}
 			}
 			if(!isAlternate) {
-				if(tramp.svgElement) {
-					tramp.mainContainer.removeChild(tramp.svgElement);
-				}
-			
+				tramp.clearSVG();
 				tramp.svgElement=responseXML;
-				if(tramp.defaultSVG)
-					tramp.defaultSVG.setAttribute('display','none');
-				if(tramp.errorSVG)
-					tramp.errorSVG.setAttribute('display','none');
 			}
 			tramp.mainContainer.appendChild(responseXML);
 			
@@ -876,6 +1020,8 @@ SVGtramp.prototype = {
 					// IgnoreIT(R)
 				}
 			}
+			if(!isAlternate)
+				tramp.hideThrobber();
 		};
 		var errhandling = function(status,parseError) {
 			if(typeof callBackErr == 'function') {
@@ -886,13 +1032,9 @@ SVGtramp.prototype = {
 				}
 			} else {
 				if(!isAlternate && tramp.errorSVG) {
-					if(tramp.defaultSVG)
-						tramp.defaultSVG.setAttribute('display','none');
-					if(tramp.svgElement) {
-						tramp.mainContainer.removeChild(tramp.svgElement);
-						tramp.svgElement=undefined;
-					}
-					tramp.errorSVG.removeAttribute('display');
+					tramp.clearSVG();
+					if(tramp.errorSVG.getAttribute('display'))
+						tramp.errorSVG.removeAttribute('display');
 				} else {
 					alert('Loading has failed. Status: '+status);
 					if(parseError!=undefined) {
@@ -900,6 +1042,8 @@ SVGtramp.prototype = {
 					}
 				}
 			}
+			if(!isAlternate)
+				tramp.hideThrobber();
 		};
 		if(window.getURL) {
 			getURL(newSVG,function(data) {

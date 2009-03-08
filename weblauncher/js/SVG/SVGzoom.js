@@ -266,8 +266,10 @@ function SVGzoom(doc,myMapApp,/*optional*/ gElem, scaleX, scaleY) {
 }
 
 SVGzoom.prototype = {
-	focusOn: function (gElem,other) {
+	focusOn: function (gElem,/*optional*/ other) {
 		if(gElem) {
+			if(!other)
+				other=gElem;
 			this.gElem = gElem;
 			this.other = other;
 			var gId=gElem.getAttribute('id');

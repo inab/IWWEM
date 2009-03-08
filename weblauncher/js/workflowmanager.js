@@ -54,7 +54,7 @@ function WorkflowManagerCustomInit() {
 	this.newwfview=new NewWorkflowView(genview,this.manview.restrictId);
 	this.newenactview=new NewEnactionView(manview);
 	
-	manview.svg.removeSVG(function() {
+	manview.svg.initSVG(function() {
 		LicenseManager.init(genview,'licenses/licenses.xml',function(licManager) {
 			genview.licenseManager=licManager;
 			manview.reloadList();
@@ -83,6 +83,8 @@ function ManagerView(genview) {
 	
 	this.reloadButton=genview.getElementById('reloadButton');
 	this.updateTextSpan=genview.getElementById('updateTextSpan');
+	
+	this.nWfSpan=genview.getElementById('nWfSpan');
 
 	this.openEnactionButton=genview.getElementById('openEnactionButton');
 	this.launchButton=genview.getElementById('launchButton');
@@ -95,7 +97,7 @@ function ManagerView(genview) {
 	this.deleteButton.className='buttondisabled';
 	
 	var manview = this;
-	// this.svg=new TavernaSVG(this.svgdiv.id,'style/unknown.svg','75mm','90mm');
+	// this.svg=new DynamicSVG(this.svgdiv.id,'style/unknown.svg','75mm','90mm');
 	this.svgdivid='wfsvgdiv';
 	var parentno=this.genview.getElementById(this.svgdivid).parentNode;
 	/*
@@ -103,12 +105,12 @@ function ManagerView(genview) {
 	var maxwidth=(parentno.offsetWidth-32)+'px';
 	var maxheight=(parentno.offsetHeight-32)+'px';
 	
-	this.svg=new TavernaSVG(this.svgdivid,IWWEM.Logo,IWWEM.Unknown,maxwidth,maxheight,function() {
+	this.svg=new DynamicSVG(this.svgdivid,IWWEM.Logo,IWWEM.Unknown,maxwidth,maxheight,function() {
 		manview.updateSVGSize();
 	});
 	*/
 	
-	this.svg=new TavernaSVG(this.svgdivid,IWWEM.Logo,IWWEM.Unknown,undefined,undefined,function() {
+	this.svg=new DynamicSVG(this.svgdivid,undefined,IWWEM.Unknown,undefined,undefined,function() {
 		manview.updateSVGSize();
 	});
 	
@@ -184,6 +186,7 @@ function ManagerView(genview) {
 	var qsParm={};
 	WidgetCommon.parseQS(qsParm);
 	var newTitle=undefined;
+	this.handlingEnactions=undefined;
 	if(('id' in qsParm) && qsParm['id']!=undefined && qsParm['id'].length>0 && qsParm['id'][0].length > 0) {
 		this.restrictId=qsParm['id'][0];
 		
@@ -197,6 +200,7 @@ function ManagerView(genview) {
 			// Deactivating buttons!!!
 			var useDiv=this.genview.getElementById('useDiv');
 			useDiv.style.display='none';
+			this.handlingEnactions=true;
 		}
 	}
 	if(newTitle==undefined) {
@@ -254,7 +258,14 @@ ManagerView.prototype = {
 				var parentno=this.genview.getElementById(this.svgdivid).parentNode;
 				var maxwidth=(parentno.offsetWidth-32)+'px';
 				var maxheight=(parentno.offsetHeight-32)+'px';
-				this.svg.loadSVG(this.svgdivid,workflow.getSVGPath(),maxwidth,maxheight,function() {
+				var svg=this.svg;
+				svg.loadSVG(this.svgdivid,workflow.getSVGPath(),maxwidth,maxheight,function() {
+					wfreport.updateView(workflow);
+					if(typeof callbackFunc=='function') {
+						callbackFunc();
+					}
+				},function() {
+					svg.getTrampoline().loadImage(workflow.getImagePath());
 					wfreport.updateView(workflow);
 					if(typeof callbackFunc=='function') {
 						callbackFunc();
@@ -311,6 +322,7 @@ ManagerView.prototype = {
 			GeneralView.getLocalName(listDOM)=='workflowlist'
 		) {
 			var sortArr=undefined;
+			var nWf=0;
 			if(viewAdd==undefined) {
 				sortArr=new Array();
 				this.WFBase = new Array();
@@ -331,8 +343,10 @@ ManagerView.prototype = {
 								case 'workflow':
 									var workflow=new WorkflowDesc(child,WFBase);
 									this.wfA[workflow.uuid]=workflow;
-									if(sortArr!=undefined)
+									if(sortArr!=undefined) {
 										sortArr.push(workflow);
+										nWf++;
+									}
 									break;
 
 								case 'message':
@@ -350,6 +364,7 @@ ManagerView.prototype = {
 			}
 			
 			if(sortArr!=undefined) {
+				this.nWfSpan.innerHTML= nWf + ' '+(this.handlingEnactions?'enaction':'workflow')+((nWf!=1)?'s':'');
 				// Now, time to sort this... TODO
 				var sortFunc=function (a,b) {
 					if(a.WFBase < b.WFBase)  return -1;
@@ -835,6 +850,9 @@ function NewEnactionView(manview) {
 	this.responsibleMail = genview.getElementById('NEresponsibleMail');
 	this.responsibleName = genview.getElementById('NEresponsibleName');
 	
+	this.enactButton = genview.getElementById('enactButton');
+	this.noEnactButton = genview.getElementById('noEnactButton');
+	
 	var newenactview = this;
 	
 	WidgetCommon.addEventListener(manview.launchButton,'click',function() {
@@ -845,7 +863,15 @@ function NewEnactionView(manview) {
 		newenactview.reenact();
 	},false);
 	
-	this.enactSVG = new TavernaSVG();
+	WidgetCommon.addEventListener(this.noEnactButton,'click',function() {
+		newenactview.closeNewEnactionFrame();
+	},false);
+	
+	WidgetCommon.addEventListener(this.enactButton,'click',function() {
+		newenactview.enact();
+	},false);
+	
+	this.enactSVG = undefined;
 	this.inputs=new Array();
 	
 	this.workflow=undefined;
@@ -928,7 +954,8 @@ NewEnactionView.prototype = {
 		var maxheight=(parentno.offsetHeight-32)+'px';
 		//alert(parentno.offsetHeight+"||"+parentno.clientHeight);
 		//alert(maxwidth+' '+maxheight);
-		this.enactSVG.SVGrescale(maxwidth,maxheight);
+		if(this.enactSVG)
+			this.enactSVG.SVGrescale(maxwidth,maxheight);
 	},
 	
 	setSaveExampleMode: function(state) {
@@ -1018,9 +1045,28 @@ NewEnactionView.prototype = {
 			var maxheight=(parentno.offsetHeight-32)+'px';
 			//alert(maxwidth+' '+maxheight);
 			var newenactview=this;
-			this.enactSVG.loadSVG(this.enactSVGContainer.id,workflow.getSVGPath(),maxwidth,maxheight,function() {
-				newenactview.updateSVGSize();
-			});
+			
+			if(this.enactSVG==undefined) {
+				this.enactSVG = new DynamicSVG(this.enactSVGContainer.id,undefined,IWWEM.Unknown,undefined,undefined,function() {
+					newenactview.updateSVGSize();
+				});
+				var me = this;
+				this.enactSVG.initSVG(function() {
+					me.enactSVG.loadSVG(me.enactSVGContainer.id,workflow.getSVGPath(),maxwidth,maxheight,function() {
+						newenactview.updateSVGSize();
+					},function() {
+						newenactview.enactSVG.getTrampoline().loadImage(workflow.getImagePath());
+						newenactview.updateSVGSize();
+					});
+				});
+			} else {
+				this.enactSVG.loadSVG(this.enactSVGContainer.id,workflow.getSVGPath(),maxwidth,maxheight,function() {
+					newenactview.updateSVGSize();
+				},function() {
+					newenactview.enactSVG.getTrampoline().loadImage(workflow.getImagePath());
+					newenactview.updateSVGSize();
+				});
+			}
 		/*
 		} else {
 			alert('Please, first select a workflow before trying to enact one');
@@ -1463,11 +1509,9 @@ NewEnactionView.prototype = {
 	
 	clearView: function() {
 		// Removing all the content from the containers
-		var me=this;
-		this.enactSVG.removeSVG(function() {
-			me.disposeContainers();
-			me.setInputMode(undefined);
-		});
+		this.enactSVG.clearSVG();
+		this.disposeContainers();
+		this.setInputMode(undefined);
 	},
 	
 	closeNewEnactionFrame: function() {
