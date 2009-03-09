@@ -1522,12 +1522,12 @@ NewEnactionView.prototype = {
 	},
 	
 	openSubmitFrame: function(/* optional */useShimmer) {
-		if(useShimmer) {
-			this.reEnactFrameId=this.genview.openFrame('submitEnaction',1);
-		} else {
-			var elem=this.genview.getElementById('submitEnaction');
-			elem.className='submitEnaction';
-		}
+		// if(useShimmer) {
+			this.reEnactFrameId=this.genview.openFrame('submitEnaction',useShimmer);
+		// } else {
+		//	var elem=this.genview.getElementById('submitEnaction');
+		//	elem.className='submitEnaction';
+		// }
 	},
 	
 	closeSubmitFrame: function(/* optional */useShimmer) {

@@ -233,7 +233,7 @@
 		</scp>
 	</target>
 	
-	<target name="freshdeploy" depends="deploy" description="Fresh installation of IWWE&amp;M (it avoids first run stalls)">
+	<target name="populate.backends" depends="deploy" description="Populate backends installation of IWWE&amp;M (it avoids first run stalls)">
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"

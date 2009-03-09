@@ -537,7 +537,7 @@ GeneralView.prototype = {
 	},
 	
 	openFrame: function (/* optional */ divId, useShimmer) {
-		if(this.visibleId) {
+		if(this.visibleId && divId && !(divId in this.loadingHash)) {
 			this.suspendFrame();
 		}
 		var framePos=undefined;
@@ -551,7 +551,6 @@ GeneralView.prototype = {
 		}
 		
 		if(divId) {
-			this.visibleId=divId;
 			if(useShimmer || BrowserDetect.browser=='Explorer' || BrowserDetect.browser=='Safari') {
 				this.shimmer.className='shimmer';
 				this.usingShimmer=1;
@@ -564,6 +563,7 @@ GeneralView.prototype = {
 				this.loadingImage.src=this.loadingHash[divId].src;
 				this.loadingImage.setAttribute('alt',this.loadingHash[divId].alt);
 			} else {
+				this.visibleId=divId;
 				elem=this.getElementById(divId);
 			}
 			elem.className='transAbsDiv';
@@ -577,9 +577,14 @@ GeneralView.prototype = {
 		return framePos;
 	},
 	
-	suspendFrame: function() {
-		if(this.visibleId) {
-			var elem=(this.visibleId in this.loadingHash)?this.loadingDiv:this.getElementById(this.visibleId);
+	suspendFrame: function(/* optional */ vId,usingShimmer) {
+		if(vId==undefined) {
+			vId = this.visibleId;
+			usingShimmer = this.usingShimmer;
+		}
+		
+		if(vId!=undefined) {
+			var elem=(vId in this.loadingHash)?this.loadingDiv:this.getElementById(vId);
 
 			elem.className='hidden';
 			if(elem==this.loadingDiv) {
@@ -588,12 +593,13 @@ GeneralView.prototype = {
 				this.loadingImage.setAttribute('alt','Image not loaded (yet)');
 			}
 			this.outer.className='hidden';
-			if(this.usingShimmer) {
-				this.shimmer.className='hidden';
+			if(vId==this.visibleId) {
+				this.visibleId=undefined;
+				if(usingShimmer) {
+					this.shimmer.className='hidden';
+					this.usingShimmer=undefined;
+				}
 			}
-			this.usingShimmer=undefined;
-
-			this.visibleId=undefined;
 		}
 	},
 	
@@ -602,18 +608,8 @@ GeneralView.prototype = {
 			var framei;
 			for(framei=0;framei<this.frameIds.length;framei++) {
 				if(this.frameIds[framei][2]==framePos) {
+					this.suspendFrame(this.frameIds[framei][0],this.frameIds[framei][1]);
 					this.frameIds.splice(framei,1);
-					if(framei==0) {
-						/*
-						var d=new Date();
-						var to=d.getTime();
-						*/
-						this.openFrame();
-						/* This is to take some times
-
-						alert('Spent '+((to-this.from)/1000)+' seconds');
-						*/
-					}
 					break;
 				}
 			}

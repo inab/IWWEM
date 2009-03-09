@@ -56,6 +56,7 @@ textarea, input, select {
 	font-style: italic;
 	font-size: 10pt;
 	font-family: Arial, Helvetica, Georgia, sans-serif;
+	z-index: -1;
 }
 
 .hidden {

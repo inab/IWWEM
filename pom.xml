@@ -111,9 +111,7 @@
 			<snapshots />
 			<id>mygrid-snapshot-repository</id>
 			<name>myGrid Snapshot Repository</name>
-			<url>
-				http://www.mygrid.org.uk/maven/snapshot-repository
-			</url>
+			<url>http://www.mygrid.org.uk/maven/snapshot-repository</url>
 		</repository>
 		<repository>
 			<id>mobycentral</id>

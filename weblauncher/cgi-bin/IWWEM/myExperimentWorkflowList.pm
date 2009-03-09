@@ -161,7 +161,7 @@ sub getWorkflowURI($) {
 		
 		my($child)=undef;
 		
-		for($child=$exproot->firstChild();$child->nextSibling();$child=$child->nextSibling()) {
+		for($child=$exproot->firstChild();defined($child) && $child->nextSibling();$child=$child->nextSibling()) {
 			if($child->nodeType()==XML::LibXML::XML_ELEMENT_NODE) {
 				my($lname)=$child->localname();
 				if($lname eq 'content-uri') {
@@ -334,7 +334,6 @@ sub getWorkflowInfo($@) {
 				my($gchild)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'graph');
 				my($mtext)=$mime->[1];
 				$gchild->setAttribute('mime',$mtext);
-				print STDERR $mtext,"<\n";
 				if(exists($IWWEM::WorkflowCommon::GRAPHREPINV{$mtext})) {
 					my($str)=encode('UTF-8',$uuid);
 					
