@@ -210,7 +210,7 @@ DataBrowser.prototype={
 	},
 	
 	closeProcessFrame: function() {
-		if(this.preprocessId!=undefined)
+		if(this.frameId!=undefined)
 			this.genview.closeFrame(this.frameId);
 	},
 	

@@ -593,7 +593,7 @@ GeneralView.prototype = {
 				this.loadingImage.setAttribute('alt','Image not loaded (yet)');
 			}
 			this.outer.className='hidden';
-			if(vId==this.visibleId) {
+			if(this.visibleId==undefined || vId==this.visibleId) {
 				this.visibleId=undefined;
 				if(usingShimmer) {
 					this.shimmer.className='hidden';

@@ -320,7 +320,7 @@ public class INBWorkflowParserWrapper {
 		"http://mirrors.sunsite.dk/maven2/",
 		"http://www.ibiblio.org/maven2/",
 		"http://www.mygrid.org.uk/maven/snapshot-repository/",
-		"http://download.java.net/maven/2"
+//		"http://download.java.net/maven/2"
 	};
 
 	private static HashMap<String,Integer> OptionHash=new HashMap<String,Integer>();

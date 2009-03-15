@@ -311,14 +311,17 @@ sub createResponsibleFile($$;$) {
 }
 
 sub createMailer() {
-	my($smtp) = Mail::Sender->new({smtp=>$IWWEM::MailConfig::SMTPSERVER,
+	my($blockpar)={
+		smtp=>$IWWEM::MailConfig::SMTPSERVER,
 		auth=>'LOGIN',
 		auth_encoded=>$IWWEM::MailConfig::SMTP_ENCODED_CREDS,
 		authid=>$IWWEM::MailConfig::SMTPUSER,
 		authpwd=>$IWWEM::MailConfig::SMTPPASS
 	#	subject=>'Prueba4',
 	#	debug=>\*STDERR
-	});
+	};
+
+	my($smtp) = Mail::Sender->new($blockpar);
 	
 	return $smtp;
 }

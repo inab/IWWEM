@@ -51,7 +51,9 @@ sub new(;$) {
 	if(exists($self->{id})) {
 		my($id)=$self->{id};
 		foreach my $paradigm (@PARADIGMS) {
-			return $paradigm->new(@_)  if($paradigm->UnderstandsId($id));
+			if($paradigm->UnderstandsId($id)) {
+				return $paradigm->new(@_);
+			}
 		}
 	}
 	

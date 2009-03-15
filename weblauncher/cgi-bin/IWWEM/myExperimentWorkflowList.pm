@@ -156,7 +156,13 @@ sub getWorkflowURI($) {
 	# It is required a full description
 	my($wfuri)=undef;
 	eval {
-		my($expdoc)=$parser->parse_file($MYEXP_WF_URL.$id);
+		my($wfid)=undef;
+		if(index($id,$IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX)==0) {
+			$wfid=substr($id,length($IWWEM::myExperimentWorkflowList::Constants::MYEXP_PREFIX));
+		} else {
+			$wfid=$id;
+		}
+		my($expdoc)=$parser->parse_file($MYEXP_WF_URL.$wfid);
 		my($exproot)=$expdoc->documentElement();
 		
 		my($child)=undef;
