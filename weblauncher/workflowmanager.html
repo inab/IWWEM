@@ -104,7 +104,9 @@ if(BrowserDetect.browser=='Explorer') {
 			</td></tr>
 			<tr><td align="left">
 				<span id="nWfSpan" class="nWf">(loading)</span>
-			</td><td colspan="5" align="right">
+			</td><td align="center">
+				<span class="sWf"><input type="text" id="searchWFInput"><img src="style/embudo-mini.png" id="doSearchWFInput"></span>
+			</td><td colspan="4" align="right">
 				<span id="confirm" class='checkboxred checkbox right'>Confirm</span>
 			</td></tr>
 			<tr><td class="buttons" align="center">
@@ -137,8 +139,8 @@ if(BrowserDetect.browser=='Explorer') {
 		<div align="center">Please introduce your workflow and the local workflows it depends on</div>
 		<form style="width:100%;height:90%;" id="formNewWF" action="cgi-bin/workflowmanager" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
 			<table align="center"><tbody>
-				<tr valign="middle"><td>Uploader e-mail</td><td><input type="text" id="NWresponsibleMail" name="responsibleMail"></td><td align="right"><span style="font-style:italic;color:red">(required)</span></td></tr>
-				<tr valign="middle"><td>Uploader full name</td><td><input type="text" id="NWresponsibleName" name="responsibleName"></td><td align="right"><span style="font-style:italic;color:red">(optional)</span></td></tr>
+				<tr valign="middle"><td>Uploader e-mail</td><td><span class="sWf"><input type="text" id="NWresponsibleMail" name="responsibleMail"><img src="style/email_icon2-mini.png"></span></td><td align="right"><span style="font-style:italic;color:red">(required)</span></td></tr>
+				<tr valign="middle"><td>Uploader full name</td><td><span class="sWf"><input type="text" id="NWresponsibleName" name="responsibleName"><img src="style/blueman_108_01-mini.png"></span></td><td align="right"><span style="font-style:italic;color:red">(optional)</span></td></tr>
 				<tr><td colspan="3">
 					<div class="borderedOption"><span id="newWFStyleFile" class="radio right">Workflow&nbsp;&nbsp;as file</span>&nbsp;<span id="newWFStyleText" class="radio right">as text</span>&nbsp;<span id="newWFStyleRef" class="radio right">as reference</span></div>
 				</td></tr><tr><td colspan="3">
@@ -176,8 +178,8 @@ if(BrowserDetect.browser=='Explorer') {
 			<div class="Theader">Please introduce your inputs for workflow<br><span id="newEnactWFName" style="font-weight:bold"></span></div>
 			<div class="Theader">
 				<div align="center">
-				Uploader mail <input type="text" id="NEresponsibleMail" name="responsibleMail"> <span style="font-style:italic;color:red">(required)</span><br>
-				Uploader name <input type="text" id="NEresponsibleName" name="responsibleName"> <span style="font-style:italic;color:red">(optional)</span>
+				Uploader mail <span class="sWf"><input type="text" id="NEresponsibleMail" name="responsibleMail" style="width:125px"><img src="style/email_icon2-mini.png"></span> <span style="font-style:italic;color:red">(required)</span><br>
+				Uploader name <span class="sWf"><input type="text" id="NEresponsibleName" name="responsibleName" style="width:125px"><img src="style/blueman_108_01-mini.png"></span> <span style="font-style:italic;color:red">(optional)</span>
 				</div>
 				<div id="useDiv" align="center" style="margin: 5px 5px 5px 5px">
 					<span class="borderedOption"><span id="noneExampleSpan" class="radio right">Use inputs</span>&nbsp;<span id="saveAsExampleSpan" class="checkboxgreen checkbox right">Save as example</span></span>

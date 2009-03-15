@@ -85,6 +85,8 @@ function ManagerView(genview) {
 	this.updateTextSpan=genview.getElementById('updateTextSpan');
 	
 	this.nWfSpan=genview.getElementById('nWfSpan');
+	this.searchWFInput=genview.getElementById('searchWFInput');
+	this.doSearchWFInput=genview.getElementById('doSearchWFInput');
 
 	this.openEnactionButton=genview.getElementById('openEnactionButton');
 	this.launchButton=genview.getElementById('launchButton');
@@ -152,6 +154,32 @@ function ManagerView(genview) {
 		});
 	},false);
 	
+	// Weird. This one does not work when assigned using
+	// addEventListener
+	this.searchWFInput.onkeypress=function(e) {
+		var characterCode;
+		if(!e)
+			e=window.event;
+
+		if(e.keyCode){
+			characterCode = e.keyCode	// modern browsers and IE
+		} else{
+			characterCode = e.which		// old NN4
+		}
+		
+		if(characterCode == 13) { //if generated character code is equal to ascii 13 (if enter key)
+			manview.searchWorkflows();
+			//e.cancelBubble=true;
+			//if(e.stopPropagation)  e.stopPropagation();
+			return false;
+		} else{
+			return true;
+		}
+	};
+	WidgetCommon.addEventListener(this.doSearchWFInput,'click',function() {
+		manview.searchWorkflows();
+	},false);
+	
 	WidgetCommon.addEventListener(this.deleteButton,'click',function() {
 		manview.deleteWorkflow();
 	},false);
@@ -163,6 +191,12 @@ function ManagerView(genview) {
 	// SVG resize
 	this.tableContainer=this.genview.getElementById("tableContainer");
 	this.formManager=this.genview.getElementById("formManager");
+	
+	// Supress submissions
+	// WidgetCommon.addEventListener(this.formManager,'submit',function() {
+	//	return false;
+	// },false);
+	
 	WidgetCommon.addEventListener(window,'resize',function() {
 		manview.updateSVGSize();
 	},false);
@@ -322,10 +356,12 @@ ManagerView.prototype = {
 			GeneralView.getLocalName(listDOM)=='workflowlist'
 		) {
 			var sortArr=undefined;
-			var nWf=0;
+			var wfSearch=undefined;
+			var wfSearchIdx=undefined;
 			if(viewAdd==undefined) {
 				sortArr=new Array();
 				this.WFBase = new Array();
+				wfSearch=new Object();
 			}
 			for(var domain=listDOM.firstChild ; domain ; domain=domain.nextSibling) {
 				if(domain.nodeType==1 && GeneralView.getLocalName(domain)=='domain') {
@@ -345,7 +381,34 @@ ManagerView.prototype = {
 									this.wfA[workflow.uuid]=workflow;
 									if(sortArr!=undefined) {
 										sortArr.push(workflow);
-										nWf++;
+									}
+									if(wfSearch!=undefined) {
+										// And the full text
+										var title = workflow.title;
+										if(title!=undefined && title!='') {
+											var splitTitle=title.toLowerCase().split(/[\n\t.,;: ()"'?!]+/);
+											for(var ispl=0; ispl<splitTitle.length ; ispl++) {
+												var lcFullWord=splitTitle[ispl];
+												
+												// Alone dashes are rejected
+												if(lcFullWord=='-')
+													continue;
+												
+												var splitWord=lcFullWord.split(/-+/);
+												if(splitWord.length>1) {
+													splitWord.push(lcFullWord);
+												}
+												for(var iw=0;iw<splitWord.length;iw++) {
+													var lcWord=splitWord[iw];
+													if(lcWord==undefined || lcWord=='')
+														continue;
+													if(!(lcWord in wfSearch)) {
+														wfSearch[lcWord]=new Array();
+													}
+													wfSearch[lcWord].push(workflow);
+												}
+											}
+										}
 									}
 									break;
 
@@ -363,46 +426,27 @@ ManagerView.prototype = {
 				}
 			}
 			
+			// Building search index
+			if(wfSearch!=undefined) {
+				wfSearchIdx=new Array();
+				/*
+				var tips='';
+				for(var facet in wfSearch) {
+					tips+=wfSearch[facet].length+" ";
+					wfSearchIdx.push(facet);
+				}
+				alert(tips);
+				*/
+				for(var facet in wfSearch) {
+					wfSearchIdx.push(facet);
+				}
+				this.wfSearchIdx=wfSearchIdx.sort();
+				this.wfSearch=wfSearch;
+			}
+			
 			if(sortArr!=undefined) {
-				this.nWfSpan.innerHTML= nWf + ' '+(this.handlingEnactions?'enaction':'workflow')+((nWf!=1)?'s':'');
-				// Now, time to sort this... TODO
-				var sortFunc=function (a,b) {
-					if(a.WFBase < b.WFBase)  return -1;
-					if(a.WFBase > b.WFBase)  return 1;
-					var atitle=a.title.toLowerCase();
-					var btitle=b.title.toLowerCase();
-					if(atitle < btitle)  return -1;
-					if(atitle > btitle)  return 1;
-					if(a.date < b.date)  return 1;
-					if(a.date > b.date)  return -1;
-					
-					return 0;
-				};
-				
-				if(this.restrictId!=undefined) {
-					sortFunc=function (a,b) {
-						if(a.date < b.date)  return 1;
-						if(a.date > b.date)  return -1;
-						var atitle=a.title.toLowerCase();
-						var btitle=b.title.toLowerCase();
-						if(atitle < btitle)  return -1;
-						if(atitle > btitle)  return 1;
-						if(a.WFBase < b.WFBase)  return -1;
-						if(a.WFBase > b.WFBase)  return 1;
-						return 0;
-					};
-				}
-				
-				sortArr=sortArr.sort(sortFunc);
-				
-				// And show it!
-				for(var soi=0;soi<sortArr.length;soi++) {
-					var workflow=sortArr[soi];
-					var wfO = workflow.generateOption(this.genview);
-
-					// Last: save selection!
-					this.wfselect.add(wfO);
-				}
+				// This is needed when searches are cleared
+				this.sortArr = this.showSelectedWorkflows(sortArr);
 			} else {
 				// Show just the element!
 				this.updateView(wfCallback);
@@ -411,6 +455,145 @@ ManagerView.prototype = {
 			this.WFBase=[];
 			this.genview.setMessage('<blink><h1 style="color:red">FATAL ERROR: Unable to fetch the workflow repository listing!</h1></blink>');
 		}
+	},
+	
+	showSelectedWorkflows: function(sortArr,/*optional*/searchTerms) {
+		// First, clear the list
+		this.wfselect.clear();
+		
+		if(sortArr==undefined)
+			return undefined;
+		
+		var nWf = sortArr.length;
+		var newText = nWf + ' '+(this.handlingEnactions?'enaction':'workflow')+((nWf!=1)?'s':'');
+		if(searchTerms!=undefined && searchTerms!='')
+			newText += ' (with <i>'+searchTerms+'</i>)';
+		this.nWfSpan.innerHTML=newText;
+		// Now, time to sort this... TODO
+		var sortFunc=function (a,b) {
+			if(a.WFBase < b.WFBase)  return -1;
+			if(a.WFBase > b.WFBase)  return 1;
+			var atitle=a.title.toLowerCase();
+			var btitle=b.title.toLowerCase();
+			if(atitle < btitle)  return -1;
+			if(atitle > btitle)  return 1;
+			if(a.date < b.date)  return 1;
+			if(a.date > b.date)  return -1;
+
+			return 0;
+		};
+
+		if(this.restrictId!=undefined) {
+			sortFunc=function (a,b) {
+				if(a.date < b.date)  return 1;
+				if(a.date > b.date)  return -1;
+				var atitle=a.title.toLowerCase();
+				var btitle=b.title.toLowerCase();
+				if(atitle < btitle)  return -1;
+				if(atitle > btitle)  return 1;
+				if(a.WFBase < b.WFBase)  return -1;
+				if(a.WFBase > b.WFBase)  return 1;
+				return 0;
+			};
+		}
+
+		sortArr=sortArr.sort(sortFunc);
+
+		// And show them!
+		for(var soi=0;soi<sortArr.length;soi++) {
+			var workflow=sortArr[soi];
+			var wfO = workflow.generateOption(this.genview);
+
+			// Last: save selection!
+			this.wfselect.add(wfO);
+		}
+		
+		return sortArr;
+	},
+	
+	searchWorkflows: function(/*optional*/words) {
+		if(words==undefined)
+			words=this.searchWFInput.value;
+		
+		var sortArr=undefined;
+		if(words==undefined || words=='') {
+			sortArr=this.sortArr;
+		} else {
+			var wordList=words.toLowerCase().split(/[\n\t.,;: ()"'?!]+/);
+			var foundSets=new Array();
+
+			// First, find search subsets
+			var wfSearchIdx=this.wfSearchIdx;
+			var wfSearch=this.wfSearch;
+			for(var iwl=0;iwl<wordList.length;iwl++) {
+				var lcFullWord=wordList[iwl];
+				var splitWord=lcFullWord.split(/-+/);
+				if(splitWord.length>1) {
+					splitWord.push(lcFullWord);
+				}
+				for(var iw=0;iw<splitWord.length;iw++) {
+					var v = splitWord[iw];
+					var h = wfSearchIdx.length;
+					var l = -1;
+					var m = -1;
+					while((h - l) > 1) {
+						m = (h + l) >> 1;
+						if(wfSearchIdx[m] < v) {
+							l = m;
+						} else {
+							h = m;
+							if(wfSearchIdx[m]==v)
+								break;
+						}
+					}
+					var vlength=v.length;
+					var facet='';
+					for(var p=h;p<wfSearchIdx.length && wfSearchIdx[p].substr(0,vlength)==v ;p++) {
+						facet+=' '+wfSearchIdx[p];
+						foundSets.push(wfSearch[wfSearchIdx[p]]);
+					}
+				}
+			}
+			
+			// Second, remove subset duplicates
+			for(var f1=0;f1<foundSets.length;f1++) {
+				for(var f2=f1+1;f2<foundSets.length;f2++) {
+					if(foundSets[f1]==foundSets[f2])
+						foundSets.splice(f2--,1);
+				}
+			}
+
+			sortArr=new Array();
+			if(foundSets.length>0) {
+				sortArr = sortArr.concat(foundSets[0]);
+
+				// Third, create combined array without duplicates
+				for(var f3=1;f3<foundSets.length;f3++) {
+					var arr=foundSets[f3];
+					// Only old values are going to be checked
+					// because new ones are different among them
+					var sortArrLength=sortArr.length;
+					for(var f4=0;f4<arr.length;f4++) {
+						var newval=arr[f4];
+						var addit=true;
+						for(var f5=0;f5<sortArrLength;f5++) {
+							if(sortArr[f5]==newval) {
+								addit=undefined;
+								break;
+							}
+						}
+						if(addit) {
+							sortArr.push(newval);
+						}
+					}
+				}
+			}
+		}
+		
+		// And at last, let's show selected workflows!
+		this.showSelectedWorkflows(sortArr,words);
+		if(sortArr.length==1 && words!=undefined && words!='')
+			this.wfselect.setIndex(0);
 	},
 	
 	reloadList: function (/* optional */ wf, wfToErase, wfCallback) {

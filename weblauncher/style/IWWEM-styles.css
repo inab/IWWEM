@@ -41,12 +41,34 @@ body.busy * {
 	cursor: wait;
 }
 
-textarea, input, select {
-    border: 1px solid #c0c0c0;
-    background: #eeeeee;
-    margin: 2px 2px 2px 2px;
-    font-family: Arial, Helvetica, Georgia, sans-serif;
-    font-size: 12px;
+textarea, input, select, .nWf , .sWf {
+	margin: 2px 2px 2px 2px;
+	font-family: Arial, Helvetica, Georgia, sans-serif;
+}
+
+textarea, input, select, .sWf {
+	border: 1px solid #c0c0c0;
+	background: #eeeeee;
+	font-size: 12px;
+}
+
+.nWf {
+	font-size: 14px;
+}
+
+.sWf {
+	white-space: nowrap;
+}
+
+.sWf input {
+	width:75%;
+	border:none;
+	background:none;
+}
+
+.sWf img {
+	cursor:pointer;
+	vertical-align: middle;
 }
 
 .license {
