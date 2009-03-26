@@ -20,7 +20,7 @@ Original IWWE&M concept, design and coding done by José María Fernández Gonz�
 Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 -->
 <settings>
-	<localRepository>${env.IWWEM_WEBLAUNCHER}/cgi-bin/inb-maven</localRepository>
+	<localRepository>${env.IWWEM_WEBLAUNCHER}/cgi-bin/Backends/t1backend-maven</localRepository>
 	<profiles>
 		<profile>
 			<id>override</id>
@@ -44,9 +44,7 @@ Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 					<snapshots />
 					<id>mygrid-snapshot-repository</id>
 					<name>myGrid Snapshot Repository</name>
-					<url>
-						http://www.mygrid.org.uk/maven/snapshot-repository
-					</url>
+					<url>http://www.mygrid.org.uk/maven/snapshot-repository</url>
 				</repository>
 				<repository>
 					<id>mobycentral</id>

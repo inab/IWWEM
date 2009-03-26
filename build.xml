@@ -31,8 +31,10 @@
 	<dirname property="iwwem.antfile.dir.parent" file="${iwwem.antfile.dir}"/>
 	<property name="iwwem.weblauncher.src" location="weblauncher" />
 	<property name="maven.settings.local" location="" />
+	<property name="maven.settings.t1backend" location="${iwwem.antfile.dir}/t1backend/settings-maven.xml" />
+	<property name="maven.settings.t2backend" location="${iwwem.antfile.dir}/t2backend/settings-maven.xml" />
 	
-	<property name="taverna.biomoby.src" value="taverna-biomoby"/>
+	<property name="taverna.biomoby.src" value="t1backend/taverna-biomoby"/>
 	
 	<!--
 		Targets
@@ -90,25 +92,34 @@
 	</target>
 	
 	<target name="install-local-biomoby" depends="init">
-		<exec dir="${taverna.biomoby.src}" executable="mvn" failonerror="true">
+		<exec executable="mvn" dir="${taverna.biomoby.src}" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
 			<arg value="-P"/>
 			<arg value="override"/>
 			<arg value="-s"/>
-			<arg value="${iwwem.antfile.dir}/settings-maven.xml"/>
+			<arg value="${maven.settings.t1backend}"/>
 			<arg value="install"/>
 			<arg value="-Dmaven.test.skip=true"/>
 		</exec>
 	</target>
 	
 	<target name="compile.backends" depends="init" description="Compilation of Java/Maven backend modules">
-		<exec executable="mvn" failonerror="true">
+		<exec executable="mvn" dir="t1backend" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
 			<arg value="-s"/>
-			<arg value="${iwwem.antfile.dir}/settings-maven.xml"/>
+			<arg value="${maven.settings.t1backend}"/>
 			<arg value="package"/>
 			<arg value="appassembler:assemble"/>
 		</exec>
+		<!--
+		<exec executable="mvn" dir="t2backend" failonerror="true">
+			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-s"/>
+			<arg value="${maven.settings.t2backend}"/>
+			<arg value="package"/>
+			<arg value="assembly:assembly"/>
+		</exec>
+		-->
 	</target>
 	
 	<target name="compile.frontends" depends="init" description="Checking of Perl frontend modules">
@@ -135,10 +146,8 @@
 		/>
 		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}/cgi-bin" keyfile="${deploy.ssh.keyfile}" passphrase="${deploy.ssh.passphrase}">
 			<fileset dir="${iwwem.weblauncher.src}/cgi-bin">
-				<include name="inb-maven"/>
-				<include name="inb-maven/**"/>
-				<include name="INBWorkflowLauncher"/>
-				<include name="INBWorkflowLauncher/**"/>
+				<include name="Backends"/>
+				<include name="Backends/**"/>
 				<exclude name="**/.svn"/>
 				<exclude name="**/.svn/**"/>
 			</fileset>
@@ -148,14 +157,14 @@
 			username="${deploy.ssh.user}"
 			keyfile="${deploy.ssh.keyfile}"
 			passphrase="${deploy.ssh.passphrase}"
-			command="cd '${deploy.ssh.dir}'/cgi-bin &amp;&amp; chmod -v go+w inb-maven"
+			command="cd '${deploy.ssh.dir}'/cgi-bin &amp;&amp; chmod -v go+w Backends/*backend-*"
 		/>
 		<sshexec
 			host="${deploy.host}"
 			username="${deploy.ssh.user}"
 			keyfile="${deploy.ssh.keyfile}"
 			passphrase="${deploy.ssh.passphrase}"
-			command="cd '${deploy.ssh.dir}'/cgi-bin/INBWorkflowLauncher/bin &amp;&amp; chmod -v ugo+x inbworkflowparser inbworkflowlauncher patchDotSVG"
+			command="cd '${deploy.ssh.dir}'/cgi-bin/Backends/t1backend/bin &amp;&amp; chmod -v ugo+x inbworkflowparser inbworkflowlauncher patchDotSVG"
 		/>
 	</target>
 	
@@ -190,10 +199,8 @@
 	<target name="deploy.frontends" depends="compile.frontends,deploy.frontends.gui.pre" description="It deploys the whole project frontends to the destination repository">
 		<scp todir="${deploy.ssh.user}@${deploy.host}:${deploy.ssh.dir}/cgi-bin" keyfile="${deploy.ssh.keyfile}" passphrase="${deploy.ssh.passphrase}">
 			<fileset dir="${iwwem.weblauncher.src}/cgi-bin">
-				<exclude name="inb-maven"/>
-				<exclude name="inb-maven/**"/>
-				<exclude name="INBWorkflowLauncher"/>
-				<exclude name="INBWorkflowLauncher/**"/>
+				<exclude name="Backends"/>
+				<exclude name="Backends/**"/>
 				<exclude name="**/.svn"/>
 				<exclude name="**/.svn/**"/>
 			</fileset>
@@ -239,7 +246,7 @@
 			username="${deploy.ssh.user}"
 			keyfile="${deploy.ssh.keyfile}"
 			passphrase="${deploy.ssh.passphrase}"
-			command="${deploy.ssh.dir}/cgi-bin/INBWorkflowLauncher/bin/inbworkflowparser -baseDir ${deploy.ssh.dir}/cgi-bin/inb-maven -onlyUpdateBaseDir"
+			command="${deploy.ssh.dir}/cgi-bin/Backends/t1backend/bin/inbworkflowparser -baseDir ${deploy.ssh.dir}/cgi-bin/Backends/t1backend-maven -onlyUpdateBaseDir"
 		/>
 		<!--
 		<sshexec
@@ -247,18 +254,26 @@
 			username="${deploy.ssh.user}"
 			keyfile="${deploy.ssh.keyfile}"
 			passphrase="${deploy.ssh.passphrase}"
-			command="chmod -v -R go+w ${deploy.ssh.dir}/cgi-bin/inb-maven"
+			command="chmod -v -R go+w ${deploy.ssh.dir}/cgi-bin/Backends/t1backend-maven"
 		/>
 		-->
 	</target>
 
 	<target name="clean.backends" description="Cleaning the project backends">
-		<exec executable="mvn" failonerror="true">
+		<exec executable="mvn" dir="t1backend" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
 			<arg value="-s"/>
-			<arg value="${iwwem.antfile.dir}/settings-maven.xml"/>
+			<arg value="${maven.settings.t1backend}"/>
 			<arg value="clean"/>
 		</exec>
+		<!--
+		<exec executable="mvn" dir="t2backend" failonerror="true">
+			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-s"/>
+			<arg value="${maven.settings.t2backend}"/>
+			<arg value="clean"/>
+		</exec>
+		-->
 		<exec executable="svn" failonerror="true">
 			<arg value="update"/>
 			<arg value="target"/>
