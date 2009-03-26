@@ -384,8 +384,8 @@ public class INBWorkflowParserWrapper {
 	public static void main(String[] args) {
 		try {
 			new INBWorkflowParserWrapper().run(args);
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Throwable t) {
+			t.printStackTrace();
 			System.exit(1);
 		}
 	}
