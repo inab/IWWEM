@@ -74,7 +74,7 @@ $CONFIRMDIR = $STORAGEDIR.'/'.$CONFIRMRELDIR;
 # Maven directory used by raven instance inside
 # workflowparser and workflowlauncher
 use vars qw($MAVENDIR);
-$MAVENDIR = $FindBin::Bin.'/inb-maven';
+$MAVENDIR = $FindBin::Bin.'/Backends/t1backend-maven';
 
 # Number of concurrent jobs
 use vars qw($MAXJOBS);

@@ -30,11 +30,28 @@
 	This class contains the trampoline used to manipulate
 	and access this SVG from outside
 */
-function SVGtramp(SVGDoc,/* optional */autoResize,defaultSVGURI,errorSVGURI) {
+function SVGtramp(SVGDoc,/* optional */autoResize,svgURIHash) {
+	
 	this.SVGDoc    = SVGDoc;
 	this.SVGroot   = this.SVGDoc.documentElement;
 	this.autoResize = autoResize;
 	this.svgElement=undefined;
+	this.svgCachedElement=undefined;
+	this.svgURIHash=svgURIHash;
+	this.svgHash=new Object();
+	
+	var defaultSVGURI=undefined;
+	var errorSVGURI=undefined;
+	
+	// Initial SVG hash, where default and error SVG are
+	if(svgURIHash) {
+		if('default' in svgURIHash) {
+			defaultSVGURI=svgURIHash['default'];
+		}
+		if('error' in svgURIHash) {
+			errorSVGURI=svgURIHash['error'];
+		}
+	}
 	
 	if(defaultSVGURI) {
 		this.mainContainer = SVGDoc.createElementNS(SVGtramp.SVGNS,"g");
@@ -186,40 +203,47 @@ function SVGtramp(SVGDoc,/* optional */autoResize,defaultSVGURI,errorSVGURI) {
 	if(!this.mainContainer) {
 		// To allow zooming of content
 		var susId = this.suspendRedraw();
-		var viewbox=this.SVGroot.getAttribute('viewBox');
-		if(!viewbox) {
-			var vWidth  = this.createTypedLength(this.width);
-			var vHeight = this.createTypedLength(this.height);
-			var vX = this.createTypedLength(this.x);
-			var vY = this.createTypedLength(this.y);
+		var ee=undefined;
+		try {
+			var viewbox=this.SVGroot.getAttribute('viewBox');
+			if(!viewbox) {
+				var vWidth  = this.createTypedLength(this.width);
+				var vHeight = this.createTypedLength(this.height);
+				var vX = this.createTypedLength(this.x);
+				var vY = this.createTypedLength(this.y);
 
-			vWidth.convertToSpecifiedUnits(vWidth.SVG_LENGTHTYPE_PX);
-			vHeight.convertToSpecifiedUnits(vHeight.SVG_LENGTHTYPE_PX);
-			vX.convertToSpecifiedUnits(vX.SVG_LENGTHTYPE_PX);
-			vY.convertToSpecifiedUnits(vY.SVG_LENGTHTYPE_PX);
+				vWidth.convertToSpecifiedUnits(vWidth.SVG_LENGTHTYPE_PX);
+				vHeight.convertToSpecifiedUnits(vHeight.SVG_LENGTHTYPE_PX);
+				vX.convertToSpecifiedUnits(vX.SVG_LENGTHTYPE_PX);
+				vY.convertToSpecifiedUnits(vY.SVG_LENGTHTYPE_PX);
 
-			this.SVGroot.setAttribute('viewBox',vX.valueInSpecifiedUnits+' '+vY.valueInSpecifiedUnits+' '+vWidth.valueInSpecifiedUnits+' '+vHeight.valueInSpecifiedUnits);
-		}
-		var zoompan=this.SVGroot.getAttribute('zoomAndPan');
-		if(!zoompan) {
-			this.SVGroot.setAttribute('zoomAndPan','magnify');
-		}
-		var preserve=this.SVGroot.getAttribute('preserveAspectRatio');
-		if(!preserve) {
-			this.SVGroot.setAttribute('preserveAspectRatio','xMidYMid meet');
-		}
-		if(this.autoResize) {
-			this.SVGroot.setAttribute('width','100%');
-			this.SVGroot.setAttribute('height','100%');
-			var eraseAttrs=new Array('x','y');
-			for(var ei=0;ei<eraseAttrs.length;ei++) {
-				var aval=this.SVGroot.getAttribute(eraseAttrs[ei]);
-				if(aval!=undefined && aval!='') {
-					this.SVGroot.removeAttribute(eraseAttrs[ei]);
+				this.SVGroot.setAttribute('viewBox',vX.valueInSpecifiedUnits+' '+vY.valueInSpecifiedUnits+' '+vWidth.valueInSpecifiedUnits+' '+vHeight.valueInSpecifiedUnits);
+			}
+			var zoompan=this.SVGroot.getAttribute('zoomAndPan');
+			if(!zoompan) {
+				this.SVGroot.setAttribute('zoomAndPan','magnify');
+			}
+			var preserve=this.SVGroot.getAttribute('preserveAspectRatio');
+			if(!preserve) {
+				this.SVGroot.setAttribute('preserveAspectRatio','xMidYMid meet');
+			}
+			if(this.autoResize) {
+				this.SVGroot.setAttribute('width','100%');
+				this.SVGroot.setAttribute('height','100%');
+				var eraseAttrs=new Array('x','y');
+				for(var ei=0;ei<eraseAttrs.length;ei++) {
+					var aval=this.SVGroot.getAttribute(eraseAttrs[ei]);
+					if(aval!=undefined && aval!='') {
+						this.SVGroot.removeAttribute(eraseAttrs[ei]);
+					}
 				}
 			}
+		} catch(e) {
+			ee=e;
 		}
 		this.unsuspendRedraw(susId);
+		if(ee!=undefined)
+			throw ee;
 	}
 	
 	this.myMapApp=undefined;
@@ -255,26 +279,8 @@ function SVGtramp(SVGDoc,/* optional */autoResize,defaultSVGURI,errorSVGURI) {
 	
 	this.defaultSVG=undefined;
 	this.errorSVG=undefined;
-	if(defaultSVGURI) {
-		tramp=this;
-		this.loadSVG(defaultSVGURI,true,true,function(responseXML) {
-			if(tramp.svgElement)
-				responseXML.setAttribute('display','none');
-			tramp.defaultSVG=responseXML;
-			if(errorSVGURI) {
-				tramp.loadSVG(errorSVGURI,true,true,function(responseXML) {
-					responseXML.setAttribute('display','none');
-					tramp.errorSVG=responseXML;
-				});
-			}
-		});
-	} else if(errorSVGURI) {
-		tramp=this;
-		this.loadSVG(errorSVGURI,true,true,function(responseXML) {
-			responseXML.setAttribute('display','none');
-			tramp.errorSVG=responseXML;
-		});
-	}
+	
+	this.doLoadSVGHash();
 }
 
 SVGtramp.SVGNS='http://www.w3.org/2000/svg';
@@ -419,15 +425,21 @@ SVGtramp.prototype = {
 		//var newHeight = this.realHeight*sh + this.realHeightUnits;
 		
 		var susId = this.suspendRedraw();
-		
-		this.setScale(sw, sh);
-		
-		this.SVGroot.setAttribute("height", newHeight.valueAsString);
-		this.height = newHeight.valueAsString;
-		this.SVGroot.setAttribute("width", newWidth.valueAsString);
-		this.width  = newWidth.valueAsString;
+		var ee = undefined;
+		try {
+			this.setScale(sw, sh);
+
+			this.SVGroot.setAttribute("height", newHeight.valueAsString);
+			this.height = newHeight.valueAsString;
+			this.SVGroot.setAttribute("width", newWidth.valueAsString);
+			this.width  = newWidth.valueAsString;
+		} catch(e) {
+			ee = e;
+		}
 		
 		this.unsuspendRedraw(susId);
+		if(ee!=undefined)
+			throw ee;
 	},
 	
 	setScale: function (sw, sh) {
@@ -468,14 +480,20 @@ SVGtramp.prototype = {
 		var sh = hLength.valueInSpecifiedUnits / this.realHeight.valueInSpecifiedUnits;
 		
 		var susId = this.suspendRedraw();
-		
-		//this.setScale(sw,sh);
-		this.SVGroot.setAttribute("height", hLength.valueAsString);
-		this.height = hLength.valueAsString;
-		this.SVGroot.setAttribute("width", wLength.valueAsString);
-		this.width = wLength.valueAsString;
+		var ee = undefined;
+		try {
+			//this.setScale(sw,sh);
+			this.SVGroot.setAttribute("height", hLength.valueAsString);
+			this.height = hLength.valueAsString;
+			this.SVGroot.setAttribute("width", wLength.valueAsString);
+			this.width = wLength.valueAsString;
+		} catch(e) {
+			ee=e;
+		}
 		
 		this.unsuspendRedraw(susId);
+		if(ee!=undefined)
+			throw ee;
 	},
 	
 	setBestScaleFromConstraintDimensions: function (w,h,/*optional*/ isWorst) {
@@ -500,14 +518,21 @@ SVGtramp.prototype = {
 		}
 		
 		var susId = this.suspendRedraw();
-		
-		//this.setScale(sw,sh);
-		this.SVGroot.setAttribute("height", hLength.valueAsString);
-		this.height = hLength.valueAsString;
-		this.SVGroot.setAttribute("width", wLength.valueAsString);
-		this.width = wLength.valueAsString;
+		var ee = undefined;
+		try {
+			//this.setScale(sw,sh);
+			this.SVGroot.setAttribute("height", hLength.valueAsString);
+			this.height = hLength.valueAsString;
+			this.SVGroot.setAttribute("width", wLength.valueAsString);
+			this.width = wLength.valueAsString;
+		} catch(e) {
+			ee = e;
+		}
 		
 		this.unsuspendRedraw(susId);
+		if(ee!=undefined) {
+			throw ee;
+		}
 	},
 	
 	setCSSProp: function (styleNode,prop,newValue) {
@@ -521,20 +546,27 @@ SVGtramp.prototype = {
 
 					//var previouscssText = styleNode.style.cssText;
 					var susId = this.suspendRedraw();
-					var previouscssText = styleNode.getAttribute("style");
-					if(!previouscssText)  previouscssText="";
+					var ee = undefined;
+					try {
+						var previouscssText = styleNode.getAttribute("style");
+						if(!previouscssText)  previouscssText="";
 
-					var propR = new RegExp(prop+" *:[^;]*");
+						var propR = new RegExp(prop+" *:[^;]*");
 
-					if(previouscssText.search(propR)==-1) {
-						newcssText = newProp + ";" + previouscssText;
-					} else {
-						var newcssText=previouscssText.replace(propR,newProp);
+						if(previouscssText.search(propR)==-1) {
+							newcssText = newProp + ";" + previouscssText;
+						} else {
+							var newcssText=previouscssText.replace(propR,newProp);
+						}
+
+						//styleNode.style.cssText=newcssText;
+						styleNode.setAttribute("style",newcssText);
+					} catch(e) {
+						ee = e;
 					}
-
-					//styleNode.style.cssText=newcssText;
-					styleNode.setAttribute("style",newcssText);
 					this.unsuspendRedraw(susId);
+					if(ee!=undefined)
+						throw ee;
 				}
 			} else {
 				this.removeCSSProp(styleNode,prop);
@@ -548,14 +580,20 @@ SVGtramp.prototype = {
 			var previouscssText = styleNode.getAttribute("style");
 			if(previouscssText) {
 				var susId = this.suspendRedraw();
+				var ee = undefined;
+				try {
+					var propR = new RegExp(prop+" *:[^;]*;? *");
 
-				var propR = new RegExp(prop+" *:[^;]*;? *");
+					var newcssText=previouscssText.replace(propR,'');
 
-				var newcssText=previouscssText.replace(propR,'');
-
-				//styleNode.style.cssText=newcssText;
-				styleNode.setAttribute("style",newcssText);
+					//styleNode.style.cssText=newcssText;
+					styleNode.setAttribute("style",newcssText);
+				} catch(e) {
+					ee = e;
+				}
 				this.unsuspendRedraw(susId);
+				if(ee!=undefined)
+					throw ee;
 			}
 		}
 	},
@@ -810,22 +848,32 @@ SVGtramp.prototype = {
 	
 	clearSVG: function(/* optional */showDefault) {
 		var susId = this.suspendRedraw();
-		if(this.svgElement) {
-			this.mainContainer.removeChild(this.svgElement);
-			this.svgElement=undefined;
-		}
+		var ee = undefined;
+		try {
+			if(this.svgElement) {
+				this.mainContainer.removeChild(this.svgElement);
+				this.svgElement=undefined;
+			}
 
-		if(this.errorSVG)
-			this.errorSVG.setAttribute('display','none');
-		if(this.defaultSVG) {
-			if(showDefault) {
-				if(this.defaultSVG.getAttribute('display'))
-					this.defaultSVG.removeAttribute('display');
-			} else
-				this.defaultSVG.setAttribute('display','none');
+			if(this.svgCachedElement) {
+				this.svgCachedElement.setAttribute('display','none');
+				this.svgCachedElement=undefined;
+			}
+
+			if(this.errorSVG)
+				this.errorSVG.setAttribute('display','none');
+			if(this.defaultSVG) {
+				if(showDefault) {
+					this.defaultSVG.setAttribute('display','block');
+				} else
+					this.defaultSVG.setAttribute('display','none');
+			}
+		} catch(e) {
+			ee = e;
 		}
-		
 		this.unsuspendRedraw(susId);
+		if(ee!=undefined)
+			throw ee;
 	},
 	
 	// Inline external image
@@ -841,8 +889,7 @@ SVGtramp.prototype = {
 	
 	showThrobber: function() {
 		if(this.throbberContainer) {
-			if(this.throbberContainer.getAttribute('display'))
-				this.throbberContainer.removeAttribute('display');
+			this.throbberContainer.setAttribute('display','block');
 			this.throbber.start(100);
 		}
 	},
@@ -882,6 +929,11 @@ SVGtramp.prototype = {
 				tramp.clearSVG();
 				tramp.svgElement=responseXML;
 			}
+			
+			// Let's patch font sizes wherever it is needed
+			SVGtramp.PatchSVG(responseXML);
+			
+			// And let's attach it...
 			tramp.mainContainer.appendChild(responseXML);
 			
 			// SVG must enumerate itself...
@@ -973,40 +1025,47 @@ SVGtramp.prototype = {
 			
 			// To allow zooming of content
 			var susId = tramp.suspendRedraw();
-			var viewbox=responseXML.getAttribute('viewBox');
-			if(!viewbox) {
-				var vWidth  = tramp.createTypedLength(width);
-				var vHeight = tramp.createTypedLength(height);
-				var vX = tramp.createTypedLength(x);
-				var vY = tramp.createTypedLength(y);
+			var ee = undefined;
+			try {
+				var viewbox=responseXML.getAttribute('viewBox');
+				if(!viewbox) {
+					var vWidth  = tramp.createTypedLength(width);
+					var vHeight = tramp.createTypedLength(height);
+					var vX = tramp.createTypedLength(x);
+					var vY = tramp.createTypedLength(y);
 
-				vWidth.convertToSpecifiedUnits(vWidth.SVG_LENGTHTYPE_PX);
-				vHeight.convertToSpecifiedUnits(vHeight.SVG_LENGTHTYPE_PX);
-				vX.convertToSpecifiedUnits(vX.SVG_LENGTHTYPE_PX);
-				vY.convertToSpecifiedUnits(vY.SVG_LENGTHTYPE_PX);
+					vWidth.convertToSpecifiedUnits(vWidth.SVG_LENGTHTYPE_PX);
+					vHeight.convertToSpecifiedUnits(vHeight.SVG_LENGTHTYPE_PX);
+					vX.convertToSpecifiedUnits(vX.SVG_LENGTHTYPE_PX);
+					vY.convertToSpecifiedUnits(vY.SVG_LENGTHTYPE_PX);
 
-				responseXML.setAttribute('viewBox',vX.valueInSpecifiedUnits+' '+vY.valueInSpecifiedUnits+' '+vWidth.valueInSpecifiedUnits+' '+vHeight.valueInSpecifiedUnits);
-			}
-			var zoompan=responseXML.getAttribute('zoomAndPan');
-			if(!zoompan) {
-				responseXML.setAttribute('zoomAndPan','magnify');
-			}
-			var preserve=responseXML.getAttribute('preserveAspectRatio');
-			if(!preserve) {
-				responseXML.setAttribute('preserveAspectRatio','xMidYMid meet');
-			}
-			if(autoResize) {
-				responseXML.setAttribute('width','100%');
-				responseXML.setAttribute('height','100%');
-				var eraseAttrs=new Array('x','y');
-				for(var ei=0;ei<eraseAttrs.length;ei++) {
-					var aval=responseXML.getAttribute(eraseAttrs[ei]);
-					if(aval!=undefined && aval!='') {
-						responseXML.removeAttribute(eraseAttrs[ei]);
+					responseXML.setAttribute('viewBox',vX.valueInSpecifiedUnits+' '+vY.valueInSpecifiedUnits+' '+vWidth.valueInSpecifiedUnits+' '+vHeight.valueInSpecifiedUnits);
+				}
+				var zoompan=responseXML.getAttribute('zoomAndPan');
+				if(!zoompan) {
+					responseXML.setAttribute('zoomAndPan','magnify');
+				}
+				var preserve=responseXML.getAttribute('preserveAspectRatio');
+				if(!preserve) {
+					responseXML.setAttribute('preserveAspectRatio','xMidYMid meet');
+				}
+				if(autoResize) {
+					responseXML.setAttribute('width','100%');
+					responseXML.setAttribute('height','100%');
+					var eraseAttrs=new Array('x','y');
+					for(var ei=0;ei<eraseAttrs.length;ei++) {
+						var aval=responseXML.getAttribute(eraseAttrs[ei]);
+						if(aval!=undefined && aval!='') {
+							responseXML.removeAttribute(eraseAttrs[ei]);
+						}
 					}
 				}
+			} catch(e) {
+				ee = e;
 			}
 			tramp.unsuspendRedraw(susId);
+			if(ee!=undefined)
+				throw ee;
 			
 			if(!isAlternate) {
 				tramp.tooltips.setEvents(responseXML);
@@ -1033,8 +1092,7 @@ SVGtramp.prototype = {
 			} else {
 				if(!isAlternate && tramp.errorSVG) {
 					tramp.clearSVG();
-					if(tramp.errorSVG.getAttribute('display'))
-						tramp.errorSVG.removeAttribute('display');
+					tramp.errorSVG.setAttribute('display','block');
 				} else {
 					alert('Loading has failed. Status: '+status);
 					if(parseError!=undefined) {
@@ -1168,7 +1226,143 @@ SVGtramp.prototype = {
 			request.open('GET',newSVG,true);
 			request.send(null);
 		}
+	},
+	
+	// It loads each one of the SVG in the SVG hash
+	doLoadSVGHash: function(/* optional */svgSlots,iSlot,callbackFunc) {
+		if(this.svgURIHash!=undefined) {
+			var svgHash=this.svgHash;
+			
+			// Need to collect slots
+			if(svgSlots==undefined) {
+				svgSlots=new Array();
+
+				// First, collect the slots to load
+				for(var slot in this.svgURIHash) {
+					if(!(slot in svgHash)) {
+						svgSlots.push(slot);
+					}
+				}
+				iSlot=0;
+			}
+			
+			// Now, let's try getting one
+			if(iSlot<svgSlots.length) {
+				var svgSlot=svgSlots[iSlot];
+				var tramp = this;
+
+				// Second, let's load just one!
+				this.loadSVG(this.svgURIHash[svgSlot]+'',true,true,function(responseXML) {
+					responseXML.setAttribute('display','none');
+					svgHash[svgSlot]=responseXML;
+					if(svgSlot=='default') {
+						tramp.defaultSVG=responseXML;
+					} else if(svgSlot=='error') {
+						tramp.errorSVG=responseXML;
+					}
+
+					// Third, let's load next!
+					tramp.doLoadSVGHash(svgSlots,iSlot+1);
+				});
+			} else if(typeof callbackFunc == 'function') {
+				callbackFunc();
+			}
+		}
+	},
+	
+	addToSVGHash: function(svgSlot,svgURI,/* optional */showIt) {
+		// Before replacing something, keep it tidy
+		if(svgSlot in this.svgURIHash) {
+			delete this.svgURIHash[svgSlot];
+			
+			// If it is here, it is in the DOM tree
+			if(svgSlot in this.svgHash) {
+				var svgNode=this.svgHash[svgSlot];
+				// Are we showing it?
+				if(this.svgCachedElement==svgNode) {
+					showIt=true;
+					this.clearSVG();
+				}
+				
+				// Now it is time to remove it from DOM tree
+				svgNode.parentNode.removeChild(svgNode);
+				
+				// Last reference
+				delete this.svgHash[svgSlot];
+			}
+		}
+		
+		// And now, let's add the stuff
+		this.svgURIHash[svgSlot]=svgURI;
+		
+		// Do we have to (re)show it?
+		if(showIt) {
+			this.showCachedSVG(svgSlot);
+		}
+	},
+	
+	bulkAddToSVGHash: function(svgURIHash) {
+		// Before replacing something, keep it tidy
+		var showIt=undefined;
+		for(var svgSlot in svgURIHash) {
+			var svgURI=svgURIHash[svgSlot];
+			if(svgSlot in this.svgURIHash) {
+				delete this.svgURIHash[svgSlot];
+				
+				// If it is here, it is in the DOM tree
+				if(svgSlot in this.svgHash) {
+					var svgNode=this.svgHash[svgSlot];
+					// Are we showing it?
+					if(showIt==undefined && this.svgCachedElement==svgNode) {
+						showIt=svgSlot;
+						this.clearSVG();
+					}
+					
+					// Now it is time to remove it from DOM tree
+					svgNode.parentNode.removeChild(svgNode);
+					
+					// Last reference
+					delete this.svgHash[svgSlot];
+				}
+			}
+
+			// And now, let's add the stuff
+			this.svgURIHash[svgSlot]=svgURI;
+		}
+		
+		// Do we have to (re)show a slot?
+		if(showIt) {
+			this.showCachedSVG(showIt);
+		}
+	},
+	
+	showCachedSVG: function(cachedSVGId) {
+		if(cachedSVGId!=undefined && (cachedSVGId in this.svgURIHash)) {
+			if(cachedSVGId in this.svgHash) {
+				// Dar cera
+				this.clearSVG();
+				this.svgCachedElement=this.svgHash[cachedSVGId];
+				var susId = this.suspendRedraw();
+				var ee = undefined;
+				try {
+					// Pulir cera
+					this.svgCachedElement.setAttribute('display','block');
+				} catch(e) {
+					ee = e;
+				}
+				this.unsuspendRedraw(susId);
+				if(ee!=undefined)
+					throw ee;
+			} else {
+				// Asegurar que tener cera para dar cera, pulir cera
+				var tramp = this;
+				this.doLoadSVGHash([cachedSVGId],0,function() {
+					tramp.showCachedSVG(cachedSVGId);
+				});
+			}
+		}
 	}
+	
 };
 
 /*
@@ -1525,4 +1719,39 @@ SVGtramp.removeEventListener = function (object, eventType, listener, useCapture
 SVGtramp.removeEventListenerFromId = function (objectId, eventType, listener, useCapture, /* optional */ thedoc) {
 	if(!thedoc)  thedoc=document;
 	SVGtramp.removeEventListener(thedoc.getElementById(objectId), eventType, listener, useCapture);
+};
+
+SVGtramp.PatchSVG = function (responseXML,/* optional */parentHasSize) {
+	if(responseXML!=undefined && ('nodeType' in responseXML) && responseXML.nodeType==1) {
+		// First, patch yourself (if needed)
+		var attr = responseXML.getAttribute('style');
+		var sizefound=parentHasSize;
+		var fontfound=undefined;
+		if(attr!=undefined && attr!=null && attr.length > 0) {
+			var newattr = attr;
+			if(newattr.indexOf('font-size')!=-1) {
+				newattr = newattr.replace(/font-size:[ ]*([0-9]+[^;a-zA-Z]*);/,'font-size:$1px;');
+				sizefound=true;
+			}
+			if(newattr.indexOf('font-family')!=-1) {
+				newattr = newattr.replace(/font-family:[ ]*Helvetica[ ]*;/,'font-family:Arial;');
+				fontfound=1;
+			}
+			
+			// This is due a Firefox bug
+			if(!parentHasSize && fontfound && !sizefound) {
+				newattr='font-size:10px;'+newattr;
+				sizefound=1;
+			}
+			
+			if(attr!=newattr) {
+				responseXML.setAttribute('style',newattr);
+			}
+		}
+		for(var node=responseXML.firstChild ; node ; node = node.nextSibling) {
+			// And now, each children
+			if(node.nodeType==1)
+				SVGtramp.PatchSVG(node,sizefound);
+		}
+	}
 };

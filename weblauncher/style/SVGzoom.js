@@ -1,1 +1,1 @@
-../../src/main/resources/SVGzoom.js
+../../t1backend/src/main/resources/SVGzoom.js

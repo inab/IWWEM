@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly>
+	<id></id>
+	<formats>
+		<format>dir</format>
+		<format>zip</format>
+		<format>tar.gz</format>
+	</formats>
+	<fileSets>
+		<fileSet>
+			<directory>target/classes</directory>
+			<outputDirectory>conf</outputDirectory>
+			<includes>
+				<include>*.xml</include>
+				<include>*.properties</include>
+				<include>context-parts/**</include>
+				<include>plugins/**</include>
+				<include>platform.*</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>target</directory>
+			<outputDirectory></outputDirectory>
+			<includes>
+				<include>${artifactId}-code.jar</include>
+				<include>${artifactId}-dependencies.jar
+				</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/bin</directory>
+			<outputDirectory></outputDirectory>
+			<includes>
+				<include>t2*</include>
+			</includes>
+			<filtered>true</filtered>
+			<fileMode>0755</fileMode>
+		</fileSet>
+	</fileSets>
+</assembly>

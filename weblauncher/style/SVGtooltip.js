@@ -1,1 +1,1 @@
-../../src/main/resources/SVGtooltip.js
+../../t1backend/src/main/resources/SVGtooltip.js

@@ -34,6 +34,19 @@
 	<link rel="icon" href="style/IWWEM-favicon.ico" type="image/vnd.microsoft.icon">
 
 	<link rel="stylesheet" type="text/css" href="style/IWWEM-styles.css">
+	
+	<style  type="text/css"><!--
+img {
+	vertical-align:middle;
+	border: none;
+	padding: 1px;
+}
+
+a > img:hover {
+	padding: 0px;
+	border: 1px solid blue;
+}
+//--></style>
 
 	<script type="text/javascript" src="js/ORFandDB-widgetCommon/browserdetect/BrowserDetect.js"></script>
 
@@ -63,7 +76,34 @@ function onInit() {
 </head>
 <body onload="onInit()">
 	<div style="clear:both;text-align:center;"><a href="http://www.inab.org/"><img src="style/inb-logo-tiny.png" style="vertical-align:middle" alt="INB" title="INB" border="0"></a> <b id="titleB">Interactive Web Workflow Enactor &amp; Manager <i><blink>(loading)</blink></i></b></div>
-	<div style="clear:both;text-align:center;"><iframe src="style/IWWEM-logo.svg" style="border:none;"></iframe></div>
+	<div style="clear:both;text-align:center;">
+		<object data="style/IWWEM-logo.svg" type="image/svg+xml" width="300" height="200">
+			<embed src="style/IWWEM-logo.svg" type="image/svg+xml" width="300" height="200">
+		</object>
+		<!--
+		<iframe src="style/IWWEM-logo.svg" style="border:none;"></iframe>
+		-->
+	</div>
+	<div style="clear:both;text-align:center;">
+	<!--
+		<object data="style/workflows-INB.svg" type="image/svg+xml" width="400" height="300">
+			<embed src="style/workflows-INB.svg" type="image/svg+xml" width="400" height="300">
+		</object>
+		<object data="style/enactions-IWWEM.svg" type="image/svg+xml" width="400" height="300">
+			<embed src="style/enactions-IWWEM.svg" type="image/svg+xml" width="400" height="300">
+		</object>
+		<object data="style/workflows-myExperiment.svg" type="image/svg+xml" width="400" height="300">
+			<embed src="style/workflows-myExperiment.svg" type="image/svg+xml" width="400" height="300">
+		</object>
+	-->
+		<a href="workflowmanager.html"><img src="style/workflows-INB.png" alt="INB Workflows" title="INB Workflows"></a>
+		<a href="workflowmanager.html?id=enaction:"><img src="style/enactions-IWWEM.png" alt="IWWE&amp;M enactions" title="IWWE&amp;M enactions"></a>
+		<a href="workflowmanager.html?id=myExperiment:"><img src="style/workflows-myExperiment.png" alt="myExperiment Workflows" title="myExperiment Workflows"></a>
+	</div>
+	<div style="clear:both;text-align:center;">
+		<a href="docs"><img src="docs/style/documentation-IWWEM.png" alt="IWWE&amp;M documentation" title="IWWE&amp;M documentation"></a>
+		<a href="http://trac.bioinfo.cnio.es/trac/iwwem"><img src="docs/style/IWWEM-Trac-tiny.png" alt="IWWE&amp;M Trac Server" title="IWWE&amp;M Trac Server" width="300"></a>
+	</div>
 <div class="license">IWWE&amp;M code is under <a target="_blank" href="http://www.gnu.org/licenses/agpl.html"><img src="licenses/agplv3-88x31.png" style="vertical-align:middle" alt="AGPLv3" title="AGPLv3" border="0"></a> license. Source code is available at <a target="_blank" href="http://trac.bioinfo.cnio.es/trac/iwwem">IWWE&amp;M Trac server</a>.<br>Original IWWE&amp;M concept, design and coding done by Jos&eacute; Mar&iacute;a Fern&aacute;ndez, <a target="_blank" href="http://www.inab.org/">INB</a> (C) 2008-2009.</div>	
 </body>
 </html>

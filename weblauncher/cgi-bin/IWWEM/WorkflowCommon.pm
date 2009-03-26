@@ -117,7 +117,7 @@ $RESULTSDIR = 'Results';
 $PATTERNSFILE = $ETCDIR . '/' . 'EVpatterns.xml';
 
 # Launcher directory
-$LAUNCHERDIR = $FindBin::Bin.'/INBWorkflowLauncher';
+$LAUNCHERDIR = $FindBin::Bin.'/Backends/t1backend';
 
 $PARAMWFID='id';
 $PARAMWORKFLOW='workflow';

@@ -79,8 +79,6 @@ function ManagerView(genview) {
 	//this.wfselect=genview.getElementById('workflow');
 	this.wfselect=new GeneralView.Select(genview,'workflow',genview.getElementById('workflow'));
 	
-	this.wfreport=new WorkflowReport(genview,'wfReportDiv');
-	
 	this.reloadButton=genview.getElementById('reloadButton');
 	this.updateTextSpan=genview.getElementById('updateTextSpan');
 	
@@ -215,6 +213,7 @@ function ManagerView(genview) {
 	
 	this.restrictId=undefined;
 	
+	this.classTitle=this.genview.getElementById('classB');
 	// Parsing id param
 	var pageTitle=this.genview.getElementById('titleB');
 	var qsParm={};
@@ -237,6 +236,9 @@ function ManagerView(genview) {
 			this.handlingEnactions=true;
 		}
 	}
+	
+	this.wfreport=new WorkflowReport(genview,'wfReportDiv',this.handlingEnactions);
+	
 	if(newTitle==undefined) {
 		// Deactivating buttons!!!
 		this.openEnactionButton.style.display='none';
@@ -245,7 +247,7 @@ function ManagerView(genview) {
 		newTitle='Interactive Web Workflow Enactor & Manager v'+IWWEM.Version;
 	}
 	this.genview.thedoc.title=newTitle;
-	pageTitle.innerHTML='';
+	GeneralView.freeContainer(pageTitle);
 	pageTitle.appendChild(this.genview.thedoc.createTextNode(newTitle));
 }
 
@@ -366,6 +368,12 @@ ManagerView.prototype = {
 			for(var domain=listDOM.firstChild ; domain ; domain=domain.nextSibling) {
 				if(domain.nodeType==1 && GeneralView.getLocalName(domain)=='domain') {
 					var WFBase = domain.getAttribute('relURI');
+					var domainClass = domain.getAttribute('class');
+					GeneralView.freeContainer(this.classTitle);
+					var thett=genview.createElement('tt');
+					thett.appendChild(this.genview.thedoc.createTextNode(domainClass));
+					this.classTitle.appendChild(thett);
+					this.classTitle.appendChild(this.genview.thedoc.createTextNode(' domain'));
 					if(WFBase.indexOf('ftp:')!=0 && WFBase.indexOf('http:')!=0 && WFBase.indexOf('https:')!=0 && WFBase.charAt(0)!='/' && IWWEM.FSBase!=undefined) {
 						WFBase = IWWEM.FSBase + '/'+ WFBase;
 					}
@@ -660,6 +668,7 @@ ManagerView.prototype = {
 			};
 			this.reloadButton.className="buttondisabled";
 			this.updateTextSpan.innerHTML='Updating <img src="style/ajaxLoader.gif">';
+			this.svg.getTrampoline().showCachedSVG('wait');
 			listRequest.open('GET',listQuery,true);
 			listRequest.send(null);
 		} catch(e) {

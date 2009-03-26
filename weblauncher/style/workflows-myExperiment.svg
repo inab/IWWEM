@@ -1,0 +1,940 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="247.86601"
+   height="209.54889"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.46"
+   sodipodi:docname="workflows-myExperiment.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.0"
+   inkscape:export-filename="/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/style/inb-logo-tiny.png"
+   inkscape:export-xdpi="17.759041"
+   inkscape:export-ydpi="17.759041">
+  <metadata
+     id="metadata67">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs65">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 173.75 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="486.25 : 173.75 : 1"
+       inkscape:persp3d-origin="243.125 : 115.83333 : 1"
+       id="perspective69" />
+    <inkscape:perspective
+       id="perspective5603"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective5653"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       sodipodi:type="inkscape:persp3d" />
+  </defs>
+  <sodipodi:namedview
+     inkscape:window-height="1030"
+     inkscape:window-width="1400"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     guidetolerance="10.0"
+     gridtolerance="10.0"
+     objecttolerance="10.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     showgrid="false"
+     inkscape:zoom="4.5079692"
+     inkscape:cx="102.18267"
+     inkscape:cy="93.163123"
+     inkscape:window-x="-4"
+     inkscape:window-y="-8"
+     inkscape:current-layer="g5051" />
+  <g
+     class="graph"
+     id="graph0"
+     transform="matrix(0.2485752,0,0,0.2485752,138.86578,213.40181)">
+    <title
+       id="title3042">scufl_graph</title>
+    <g
+       class="cluster"
+       id="cluster2">
+      <title
+         id="title3047">cluster_wf_iHOP_2_xmlwf_iHOP_2_xml</title>
+      <polygon
+         style="fill:#f0f8ff;stroke:#000000"
+         points="8,-114 8,-760 438,-760 438,-114 8,-114 "
+         id="polygon3049" />
+      <text
+         x="50"
+         y="-747"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3051">wf_iHOP_2_xml</text>
+    </g>
+    <g
+       class="cluster"
+       id="cluster3">
+      <title
+         id="title3054">cluster_wf_iHOP_2_xmlsinks</title>
+      <polygon
+         style="fill:none;stroke:#000000;stroke-dasharray:1, 5"
+         points="16,-122 16,-194 430,-194 430,-122 16,-122 "
+         id="polygon3056" />
+      <text
+         x="62"
+         y="-181"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3058">Workflow Outputs</text>
+    </g>
+    <g
+       class="cluster"
+       id="cluster4">
+      <title
+         id="title3061">cluster_wf_iHOP_2_xmlsources</title>
+      <polygon
+         style="fill:none;stroke:#000000;stroke-dasharray:1, 5"
+         points="276,-660 276,-732 398,-732 398,-660 276,-660 "
+         id="polygon3063" />
+      <text
+         x="318"
+         y="-719"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3065">Workflow Inputs</text>
+    </g>
+    <g
+       class="cluster"
+       id="cluster5">
+      <title
+         id="title3068">cluster_sinks</title>
+      <polygon
+         style="fill:none;stroke:#000000;stroke-dasharray:1, 5"
+         points="110,-16 110,-88 206,-88 206,-16 110,-16 "
+         id="polygon3070" />
+      <text
+         x="156"
+         y="-75"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3072">Workflow Outputs</text>
+    </g>
+    <g
+       class="cluster"
+       id="cluster6">
+      <title
+         id="title3075">cluster_sources</title>
+      <polygon
+         style="fill:none;stroke:#000000;stroke-dasharray:1, 5"
+         points="289,-786 289,-858 385,-858 385,-786 289,-786 "
+         id="polygon3077" />
+      <text
+         x="331"
+         y="-845"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3079">Workflow Inputs</text>
+    </g>
+<!-- wf_iHOP_2_xmlinteractorsXPath -->    <g
+       class="node"
+       id="node2">
+      <title
+         id="title3082">wf_iHOP_2_xmlinteractorsXPath</title>
+      <polygon
+         style="fill:#b0c4de;stroke:#000000"
+         points="16,-392 16,-452 103,-452 103,-392 16,-392 "
+         id="polygon3084" />
+      <text
+         x="59"
+         y="-439"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3086" />
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="16,-432 103,-432 "
+         id="polyline3088" />
+      <text
+         x="59"
+         y="-419"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3090">interactorsXPath</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="16,-412 103,-412 "
+         id="polyline3092" />
+      <text
+         x="59"
+         y="-399"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3094">value</text>
+    </g>
+<!-- wf_iHOP_2_xmlextractInteractors -->    <g
+       class="node"
+       id="node5">
+      <title
+         id="title3097">wf_iHOP_2_xmlextractInteractors</title>
+      <polygon
+         style="fill:#d15fee;stroke:#000000"
+         points="34,-306 34,-366 126,-366 126,-306 34,-306 "
+         id="polygon3099" />
+      <text
+         x="54"
+         y="-353"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3101">xpath</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="74,-346 74,-366 "
+         id="polyline3103" />
+      <text
+         x="100"
+         y="-353"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3105">xml-text</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="34,-346 126,-346 "
+         id="polyline3107" />
+      <text
+         x="80"
+         y="-333"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3109">extractInteractors</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="34,-326 126,-326 "
+         id="polyline3111" />
+      <text
+         x="80"
+         y="-313"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3113">nodelist</text>
+    </g>
+<!-- wf_iHOP_2_xmlinteractorsXPath&#45;&gt;wf_iHOP_2_xmlextractInteractors -->    <g
+       class="edge"
+       id="edge23">
+      <title
+         id="title3116">wf_iHOP_2_xmlinteractorsXPath-&gt;wf_iHOP_2_xmlextractInteractors</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 58,-392 C 57,-387 57,-382 56,-376"
+         id="path3118" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="59.4778,-375.602 55,-366 52.5125,-376.299 59.4778,-375.602 "
+         id="polygon3120" />
+      <text
+         x="76"
+         y="-376.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3122">'text/plain'</text>
+    </g>
+<!-- wf_iHOP_2_xmlxpath -->    <g
+       class="node"
+       id="node3">
+      <title
+         id="title3125">wf_iHOP_2_xmlxpath</title>
+      <polygon
+         style="fill:#b0c4de;stroke:#000000"
+         points="220,-574 220,-634 274,-634 274,-574 220,-574 "
+         id="polygon3127" />
+      <text
+         x="247"
+         y="-621"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3129" />
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="220,-614 274,-614 "
+         id="polyline3131" />
+      <text
+         x="247"
+         y="-601"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3133">xpath</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="220,-594 274,-594 "
+         id="polyline3135" />
+      <text
+         x="247"
+         y="-581"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3137">value</text>
+    </g>
+<!-- wf_iHOP_2_xmlextractSymbols -->    <g
+       class="node"
+       id="node8">
+      <title
+         id="title3140">wf_iHOP_2_xmlextractSymbols</title>
+      <polygon
+         style="fill:#d15fee;stroke:#000000"
+         points="227,-488 227,-548 318,-548 318,-488 227,-488 "
+         id="polygon3142" />
+      <text
+         x="247"
+         y="-535"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3144">xpath</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="267,-528 267,-548 "
+         id="polyline3146" />
+      <text
+         x="292"
+         y="-535"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3148">xml-text</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="227,-528 318,-528 "
+         id="polyline3150" />
+      <text
+         x="272"
+         y="-515"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3152">extractSymbols</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="227,-508 318,-508 "
+         id="polyline3154" />
+      <text
+         x="272"
+         y="-495"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3156">nodelist</text>
+    </g>
+<!-- wf_iHOP_2_xmlxpath&#45;&gt;wf_iHOP_2_xmlextractSymbols -->    <g
+       class="edge"
+       id="edge25">
+      <title
+         id="title3159">wf_iHOP_2_xmlxpath-&gt;wf_iHOP_2_xmlextractSymbols</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 247,-574 C 247,-569 247,-564 247,-558"
+         id="path3161" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="250.5,-558 247,-548 243.5,-558 250.5,-558 "
+         id="polygon3163" />
+      <text
+         x="264"
+         y="-558.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3165">'text/plain'</text>
+    </g>
+<!-- wf_iHOP_2_xmliHOPpmidXPath -->    <g
+       class="node"
+       id="node4">
+      <title
+         id="title3168">wf_iHOP_2_xmliHOPpmidXPath</title>
+      <polygon
+         style="fill:#b0c4de;stroke:#000000"
+         points="130,-306 130,-366 216,-366 216,-306 130,-306 "
+         id="polygon3170" />
+      <text
+         x="173"
+         y="-353"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3172" />
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="130,-346 216,-346 "
+         id="polyline3174" />
+      <text
+         x="173"
+         y="-333"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3176">iHOPpmidXPath</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="130,-326 216,-326 "
+         id="polyline3178" />
+      <text
+         x="173"
+         y="-313"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3180">value</text>
+    </g>
+<!-- wf_iHOP_2_xmlextractPMID -->    <g
+       class="node"
+       id="node7">
+      <title
+         id="title3183">wf_iHOP_2_xmlextractPMID</title>
+      <polygon
+         style="fill:#d15fee;stroke:#000000"
+         points="153,-220 153,-280 244,-280 244,-220 153,-220 "
+         id="polygon3185" />
+      <text
+         x="173"
+         y="-267"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3187">xpath</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="193,-260 193,-280 "
+         id="polyline3189" />
+      <text
+         x="218"
+         y="-267"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3191">xml-text</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="153,-260 244,-260 "
+         id="polyline3193" />
+      <text
+         x="198"
+         y="-247"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3195">extractPMID</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="153,-240 244,-240 "
+         id="polyline3197" />
+      <text
+         x="198"
+         y="-227"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3199">nodelistAsXML</text>
+    </g>
+<!-- wf_iHOP_2_xmliHOPpmidXPath&#45;&gt;wf_iHOP_2_xmlextractPMID -->    <g
+       class="edge"
+       id="edge21">
+      <title
+         id="title3202">wf_iHOP_2_xmliHOPpmidXPath-&gt;wf_iHOP_2_xmlextractPMID</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 173,-306 C 173,-301 173,-296 173,-290"
+         id="path3204" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="176.5,-290 173,-280 169.5,-290 176.5,-290 "
+         id="polygon3206" />
+      <text
+         x="190"
+         y="-290.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3208">'text/plain'</text>
+    </g>
+<!-- wf_iHOP_2_xmlRemove_duplicate_strings -->    <g
+       class="node"
+       id="node6">
+      <title
+         id="title3211">wf_iHOP_2_xmlRemove_duplicate_strings</title>
+      <polygon
+         style="fill:#d15fee;stroke:#000000"
+         points="16,-220 16,-280 145,-280 145,-220 16,-220 "
+         id="polygon3213" />
+      <text
+         x="80"
+         y="-267"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3215">stringlist</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="16,-260 145,-260 "
+         id="polyline3217" />
+      <text
+         x="80"
+         y="-247"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3219">Remove_duplicate_strings</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="16,-240 145,-240 "
+         id="polyline3221" />
+      <text
+         x="80"
+         y="-227"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3223">strippedlist</text>
+    </g>
+<!-- wf_iHOP_2_xmlextractInteractors&#45;&gt;wf_iHOP_2_xmlRemove_duplicate_strings -->    <g
+       class="edge"
+       id="edge7">
+      <title
+         id="title3226">wf_iHOP_2_xmlextractInteractors-&gt;wf_iHOP_2_xmlRemove_duplicate_strings</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 80,-306 C 80,-301 80,-296 80,-290"
+         id="path3228" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="83.5001,-290 80,-280 76.5001,-290 83.5001,-290 "
+         id="polygon3230" />
+      <text
+         x="102"
+         y="-290.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3232">l('text/plain')</text>
+    </g>
+<!-- wf_iHOP_2_xmlWORKFLOWINTERNALSINK_Genes -->    <g
+       class="node"
+       id="node15">
+      <title
+         id="title3235">wf_iHOP_2_xmlWORKFLOWINTERNALSINK_Genes</title>
+      <polygon
+         style="fill:#bcd2ee;stroke:#000000"
+         points="88.1206,-153.402 56,-165.481 23.8794,-153.402 23.9094,-133.858 88.0906,-133.858 88.1206,-153.402 "
+         id="polygon3237" />
+      <text
+         x="56"
+         y="-145"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3239">Genes</text>
+    </g>
+<!-- wf_iHOP_2_xmlRemove_duplicate_strings&#45;&gt;wf_iHOP_2_xmlWORKFLOWINTERNALSINK_Genes -->    <g
+       class="edge"
+       id="edge27">
+      <title
+         id="title3242">wf_iHOP_2_xmlRemove_duplicate_strings-&gt;wf_iHOP_2_xmlWORKFLOWINTERNALSINK_Genes</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 77,-220 C 74,-208 68,-189 64,-174"
+         id="path3244" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="67.2259,-172.573 61,-164 60.5212,-174.584 67.2259,-172.573 "
+         id="polygon3246" />
+      <text
+         x="97"
+         y="-204.675"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3248">l('text/plain')</text>
+    </g>
+<!-- wf_iHOP_2_xmlWORKFLOWINTERNALSINK_related PubMed -->    <g
+       class="node"
+       id="node16">
+      <title
+         id="title3251">wf_iHOP_2_xmlWORKFLOWINTERNALSINK_related PubMed</title>
+      <polygon
+         style="fill:#bcd2ee;stroke:#000000"
+         points="206.189,-153.402 149,-165.481 91.8107,-153.402 91.8641,-133.858 206.136,-133.858 206.189,-153.402 "
+         id="polygon3253" />
+      <text
+         x="149"
+         y="-145"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3255">related PubMed</text>
+    </g>
+<!-- wf_iHOP_2_xmlextractPMID&#45;&gt;wf_iHOP_2_xmlWORKFLOWINTERNALSINK_related PubMed -->    <g
+       class="edge"
+       id="edge29">
+      <title
+         id="title3258">wf_iHOP_2_xmlextractPMID-&gt;wf_iHOP_2_xmlWORKFLOWINTERNALSINK_related PubMed</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 191,-220 C 184,-207 173,-188 163,-173"
+         id="path3260" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="165.916,-171.042 158,-164 159.797,-174.441 165.916,-171.042 "
+         id="polygon3262" />
+      <text
+         x="207"
+         y="-204.675"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3264">l('text/plain')</text>
+    </g>
+<!-- wf_iHOP_2_xmlgetSymbolInteractionsFromIHOP -->    <g
+       class="node"
+       id="node10">
+      <title
+         id="title3267">wf_iHOP_2_xmlgetSymbolInteractionsFromIHOP</title>
+      <polygon
+         style="fill:#a2cd5a;stroke:#000000"
+         points="109,-392 109,-452 268,-452 268,-392 109,-392 "
+         id="polygon3269" />
+      <text
+         x="188"
+         y="-439"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3271">ihopid</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="109,-432 268,-432 "
+         id="polyline3273" />
+      <text
+         x="188"
+         y="-419"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3275">getSymbolInteractionsFromIHOP</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="109,-412 268,-412 "
+         id="polyline3277" />
+      <text
+         x="188"
+         y="-399"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3279">result</text>
+    </g>
+<!-- wf_iHOP_2_xmlextractSymbols&#45;&gt;wf_iHOP_2_xmlgetSymbolInteractionsFromIHOP -->    <g
+       class="edge"
+       id="edge9">
+      <title
+         id="title3282">wf_iHOP_2_xmlextractSymbols-&gt;wf_iHOP_2_xmlgetSymbolInteractionsFromIHOP</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 243,-488 C 238,-486 233,-483 228,-480 C 219,-474 211,-466 204,-460"
+         id="path3284" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="206.219,-457.221 197,-452 200.951,-461.831 206.219,-457.221 "
+         id="polygon3286" />
+      <text
+         x="252"
+         y="-472.54999"
+         style="font-size:8px;text-anchor:middle;fill:#ff0000;font-family:Arial"
+         id="text3288">l('text/plain')</text>
+      <text
+         x="252"
+         y="-462.79999"
+         style="font-size:8px;text-anchor:middle;fill:#ff0000;font-family:Arial"
+         id="text3290">'text/plain'</text>
+    </g>
+<!-- wf_iHOP_2_xmlWORKFLOWINTERNALSINK_Symbols -->    <g
+       class="node"
+       id="node14">
+      <title
+         id="title3293">wf_iHOP_2_xmlWORKFLOWINTERNALSINK_Symbols</title>
+      <polygon
+         style="fill:#bcd2ee;stroke:#000000"
+         points="286.146,-153.402 248,-165.481 209.854,-153.402 209.889,-133.858 286.111,-133.858 286.146,-153.402 "
+         id="polygon3295" />
+      <text
+         x="248"
+         y="-145"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3297">Symbols</text>
+    </g>
+<!-- wf_iHOP_2_xmlextractSymbols&#45;&gt;wf_iHOP_2_xmlWORKFLOWINTERNALSINK_Symbols -->    <g
+       class="edge"
+       id="edge13">
+      <title
+         id="title3300">wf_iHOP_2_xmlextractSymbols-&gt;wf_iHOP_2_xmlWORKFLOWINTERNALSINK_Symbols</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 272,-488 C 272,-473 272,-445 272,-422 C 272,-422 272,-422 272,-250 C 272,-223 264,-194 257,-174"
+         id="path3302" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="260.226,-172.573 254,-164 253.521,-174.584 260.226,-172.573 "
+         id="polygon3304" />
+      <text
+         x="293"
+         y="-333.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3306">l('text/plain')</text>
+    </g>
+<!-- wf_iHOP_2_xmlgetRelatedSymbols -->    <g
+       class="node"
+       id="node9">
+      <title
+         id="title3309">wf_iHOP_2_xmlgetRelatedSymbols</title>
+      <polygon
+         style="fill:#a2cd5a;stroke:#000000"
+         points="278,-574 278,-634 379,-634 379,-574 278,-574 "
+         id="polygon3311" />
+      <text
+         x="328"
+         y="-621"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3313">input</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="278,-614 379,-614 "
+         id="polyline3315" />
+      <text
+         x="328"
+         y="-601"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3317">getRelatedSymbols</text>
+      <polyline
+         style="fill:none;stroke:#000000"
+         points="278,-594 379,-594 "
+         id="polyline3319" />
+      <text
+         x="328"
+         y="-581"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3321">result</text>
+    </g>
+<!-- wf_iHOP_2_xmlgetRelatedSymbols&#45;&gt;wf_iHOP_2_xmlextractSymbols -->    <g
+       class="edge"
+       id="edge11">
+      <title
+         id="title3324">wf_iHOP_2_xmlgetRelatedSymbols-&gt;wf_iHOP_2_xmlextractSymbols</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 318,-574 C 316,-571 314,-569 312,-566 C 309,-563 307,-560 305,-556"
+         id="path3326" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="307.8,-553.9 299,-548 302.2,-558.1 307.8,-553.9 "
+         id="polygon3328" />
+      <text
+         x="327"
+         y="-558.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3330">'text/xml'</text>
+    </g>
+<!-- wf_iHOP_2_xmlWORKFLOWINTERNALSINK_related symbols -->    <g
+       class="node"
+       id="node13">
+      <title
+         id="title3333">wf_iHOP_2_xmlWORKFLOWINTERNALSINK_related symbols</title>
+      <polygon
+         style="fill:#bcd2ee;stroke:#000000"
+         points="404.152,-153.402 347,-165.481 289.848,-153.402 289.902,-133.858 404.098,-133.858 404.152,-153.402 "
+         id="polygon3335" />
+      <text
+         x="347"
+         y="-145"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3337">related symbols</text>
+    </g>
+<!-- wf_iHOP_2_xmlgetRelatedSymbols&#45;&gt;wf_iHOP_2_xmlWORKFLOWINTERNALSINK_related symbols -->    <g
+       class="edge"
+       id="edge15">
+      <title
+         id="title3340">wf_iHOP_2_xmlgetRelatedSymbols-&gt;wf_iHOP_2_xmlWORKFLOWINTERNALSINK_related symbols</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 335,-574 C 336,-571 338,-569 339,-566 C 345,-545 344,-539 344,-518 C 344,-518 344,-518 344,-250 C 344,-225 345,-196 346,-176"
+         id="path3342" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="349.5,-176 346,-166 342.5,-176 349.5,-176 "
+         id="polygon3344" />
+      <text
+         x="359"
+         y="-376.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3346">'text/xml'</text>
+    </g>
+<!-- wf_iHOP_2_xmlgetSymbolInteractionsFromIHOP&#45;&gt;wf_iHOP_2_xmlextractInteractors -->    <g
+       class="edge"
+       id="edge17">
+      <title
+         id="title3349">wf_iHOP_2_xmlgetSymbolInteractionsFromIHOP-&gt;wf_iHOP_2_xmlextractInteractors</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 168,-392 C 157,-386 142,-378 129,-371"
+         id="path3351" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="130.441,-367.797 120,-366 127.042,-373.916 130.441,-367.797 "
+         id="polygon3353" />
+      <text
+         x="168"
+         y="-376.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3355">'text/xml'</text>
+    </g>
+<!-- wf_iHOP_2_xmlgetSymbolInteractionsFromIHOP&#45;&gt;wf_iHOP_2_xmlextractPMID -->    <g
+       class="edge"
+       id="edge19">
+      <title
+         id="title3358">wf_iHOP_2_xmlgetSymbolInteractionsFromIHOP-&gt;wf_iHOP_2_xmlextractPMID</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 199,-392 C 205,-385 212,-376 216,-366 C 224,-341 224,-310 221,-290"
+         id="path3360" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="224.478,-289.602 220,-280 217.512,-290.299 224.478,-289.602 "
+         id="polygon3362" />
+      <text
+         x="237"
+         y="-333.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3364">'text/xml'</text>
+    </g>
+<!-- wf_iHOP_2_xmlWORKFLOWINTERNALSINKCONTROL -->    <g
+       class="node"
+       id="node12">
+      <title
+         id="title3367">wf_iHOP_2_xmlWORKFLOWINTERNALSINKCONTROL</title>
+      <polygon
+         style="fill:#66cd00;stroke:#000000"
+         points="415,-141 422,-151.5 408,-151.5 415,-141 "
+         id="polygon3369" />
+    </g>
+<!-- WORKFLOWINTERNALSINK_salida -->    <g
+       class="node"
+       id="node35">
+      <title
+         id="title3372">WORKFLOWINTERNALSINK_salida</title>
+      <polygon
+         style="fill:#bcd2ee;stroke:#000000"
+         points="179.768,-47.4018 149,-59.4806 118.232,-47.4018 118.26,-27.8579 179.74,-27.8579 179.768,-47.4018 "
+         id="polygon3374" />
+      <text
+         x="149"
+         y="-39"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3376">salida</text>
+    </g>
+<!-- wf_iHOP_2_xmlWORKFLOWINTERNALSINK_related PubMed&#45;&gt;WORKFLOWINTERNALSINK_salida -->    <g
+       class="edge"
+       id="edge35">
+      <title
+         id="title3379">wf_iHOP_2_xmlWORKFLOWINTERNALSINK_related PubMed-&gt;WORKFLOWINTERNALSINK_salida</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 149,-134 C 149,-118 149,-90 149,-70"
+         id="path3381" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="152.5,-70 149,-60 145.5,-70 152.5,-70 "
+         id="polygon3383" />
+      <text
+         x="170"
+         y="-98.675003"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3385">l('text/plain')</text>
+    </g>
+<!-- wf_iHOP_2_xmlWORKFLOWINTERNALSOURCECONTROL -->    <g
+       class="node"
+       id="node18">
+      <title
+         id="title3388">wf_iHOP_2_xmlWORKFLOWINTERNALSOURCECONTROL</title>
+      <polygon
+         style="fill:#ff4040;stroke:#000000"
+         points="383,-693 376,-682.5 390,-682.5 383,-693 "
+         id="polygon3390" />
+    </g>
+<!-- wf_iHOP_2_xmlWORKFLOWINTERNALSOURCE_gene_input -->    <g
+       class="node"
+       id="node19">
+      <title
+         id="title3393">wf_iHOP_2_xmlWORKFLOWINTERNALSOURCE_gene_input</title>
+      <polygon
+         style="fill:#87ceeb;stroke:#000000"
+         points="283.789,-680.598 328,-668.519 372.211,-680.598 372.169,-700.142 283.831,-700.142 283.789,-680.598 "
+         id="polygon3395" />
+      <text
+         x="328"
+         y="-683"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3397">gene_input</text>
+    </g>
+<!-- wf_iHOP_2_xmlWORKFLOWINTERNALSOURCE_gene_input&#45;&gt;wf_iHOP_2_xmlgetRelatedSymbols -->    <g
+       class="edge"
+       id="edge5">
+      <title
+         id="title3400">wf_iHOP_2_xmlWORKFLOWINTERNALSOURCE_gene_input-&gt;wf_iHOP_2_xmlgetRelatedSymbols</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 328,-668 C 328,-661 328,-652 328,-644"
+         id="path3402" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="331.5,-644 328,-634 324.5,-644 331.5,-644 "
+         id="polygon3404" />
+      <text
+         x="345"
+         y="-644.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3406">'text/plain'</text>
+    </g>
+<!-- WORKFLOWINTERNALSINKCONTROL -->    <g
+       class="node"
+       id="node34">
+      <title
+         id="title3409">WORKFLOWINTERNALSINKCONTROL</title>
+      <polygon
+         style="fill:#66cd00;stroke:#000000"
+         points="191,-35 198,-45.5 184,-45.5 191,-35 "
+         id="polygon3411" />
+    </g>
+<!-- WORKFLOWINTERNALSOURCECONTROL -->    <g
+       class="node"
+       id="node37">
+      <title
+         id="title3414">WORKFLOWINTERNALSOURCECONTROL</title>
+      <polygon
+         style="fill:#ff4040;stroke:#000000"
+         points="370,-819 363,-808.5 377,-808.5 370,-819 "
+         id="polygon3416" />
+    </g>
+<!-- WORKFLOWINTERNALSOURCE_carajo -->    <g
+       class="node"
+       id="node38">
+      <title
+         id="title3419">WORKFLOWINTERNALSOURCE_carajo</title>
+      <polygon
+         style="fill:#87ceeb;stroke:#000000"
+         points="296.768,-806.598 328,-794.519 359.232,-806.598 359.203,-826.142 296.797,-826.142 296.768,-806.598 "
+         id="polygon3421" />
+      <text
+         x="328"
+         y="-809"
+         style="font-size:10px;text-anchor:middle;font-family:Arial"
+         id="text3423">carajo</text>
+    </g>
+<!-- WORKFLOWINTERNALSOURCE_carajo&#45;&gt;wf_iHOP_2_xmlWORKFLOWINTERNALSOURCE_gene_input -->    <g
+       class="edge"
+       id="edge33">
+      <title
+         id="title3426">WORKFLOWINTERNALSOURCE_carajo-&gt;wf_iHOP_2_xmlWORKFLOWINTERNALSOURCE_gene_input</title>
+      <path
+         style="fill:none;stroke:#000000"
+         d="M 328,-794 C 328,-772 328,-735 328,-710"
+         id="path3428" />
+      <polygon
+         style="fill:#000000;stroke:#000000"
+         points="331.5,-710 328,-700 324.5,-710 331.5,-710 "
+         id="polygon3430" />
+      <text
+         x="345"
+         y="-770.67499"
+         style="font-size:8px;text-anchor:middle;font-family:Arial"
+         id="text3432">'text/plain'</text>
+    </g>
+  </g>
+  <g
+     id="g5051"
+     transform="translate(1.4823454e-8,39.144076)">
+    <text
+       id="text3690"
+       y="121.82383"
+       x="8.7491484"
+       style="font-size:22px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#bf1e55;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial;-inkscape-font-specification:Arial"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#bf1e55;fill-opacity:1;font-family:Comic Sans MS;-inkscape-font-specification:Comic Sans MS"
+         y="121.82383"
+         x="8.7491484"
+         id="tspan3692"
+         sodipodi:role="line">Workflows</tspan></text>
+    <image
+       y="-8.0745621"
+       x="12.978042"
+       id="image5655"
+       height="90.357811"
+       width="103.44411"
+       sodipodi:absref="/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/style/CircleGraphicThumb-trans.png"
+       xlink:href="CircleGraphicThumb-trans.png" />
+  </g>
+</svg>

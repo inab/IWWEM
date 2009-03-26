@@ -32,6 +32,8 @@ var IWWEM={
 	Logo:	'style/IWWEM-logo.svg',
 	// To be used when there was a problem loading any SVG
 	Unknown:	'style/unknown.svg',
+	// To be used meanwhile we are waiting something...
+	Wait:		'style/clock.svg',
 	/* DO NOT CHANGE NEXT LINES UNLESS YOU ARE ADDING A NEW PLUGIN!!! */
 	Plugins: new Array(
 		'js/prettify/prettify.js',		// Prettify

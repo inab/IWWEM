@@ -59,7 +59,9 @@ function StartHolder(LoadEvent) {
 	var SVGDoc  = LoadEvent.target.ownerDocument;
 	var SVGroot = SVGDoc.documentElement;
 	
-	var tramp = new SVGtramp(SVGDoc,1,IWWEM.Logo,IWWEM.Unknown);
+	var svgURIHash={'default':IWWEM.Logo,'error':IWWEM.Unknown,'wait':IWWEM.Wait};
+	
+	var tramp = new SVGtramp(SVGDoc,1,svgURIHash);
 	
 	/*
 	//var newSVG  = 'workflow3.svg';

@@ -499,8 +499,12 @@ GeneralView.preProcess = function (thedesc) {
 		// thedesc = thedesc.replace(/mailto:([^\n\r\t ()]+)/g,"<a href='mailto:$1' target='_blank'>$1</a>");
 		
 		// I have found that mozilla RegExp has some bugs!
+		// Unnumbered lists
 		thedesc = thedesc.replace(/\n*\*[\t ]+(.+)\n*/mg,"<ul><li>$1</li></ul>");
 		// thedesc = thedesc.replace(/<\/ul><ul>/g,"");
+		
+		// Numbered lists
+		thedesc = thedesc.replace(/\n*([0-9]+)[.)]-?[\t ]+(.+)\n*/mg,"<ol start='$1'><li>$2</li></ol>");
 		
 		thedesc = thedesc.replace(/([\n\t ])&([\n\t ])/g,"$1&amp;$2");
 		thedesc = thedesc.replace(/^&([\n\t ])/,"&amp;$1");
@@ -554,6 +558,7 @@ GeneralView.prototype = {
 			if(useShimmer || BrowserDetect.browser=='Explorer' || BrowserDetect.browser=='Safari') {
 				this.shimmer.className='shimmer';
 				this.usingShimmer=1;
+				this.frameIds[0][1]=1;
 			}
 			this.outer.className='outerAbsDiv';
 			

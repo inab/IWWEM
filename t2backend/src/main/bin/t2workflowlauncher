@@ -1,0 +1,10 @@
+BINDIR="`dirname "$0"`"
+
+case "$BINDIR" in
+	/*)
+		;;
+	*)
+		BINDIR="$PWD"/"$BINDIR"
+esac
+
+exec java "-Dplatform.home=$BINDIR/platform" -cp "$BINDIR"/${artifactId}-code.jar:"$BINDIR"/${artifactId}-dependencies.jar:"$BINDIR"/conf ${app.launcherClass} "$@"

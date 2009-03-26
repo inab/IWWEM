@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="124.92993"
+   id="svg1"
+   inkscape:version="0.46"
+   sodipodi:docbase="/home/danny/flat/scalable/apps"
+   sodipodi:docname="frontendMessages.svg"
+   sodipodi:version="0.32"
+   version="1.0"
+   width="156.4677"
+   x="0"
+   y="0"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-filename="/home/jmfernandez/projects/INBWorkflowLauncher/weblauncher/style/frontendMessages.png"
+   inkscape:export-xdpi="143.8"
+   inkscape:export-ydpi="143.8">
+  <metadata
+     id="metadata3">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Part of the Flat Icon Collection (Wed Aug 25 23:23:49 2004)</dc:title>
+        <dc:description />
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>hash</rdf:li>
+            <rdf:li />
+            <rdf:li>application</rdf:li>
+            <rdf:li>computer</rdf:li>
+            <rdf:li>icons</rdf:li>
+            <rdf:li>theme</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://www.openclipart.org">
+            <dc:title>Danny Allen</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Danny Allen</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Danny Allen</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:date />
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://web.resource.org/cc/PublicDomain" />
+        <dc:language>en</dc:language>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://web.resource.org/cc/PublicDomain">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     bordercolor="#666666"
+     borderopacity="1.0"
+     id="base"
+     inkscape:cx="43.530508"
+     inkscape:cy="34.439842"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:window-height="709"
+     inkscape:window-width="1016"
+     inkscape:window-x="376"
+     inkscape:window-y="309"
+     inkscape:zoom="3.4732669"
+     pagecolor="#ffffff"
+     showgrid="false"
+     inkscape:current-layer="svg1" />
+  <defs
+     id="defs3">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 30 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="60 : 30 : 1"
+       inkscape:persp3d-origin="30 : 20 : 1"
+       id="perspective8" />
+  </defs>
+  <path
+     d="M 78.233845,4.3054981 C 119.03821,4.3054981 152.16219,20.577194 152.16219,40.615053 C 152.16219,60.65291 119.03821,76.924608 78.233845,76.924607 C 69.894492,76.924607 61.973048,76.081764 54.492983,74.829825 C 61.25628,107.5963 83.994498,119.86764 83.994498,119.86764 C 83.994501,119.86764 61.003686,127.52587 33.283314,94.119277 C 23.507128,81.403213 20.781053,70.475049 19.667234,62.610262 C 10.136936,56.497871 4.3054981,48.90236 4.3054981,40.615053 C 4.3054981,20.577194 37.429474,4.3054981 78.233845,4.3054981 z"
+     id="path672"
+     sodipodi:stroke-cmyk="(0 0 0 0.8)"
+     style="font-size:12px;fill:#cccccc;fill-rule:evenodd;stroke:#bf1e55;stroke-width:8.61099625;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none" />
+  <text
+     xml:space="preserve"
+     style="font-size:22px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial;-inkscape-font-specification:Arial"
+     x="30.339745"
+     y="34.585785"
+     id="text2410"><tspan
+       sodipodi:role="line"
+       id="tspan2412"
+       x="30.339745"
+       y="34.585785"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#2c5aa0;font-family:Comic Sans MS;-inkscape-font-specification:Comic Sans MS">FrontEnd</tspan><tspan
+       sodipodi:role="line"
+       x="30.339745"
+       y="62.085785"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#2c5aa0;font-family:Comic Sans MS;-inkscape-font-specification:Comic Sans MS"
+       id="tspan2414">Messages</tspan></text>
+</svg>

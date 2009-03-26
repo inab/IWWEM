@@ -26,8 +26,9 @@
 	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 */
 
-function WorkflowReport(genview,reportDivId) {
+function WorkflowReport(genview,reportDivId,handlingEnactions) {
 	this.genview=genview;
+	this.handlingEnactions = handlingEnactions;
 	
 	var reportDiv=genview.getElementById(reportDivId);
 	
@@ -89,7 +90,7 @@ function WorkflowReport(genview,reportDivId) {
 	p.appendChild(this.authorContainer);
 	p.appendChild(genview.createElement('br'));
 	b=genview.createElement('b');
-	b.innerHTML='Uploader:&nbsp;';
+	b.innerHTML=((handlingEnactions)?'Submitter':'Uploader')+':&nbsp;';
 	p.appendChild(b);
 	this.uploaderContainer=genview.createElement('span');
 	p.appendChild(this.uploaderContainer);
@@ -127,13 +128,15 @@ function WorkflowReport(genview,reportDivId) {
 	reportDiv.appendChild(this.descContainer);
 	
 	// Available snapshots
-	b=genview.createElement('b');
-	b.innerHTML='Available enaction snapshots';
-	reportDiv.appendChild(b);
-	this.snapContainer=genview.createElement('div');
-	this.snapContainer.setAttribute('style',"text-align:justify;");
-	this.snapContainer.innerHTML='&nbsp;';
-	reportDiv.appendChild(this.snapContainer);
+	if(!handlingEnactions) {
+		b=genview.createElement('b');
+		b.innerHTML='Available enaction snapshots';
+		reportDiv.appendChild(b);
+		this.snapContainer=genview.createElement('div');
+		this.snapContainer.setAttribute('style',"text-align:justify;");
+		this.snapContainer.innerHTML='&nbsp;';
+		reportDiv.appendChild(this.snapContainer);
+	}
 }
 
 WorkflowReport.prototype={
@@ -148,7 +151,8 @@ WorkflowReport.prototype={
 		GeneralView.freeContainer(this.uploaderContainer);
 		GeneralView.freeContainer(this.licenseContainer);
 		GeneralView.freeContainer(this.descContainer);
-		GeneralView.freeContainer(this.snapContainer);
+		if(!this.handlingEnactions)
+			GeneralView.freeContainer(this.snapContainer);
 		GeneralView.freeContainer(this.inContainer);
 		GeneralView.freeContainer(this.outContainer);
 	},
@@ -235,9 +239,11 @@ WorkflowReport.prototype={
 		this.attachIOReport(workflow.outputs,this.outContainer);
 
 		// And at last, snapshots
-		this.attachIOReport(workflow.snapshots,this.snapContainer,function(snap) {
-			return '<i><a href="enactionviewer.html?jobId='+snap.getQualifiedUUID()+'">'+snap.name+'</a> ('+snap.date+')</i>';
-		});
+		if(!this.handlingEnactions) {
+			this.attachIOReport(workflow.snapshots,this.snapContainer,function(snap) {
+				return '<i><a href="enactionviewer.html?jobId='+snap.getQualifiedUUID()+'">'+snap.name+'</a> ('+snap.date+')</i>';
+			});
+		}
 	},
 	
 	attachIOReport: function(ioarray,ioContainer, /* optional */lineProc) {
@@ -252,7 +258,7 @@ WorkflowReport.prototype={
 			if(typeof lineProc=='function') {
 				line=lineProc(io);
 			} else {
-				line='<i>'+io.name+' ('+io.mime.join(', ')+')</i>';
+				line='<tt>'+io.name+'</tt> <i>('+io.mime.join(', ')+')</i>';
 			}
 			if('description' in io) {
 				line += '<br>'+GeneralView.preProcess(io.description);

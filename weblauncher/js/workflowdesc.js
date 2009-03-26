@@ -94,7 +94,7 @@ function OutputSnapshot(workflow,ouSn) {
 
 OutputSnapshot.prototype = {
 	getQualifiedUUID: function() {
-		return 'snapshot:'+this.workflow+':'+this.uuid;
+		return 'snapshot:'+this.workflow.uuid+':'+this.uuid;
 	},
 	
 	generateOption: function (/* optional */ thedoc) {
@@ -110,14 +110,14 @@ OutputSnapshot.prototype = {
 function WorkflowDesc(wfD,WFBase) {
 	this.WFBase=WFBase;
 	
-	this.graph = {};
-	this.graphAlt = {};
+	this.graph = new Object();
+	this.graphAlt = new Object();
 	
 	var depends=new Array();
-	var inputs={};
-	var outputs={};
-	var examples={};
-	var snapshots={};
+	var inputs=new Object();
+	var outputs=new Object();
+	var examples=new Object();
+	var snapshots=new Object();
 	this.depends=depends;
 	this.inputs=inputs;
 	this.outputs=outputs;

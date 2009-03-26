@@ -79,6 +79,8 @@ textarea, input, select, .sWf {
 	font-size: 10pt;
 	font-family: Arial, Helvetica, Georgia, sans-serif;
 	z-index: -1;
+	background-color: white;
+	border: 1px dashed black;
 }
 
 .hidden {

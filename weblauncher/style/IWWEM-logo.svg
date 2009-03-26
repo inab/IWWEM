@@ -13,28 +13,11 @@
    id="Layer_1"
    viewBox="0 0 489.004 463.9"
    enable-background="new 0 0 489.004 463.9"
-   onload="RunScript(evt,2)"
    xml:space="preserve"
    sodipodi:version="0.32"
    inkscape:version="0.46"
    sodipodi:docname="IWWEM-logo.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
-    <script
-   type="text/ecmascript"
-   xlink:href="SVGmapApp.js"
-   id="script1" />
-    <script
-   type="text/ecmascript"
-   xlink:href="SVGtooltip.js"
-   id="script2" />
-    <script
-   type="text/ecmascript"
-   xlink:href="SVGzoom.js"
-   id="script3" />
-    <script
-   type="text/ecmascript"
-   xlink:href="SVGtrampoline.js"
-   id="script4" />
    <metadata
    id="metadata2921"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type

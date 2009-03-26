@@ -1,1 +1,1 @@
-../../src/main/resources/SVGmapApp.js
+../../t1backend/src/main/resources/SVGmapApp.js

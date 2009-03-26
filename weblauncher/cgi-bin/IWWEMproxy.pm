@@ -407,7 +407,7 @@ sub doBaclavaQuery($$$\@$$$$$$$$$$$$$) {
 			eval {
 				my($context)=XML::LibXML::XPathContext->new();
 				$context->registerNs('b',$IWWEM::WorkflowCommon::BACLAVA_NS);
-				$context->registerNs('s',$IWWEM::Taverna1WorkflowKind->getRootNS());
+				$context->registerNs('s',IWWEM::Taverna1WorkflowKind->getRootNS());
 				
 				my(%xpathvars)=();
 				my($varbase)='var';
