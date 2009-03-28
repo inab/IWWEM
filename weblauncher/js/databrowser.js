@@ -246,11 +246,11 @@ DataBrowser.prototype={
 			this.mimeList=mimeList;
 			
 			// Filling data origins
-			this.IOStepSpan.appendChild(this.genview.thedoc.createTextNode(locObject.stepName+((locObject.iteration!=undefined)?('['+locObject.iteration+']'):'')));
-			var inode=this.genview.createElement('span');
-			inode.style.fontStyle='italic';
+			var inode=this.genview.createElement('tt');
+			//inode.style.fontStyle='italic';
 			inode.appendChild(this.genview.thedoc.createTextNode('('+((locObject.IOMode=='I')?'Input':'Output')+')'));
 			this.IOStepSpan.appendChild(inode);
+			this.IOStepSpan.appendChild(this.genview.thedoc.createTextNode(locObject.stepName+((locObject.iteration!=undefined)?('['+locObject.iteration+']'):'')));
 			
 			// this.IOStepSpan.innerHTML=locObject.stepName+((locObject.iteration!=undefined)?('['+locObject.iteration+']'):'')+'<i>('+(((locObject.IOMode=='I')?'Input':'Output')+')</i>');
 			

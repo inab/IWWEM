@@ -33,6 +33,8 @@ package IWWEM::Taverna2WorkflowKind;
 use Carp qw(croak);
 use base qw(IWWEM::AbstractWorkflowKind);
 
+use Encode;
+use File::Path;
 use IWWEM::WorkflowCommon;
 
 use vars qw($T2FLOW_NS $T2FLOW_MIME $T2FLOW_BETA_MIME);

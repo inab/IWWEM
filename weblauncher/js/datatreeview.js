@@ -491,13 +491,37 @@ DataTreeView.prototype = {
 
 		GeneralView.freeContainer(this.errStepDiv);
 		if(step.stepError && iteration==-1) {
-			var errHTML='<span style="color:red;font-weight:bold;">Processing Errors</span><br>';
+			//var errHTML='<span style="color:red;font-weight:bold;">Processing Errors</span><br>';
+			var errbranch = this.genview.createElement('div');
+			errbranch.className='branch';
+			
+			var errSpan = this.genview.createElement('span');
+			errSpan.setAttribute('style','color:red;font-weight:bold;');
+			errSpan.className='branchlabel';
+			errSpan.appendChild(this.genview.thedoc.createTextNode('Processing Errors'));
+			errbranch.appendChild(errSpan);
+			
+			var branchcontainer = this.genview.createElement('div');
+			branchcontainer.className='branchcontainer';
+			errbranch.appendChild(branchcontainer);
+			
 			for(var ierr=0;ierr<step.stepError.length;ierr++) {
 				var therr=step.stepError[ierr];
-				var lierr=this.genview.createElement('ul');
-				errHTML += '<u>'+therr.header+'</u><br><pre>'+therr.message+'</pre><br>';
+				//var lierr=this.genview.createElement('ul');
+				// errHTML += '<u>'+therr.header+'</u><br><pre>'+therr.message+'</pre><br>';
+				var theu = this.genview.createElement('u');
+				theu.appendChild(this.genview.thedoc.createTextNode(therr.header));
+				branchcontainer.appendChild(theu);
+				branchcontainer.appendChild(this.genview.createElement('br'));
+				var thepre=this.genview.createElement('pre');
+				// It is a bit 'pre-processed' (sigh)
+				thepre.innerHTML=therr.message;
+				branchcontainer.appendChild(thepre);
+				branchcontainer.appendChild(this.genview.createElement('br'));
 			}
-			this.errStepDiv.innerHTML=errHTML;
+			//this.errStepDiv.innerHTML=errHTML;
+			this.errStepDiv.appendChild(errbranch);
+			WidgetCommon.addEventListener(errSpan,'click',EnactionView.BranchClick,false);
 		}
 
 		// For the global step

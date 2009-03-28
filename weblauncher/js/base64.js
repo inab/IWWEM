@@ -242,7 +242,7 @@ var Base64 = {
 	streamFromByteToUTF8: function (bytetext, end_callback) {
 		var utftext=undefined;
 		try {
-			utftext = unescape( encodeURIComponent( bytetext ) );
+			utftext = decodeURIComponent( escape( bytetext ) );
 		} catch(e) {
 			Base64.streamFromByteToUTF8Slow(bytetext, end_callback);
 		}
@@ -397,7 +397,7 @@ var Base64 = {
 	streamFromUTF8ToByte: function (utftext, end_callback) {
 		var bytetext=undefined;
 		try {
-			bytetext=decodeURIComponent( escape( utftext ) );
+			bytetext = unescape ( encodeURIComponent( utftext ) );
 		} catch(e) {
 			Base64.streamFromUTF8ToByteSlow(utftext,end_callback);
 		}

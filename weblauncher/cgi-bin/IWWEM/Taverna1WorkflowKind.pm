@@ -33,8 +33,9 @@ package IWWEM::Taverna1WorkflowKind;
 use Carp qw(croak);
 use base qw(IWWEM::AbstractWorkflowKind);
 
-use IWWEM::WorkflowCommon;
+use Encode;
 use File::Path;
+use IWWEM::WorkflowCommon;
 
 use vars qw($XSCUFL_NS $XSCUFL_MIME);
 
