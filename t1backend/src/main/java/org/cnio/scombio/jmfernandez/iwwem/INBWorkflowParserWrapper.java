@@ -320,9 +320,9 @@ public class INBWorkflowParserWrapper {
 		"http://mirrors.sunsite.dk/maven2/",
 		"http://mirrors.ibiblio.org/pub/mirrors/maven2/",
 		"http://www.mygrid.org.uk/maven/snapshot-repository/",
-		"https://maven-repository.dev.java.net/repository/",
+//		"https://maven-repository.dev.java.net/repository/",
 		"http://biomoby.org/m2repo/",
-		"http://download.java.net/maven/2",
+		"http://download.java.net/maven/2/",
 		"http://repository.jboss.com/maven2/",
 		"http://jena.hpl.hp.com/repo/"
 	};
