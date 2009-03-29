@@ -318,9 +318,13 @@ public class INBWorkflowParserWrapper {
 //		"http://mobycentral.icapture.ubc.ca/maven/",
 		"http://repo1.maven.org/maven2/",
 		"http://mirrors.sunsite.dk/maven2/",
-		"http://www.ibiblio.org/maven2/",
+		"http://mirrors.ibiblio.org/pub/mirrors/maven2/",
 		"http://www.mygrid.org.uk/maven/snapshot-repository/",
-//		"http://download.java.net/maven/2"
+		"https://maven-repository.dev.java.net/repository/",
+		"http://biomoby.org/m2repo/",
+		"http://download.java.net/maven/2",
+		"http://repository.jboss.com/maven2/",
+		"http://jena.hpl.hp.com/repo/"
 	};
 
 	private static HashMap<String,Integer> OptionHash=new HashMap<String,Integer>();
