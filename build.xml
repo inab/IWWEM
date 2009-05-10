@@ -94,6 +94,7 @@
 	<target name="install-local-biomoby" depends="init">
 		<exec executable="mvn" dir="${taverna.biomoby.src}" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-e"/>
 			<arg value="-P"/>
 			<arg value="override"/>
 			<arg value="-s"/>
@@ -106,6 +107,7 @@
 	<target name="compile.backends" depends="init" description="Compilation of Java/Maven backend modules">
 		<exec executable="mvn" dir="t1backend" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-e"/>
 			<arg value="-s"/>
 			<arg value="${maven.settings.t1backend}"/>
 			<arg value="package"/>
@@ -114,6 +116,7 @@
 		<!--
 		<exec executable="mvn" dir="t2backend" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-e"/>
 			<arg value="-s"/>
 			<arg value="${maven.settings.t2backend}"/>
 			<arg value="package"/>
@@ -262,6 +265,7 @@
 	<target name="clean.backends" description="Cleaning the project backends">
 		<exec executable="mvn" dir="t1backend" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-e"/>
 			<arg value="-s"/>
 			<arg value="${maven.settings.t1backend}"/>
 			<arg value="clean"/>
@@ -269,6 +273,7 @@
 		<!--
 		<exec executable="mvn" dir="t2backend" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
+			<arg value="-e"/>
 			<arg value="-s"/>
 			<arg value="${maven.settings.t2backend}"/>
 			<arg value="clean"/>
