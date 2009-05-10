@@ -50,9 +50,10 @@ have more or less the same software pre-requisites.
 
 * Compilation machine
 
-	- You need a working Java JDK 1.5.x or 1.6.x. IWWE&M has been tested with both IBM JDK
-	  and Sun JDK. It should also work with Apple JDK.
-	- You also need both ant and maven build systems.
+	- You need a working Java JDK 1.5.x or 1.6.x. IWWE&M backends have been tested with both
+	  IBM JDK and Sun JDK. It should also work with Apple JDK, but I would not trust on gij
+	  (GNU interpreter for Java).
+	- You also need to install both Ant and Maven (aka mvn) build systems.
 	- You need a working Perl installation, with the next modules. Depending
 	  on the Perl version you have installed, some of them can be already
 	  integrated in the Perl core:
@@ -63,7 +64,7 @@ have more or less the same software pre-requisites.
 		+ Mail::Sender
 		+ URI
 		+ MIME::Base64
-		+ XML::LibXML
+		+ XML::LibXML (which depends on libxml2)
 		+ XML::SAX
 		+ File::Copy
 		+ File::Path
@@ -71,13 +72,14 @@ have more or less the same software pre-requisites.
 		+ IO (for IO::Handle)
 		+ Time::HiRes
 		+ POSIX
-	- A working SSH client.
+	- A working SSH client, so IWWE&M can be put in the installation machine.
 
 * Installation machine
 
-	- You need a working Java JRE 1.5.x or 1.6.x. IWWE&M has been tested with both IBM JRE
-	  and Sun JRE. It should also work with Apple JDK.
-	- A recent Graphviz package (2.16.x or better) for its dot command. It is used by the
+	- You need a working Java JRE 1.5.x or 1.6.x. IWWE&M backends have been tested with both
+	  IBM JDK and Sun JDK. It should also work with Apple JDK, but I would not trust on gij
+	  (GNU interpreter for Java).
+	- A recent Graphviz package (2.16.x or better) for its 'dot' command. It is used by the
 	  Taverna core.
 	- You need a working Perl installation, with the next modules. Depending
 	  on the Perl version you have installed, some of them can be already
@@ -89,7 +91,7 @@ have more or less the same software pre-requisites.
 		+ Mail::Sender
 		+ URI
 		+ MIME::Base64
-		+ XML::LibXML
+		+ XML::LibXML (which depends on libxml2)
 		+ XML::SAX
 		+ File::Copy
 		+ File::Path
@@ -102,7 +104,8 @@ have more or less the same software pre-requisites.
 		+ A separate user should be created for IWWE&M, and then Apache should
 		  be set up to handle mod_userdir. In that way, CGI processes from
 		  IWWE&M will be run with that separate user.
-		+ cgi-bin directories must be set for CGIs in subdirectories
+		+ cgi-bin directories must be set for CGIs in subdirectories. For instance,
+		  next pattern works for per-user cgi-bin.
 		
 			<Directory /home/*/public_html/*/cgi-bin>
 				Options ExecCGI
