@@ -28,6 +28,11 @@
 
 use strict;
 
+use Carp ();
+
+local $SIG{__WARN__} = \&Carp::cluck;
+local $SIG{__DIE__} = \&Carp::confess;
+
 use CGI;
 use Encode;
 use File::Copy;
