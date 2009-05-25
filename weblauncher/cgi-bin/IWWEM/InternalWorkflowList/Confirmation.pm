@@ -152,7 +152,13 @@ sub doConfirm($$$;$) {
 							$jobdir=$IWWEM::Config::JOBDIR.'/'.$1;
 							$kind='enaction';
 						} else {
-							$jobdir=$IWWEM::Config::WORKFLOWDIR.'/'.$irelpath;
+							my($relwfid)=undef;
+							if($irelpath =~ /^$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX([^:]+)$/) {
+								$relwfid=$1;
+							} else {
+								$relwfid=$irelpath;
+							}
+							$jobdir=$IWWEM::Config::WORKFLOWDIR.'/'.$relwfid;
 							$kind='workflow';
 							
 							# Let's gather information about what is going to be destroyed
@@ -319,8 +325,14 @@ sub doConfirm($$$;$) {
 							$destdir=$IWWEM::Config::JOBDIR.'/'.$1;
 							$kind='enaction';
 						} else {
-							$jobdir.='/'.$irelpath;
-							$destdir=$IWWEM::Config::WORKFLOWDIR.'/'.$irelpath;
+							my($relwfid)=undef;
+							if($irelpath =~ /^$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX([^:]+)$/) {
+								$relwfid=$1;
+							} else {
+								$relwfid=$irelpath;
+							}
+							$jobdir.='/'.$relwfid;
+							$destdir=$IWWEM::Config::WORKFLOWDIR.'/'.$relwfid;
 							$kind='workflow';
 						}
 						

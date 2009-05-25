@@ -689,6 +689,12 @@ sub eraseId($\@;$) {
 				$jobdir=$IWWEM::Config::JOBDIR.'/'.$1;
 				$kind='enaction';
 			} else {
+				my($relwfid)=undef;
+				if($irelpath =~ /^$IWWEM::InternalWorkflowList::Constants::WORKFLOWPREFIX([^:]+)$/) {
+					$relwfid=$1;
+				} else {
+					$relwfid=$irelpath;
+				}
 				$jobdir=$IWWEM::Config::WORKFLOWDIR.'/'.$irelpath;
 				$kind='workflow';
 			}
