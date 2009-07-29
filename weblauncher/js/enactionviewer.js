@@ -371,8 +371,9 @@ EnactionView.prototype = {
 		}
 	},
 	
-	genGraphicalState: function(state) {
+	genGraphicalState: function(state,/* optional */ globalstate) {
 		var gstate=state;
+		
 		switch(state) {
 			case 'queued':
 			case '':
@@ -391,6 +392,14 @@ EnactionView.prototype = {
 			case 'unknown':
 				gstate='<b>'+gstate+'</b>';
 			case 'running':
+				switch(globalstate) {
+					case 'frozen':
+					case 'dead':
+					case 'error':
+					case 'dubious':
+					case 'killed':
+						gstate=state+" when "+globalstate;
+				}
 				gstate="<span style='color:orange; font-style: italic;'>"+gstate+"</span>"
 				break;
 			case 'finished':
@@ -624,6 +633,7 @@ EnactionView.prototype = {
 	},
 	
 	setStep: function (/* optional */ step) {
+		var globalstate=this.state;
 		// To finish
 		if(!step) {
 			step=this.step;
@@ -644,7 +654,7 @@ EnactionView.prototype = {
 			}
 			if(this.step==undefined || this.step.name!=step.name || this.step!=step) {
 				this.stageSpan.innerHTML=step.name;
-				this.stageStateSpan.innerHTML=this.genGraphicalState(step.state);
+				this.stageStateSpan.innerHTML=this.genGraphicalState(step.state,globalstate);
 			}
 			this.step=step;
 			

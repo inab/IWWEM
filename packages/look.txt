@@ -7,3 +7,4 @@ http://www.mad-cow.org/00/genebander.html
 http://www.auburn.edu/~santosr/scripts/blast2ps.prl
 http://janocchio.sourceforge.net/
 http://sourceforge.net/projects/haploview/
+http://www.phylosoft.org/archaeopteryx/

@@ -41,9 +41,10 @@ use File::Path;
 use Socket;
 
 use lib "$FindBin::Bin";
-use IWWEM::InternalWorkflowList::Constants;
+use IWWEM::Config;
 use IWWEM::FSConstants;
 use IWWEM::InternalWorkflowList::Confirmation;
+use IWWEM::InternalWorkflowList::Constants;
 use IWWEM::WorkflowCommon;
 use IWWEM::UniversalWorkflowKind;
 
@@ -755,7 +756,7 @@ sub sendEnactionReport($\@;$$$$$$) {
 			if(index($jobId,'/')==-1 && $jobId =~ /^$IWWEM::InternalWorkflowList::Constants::SNAPSHOTPREFIX([^:]+):([^:]+)$/) {
 				$wfsnap=$1;
 				$jobId=$2;
-				$jobdir=$IWWEM::WorkflowCommon::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
+				$jobdir=$IWWEM::Config::WORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR.'/'.$jobId;
 				# It is an snapshot, so the relative URI changes
 				$es->setAttribute('relURI',$IWWEM::FSConstants::VIRTWORKFLOWDIR .'/'.$wfsnap.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR);
 			}
@@ -959,7 +960,7 @@ sub sendEnactionReport($\@;$$$$$$) {
 					# So, let's take a snapshot!
 					if(defined($workflowId) && index($workflowId,'/')==-1) {
 						# First, read the catalog
-						my($snapbasedir)=$IWWEM::WorkflowCommon::WORKFLOWDIR .'/'.$workflowId.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
+						my($snapbasedir)=$IWWEM::Config::WORKFLOWDIR .'/'.$workflowId.'/'.$IWWEM::WorkflowCommon::SNAPSHOTSDIR;
 						eval {
 							my($uuid);
 							my($snapdir);

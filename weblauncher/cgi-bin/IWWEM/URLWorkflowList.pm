@@ -59,17 +59,17 @@ sub new(;$) {
 	my(@workflowlist)=undef;
 	
 	$id=''  unless(defined($id));
-	my($baseListDir)=undef;
 	my($listDir)=undef;
 	my($subId)=undef;
-	my($uuidPrefix)=undef;
+	my($uuidPrefix)='';
 	my($isSnapshot)=undef;
 	if(index($id,'http://')==0 || index($id,'ftp://')==0 || index($id,'https://')) {
 		$subId=$id;
 		@workflowlist=($id);
 	}
 	
-	$self->{GATHERED}=[\@workflowlist,$baseListDir,$listDir,$uuidPrefix,$isSnapshot];
+	$self->{WORKFLOWLIST}=\@workflowlist;
+	$self->{GATHERED}=[$listDir,$uuidPrefix,$isSnapshot];
 	
 	return bless($self,$class);
 }
@@ -126,7 +126,7 @@ sub getWorkflowInfo($@) {
 		# representations
 		my($wfKind)='UNIVERSAL';
 		#my($wfcatmutex)=LockNLog::SimpleMutex->new($wfdir.'/'.$IWWEM::WorkflowCommon::LOCKFILE,$regen);
-			my($uuid)=$uuidPrefix.$wf;
+			my($uuid)=$wf;
 			$retnode = $self->{WFH}{$wfKind}->getWorkflowInfo($uuid,$wf,$wf);
 			
 			my($outputDoc)=$retnode->ownerDocument();

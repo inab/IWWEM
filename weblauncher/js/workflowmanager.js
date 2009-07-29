@@ -535,6 +535,11 @@ ManagerView.prototype = {
 			var wfSearch=this.wfSearch;
 			for(var iwl=0;iwl<wordList.length;iwl++) {
 				var lcFullWord=wordList[iwl];
+				
+				// Fixing the bug found by Jose Manuel
+				if(lcFullWord.length==0)
+					continue;
+				
 				var splitWord=lcFullWord.split(/-+/);
 				if(splitWord.length>1) {
 					splitWord.push(lcFullWord);

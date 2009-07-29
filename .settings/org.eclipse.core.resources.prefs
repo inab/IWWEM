@@ -1,12 +1,5 @@
-#Wed Oct 08 00:55:02 CEST 2008
+#Tue May 19 16:31:22 CEST 2009
 eclipse.preferences.version=1
-encoding//src/main/java=UTF-8
-encoding//src/main/resources=UTF-8
-encoding//src/main/resources/SVGmapApp.js=UTF-8
-encoding//src/main/resources/SVGtooltip.js=UTF-8
-encoding//src/main/resources/SVGtrampoline.js=UTF-8
-encoding//src/main/resources/SVGzoom.js=UTF-8
-encoding//src/main/resources/log4j.properties=UTF-8
 encoding//weblauncher/enactionviewer.html=UTF-8
 encoding//weblauncher/js=UTF-8
 encoding//weblauncher/js/datamatcher.js=UTF-8

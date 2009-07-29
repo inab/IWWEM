@@ -56,6 +56,14 @@ import net.sf.taverna.raven.repository.BasicArtifact;
 import net.sf.taverna.raven.repository.Repository;
 import net.sf.taverna.raven.repository.impl.LocalRepository;
 
+import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
+
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.GVTBuilder;
 import org.apache.batik.bridge.UserAgentAdapter;
@@ -223,8 +231,9 @@ public class INBWorkflowParserWrapper {
 	 * This version has to match the version of the real dependency you have to
 	 * Taverna libraries on your classpath (ie. the pom.xml dependencies).
 	 */
-	public static final String TAVERNA_BASE_VERSION = "1.7.2.0";
-	public static final String TAVERNA_MINOR_VERSION = "1.7-SNAPSHOT";
+	public static final String TAVERNA_MAJOR_VERSION = "1.7.2";
+	public static final String TAVERNA_BASE_VERSION = TAVERNA_MAJOR_VERSION+".1";
+	public static final String RAVEN_BASE_VERSION = "1.9";
 	private static final String SCRIPT_NAME="inbworkflowparser";
 
 	private static final String[][] ParamDescs={
@@ -247,7 +256,9 @@ public class INBWorkflowParserWrapper {
 		{"-onlyUpdateBaseDir","0","Only update Maven repository"},
 	};
 
-	private static final String TAVERNA_GROUP_ID="uk.org.mygrid.taverna";
+	private static final String MYGRID_GROUP_ID="uk.org.mygrid";
+	private static final String MYGRID_RESOURCES_GROUP_ID=MYGRID_GROUP_ID+".resources";
+	private static final String TAVERNA_GROUP_ID=MYGRID_GROUP_ID+".taverna";
 	private static final String TAVERNA_PROCESSORS_GROUP_ID = TAVERNA_GROUP_ID + ".processors";
 	private static final String TAVERNA_BACLAVA_GROUP_ID = TAVERNA_GROUP_ID + ".baclava";
 	private static final String TAVERNA_SCUFL_GROUP_ID = TAVERNA_GROUP_ID + ".scufl";
@@ -255,18 +266,34 @@ public class INBWorkflowParserWrapper {
 	private static final String TAVERNA_RAVEN_GROUP_ID = TAVERNA_GROUP_ID + ".raven";
 
 	private static final String[][] SystemArtifactList={
-		{TAVERNA_RAVEN_GROUP_ID,"raven",TAVERNA_MINOR_VERSION},
-		{TAVERNA_GROUP_ID,"taverna-core",TAVERNA_BASE_VERSION},
-		{TAVERNA_RAVEN_GROUP_ID,"raven-log4j",TAVERNA_MINOR_VERSION},
-		{TAVERNA_GROUP_ID,"taverna-bootstrap",TAVERNA_BASE_VERSION},
-		{TAVERNA_SCUFL_GROUP_ID,"scufl-model",TAVERNA_BASE_VERSION},
+		{"commons-codec","commons-codec","1.2"},
+		{"commons-discovery","commons-discovery","0.2"},
+		{"commons-httpclient","commons-httpclient","3.0"},
+		{"commons-io","commons-io","1.2"},
+		{"commons-logging","commons-logging","1.0.3"},
+		{"jdom","jdom","1.0"},
+		{"junit","junit","3.8.1"},
+		{"log4j","log4j","1.2.12"},
+		
+		{MYGRID_RESOURCES_GROUP_ID,"freefluo","NO-VERSION"},
+		{MYGRID_RESOURCES_GROUP_ID,"freefluo-taverna-exts",TAVERNA_MAJOR_VERSION},
+		{MYGRID_RESOURCES_GROUP_ID,"Jmol","NO-VERSION"},
+		
 		{TAVERNA_BACLAVA_GROUP_ID,"baclava-core",TAVERNA_BASE_VERSION},
-		{TAVERNA_SCUFL_UI_COMPONENTS_GROUP_ID,"svg-diagram",TAVERNA_BASE_VERSION},
-		{TAVERNA_SCUFL_GROUP_ID,"scufl-ui",TAVERNA_BASE_VERSION},
-		{TAVERNA_SCUFL_GROUP_ID,"scufl-ui-api",TAVERNA_BASE_VERSION},
+		// example workflow launcher??????????????????????
+		{TAVERNA_RAVEN_GROUP_ID,"raven",RAVEN_BASE_VERSION},
+		{TAVERNA_RAVEN_GROUP_ID,"raven-log4j",RAVEN_BASE_VERSION},
+		{TAVERNA_SCUFL_GROUP_ID,"scufl-model",TAVERNA_BASE_VERSION},
 		{TAVERNA_SCUFL_GROUP_ID,"scufl-tools",TAVERNA_BASE_VERSION},
+		{TAVERNA_SCUFL_GROUP_ID,"scufl-ui-api",TAVERNA_BASE_VERSION},
+		{TAVERNA_GROUP_ID,"taverna-bootstrap",TAVERNA_BASE_VERSION},
+		{TAVERNA_GROUP_ID,"taverna-core",TAVERNA_BASE_VERSION},
 		{TAVERNA_GROUP_ID,"taverna-enactor",TAVERNA_BASE_VERSION},
 		{TAVERNA_GROUP_ID,"taverna-update-manager",TAVERNA_BASE_VERSION},
+				
+		
+		{TAVERNA_SCUFL_UI_COMPONENTS_GROUP_ID,"svg-diagram",TAVERNA_BASE_VERSION},
+		{TAVERNA_SCUFL_GROUP_ID,"scufl-ui",TAVERNA_BASE_VERSION},
 //		{TAVERNA_GROUP_ID,"taverna-tools",TAVERNA_BASE_VERSION},
 //		{TAVERNA_BACLAVA_GROUP_ID,"baclava-tools",TAVERNA_BASE_VERSION},
 //		{TAVERNA_SCUFL_GROUP_ID,"scufl-core",TAVERNA_BASE_VERSION},
@@ -280,23 +307,7 @@ public class INBWorkflowParserWrapper {
 //		{"org.freehep","freehep-graphicsio-emf","2.1.1"},
 		{"xerces","xercesImpl","2.6.2"},
 		{"xalan","xalan","2.5.2"},
-		{"log4j","log4j","1.2.12"},
 	};
-	/*
-	private static final String[][] ExternalArtifactList={
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-biomart-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-localworkers",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-stringconstant-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-notification-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-beanshell-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-soaplab-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-wsdl-processor",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-apiconsumer-processor",TAVERNA_BASE_VERSION},
-		{"biomoby.org","taverna-biomoby",TAVERNA_BASE_VERSION},
-		{TAVERNA_GROUP_ID,"taverna-contrib",TAVERNA_BASE_VERSION},
-		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
-	};
-	 */
 
 	private static final String[][] ExternalArtifactList={
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-biomart-processor",TAVERNA_BASE_VERSION},
@@ -308,8 +319,9 @@ public class INBWorkflowParserWrapper {
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-wsdl-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-apiconsumer-processor",TAVERNA_BASE_VERSION},
 		{"org.biomoby","taverna-biomoby",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-biomoby-processor",TAVERNA_BASE_VERSION},
 		{TAVERNA_GROUP_ID,"taverna-contrib",TAVERNA_BASE_VERSION},
-//		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
+		{TAVERNA_PROCESSORS_GROUP_ID,"taverna-java-processor",TAVERNA_BASE_VERSION},
 	};
 
 	private static final String[] RepositoryLocationList={
@@ -382,8 +394,6 @@ public class INBWorkflowParserWrapper {
 	boolean isOfflineMode=false;
 
 	protected boolean debugMode=false;
-
-	protected ClassLoader lcl=null;
 
 	public static void main(String[] args) {
 		try {
@@ -497,18 +507,57 @@ public class INBWorkflowParserWrapper {
 	protected Repository initialiseRepository()
 		throws IOException
 	{
-
-		// these lines are necessary if working with Taverna 1.5.2 or earlier:
-
-		// System.setProperty("raven.profile",
-		//   "http://www.mygrid.org.uk/taverna/updates/1.5.2/taverna-1.5.2.1-profile.xml");
+		File base = getRepositoryBaseFile();
+		String profileFilename="taverna-"+TAVERNA_BASE_VERSION+"-profile.xml";
+		File xmlfile=new File(base,profileFilename);
+		String profile="http://www.mygrid.org.uk/taverna/updates/"+TAVERNA_MAJOR_VERSION+"/"+profileFilename;
+		if(!xmlfile.exists() || xmlfile.length()==0L) {
+			HttpClient client = new HttpClient();
+			HttpMethod method = new GetMethod(profile);
+			method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,new DefaultHttpMethodRetryHandler(3, false));
+			
+			try {
+				int statusCode = client.executeMethod(method);
+				if (statusCode == HttpStatus.SC_OK) {
+					InputStream profileStream = method.getResponseBodyAsStream();
+					FileOutputStream fos = new FileOutputStream(xmlfile);
+					
+					try {
+						byte[] buffer=new byte[65536];
+						int bRead=0;
+						while((bRead=profileStream.read(buffer))!=-1) {
+							fos.write(buffer,0,bRead);
+						}
+					} finally {
+						try {
+							fos.close();
+						} catch(IOException ioe) {
+						}
+						try {
+							profileStream.close();
+						} catch(IOException ioe) {
+						}
+					}
+				} else {
+					logger.error("Profile fetch failed: " + method.getStatusLine());
+				}
+			} catch(HttpException he) {
+				logger.error("Fatal protocol violation on profile fetch: "+he.getMessage(),he);
+				xmlfile.delete();
+			} catch(IOException ioe) {
+				logger.error("Fatal transport error on profile fetch (erasing profile file): "+ioe.getMessage(),ioe);
+				xmlfile.delete();
+			} finally {
+				method.releaseConnection();
+			}
+		}
+		System.setProperty("raven.profile",xmlfile.toURI().toURL().toString());
 		// Bootstrap.properties = new Properties();
 
 		Set<Artifact> systemArtifacts = buildSystemArtifactSet();
 		Set<Artifact> externalArtifacts = buildExternalArtifactSet();
 		List<URL> repositoryLocations = buildRepositoryLocationSet();
 
-		File base = getRepositoryBaseFile();
 		ClassLoader myLoader = getClass().getClassLoader();
 		if (myLoader == null) {
 			myLoader = ClassLoader.getSystemClassLoader();
@@ -525,11 +574,6 @@ public class INBWorkflowParserWrapper {
 		}
 
 		repository.update();
-		try {
-			lcl=repository.getLoader(new BasicArtifact(TAVERNA_SCUFL_GROUP_ID,"scufl-workflow",TAVERNA_BASE_VERSION),null);
-		} catch(Exception ex) {
-			ex.printStackTrace();
-		}
 		return repository;
 	}
 

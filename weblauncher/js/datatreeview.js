@@ -262,9 +262,13 @@ DataTreeView.prototype = {
 					seed.src='style/seed-small.png';
 					seed.style.marginLeft='5px';
 					seed.style.cursor='pointer';
+					seed.setAttribute('title','Possible embedded data. Click to try finding something');
+					seed.setAttribute('alt','Seed');
 					
 					var seedgrow = function (event) {
 						seed.src='style/seed-growing-test.gif';
+						seed.setAttribute('title','Possible embedded data (test in progress)');
+						seed.setAttribute('alt','Seed growing');
 						var frameId=undefined;
 						if(datatreeview.procFrameId!=undefined) {
 							frameId=datatreeview.genview.openFrame(datatreeview.procFrameId,1);
@@ -272,6 +276,8 @@ DataTreeView.prototype = {
 						data.doMatching(function(dataMatches) {
 							if(dataMatches.length>0) {
 								seed.src='style/twisty-fruit.png';
+								seed.setAttribute('title','Embedded data. Click to (un)fold');
+								seed.setAttribute('alt','Fruit');
 								// Call generateIO to follow the party!
 								var conspan=datatreeview.genview.createElement('div');
 								conspan.className='branchcontainer';
