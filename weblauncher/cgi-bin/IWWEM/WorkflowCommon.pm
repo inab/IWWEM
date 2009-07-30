@@ -182,6 +182,10 @@ $AUTOUUID='autoUUID';
 use vars qw($JOBIDPAT);
 $JOBIDPAT='@JOBID@';
 
+# At the beginning it is not initialized
+use vars qw($VERSION);
+$VERSION=undef;
+
 # Method declaration
 sub genUUID();
 sub patchXMLString($);
@@ -362,6 +366,25 @@ sub sendEnactionMail($$$;$$) {
 		subject=>"Your enaction $jobId has just $status",
 		msg=>"Dear IWWE&M user,\r\n    your enaction $jobId has just $status. You can see the $dataStatus at\r\n\r\n$operURL\r\n\r\nThe INB Interactive Web Workflow Enactor & Manager system"
 	});
+}
+
+sub getIWWEMVersion() {
+	unless(defined($VERSION)) {
+		$VERSION='0.0.0';
+		my($V);
+		if(open($V,'<',$IWWEM::WorkflowCommon::ETCDIR . '/IWWEM-config.js')) {
+			my($line)=undef;
+			while($line=<$V>) {
+				if($line =~ /^[\t ]*Version:[\t ]*(['"])([^'"]+)\1/) {
+					$VERSION=$2;
+					last;
+				}
+			}
+			close($V);
+		}
+	}
+	
+	return $VERSION;
 }
 
 1;

@@ -696,7 +696,7 @@ sub eraseId($\@;$) {
 				} else {
 					$relwfid=$irelpath;
 				}
-				$jobdir=$IWWEM::Config::WORKFLOWDIR.'/'.$irelpath;
+				$jobdir=$IWWEM::Config::WORKFLOWDIR.'/'.$relwfid;
 				$kind='workflow';
 			}
 			
