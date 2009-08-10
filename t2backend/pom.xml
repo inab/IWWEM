@@ -2,6 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
+	<parent>
+		<artifactId>iwwem-backends</artifactId>
+		<groupId>org.cnio.scombio.jmfernandez.iwwem.builds</groupId>
+		<version>0.5</version>
+	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.cnio.scombio.jmfernandez.iwwem</groupId>
@@ -50,6 +55,12 @@
 		</repository>
 	</repositories>
 
+	<inceptionYear>2009</inceptionYear>
+	<scm>
+		<connection>scm:svn:http://trac.bioinfo.cnio.es/svn/iwwem/trunk/t2backend/</connection>
+		<developerConnection>scm:svn:http://trac.bioinfo.cnio.es/svn/iwwem/trunk/t2backend/</developerConnection>
+		<url>http://trac.bioinfo.cnio.es/trac/iwwem/browser/trunk/t2backend</url>
+	</scm>
 	<build>
 		<plugins>
 			<plugin>

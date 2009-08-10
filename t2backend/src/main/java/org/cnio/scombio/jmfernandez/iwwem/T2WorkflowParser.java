@@ -161,13 +161,14 @@ public class T2WorkflowParser {
 				WorkflowInstanceFacade instance = e.createFacade(workflow,ic);
 				
 				// It starts, asynchronous, for workflows with no input
-				instance.fire();
+				// instance.fire();
 				
 				// When there are inputs, then use pushData
-
+				
+				// Look at http://taverna.cvs.sourceforge.net/viewvc/taverna/platform-test-application/src/main/java/net/sf/taverna/testapp/ExampleApplication.java?revision=1.3&view=markup
+				
 				// Now we should push here the input data
-				// TODO
-
+				
 				// And we should wait for the results
 				Map<String, T2Reference> results = e.waitForCompletion(instance);
 			} catch(DeserializationException de) {
@@ -311,6 +312,18 @@ public class T2WorkflowParser {
 
 	protected void showHelp(int exitval)
 	{
+		showHelp(exitval,null);
+	}
+	
+	protected void showHelp(String message)
+	{
+		showHelp(1,message);
+	}
+	protected void showHelp(int exitval,String message)
+	{
+		if(message!=null) {
+			System.err.println(message);
+		}
 		internalShowHelp();
 		System.exit(exitval);
 	}

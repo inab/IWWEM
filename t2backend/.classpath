@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="lib" path="target/t2backend-0.1.0.jar"/>
+	<classpathentry kind="lib" path="target/t2backend-code.jar"/>
+	<classpathentry kind="lib" path="target/t2backend-dependencies.jar"/>
+	<classpathentry kind="lib" path="target/t2backend/t2backend/t2backend-code.jar"/>
+	<classpathentry kind="lib" path="target/t2backend/t2backend/t2backend-dependencies.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
