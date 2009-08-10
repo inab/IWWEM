@@ -142,7 +142,8 @@ public class INBWorkflowLauncherWrapper
 			try {
 				if(statusDir!=null) {
 					// The listener (which should create the reporting thread!)
-					INBWorkflowEventListener iel=new INBWorkflowEventListener(statusDir,lcl,debugMode);
+					// INBWorkflowEventListener iel=new INBWorkflowEventListener(statusDir,lcl,debugMode);
+					INBWorkflowEventListener iel=new INBWorkflowEventListener(statusDir,debugMode);
 					
 					outputs = launcher.execute(baseInputs,iel);
 				} else {

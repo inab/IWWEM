@@ -103,18 +103,20 @@ public class INBWorkflowEventListener
 	protected File statusDir;
 	protected File resultsDir;
 	protected WorkflowInstance currentWI;
-	protected ClassLoader lcl;
+	// protected ClassLoader lcl;
 	
 	protected HashMap<String,Integer> iterState;
 	protected HashMap<WorkflowInstance,WorkflowInstance> wInheritance;
 	
 	protected INBEnactionAsyncReport t;
 	
-	public INBWorkflowEventListener(File statusDir,ClassLoader lcl)
-	{	this(statusDir,lcl,false);
+	// public INBWorkflowEventListener(File statusDir,ClassLoader lcl)
+	public INBWorkflowEventListener(File statusDir)
+	{	this(statusDir,false);
 	}
 	
-	public INBWorkflowEventListener(File statusDir,ClassLoader lcl,boolean debugMode)
+	// public INBWorkflowEventListener(File statusDir,ClassLoader lcl,boolean debugMode)
+	public INBWorkflowEventListener(File statusDir,boolean debugMode)
 	{
 		if(debugMode) {
 			logger.setLevel(Level.DEBUG);
@@ -123,7 +125,7 @@ public class INBWorkflowEventListener
 		this.resultsDir=new File(statusDir,RESULTS);
 		this.iterState=new HashMap<String,Integer>();
 		this.wInheritance=new HashMap<WorkflowInstance,WorkflowInstance>();
-		this.lcl=lcl;
+		// this.lcl=lcl;
 		currentWI=null;
 		t=null;
 	}

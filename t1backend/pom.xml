@@ -19,6 +19,11 @@
 	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 -->
 <project>
+	<parent>
+		<artifactId>iwwem-backends</artifactId>
+		<groupId>org.cnio.scombio.jmfernandez.iwwem.builds</groupId>
+		<version>0.5</version>
+	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cnio.scombio.jmfernandez.iwwem</groupId>
 	<artifactId>workflowlauncher</artifactId>
@@ -31,6 +36,12 @@
 		Taverna API without the requirement to execute using a Raven
 		bootstrap.
 	</description>
+	<inceptionYear>2007</inceptionYear>
+	<scm>
+		<connection>scm:svn:http://trac.bioinfo.cnio.es/svn/iwwem/trunk/t1backend/</connection>
+		<developerConnection>scm:svn:http://trac.bioinfo.cnio.es/svn/iwwem/trunk/t1backend/</developerConnection>
+		<url>http://trac.bioinfo.cnio.es/trac/iwwem/browser/trunk/t1backend</url>
+	</scm>
 	<build>
 		<plugins>
 			<plugin>
@@ -133,34 +144,38 @@
 		</repository>
 		-->
 	</repositories>
+	<properties>
+		<raven.version>1.9</raven.version>
+		<taverna.version>1.7.2.1</taverna.version>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>uk.org.mygrid.taverna.raven</groupId>
 			<artifactId>raven</artifactId>
-			<version>1.9</version>
+			<version>${raven.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>uk.org.mygrid.taverna</groupId>
 			<artifactId>taverna-core</artifactId>
-			<version>1.7.2.1</version>
+			<version>${taverna.version}</version>
 		</dependency>
 		<!-- For DotView -->
 		<dependency>
 			<groupId>uk.org.mygrid.taverna.scufl</groupId>
 			<artifactId>scufl-model</artifactId>
-			<version>1.7.2.1</version>
+			<version>${taverna.version}</version>
 		</dependency>
 		<!-- For WorkflowLauncher -->
 		<dependency>
 			<groupId>uk.org.mygrid.taverna.scufl</groupId>
 			<artifactId>scufl-tools</artifactId>
-			<version>1.7.2.1</version>
+			<version>${taverna.version}</version>
 		</dependency>
 		<!-- For WorkflowEventListener -->
 		<dependency>
 			<groupId>uk.org.mygrid.taverna</groupId>
 			<artifactId>taverna-enactor</artifactId>
-			<version>1.7.2.1</version>
+			<version>${taverna.version}</version>
 		</dependency>
 		
 		<!-- Other dependencies -->
@@ -200,6 +215,7 @@
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
 			<version>3.0</version>
+		</dependency>
 		<!-- For Batik transcoding -->
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
@@ -222,7 +238,7 @@
 		<dependency>
 			<groupId>uk.org.mygrid.taverna.scufl.scufl-ui-components</groupId>
 			<artifactId>svg-diagram</artifactId>
-			<version>1.7.2.1</version>
+			<version>${taverna.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>batik</groupId>
