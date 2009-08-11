@@ -306,7 +306,8 @@ public class INBWorkflowParserWrapper {
 		{"org.apache.xmlgraphics","batik-swing","1.7"},
 //		{"org.freehep","freehep-graphicsio-emf","2.1.1"},
 		{"xerces","xercesImpl","2.6.2"},
-		{"xalan","xalan","2.5.2"},
+		// These one should be 2.5.2 but batik needs something better
+		{"xalan","xalan","2.6.0"},
 	};
 
 	private static final String[][] ExternalArtifactList={
