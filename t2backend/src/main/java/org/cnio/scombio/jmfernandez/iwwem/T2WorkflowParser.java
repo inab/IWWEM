@@ -3,7 +3,9 @@ package org.cnio.scombio.jmfernandez.iwwem;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +19,15 @@ import net.sf.taverna.t2.platform.taverna.InvocationContextFactory;
 import net.sf.taverna.t2.platform.taverna.TavernaBaseProfile;
 import net.sf.taverna.t2.platform.taverna.WorkflowParser;
 import net.sf.taverna.t2.reference.T2Reference;
+//import net.sf.taverna.t2.reference.ui.WorkflowLaunchPanel;
+import net.sf.taverna.t2.workbench.models.graph.svg.SVGGraphController;
+import net.sf.taverna.t2.workbench.models.graph.svg.SVGUtil;
+import net.sf.taverna.t2.workbench.models.graph.DotWriter;
+import net.sf.taverna.t2.workbench.models.graph.Graph;
+import net.sf.taverna.t2.workbench.models.graph.GraphController;
+import net.sf.taverna.t2.workbench.models.graph.GraphEdge;
+import net.sf.taverna.t2.workbench.models.graph.GraphNode;
+import net.sf.taverna.t2.workbench.views.graph.GraphViewComponent;
 import net.sf.taverna.t2.workflowmodel.Dataflow;
 import net.sf.taverna.t2.workflowmodel.DataflowValidationReport;
 import net.sf.taverna.t2.workflowmodel.EditException;
@@ -156,6 +167,33 @@ public class T2WorkflowParser {
 				if(!dvr.isValid()) {
 					System.err.println("Something smells rotten in Denmark");
 				}
+				
+				GraphController graphController = new GraphController(workflow, null) {
+
+					public GraphEdge createGraphEdge() {
+						return new GraphEdge(this);
+					}
+
+					public Graph createGraph() {
+						return new Graph(this);
+					}
+
+					public GraphNode createGraphNode() {
+						return new GraphNode(this);
+					}
+
+					public void redraw() {
+
+					}
+
+				};
+                // Just write out the dot text, no processing required
+                PrintWriter out = new PrintWriter(new FileWriter("/tmp/jarl.dot"));
+                DotWriter dotWriter = new DotWriter(out);
+                dotWriter.writeGraph(graphController.getGraph());
+                out.flush();
+                out.close();
+				
 
 				Enactor e = profile.getEnactor();
 				WorkflowInstanceFacade instance = e.createFacade(workflow,ic);

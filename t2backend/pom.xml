@@ -3,9 +3,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<parent>
-		<artifactId>iwwem-backends</artifactId>
-		<groupId>org.cnio.scombio.jmfernandez.iwwem.builds</groupId>
-		<version>0.5</version>
+		<artifactId>parent</artifactId>
+		<groupId>org.cnio.scombio.jmfernandez.iwwem</groupId>
+		<version>0.5.0</version>
+		<relativePath>../parentPom/pom.xml</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -13,6 +14,7 @@
 	<artifactId>t2backend</artifactId>
 	<version>0.1.0</version>
 
+	<packaging>pom</packaging>
 	<name>Example application showing use of the T2 platform</name>
 
 	<description>Command line driven T2 platform application.</description>
@@ -23,7 +25,73 @@
 	<properties>
 		<app.parserClass>org.cnio.scombio.jmfernandez.iwwem.T2WorkflowParser</app.parserClass>
 		<app.launcherClass>org.cnio.scombio.jmfernandez.iwwem.T2WorkflowLauncher</app.launcherClass>
+		<t2.ui.components.version>0.9</t2.ui.components.version>
 	</properties>
+	<dependencies>
+		<!--
+			Depend on platform-taverna-api to pull in the platform artifacts
+		-->
+		<dependency>
+			<groupId>net.sf.taverna.t2</groupId>
+			<artifactId>platform-taverna-api</artifactId>
+			<version>p0.1b1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-web</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-collections</groupId>
+					<artifactId>commons-collections</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.15</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.sun.jmx</groupId>
+					<artifactId>jmxri</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.jdmk</groupId>
+					<artifactId>jmxtools</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.jms</groupId>
+					<artifactId>jms</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.mail</groupId>
+					<artifactId>mail</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.taverna.t2.ui-components</groupId>
+			<artifactId>graph-model</artifactId>
+			<version>${t2.ui.components.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+	        <groupId>net.sf.taverna.t2.ui-components</groupId>
+	        <artifactId>graph-view</artifactId>
+			<version>${t2.ui.components.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
 
 	<repositories>
 		<repository>
@@ -45,11 +113,40 @@
 			<url>http://www.mygrid.org.uk/maven/repository</url>
 		</repository>
 		<repository>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots />
+			<id>mygrid-snapshot-repository</id>
+			<name>myGrid Snapshot Repository</name>
+			<url>
+				http://www.mygrid.org.uk/maven/snapshot-repository
+			</url>
+		</repository>
+		<repository>
+			<releases />
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>restlet</id>
+			<name>Restlet repository</name>
+			<url>http://maven.restlet.org</url>
+		</repository>
+		<repository>
 			<releases />
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
 			<id>mygrid-mirror</id>
+			<name>myGrid maven proxy server</name>
+			<url>http://www.mygrid.org.uk/maven/proxy/repository</url>
+		</repository>
+		<repository>
+			<releases />
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>mygrid-mirror-old</id>
 			<name>myGrid maven proxy server</name>
 			<url>http://www.mygrid.org.uk/maven/repo1</url>
 		</repository>
@@ -92,45 +189,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<dependencies>
-		<!--
-			Depend on platform-taverna-api to pull in the platform artifacts
-		-->
-		<dependency>
-			<groupId>net.sf.taverna.t2</groupId>
-			<artifactId>platform-taverna-api</artifactId>
-			<version>p0.1b1</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-web</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.sun.jmx</groupId>
-					<artifactId>jmxri</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jdmk</groupId>
-					<artifactId>jmxtools</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.jms</groupId>
-					<artifactId>jms</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.mail</groupId>
-					<artifactId>mail</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-	</dependencies>
-
 </project>
