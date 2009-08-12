@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	This file is part of IWWE&M, the Interactive Web Workflow Enactor & Manager.
+
+	IWWE&M is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	IWWE&M is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
+
+	Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
+	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.cnio.scombio.jmfernandez.iwwem</groupId>
+	<artifactId>parent</artifactId>
+	<version>0.5.0</version>
+	<packaging>pom</packaging>
+	<name>IWWE&amp;M backends Maven parent</name>
+	<description>
+		General POM file for IWWE&amp;M backends
+	</description>
+	<issueManagement>
+		<system>trac</system>
+		<url>http://trac.bioinfo.cnio.es/trac/iwwem/newticket</url>
+	</issueManagement>
+	<inceptionYear>2009</inceptionYear>
+	<developers>
+		<developer>
+			<id>jmfernandez</id>
+			<name>José María Fernández González</name>
+			<email>jmfernandez@cnio.es</email>
+			<timezone>(GMT+01:00) Brussels, Copenhagen, Madrid, Paris</timezone>
+			<roles>
+				<role></role>
+			</roles>
+		</developer>
+	</developers>
+	<licenses>
+		<license>
+			<name>GNU Affero General Public License</name>
+			<url>http://www.gnu.org/licenses/agpl-3.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<scm>
+		<connection>scm:svn:http://trac.bioinfo.cnio.es/svn/iwwem/trunk/parentPom/</connection>
+		<developerConnection>scm:svn:http://trac.bioinfo.cnio.es/svn/iwwem/trunk/parentPom/</developerConnection>
+		<url>http://trac.bioinfo.cnio.es/trac/iwwem/browser/trunk/parentPom</url>
+	</scm>
+	<organization>
+		<name>INB</name>
+		<url>http://www.inab.org/</url>
+	</organization>
+</project>

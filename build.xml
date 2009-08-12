@@ -104,7 +104,11 @@
 		</exec>
 	</target>
 	
-	<target name="compile.backends" depends="init" description="Compilation of Java/Maven backend modules">
+	<target name="compile.backends" depends="compile.t1backend" description="Compilation of Java/Maven backend modules">
+		<!-- In the near future this will depend on compile.t2backend -->
+	</target>
+	
+	<target name="compile.t1backend" depends="init" description="Compilation of Java/Maven Taverna 1.x backend">
 		<exec executable="mvn" dir="t1backend" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
 			<arg value="-e"/>
@@ -113,7 +117,9 @@
 			<arg value="package"/>
 			<arg value="appassembler:assemble"/>
 		</exec>
-		<!--
+	</target>
+	
+	<target name="compile.t2backend" depends="init" description="Compilation of Java/Maven Taverna 2.x backend">
 		<exec executable="mvn" dir="t2backend" failonerror="true">
 			<env key="IWWEM_WEBLAUNCHER" value="${iwwem.weblauncher.src}"/>
 			<arg value="-e"/>
@@ -122,7 +128,6 @@
 			<arg value="package"/>
 			<arg value="assembly:assembly"/>
 		</exec>
-		-->
 	</target>
 	
 	<target name="compile.frontends" depends="init" description="Checking of Perl frontend modules">
