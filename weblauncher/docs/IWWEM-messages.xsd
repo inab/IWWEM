@@ -2,7 +2,8 @@
 <xsd:schema targetNamespace="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend"
     elementFormDefault="qualified" attributeFormDefault="unqualified"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:iwwem="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend">
+    xmlns:iwwem="http://www.cnio.es/scombio/jmfernandez/inb/IWWEM/frontend"
+    version="0.7.1">
     <xsd:annotation>
         <xsd:documentation><![CDATA[$Id$
 	
@@ -160,6 +161,12 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
         </xsd:complexType>
     </xsd:element>
 
+    <xsd:element name="description" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Available documentation related to a workflow, an input, output, example, etc... It might be in HTML]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:complexType name="IODesc">
         <xsd:annotation>
             <xsd:documentation><![CDATA[Generic complex type for described inputs & outputs]]></xsd:documentation>
@@ -167,7 +174,7 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
         <xsd:complexContent>
             <xsd:extension base="iwwem:IORepType">
                 <xsd:sequence>
-                    <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                    <xsd:element ref="iwwem:description" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation><![CDATA[Available documentation related to this input/output. It might be in HTML]]></xsd:documentation>
                         </xsd:annotation>
@@ -307,16 +314,20 @@ web services by José María Fernández González, 2007.]]></xsd:documentation>
 The textual content of this element is the description of the example (possibly HTML in a CDATA)]]></xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
-            <xsd:simpleContent>
-                <xsd:extension base="xsd:string">
-                    <xsd:attributeGroup ref="iwwem:catalogAttrs"/>
-                    <xsd:attribute name="path" type="xsd:anyURI" use="required">
-                        <xsd:annotation>
-                            <xsd:documentation><![CDATA[The relative URL to the Baclava file]]></xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:attribute>
-                </xsd:extension>
-            </xsd:simpleContent>
+        	<xsd:sequence>
+        		<xsd:element ref="iwwem:responsible" minOccurs="0" maxOccurs="unbounded"/>
+        		<xsd:element ref="iwwem:description" minOccurs="0" maxOccurs="1">
+        			<xsd:annotation>
+        				<xsd:documentation>The textual content of this element is the description of the example (possibly HTML in a CDATA)</xsd:documentation>
+        			</xsd:annotation>
+        		</xsd:element>
+        	</xsd:sequence>
+            <xsd:attributeGroup ref="iwwem:catalogAttrs"/>
+            <xsd:attribute name="path" type="xsd:anyURI" use="required">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[The relative URL to the Baclava file]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
 
@@ -325,11 +336,15 @@ The textual content of this element is the description of the example (possibly 
             <xsd:documentation><![CDATA[Snapshots from workflow executions. The textual content of this element is the description of the snapshot (possibly HTML in a CDATA)]]></xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
-            <xsd:simpleContent>
-                <xsd:extension base="xsd:string">
-                    <xsd:attributeGroup ref="iwwem:catalogAttrs"/>
-                </xsd:extension>
-            </xsd:simpleContent>
+        	<xsd:sequence>
+        		<xsd:element ref="iwwem:responsible" minOccurs="0" maxOccurs="unbounded"/>
+        		<xsd:element ref="iwwem:description" minOccurs="0" maxOccurs="1">
+        			<xsd:annotation>
+        				<xsd:documentation>The textual content of this element is the description of the snapshot (possibly HTML in a CDATA)</xsd:documentation>
+        			</xsd:annotation>
+        		</xsd:element>
+        	</xsd:sequence>
+            <xsd:attributeGroup ref="iwwem:catalogAttrs"/>
         </xsd:complexType>
     </xsd:element>
 
@@ -524,7 +539,8 @@ The textual content of this element is the description of the example (possibly 
                 <xsd:element name="release" minOccurs="1" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence minOccurs="1" maxOccurs="1">
-                            <xsd:element name="description" type="xsd:string" minOccurs="1" maxOccurs="1">
+                        	<xsd:element ref="iwwem:responsible" minOccurs="0" maxOccurs="unbounded"/>
+                            <xsd:element ref="iwwem:description" minOccurs="1" maxOccurs="1">
                                 <xsd:annotation>
                                     <xsd:documentation><![CDATA[Available documentation related to the workflow. It might be in HTML]]></xsd:documentation>
                                 </xsd:annotation>
@@ -788,6 +804,7 @@ this element is included to tell that it was done properly.
                     </xsd:annotation>
                     <xsd:complexType>
                         <xsd:sequence minOccurs="1" maxOccurs="1">
+                        	<xsd:element ref="iwwem:responsible" minOccurs="0" maxOccurs="1"/>
                             <xsd:choice minOccurs="0" maxOccurs="1">
                                 <xsd:element name="enactionReport" minOccurs="1" maxOccurs="1">
                                     <xsd:annotation>
@@ -1023,6 +1040,17 @@ this element is included to tell that it was done properly.
         </xsd:annotation>
         <xsd:complexType>
             <xsd:attributeGroup ref="iwwem:responsibleAttrs"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="responsibles">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[Structure of new internal responsible files]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+            	<xsd:element ref="iwwem:responsible" minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
 </xsd:schema>
