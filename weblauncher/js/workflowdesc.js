@@ -64,7 +64,7 @@ function InputExample(workflow,inEx) {
 
 InputExample.prototype = {
 	getQualifiedUUID: function() {
-		return 'example:'+this.workflow.uuid+':'+this.uuid;
+		return 'example:'+this.workflow.reluuid+':'+this.uuid;
 	},
 	
 	getExamplePath: function() {
@@ -94,7 +94,7 @@ function OutputSnapshot(workflow,ouSn) {
 
 OutputSnapshot.prototype = {
 	getQualifiedUUID: function() {
-		return 'snapshot:'+this.workflow.uuid+':'+this.uuid;
+		return 'snapshot:'+this.workflow.reluuid+':'+this.uuid;
 	},
 	
 	generateOption: function (/* optional */ thedoc) {
@@ -188,6 +188,9 @@ function WorkflowDesc(wfD,WFBase) {
 	}
 	
 	this.uuid = wfD.getAttribute('uuid');
+	var workflowToken='workflow:';
+	this.reluuid =(this.uuid.indexOf(workflowToken)==0)?this.uuid.substring(workflowToken.length):this.uuid;
+	
 	this.title = wfD.getAttribute('title');
 	if(!this.isReference) {
 		this.path = wfD.getAttribute('path');
