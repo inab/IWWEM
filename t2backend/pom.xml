@@ -1,96 +1,134 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+	
 	<parent>
 		<artifactId>parent</artifactId>
 		<groupId>org.cnio.scombio.jmfernandez.iwwem</groupId>
 		<version>0.5.0</version>
 		<relativePath>../parentPom/pom.xml</relativePath>
+		<!--
+		<groupId>net.sf.taverna.t2.taverna-commandline</groupId>
+		<artifactId>taverna-commandline</artifactId>
+		<version>1.2</version>
+		-->
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
-
+	
+	<!--
+	<groupId>net.sf.taverna.t2.taverna-commandline</groupId>
+	<artifactId>taverna-commandline-common</artifactId>
+	<packaging>jar</packaging>
+	-->
 	<groupId>org.cnio.scombio.jmfernandez.iwwem</groupId>
 	<artifactId>t2backend</artifactId>
-	<version>0.1.0</version>
+	<packaging>jar</packaging>
+	<version>0.2.0</version>
 
-	<packaging>pom</packaging>
-	<name>Example application showing use of the T2 platform</name>
 
-	<description>Command line driven T2 platform application.</description>
+	<name>Taverna 2.2.x Commandline for IWWEM</name>
 
+	<description>Command line driven Taverna 2.2.x platform application.</description>
+	
 	<!--
-		Property to determine the main class launched by the shell scripts
+		From engine/net.sf.taverna.t2.taverna-commandline/pom.xml
+		in Taverna 2.2 source code
 	-->
 	<properties>
-		<app.parserClass>org.cnio.scombio.jmfernandez.iwwem.T2WorkflowParser</app.parserClass>
-		<app.launcherClass>org.cnio.scombio.jmfernandez.iwwem.T2WorkflowLauncher</app.launcherClass>
-		<t2.ui.components.version>0.9</t2.ui.components.version>
+		<app.prelauncherClass>org.cnio.scombio.jmfernandez.iwwem.t2backend.PreLauncher</app.prelauncherClass>
+		<app.wfparserClass>org.cnio.scombio.jmfernandez.iwwem.t2backend.T2IWWEMParser</app.wfparserClass>
+		<app.wflauncherClass>org.cnio.scombio.jmfernandez.iwwem.t2backend.T2IWWEMLauncher</app.wflauncherClass>
+
+		<t2.core.version>1.2</t2.core.version>
+		<t2.reference-core-extensions.version>1.2</t2.reference-core-extensions.version>
+		<t2.infrastructure.version>2.2</t2.infrastructure.version>
+		<t2.core.provenanceconnector.version>1.2</t2.core.provenanceconnector.version>
+		<taverna.version>1.7.2.2</taverna.version>
+		<t2.ui-components.version>1.2</t2.ui-components.version>
 	</properties>
 	<dependencies>
-		<!--
-			Depend on platform-taverna-api to pull in the platform artifacts
-		-->
+
 		<dependency>
-			<groupId>net.sf.taverna.t2</groupId>
-			<artifactId>platform-taverna-api</artifactId>
-			<version>p0.1b1</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-web</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-collections</groupId>
-					<artifactId>commons-collections</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>net.sf.taverna.t2.infrastructure</groupId>
+			<artifactId>launcher</artifactId>
+			<version>${t2.infrastructure.version}</version>
 		</dependency>
+		
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.sun.jmx</groupId>
-					<artifactId>jmxri</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jdmk</groupId>
-					<artifactId>jmxtools</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.jms</groupId>
-					<artifactId>jms</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.mail</groupId>
-					<artifactId>mail</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>net.sf.taverna.t2.infrastructure</groupId>
+			<artifactId>launcher-api</artifactId>
+			<version>${t2.infrastructure.version}</version>
 		</dependency>
+
 		<dependency>
-			<groupId>net.sf.taverna.t2.ui-components</groupId>
-			<artifactId>graph-model</artifactId>
-			<version>${t2.ui.components.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>log4j</artifactId>
-					<groupId>log4j</groupId>
-				</exclusion>
-			</exclusions>
+			<groupId>net.sf.taverna.t2.core</groupId>
+			<artifactId>workflowmodel-api</artifactId>
+			<version>${t2.core.version}</version>
 		</dependency>
+
 		<dependency>
-	        <groupId>net.sf.taverna.t2.ui-components</groupId>
-	        <artifactId>graph-view</artifactId>
-			<version>${t2.ui.components.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>log4j</artifactId>
-					<groupId>log4j</groupId>
-				</exclusion>
-			</exclusions>
+			<groupId>uk.org.mygrid.taverna.baclava</groupId>
+			<artifactId>baclava-core</artifactId>
+			<version>${taverna.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>net.sf.taverna.t2.ui-impl</groupId>
+			<artifactId>data-management-config</artifactId>
+			<version>${t2.core.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.taverna.t2.core</groupId>
+			<artifactId>reference-impl</artifactId>
+			<version>${t2.core.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.taverna.t2.core</groupId>
+			<artifactId>provenanceconnector</artifactId>
+			<version>${t2.core.provenanceconnector.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.taverna.t2.core</groupId>
+			<artifactId>reference-core-extensions</artifactId>
+			<version>${t2.reference-core-extensions.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-cli</groupId>
+			<artifactId>commons-cli</artifactId>
+			<version>1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.4</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>uk.org.mygrid.resources.mimeutil</groupId>
+			<artifactId>mime-util</artifactId>
+			<version>2.1.2-3</version>
+		</dependency>
+		
+		<!-- Should not be done here, but inside app -->
+		<dependency>
+			<groupId>org.odftoolkit</groupId>
+			<artifactId>odfdom-java</artifactId>
+			<version>0.7</version>
+		</dependency>
+
+		<!--  TEST -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.4</version>
+			<scope>test</scope>
+		</dependency>
+		
 	</dependencies>
 
 	<repositories>
@@ -99,9 +137,36 @@
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
-			<id>cyclonic</id>
-			<name>Cyclonic.org repository</name>
-			<url>http://www.cyclonic.org/t2platform/repository</url>
+			<id>mygrid-repo1</id>
+			<name>myGrid Repo1</name>
+			<url>http://www.mygrid.org.uk/maven/repo1/</url>
+		</repository>
+		<repository>
+			<releases />
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>mygrid-biomoby</id>
+			<name>myGrid BioMOBY</name>
+			<url>http://www.mygrid.org.uk/maven/biomoby/biomoby.org/m2repo</url>
+		</repository>
+		<repository>
+			<releases />
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>odf-toolkit</id>
+			<name>ODF Toolkit</name>
+			<url>http://odftoolkit.org/svn/odfdom~maven2/release/</url>
+		</repository>
+		<repository>
+			<releases />
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>tupelo-repository</id>
+			<name>tupelo Repository</name>
+			<url>http://dlt-dev.ncsa.uiuc.edu/m2/</url>
 		</repository>
 		<repository>
 			<releases />
@@ -119,10 +184,31 @@
 			<snapshots />
 			<id>mygrid-snapshot-repository</id>
 			<name>myGrid Snapshot Repository</name>
-			<url>
-				http://www.mygrid.org.uk/maven/snapshot-repository
-			</url>
+			<url>http://www.mygrid.org.uk/maven/snapshot-repository</url>
 		</repository>
+		<repository>
+			<id>mobycentral</id>
+			<name>MobyCentral Repository</name>
+			<!--
+			<url>http://mobycentral.icapture.ubc.ca/maven</url>
+			-->
+			<url>http://moby.ucalgary.ca/moby_maven/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases />
+		</repository>
+		<!--
+		<repository>
+			<releases />
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>cyclonic</id>
+			<name>Cyclonic.org repository</name>
+			<url>http://www.cyclonic.org/t2platform/repository</url>
+		</repository>
+		-->
 		<repository>
 			<releases />
 			<snapshots>
@@ -141,6 +227,7 @@
 			<name>myGrid maven proxy server</name>
 			<url>http://www.mygrid.org.uk/maven/proxy/repository</url>
 		</repository>
+		<!--
 		<repository>
 			<releases />
 			<snapshots>
@@ -150,15 +237,20 @@
 			<name>myGrid maven proxy server</name>
 			<url>http://www.mygrid.org.uk/maven/repo1</url>
 		</repository>
+		-->
 	</repositories>
 
-	<inceptionYear>2009</inceptionYear>
+
+	<inceptionYear>2011</inceptionYear>
 	<scm>
 		<connection>scm:svn:http://trac.bioinfo.cnio.es/svn/iwwem/trunk/t2backend/</connection>
 		<developerConnection>scm:svn:http://trac.bioinfo.cnio.es/svn/iwwem/trunk/t2backend/</developerConnection>
 		<url>http://trac.bioinfo.cnio.es/trac/iwwem/browser/trunk/t2backend</url>
 	</scm>
 	<build>
+		<!--
+		<defaultGoal>assembly:assembly</defaultGoal>
+		-->
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -171,7 +263,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2-beta-2</version>
+				<version>2.2-beta-4</version>
 				<configuration>
 					<finalName>t2backend</finalName>
 					<appendAssemblyId>true</appendAssemblyId>
@@ -186,7 +278,17 @@
 						<!-- Add more descriptor elements here -->
 					</descriptors>
 				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id> <!-- this is used for inheritance merges -->
+						<phase>package</phase> <!-- append to the packaging phase. -->
+						<goals>
+							<goal>single</goal> <!-- goals == mojos -->
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
+
 </project>

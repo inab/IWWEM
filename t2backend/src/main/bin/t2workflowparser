@@ -1,3 +1,4 @@
+#!/bin/sh
 BINDIR="`dirname "$0"`"
 
 case "$BINDIR" in
@@ -7,4 +8,34 @@ case "$BINDIR" in
 		BINDIR="$PWD"/"$BINDIR"
 esac
 
-exec java "-Dplatform.home=$BINDIR/platform" -cp "$BINDIR"/${artifactId}-code.jar:"$BINDIR"/${artifactId}-dependencies.jar:"$BINDIR"/conf ${app.parserClass} "$@"
+# Setting repository dir if it is not available or set
+if [ -z "$REPODIR" ] ; then
+	if [ -n "$IWWEM_WEBLAUNCHER" ] ; then
+		REPODIR="${IWWEM_WEBLAUNCHER}"/cgi-bin/Backends/t2backend-spring
+	else
+		REPODIR="$BINDIR"/repository
+	fi
+fi
+
+#exec java \
+#	"-Draven.profile=file://$BINDIR/conf/current-profile.xml" \
+#	"-Dtaverna.startup=$BINDIR" \
+#	"-Dplatform.home=$BINDIR/platform" \
+#	-Djava.system.class.loader=net.sf.taverna.raven.prelauncher.BootstrapClassLoader \
+#	-Dnet.sf.taverna.raven.launcher.Launchable=${app.launcherClass} \
+#	-Draven.launcher.app.main=${app.launcherClass} \
+#	-Draven.launcher.show_splashscreen=false \
+#	-cp "$BINDIR"/${artifactId}-code.jar:"$BINDIR"/${artifactId}-dependencies.jar:"$BINDIR"/conf \
+#	net.sf.taverna.raven.prelauncher.PreLauncher "$@"
+
+#	-Draven.launcher.app.main=${app.launcherClass} \
+
+exec java \
+	"-Draven.profile=file://$BINDIR/conf/current-profile.xml" \
+	"-Dtaverna.startup=$BINDIR" \
+	"-Dplatform.home=$BINDIR/platform" \
+	-Djava.system.class.loader=net.sf.taverna.raven.prelauncher.BootstrapClassLoader \
+	-Draven.launcher.app.main=${app.wfparserClass} \
+	"-Draven.launcher.repository.local=$REPODIR" \
+	-cp "$BINDIR"/${artifactId}-code.jar:"$BINDIR"/${artifactId}-dependencies.jar:"$BINDIR"/conf \
+	${app.prelauncherClass} "$@"

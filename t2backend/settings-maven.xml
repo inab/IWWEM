@@ -16,7 +16,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
 
-Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
+Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008-2011.
 Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 -->
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -29,6 +29,42 @@ Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 				<activeByDefault>false</activeByDefault>
 			</activation>
 			<repositories>
+				<repository>
+					<releases />
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<id>mygrid-repo1</id>
+					<name>myGrid Repo1</name>
+					<url>http://www.mygrid.org.uk/maven/repo1/</url>
+				</repository>
+				<repository>
+					<releases />
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<id>mygrid-biomoby</id>
+					<name>myGrid BioMOBY</name>
+					<url>http://www.mygrid.org.uk/maven/biomoby/biomoby.org/m2repo</url>
+				</repository>
+				<repository>
+					<releases />
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<id>odf-toolkit</id>
+					<name>ODF Toolkit</name>
+					<url>http://odftoolkit.org/svn/odfdom~maven2/release/</url>
+				</repository>
+				<repository>
+					<releases />
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<id>tupelo-repository</id>
+					<name>tupelo Repository</name>
+					<url>http://dlt-dev.ncsa.uiuc.edu/m2/</url>
+				</repository>
 				<repository>
 					<releases />
 					<snapshots>
@@ -59,6 +95,46 @@ Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 					</snapshots>
 					<releases />
 				</repository>
+				<!--
+				<repository>
+					<releases />
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<id>cyclonic</id>
+					<name>Cyclonic.org repository</name>
+					<url>http://www.cyclonic.org/t2platform/repository</url>
+				</repository>
+				-->
+				<repository>
+					<releases />
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<id>restlet</id>
+					<name>Restlet repository</name>
+					<url>http://maven.restlet.org</url>
+				</repository>
+				<repository>
+					<releases />
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<id>mygrid-mirror</id>
+					<name>myGrid maven proxy server</name>
+					<url>http://www.mygrid.org.uk/maven/proxy/repository</url>
+				</repository>
+				<!--
+				<repository>
+					<releases />
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+					<id>mygrid-mirror-old</id>
+					<name>myGrid maven proxy server</name>
+					<url>http://www.mygrid.org.uk/maven/repo1</url>
+				</repository>
+				-->
 			</repositories>
 		</profile>
 	</profiles>

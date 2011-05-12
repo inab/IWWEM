@@ -1,0 +1,332 @@
+/*
+	$Id$
+	T2IWWEMParser.java
+	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
+	Author: José María Fernández González (C) 2008-2011
+	Institutions:
+	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
+	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
+	
+	This modified file is part of IWWE&M, the Interactive Web Workflow Enactor & Manager.
+
+	IWWE&M is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	IWWE&M is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
+
+	Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
+	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
+*/
+
+/* Original Copyright */
+/*******************************************************************************
+ * Copyright (C) 2007 The University of Manchester   
+ * 
+ *  Modifications to the initial code base are copyright of their
+ *  respective authors, or their employers as appropriate.
+ * 
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public License
+ *  as published by the Free Software Foundation; either version 2.1 of
+ *  the License, or (at your option) any later version.
+ *    
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *    
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+ ******************************************************************************/
+package org.cnio.scombio.jmfernandez.iwwem.t2backend;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.naming.NamingException;
+
+import net.sf.taverna.platform.spring.RavenAwareClassPathXmlApplicationContext;
+import net.sf.taverna.raven.launcher.Launchable;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.DatabaseConfigurationHandler;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.InputsHandler;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.SaveResultsHandler;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.DatabaseConfigurationException;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.InvalidOptionException;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.OpenDataflowException;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.ReadInputException;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.options.T2IWWEMLauncherOptions;
+import net.sf.taverna.t2.facade.WorkflowInstanceFacade;
+import net.sf.taverna.t2.invocation.InvocationContext;
+import net.sf.taverna.t2.invocation.TokenOrderException;
+import net.sf.taverna.t2.invocation.WorkflowDataToken;
+import net.sf.taverna.t2.provenance.ProvenanceConnectorFactory;
+import net.sf.taverna.t2.provenance.ProvenanceConnectorFactoryRegistry;
+import net.sf.taverna.t2.provenance.connector.ProvenanceConnector;
+import net.sf.taverna.t2.reference.ReferenceService;
+import net.sf.taverna.t2.workbench.reference.config.DataManagementConfiguration;
+import net.sf.taverna.t2.workflowmodel.Dataflow;
+import net.sf.taverna.t2.workflowmodel.DataflowInputPort;
+import net.sf.taverna.t2.workflowmodel.DataflowOutputPort;
+import net.sf.taverna.t2.workflowmodel.DataflowValidationReport;
+import net.sf.taverna.t2.workflowmodel.EditException;
+import net.sf.taverna.t2.workflowmodel.Edits;
+import net.sf.taverna.t2.workflowmodel.EditsRegistry;
+import net.sf.taverna.t2.workflowmodel.InvalidDataflowException;
+import net.sf.taverna.t2.workflowmodel.serialization.DeserializationException;
+import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLDeserializer;
+import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLDeserializerRegistry;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.RollingFileAppender;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.input.SAXBuilder;
+import org.springframework.context.ApplicationContext;
+
+/**
+ * A utility class that wraps the process of validating a workflow, allowing
+ * workflows to be easily validated independently of the GUI.
+ * 
+ * @author Stuart Owen
+ * @author José María Fernández
+ */
+
+public class T2IWWEMParser
+	implements Launchable
+{
+
+	private static Logger logger = Logger.getLogger(T2IWWEMParser.class);
+
+	/**
+	 * Main method, purely for development and debugging purposes. Full
+	 * execution of workflows will not work through this method.
+	 * 
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void main(String[] args) {
+		new T2IWWEMParser().launch(args);
+	}
+	
+	public int launch(String[] args)
+	{
+		try {
+			Dataflow dataflow = launchInternal(args);
+			return dataflow!=null ? 0 : 1;
+		} catch (EditException e) {
+			error("There was an error opening the workflow: " + e.getMessage());
+		} catch (DeserializationException e) {
+			error("There was an error opening the workflow: " + e.getMessage());
+		} catch (InvalidDataflowException e) {
+			error("There was an error validating the workflow: " + e.getMessage());
+		} catch (TokenOrderException e) {
+			error("There was an error starting the workflow execution: " + e.getMessage());
+		} catch (InvalidOptionException e) {
+			error(e.getMessage());
+		} catch (ReadInputException e) {
+			error(e.getMessage());
+		} catch (OpenDataflowException e) {
+			error(e.getMessage());
+		} catch (DatabaseConfigurationException e) {
+			error(e.getMessage());
+		}
+		return 0;
+	}
+	
+	protected Dataflow launchInternal(String[] args)
+		throws EditException, DeserializationException, InvalidDataflowException,
+			TokenOrderException, InvalidOptionException, ReadInputException,
+			OpenDataflowException, DatabaseConfigurationException
+	{
+		T2IWWEMLauncherOptions options = new T2IWWEMLauncherOptions(args);
+		initialiseLogging(options);
+		return setupAndExecute(args,options);
+	}
+	
+	private void initialiseLogging(T2IWWEMLauncherOptions options)
+	{
+		LogManager.resetConfiguration();
+
+		if (System.getProperty("log4j.configuration") == null) {
+			try {
+				PropertyConfigurator.configure(
+					T2IWWEMLauncher.class.getClassLoader()
+						.getResource("cl-log4j.properties")
+						.toURI()
+						.toURL()
+				);
+			} catch (MalformedURLException e) {
+				logger.error(
+					"There was a serious error reading the default logging configuration",
+					e
+				);
+			} catch (URISyntaxException e) {
+				logger.error(
+					"There was a serious error reading the default logging configuration",
+					e
+				);
+			}
+						
+		} else {			
+			PropertyConfigurator.configure(System.getProperty("log4j.configuration"));
+		}	
+		
+		if (options.hasLogFile()) {
+			RollingFileAppender appender;
+			try {
+				PatternLayout layout = new PatternLayout("%-5p %d{ISO8601} (%c:%L) - %m%n");
+				appender = new RollingFileAppender(layout, options.getLogFile());
+				appender.setMaxFileSize("1MB");
+				appender.setEncoding("UTF-8");
+				appender.setMaxBackupIndex(4);
+				// Let root logger decide level
+				appender.setThreshold(Level.ALL);
+				LogManager.getRootLogger().addAppender(appender);
+			} catch (IOException e) {
+				System.err.println("Could not log to " + options.getLogFile());
+			}
+		}
+	}
+
+	public Dataflow setupAndExecute(String[] args,T2IWWEMLauncherOptions options)
+		throws InvalidOptionException, EditException, DeserializationException,
+			InvalidDataflowException, TokenOrderException, ReadInputException,
+			OpenDataflowException, DatabaseConfigurationException
+	{
+		Dataflow dataflow = null;
+		if (!options.askedForHelp()) {
+			setupDatabase(options);
+
+			if (options.getWorkflow() != null) {
+				URL workflowURL = readWorkflowURL(options.getWorkflow());
+
+				dataflow = openDataflow(workflowURL);
+				validateDataflow(dataflow);
+			}
+		} else {
+			options.displayHelp();
+		}
+
+		// wait until user hits CTRL-C before exiting
+		if (options.getStartDatabaseOnly()) {
+			// FIXME: need to do this more gracefully.
+			while (true) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					return dataflow;
+				}
+			}
+		}
+
+		return dataflow;
+	}
+
+	protected void validateDataflow(Dataflow dataflow)
+		throws InvalidDataflowException
+	{
+		// FIXME: this needs expanding upon to give more details info back to
+		// the user
+		// FIXME: added a getMessage to InvalidDataflowException may be good
+		// place to do this.
+		DataflowValidationReport report = dataflow.checkValidity();
+		if (!report.isValid()) {
+			throw new InvalidDataflowException(dataflow, report);
+		}
+	}
+
+	private void setupDatabase(T2IWWEMLauncherOptions options)
+		throws DatabaseConfigurationException
+	{
+		DatabaseConfigurationHandler dbHandler = new DatabaseConfigurationHandler(options);
+		dbHandler.configureDatabase();
+		if (!options.isInMemory()) {
+			try {
+				dbHandler.testDatabaseConnection();
+			} catch (NamingException e) {
+				throw new DatabaseConfigurationException(
+					"There was an error trying to setup the database datasource: " + e.getMessage(),
+					e
+				);
+			} catch (SQLException e) {
+				if (options.isClientServer()) {
+					throw new DatabaseConfigurationException(
+						"There was an error whilst making a test database connection. If running with -clientserver you should check that a server is running (check -startdb or -dbproperties)",
+						e
+					);
+				}
+				if (options.isEmbedded()) {
+					throw new DatabaseConfigurationException(
+						"There was an error whilst making a test database connection. If running with -embedded you should make sure that another process isn't using the database, or a server running through -startdb",
+						e
+					);
+				}
+			}
+		}
+	}
+
+	protected void error(String msg)
+	{
+		System.err.println(msg);
+		System.exit(-1);
+	}
+
+	private URL readWorkflowURL(String workflowOption)
+		throws OpenDataflowException
+	{
+		URL url;
+		try {
+			url = new URL("file:");
+			return new URL(url, workflowOption);
+		} catch (MalformedURLException e) {
+			throw new OpenDataflowException(
+				"The was an error processing the URL to the workflow: " + e.getMessage(),
+				e
+			);
+		}
+	}
+
+	protected Dataflow openDataflow(URL workflowURL)
+		throws DeserializationException, EditException, OpenDataflowException
+	{
+		XMLDeserializer deserializer = XMLDeserializerRegistry.getInstance().getDeserializer();
+		SAXBuilder builder = new SAXBuilder();
+		Element el;
+		try {
+			InputStream stream = workflowURL.openStream();
+			el = builder.build(stream).detachRootElement();
+		} catch (JDOMException e) {
+			throw new OpenDataflowException(
+				"There was a problem processing the workflow XML: " + e.getMessage(),
+				e
+			);
+		} catch (IOException e) {
+			throw new OpenDataflowException(
+				"There was a problem reading the workflow file: " + e.getMessage(),
+				e
+			);
+		}
+		return deserializer.deserializeDataflow(el);
+	}
+
+}
