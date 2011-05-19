@@ -55,7 +55,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,22 +91,35 @@ import net.sf.taverna.t2.workflowmodel.serialization.DeserializationException;
 import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLDeserializer;
 import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLDeserializerRegistry;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.RollingFileAppender;
+/*
+import net.sf.taverna.t2.utility.TypedTreeModel;
+import net.sf.taverna.t2.monitor.MonitorNode;
+*/
+
+import java.util.List;
+import net.sf.taverna.t2.lang.observer.Observable;
+import net.sf.taverna.t2.lang.observer.Observer;
+import net.sf.taverna.t2.workflowmodel.Processor;
+import net.sf.taverna.t2.workflowmodel.impl.ProcessorImpl;
+import net.sf.taverna.t2.workflowmodel.ProcessorFinishedEvent;
+import net.sf.taverna.t2.monitor.MonitorManager;
+import net.sf.taverna.t2.workflowmodel.ProcessorOutputPort;
+import net.sf.taverna.t2.workflowmodel.EventHandlingInputPort;
+
+import java.io.FileOutputStream;
 import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;                                                                             
+import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLSerializer;
+import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLSerializerRegistry;
+
+import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
 
 /**
  * A utility class that wraps the process of executing a workflow, allowing
  * workflows to be easily executed independently of the GUI.
  * 
- * @author Stuart Owen
+ * Original author: Stuart Owen
  * @author José María Fernández
  */
 
@@ -148,12 +160,17 @@ public class T2IWWEMLauncher
 					portMap.put(port.getName(), port);
 				}
 				inputsHandler.checkProvidedInputs(portMap, options);
-				Map<String, WorkflowDataToken> inputs = inputsHandler
-						.registerInputs(portMap, options, context);
+				Map<String, WorkflowDataToken> inputs = inputsHandler.registerInputs(portMap, options, context);
 
-				T2IWWEMResultListener resultListener = addResultListener(
-						facade, context, dataflow, options);
-
+				T2IWWEMResultListener resultListener = addResultListener(facade, context, dataflow, options);
+				
+				List<? extends Processor> processorList = dataflow.getProcessors();
+				for(Processor processor: processorList) {
+					Observer<ProcessorFinishedEvent> p_obs = new IWWEMProcessorFinishedObserver(processor,"");
+					((ProcessorImpl)processor).addObserver(p_obs);
+				}
+				// MonitorManager.getInstance().addObserver(new MonitorListener());
+				
 				executeWorkflow(facade, inputs, resultListener);
 			}
 		} else {
@@ -174,7 +191,20 @@ public class T2IWWEMLauncher
 			WorkflowDataToken token = inputs.get(inputName);
 			facade.pushData(token, inputName);
 		}
-
+		
+		// facade.getStateModel() not implemented.........
+		// So no easy monitoring through TypedTreeModel<MonitorNode>
+		/*
+		TypedTreeModel<MonitorNode> ttm = facade.getStateModel();
+		if(ttm!=null) {
+			int nchildren = ttm.getChildCount(ttm.getRoot());
+			System.err.println("resultListener has "+nchildren+" children");
+			
+		} else {
+			System.err.println("Bad luck :-(");
+		}
+		*/
+		
 		while (!resultListener.isComplete()) {
 			try {
 				Thread.sleep(100);
@@ -206,8 +236,7 @@ public class T2IWWEMLauncher
 				error("Unable to initialise the provenance - the ProvenanceConnector cannot be found.");
 			}
 		}
-		InvocationContext context = new T2IWWEMInvocationContext(
-				referenceService, connector);
+		InvocationContext context = new T2IWWEMInvocationContext(referenceService, connector);
 		return context;
 	}
 
@@ -289,6 +318,33 @@ public class T2IWWEMLauncher
 		throws InvalidDataflowException
 	{
 		Edits edits = EditsRegistry.getEdits();
+		
+		// With this code we add fake outputs, so we can "listen" on intermediate workflow results
+		for(Processor p: dataflow.getProcessors()) {
+			for(ProcessorOutputPort pop: p.getOutputPorts()) {
+				String newOut = "__"+p.getLocalName()+"_"+pop.getName();
+				//DataflowOutputPort dfop = edits.createDataflowOutputPort(newOut,dataflow);
+				//EventHandlingInputPort ehip = dfop.getInternalInputPort();
+				try {
+					edits.getCreateDataflowOutputPortEdit(dataflow,newOut).doEdit();
+					List<? extends DataflowOutputPort> outL = dataflow.getOutputPorts();
+					edits.getConnectProcessorOutputEdit(p,pop.getName(),outL.get(outL.size()-1).getInternalInputPort()).doEdit();
+				} catch(net.sf.taverna.t2.workflowmodel.EditException ee) {
+					System.err.println("JORL "+ee.getMessage());
+				}
+			}
+		}
+		
+		/*
+		try {
+			XMLSerializer serializer = XMLSerializerRegistry.getInstance().getSerializer();
+			Element el = serializer.serializeDataflow(dataflow);
+			new XMLOutputter().output(el,new FileOutputStream("/tmp/work.t2flow"));
+		} catch(Exception e) {
+			System.err.println("UHOH "+e.getMessage());
+		}
+		*/
+
 		return edits.createWorkflowInstanceFacade(dataflow, context, "");
 	}
 

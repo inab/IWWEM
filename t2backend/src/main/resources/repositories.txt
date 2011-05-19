@@ -1,0 +1,3 @@
+http://openprovenance.org/java/maven-releases/
+http://odftoolkit.org/svn/odfdom~maven2/release/
+http://dlt-dev.ncsa.uiuc.edu/m2/

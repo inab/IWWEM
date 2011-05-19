@@ -65,7 +65,9 @@ import org.apache.log4j.Logger;
  * @author Stuart Owen
  * @author José María Fernández
  */
-public class T2IWWEMResultListener implements ResultListener {
+public class T2IWWEMResultListener
+	implements ResultListener
+{
 	
 	private static final Logger logger = Logger.getLogger(T2IWWEMResultListener.class);
 	
@@ -76,22 +78,26 @@ public class T2IWWEMResultListener implements ResultListener {
 	private final boolean saveIndividualResults;
 	private final boolean saveOutputDocument;
 
-	public T2IWWEMResultListener(int numberOfOutputs,SaveResultsHandler saveResultsHandler,boolean saveIndividualResults,boolean saveOutputDocument) {		
+	public T2IWWEMResultListener(int numberOfOutputs,SaveResultsHandler saveResultsHandler,boolean saveIndividualResults,boolean saveOutputDocument)
+	{
 		this.numberOfOutputs = numberOfOutputs;
 		this.saveResultsHandler = saveResultsHandler;
 		this.saveIndividualResults = saveIndividualResults;
 		this.saveOutputDocument = saveOutputDocument;						
 	}
 
-	public Map<String, WorkflowDataToken> getOutputMap() {
+	public Map<String, WorkflowDataToken> getOutputMap()
+	{
 		return outputMap;
 	}
 
-	public boolean isComplete() {		
+	public boolean isComplete()
+	{
 		return finalTokens.size() == numberOfOutputs;
 	}
 
-	public void resultTokenProduced(WorkflowDataToken token, String portName) {		
+	public void resultTokenProduced(WorkflowDataToken token, String portName)
+	{
 		if (saveIndividualResults) {
 			saveResultsHandler.tokenReceived(token, portName);
 		}

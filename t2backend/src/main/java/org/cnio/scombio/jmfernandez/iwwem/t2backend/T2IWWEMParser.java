@@ -61,7 +61,6 @@ import java.util.Map;
 
 import javax.naming.NamingException;
 
-import net.sf.taverna.platform.spring.RavenAwareClassPathXmlApplicationContext;
 import net.sf.taverna.raven.launcher.Launchable;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.DatabaseConfigurationHandler;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.InputsHandler;
@@ -92,6 +91,13 @@ import net.sf.taverna.t2.workflowmodel.serialization.DeserializationException;
 import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLDeserializer;
 import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLDeserializerRegistry;
 
+/*
+import net.sf.taverna.t2.workbench.models.graph.DotWriter;
+import net.sf.taverna.t2.workbench.models.graph.svg.SVGGraphController;
+import net.sf.taverna.t2.workbench.models.graph.svg.SVGUtil;
+import java.io.FileWriter;
+*/
+
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -101,13 +107,12 @@ import org.apache.log4j.RollingFileAppender;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
-import org.springframework.context.ApplicationContext;
 
 /**
  * A utility class that wraps the process of validating a workflow, allowing
  * workflows to be easily validated independently of the GUI.
  * 
- * @author Stuart Owen
+ * Original author: Stuart Owen
  * @author José María Fernández
  */
 
@@ -116,6 +121,11 @@ public class T2IWWEMParser
 {
 
 	private static Logger logger = Logger.getLogger(T2IWWEMParser.class);
+	
+	static {
+		// Living the headless way!
+		System.setProperty("java.awt.headless","true");
+	};
 
 	/**
 	 * Main method, purely for development and debugging purposes. Full
@@ -222,6 +232,8 @@ public class T2IWWEMParser
 
 				dataflow = openDataflow(workflowURL);
 				validateDataflow(dataflow);
+				
+				drawDataflow(dataflow);
 			}
 		} else {
 			options.displayHelp();
@@ -253,6 +265,23 @@ public class T2IWWEMParser
 		if (!report.isValid()) {
 			throw new InvalidDataflowException(dataflow, report);
 		}
+	}
+	
+	protected void drawDataflow(Dataflow dataflow)
+		throws DeserializationException
+	{
+	/*
+		try {
+			SVGGraphController graphController = new SVGGraphController(dataflow,false,null);
+			FileWriter fileWriter = new FileWriter("/tmp/prueba.svg");
+			DotWriter dotWriter = new DotWriter(fileWriter);
+			dotWriter.writeGraph(graphController.getGraph());
+			fileWriter.close();
+			// String layout = SVGUtil.getDot(stringWriter.toString());
+		} catch(IOException ioe) {
+			throw new DeserializationException(ioe.getMessage());
+		}
+	*/
 	}
 
 	private void setupDatabase(T2IWWEMLauncherOptions options)

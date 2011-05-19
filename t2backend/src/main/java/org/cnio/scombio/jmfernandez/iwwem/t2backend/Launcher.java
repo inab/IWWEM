@@ -49,6 +49,9 @@
  ******************************************************************************/
 package org.cnio.scombio.jmfernandez.iwwem.t2backend;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
@@ -127,6 +130,28 @@ public class Launcher {
 				
 				
 		Repository localRepository = appRuntime.getRavenRepository();
+		// Loading reposit
+		InputStream repos = getClass().getResourceAsStream("/repositories.txt");
+		if(repos!=null) {
+			try {
+				BufferedReader repoLines = new BufferedReader(new InputStreamReader(repos));
+				String line=null;
+				while((line = repoLines.readLine())!=null) {
+					try {
+						localRepository.addRemoteRepository(new URL(line));
+					} catch(java.net.MalformedURLException mue) {
+						// IgnoreIT (but we should log this problem)
+						System.err.println("Error while adding repository URL " + line+" . Skipping");
+						mue.printStackTrace();
+					}
+				}
+			} catch(IOException ioe) {
+				// IgnoreIT (but we should log this problem)
+				System.err.println("Error while reading repositories list resource");
+				ioe.printStackTrace();
+			}
+		}
+		
 		PluginManager.setRepository(localRepository);
 		// System.err.println("HEY! Probing "+className);
 

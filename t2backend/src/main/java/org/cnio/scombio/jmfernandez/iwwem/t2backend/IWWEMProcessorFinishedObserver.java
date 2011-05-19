@@ -1,8 +1,8 @@
 /*
-	$Id$
-	T2IWWEMInvocationContext.java
+	$Id: T2IWWEMLauncher.java 319 2011-05-12 16:20:45Z jmfernandez $
+	T2IWWEMLauncher.java
 	from INB Interactive Web Workflow Enactor & Manager (IWWE&M)
-	Author: Jos√© Mar√≠a Fern√°ndez Gonz√°lez (C) 2008-2011
+	Author: JosÈ MarÌa Fern·ndez Gonz·lez (C) 2008-2011
 	Institutions:
 	*	Spanish National Cancer Research Institute (CNIO, http://www.cnio.es/)
 	*	Spanish National Bioinformatics Institute (INB, http://www.inab.org/)
@@ -22,7 +22,7 @@
 	You should have received a copy of the GNU Affero General Public License
 	along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
 
-	Original IWWE&M concept, design and coding done by Jos√© Mar√≠a Fern√°ndez Gonz√°lez, INB (C) 2008.
+	Original IWWE&M concept, design and coding done by JosÈ MarÌa Fern·ndez Gonz·lez, INB (C) 2008.
 	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 */
 
@@ -49,64 +49,44 @@
  ******************************************************************************/
 package org.cnio.scombio.jmfernandez.iwwem.t2backend;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import net.sf.taverna.t2.lang.observer.Observable;
+import net.sf.taverna.t2.lang.observer.Observer;
+import net.sf.taverna.t2.workflowmodel.ProcessorFinishedEvent;
+import net.sf.taverna.t2.workflowmodel.impl.ProcessorImpl;
+import net.sf.taverna.t2.workflowmodel.Processor;
 
-import net.sf.taverna.t2.invocation.InvocationContext;
-import net.sf.taverna.t2.provenance.reporter.ProvenanceReporter;
-import net.sf.taverna.t2.reference.ReferenceService;
-/**
- * An InvocationContext used by the command line tool.
- * 
- * @author Stuart Owen
- * @author Jos√© Mar√≠a Fern√°ndez
- *
- */
-public class T2IWWEMInvocationContext implements InvocationContext {
+public class IWWEMProcessorFinishedObserver
+	implements Observer<ProcessorFinishedEvent>
+{
 
-	private final ReferenceService referenceService;
-
-	private final ProvenanceReporter provenanceReporter;
-
-	private List<Object> entities = Collections.synchronizedList(new ArrayList<Object>());
-
-	public T2IWWEMInvocationContext(ReferenceService referenceService, ProvenanceReporter provenanceReporter)
-	{
-		this.referenceService = referenceService;
-		this.provenanceReporter = provenanceReporter;
+	private Processor workflowItem;
+	private final String expectedProcessId;
+	
+	public IWWEMProcessorFinishedObserver(Processor workflowItem, String expectedProcessId) {
+		this.workflowItem = workflowItem;
+		this.expectedProcessId = expectedProcessId;
 	}
-
-	public void addEntity(Object entity)
+	
+	public void notify(Observable<ProcessorFinishedEvent> sender, ProcessorFinishedEvent message)
+		throws Exception
 	{
-		entities.add(entity);
-	}
-
-	public <T extends Object> List<T> getEntities(Class<T> entityType)
-	{
-		List<T> entitiesOfType = new ArrayList<T>();
-		synchronized (entities) {
-			for (Object entity : entities) {
-				if (entityType.isInstance(entity)) {
-					entitiesOfType.add(entityType.cast(entity));
-				}
-			}
+		System.err.println("NOTI from "+((ProcessorImpl)message.getProcessor()).getLocalName());
+		if (! message.getOwningProcess().equals(expectedProcessId)) {
+			return;
 		}
-		return entitiesOfType;
-	}
-
-	public ProvenanceReporter getProvenanceReporter()
-	{
-		return provenanceReporter;
-	}
-
-	public ReferenceService getReferenceService()
-	{
-		return referenceService;
-	}
-
-	public void removeEntity(Object entity)
-	{
-		entities.remove(entity);
+		/*
+		synchronized(WorkflowInstanceFacadeImpl.this) {
+			processorsToComplete--;
+		}
+		
+		// De-register the processor node from the monitor as it has finished
+		monitorManager.deregisterNode(message.getOwningProcess());
+		
+		// De-register this observer from the processor
+		message.getProcessor().removeObserver(this);
+		
+		// All processors have finished => the workflow run has finished
+		checkWorkflowFinished();
+		*/
 	}
 }
