@@ -50,8 +50,10 @@
 package org.cnio.scombio.jmfernandez.iwwem.t2backend;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -93,7 +95,10 @@ import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.OpenDataflowExcep
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.ReadInputException;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.options.T2IWWEMLauncherOptions;
 
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.parser.Dot;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.parser.Model;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.parser.Parser;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.parser.ParserException;
 
 /*
 import net.sf.taverna.t2.workbench.models.graph.DotWriter;
@@ -290,111 +295,127 @@ public class T2IWWEMParser
 	}
 	
 	protected void drawDataflow(URL dataflowURL,T2IWWEMLauncherOptions options)
-		throws DeserializationException
+		throws OpenDataflowException, ReadInputException
 	{
-		String dotFilename = option.getDOTFile();
-		String svgFilename = option.getSVGFile();
-		String pngFilename = option.getPNGFile();
-		String pdfFilename = option.getPDFFile();
+		String dotFilename = options.getDOTFile();
+		String svgFilename = options.getSVGFile();
+		String pngFilename = options.getPNGFile();
+		String pdfFilename = options.getPDFFile();
 		
 		// Working only when it is needed
 		if(dotFilename!=null || svgFilename!=null || pngFilename!=null || pdfFilename!=null) {
 			
-			File dotFile = (dotFilename!=null)?new File(dotFilename):File.createTempFile("IWWEM","t2");
-			
 			try {
-				PrintStream printStream = new PrintStream(dotFile,"UTF-8");
-				Parser t2parser = new Parser();
-				InputStream dataflowStream = dataflowURL.openStream();
-				Model model = t2parser.parse(dataflowStream);
+				File dotFile = (dotFilename!=null)?new File(dotFilename):File.createTempFile("IWWEM","t2");
 				
-				Dot dotgen = new Dot("all");
-				dotgen.write_dot(printStream,model);
-				printStream.close();
-				
-				if(svgFilename!=null || pngFilename!=null || pdfFilename!=null) {
-					File SVGFile = (svgFilename!=null)?new File(svgFilename):File.createTempFile();
-					
+				try {
+					PrintStream printStream = new PrintStream(dotFile,"UTF-8");
+					Parser t2parser = new Parser();
+					InputStream dataflowStream = dataflowURL.openStream();
+					Model model = null;
 					try {
-						Runtime r = Runtime.getRuntime();
-						Process p = r.exec({"dot","-Tsvg","-o"+SVGFile.getAbsolutePath(),dotFile.getAbsolutePath()});
-						int retval = p.waitFor();
+						model = t2parser.parse(dataflowStream);
+					} catch(ParserException pe) {
+						throw new OpenDataflowException("Ruby-based parsed failed!",pe);
+					}
+					
+					Dot dotgen = new Dot("all");
+					dotgen.write_dot(printStream,model);
+					printStream.close();
+					
+					if(svgFilename!=null || pngFilename!=null || pdfFilename!=null) {
+						File SVGFile = (svgFilename!=null)?new File(svgFilename):File.createTempFile("IWWEM","t2");
 						
-						// Was the SVG properly generated?
-						if(retval==0) {
-							String parser = XMLResourceDescriptor.getXMLParserClassName();
-							SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
-							SVGDocument svg = f.createSVGDocument(SVGFile.toURI().toString());
+						try {
+							Runtime r = Runtime.getRuntime();
+							String[] dotParams = {"dot","-Tsvg","-o"+SVGFile.getAbsolutePath(),dotFile.getAbsolutePath()};
+							Process p = r.exec(dotParams);
+							int retval = -1;
 							
-							PatchDotSVG pds = new PatchDotSVG();
-							pds.doPatch(svg,SVGFile);
-
-							if(pdfFilename!=null) {
-								File PDFFile = new File(pdfFilename);
-								// Create a PDF transcoder
-								PDFTranscoder pdft = new PDFTranscoder();
-
-								TranscoderInput input = new TranscoderInput(svg);
-
-								// Create the transcoder output.
-								FileOutputStream foe = new FileOutputStream(PDFFile);
-								TranscoderOutput output = new TranscoderOutput(foe);
-
-								// Save the PDF
-								try {
-									pdft.transcode(input, output);
-								} catch(TranscoderException te) {
-									logger.fatal("Transcoding to PDF failed",te);
-									// System.exit(1);
-								} finally {
-									// Flush and close the stream.
-									foe.flush();
-									foe.close();
-								}
+							try {
+								retval = p.waitFor();
+							} catch(InterruptedException ie) {
+								throw new ReadInputException("Unexpected interruption on dot call",ie);
 							}
 							
-							if(pngFilename!=null) {
-								File PNGFile = new File(pngFilename);
-								// Create a PNG transcoder
-								PNGTranscoder pngt = new PNGTranscoder();
+							// Was the SVG properly generated?
+							if(retval==0) {
+								String parser = XMLResourceDescriptor.getXMLParserClassName();
+								SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
+								SVGDocument svg = f.createSVGDocument(SVGFile.toURI().toString());
+								
+								PatchDotSVG pds = new PatchDotSVG();
+								pds.doPatch(svg,SVGFile);
 
-								// Set the transcoding hints.
-								// Transparent background must be white pixels
-								// and we are using a reduced color palette
-								pngt.addTranscodingHint(ImageTranscoder.KEY_FORCE_TRANSPARENT_WHITE,new Boolean(true));
-								pngt.addTranscodingHint(PNGTranscoder.KEY_INDEXED, new Integer(8));
+								if(pdfFilename!=null) {
+									File PDFFile = new File(pdfFilename);
+									// Create a PDF transcoder
+									PDFTranscoder pdft = new PDFTranscoder();
 
-								TranscoderInput input = new TranscoderInput(svg);
+									TranscoderInput input = new TranscoderInput(svg);
 
-								// Create the transcoder output.
-								FileOutputStream foe = new FileOutputStream(PNGFile);
-								TranscoderOutput output = new TranscoderOutput(foe);
+									// Create the transcoder output.
+									FileOutputStream foe = new FileOutputStream(PDFFile);
+									TranscoderOutput output = new TranscoderOutput(foe);
 
-								// Save the image.
-								try {
-									pngt.transcode(input, output);
-								} catch(TranscoderException te) {
-									logger.fatal("Transcoding to PNG failed",te);
-									// System.exit(1);
-								} finally {
-									// Flush and close the stream.
-									foe.flush();
-									foe.close();
+									// Save the PDF
+									try {
+										pdft.transcode(input, output);
+									} catch(TranscoderException te) {
+										logger.fatal("Transcoding to PDF failed",te);
+										// System.exit(1);
+									} finally {
+										// Flush and close the stream.
+										foe.flush();
+										foe.close();
+									}
 								}
+								
+								if(pngFilename!=null) {
+									File PNGFile = new File(pngFilename);
+									// Create a PNG transcoder
+									PNGTranscoder pngt = new PNGTranscoder();
+
+									// Set the transcoding hints.
+									// Transparent background must be white pixels
+									// and we are using a reduced color palette
+									pngt.addTranscodingHint(ImageTranscoder.KEY_FORCE_TRANSPARENT_WHITE,new Boolean(true));
+									pngt.addTranscodingHint(PNGTranscoder.KEY_INDEXED, new Integer(8));
+
+									TranscoderInput input = new TranscoderInput(svg);
+
+									// Create the transcoder output.
+									FileOutputStream foe = new FileOutputStream(PNGFile);
+									TranscoderOutput output = new TranscoderOutput(foe);
+
+									// Save the image.
+									try {
+										pngt.transcode(input, output);
+									} catch(TranscoderException te) {
+										logger.fatal("Transcoding to PNG failed",te);
+										// System.exit(1);
+									} finally {
+										// Flush and close the stream.
+										foe.flush();
+										foe.close();
+									}
+								}
+							} else {
 							}
-						} else {
-						}
-					} finally {
-						if(svgFilename==null) {
-							SVGFile.delete();
+						} finally {
+							if(svgFilename==null) {
+								SVGFile.delete();
+							}
 						}
 					}
+				} finally {
+					// Erasing temp file
+					if(dotFilename==null) {
+						dotFile.delete();
+					}
 				}
-			} finally {
-				// Erasing temp file
-				if(dotFilename==null) {
-					dotFile.delete();
-				}
+			} catch(IOException ioe) {
+				throw new ReadInputException("Error meanwhile doing I/O on graph drawing generation",ioe);
 			}
 		}
 		

@@ -130,6 +130,19 @@
 			<version>${t2.ui-components.version}</version>
 		</dependency>
 		-->
+		
+		<!-- For Batik transcoding -->
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-transcoder</artifactId>
+			<version>1.7</version>
+		</dependency>
+		<!-- This one is needed for PNG transcoding -->
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-codec</artifactId>
+			<version>1.7</version>
+		</dependency>
 
 		<!--  TEST -->
 		<dependency>

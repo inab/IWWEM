@@ -34,6 +34,7 @@
 package org.cnio.scombio.jmfernandez.iwwem.t2backend.parser;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.IOException;
 
 import java.util.ArrayList;

@@ -388,26 +388,25 @@ public class T2IWWEMLauncherOptions {
 				"automatically starts an internal Derby database server.");
 		Option provenance = new Option("provenance",
 				"generates provenance information and stores it in the database.");
-		Option svgGraph = OptioBuilder
+		Option svgGraph = OptionBuilder
 				.withArgName("svgFile")
 				.hasArg()
 				.withDescription(
-					"File where to save workflow graph in SVG format"
-				)
+					"File where to save workflow graph in SVG format")
 				.create("svggraph");
-		Option dotGraph = OptioBuilder
+		Option dotGraph = OptionBuilder
 				.withArgName("dotFile")
 				.hasArg()
 				.withDescription(
 					"File where to save workflow graph in DOT format")
 				.create("dotgraph");
-		Option pngGraph = OptioBuilder
+		Option pngGraph = OptionBuilder
 				.withArgName("pngFile")
 				.hasArg()
 				.withDescription(
 					"File where to save workflow graph in PNG format")
 				.create("pnggraph");
-		Option pdfGraph = OptioBuilder
+		Option pdfGraph = OptionBuilder
 				.withArgName("pdfFile")
 				.hasArg()
 				.withDescription(
