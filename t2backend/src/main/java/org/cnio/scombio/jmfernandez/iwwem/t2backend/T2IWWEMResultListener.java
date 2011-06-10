@@ -62,7 +62,7 @@ import org.apache.log4j.Logger;
  * A ResultListener that is using for collecting and storing results when running
  * workflows from the commandline.
  * 
- * @author Stuart Owen
+ * Original author: Stuart Owen
  * @author José María Fernández
  */
 public class T2IWWEMResultListener

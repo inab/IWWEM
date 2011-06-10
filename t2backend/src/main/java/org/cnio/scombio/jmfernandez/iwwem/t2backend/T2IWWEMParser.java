@@ -62,14 +62,6 @@ import java.util.Map;
 import javax.naming.NamingException;
 
 import net.sf.taverna.raven.launcher.Launchable;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.DatabaseConfigurationHandler;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.InputsHandler;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.SaveResultsHandler;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.DatabaseConfigurationException;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.InvalidOptionException;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.OpenDataflowException;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.ReadInputException;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.options.T2IWWEMLauncherOptions;
 import net.sf.taverna.t2.facade.WorkflowInstanceFacade;
 import net.sf.taverna.t2.invocation.InvocationContext;
 import net.sf.taverna.t2.invocation.TokenOrderException;
@@ -91,6 +83,18 @@ import net.sf.taverna.t2.workflowmodel.serialization.DeserializationException;
 import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLDeserializer;
 import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLDeserializerRegistry;
 
+import org.cnio.scombio.jmfernandez.iwwem.common.PatchDotSVG;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.DatabaseConfigurationHandler;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.InputsHandler;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.SaveResultsHandler;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.DatabaseConfigurationException;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.InvalidOptionException;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.OpenDataflowException;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.ReadInputException;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.options.T2IWWEMLauncherOptions;
+
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.parser.Parser;
+
 /*
 import net.sf.taverna.t2.workbench.models.graph.DotWriter;
 import net.sf.taverna.t2.workbench.models.graph.svg.SVGGraphController;
@@ -107,6 +111,24 @@ import org.apache.log4j.RollingFileAppender;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
+
+// For image translations
+import org.apache.batik.bridge.BridgeContext;
+import org.apache.batik.bridge.GVTBuilder;
+import org.apache.batik.bridge.UserAgentAdapter;
+import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
+import org.apache.batik.gvt.GraphicsNode;
+import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.util.XMLResourceDescriptor;
+
+import org.apache.fop.svg.PDFTranscoder;
+
+import org.w3c.dom.svg.SVGDocument;
+
 
 /**
  * A utility class that wraps the process of validating a workflow, allowing
@@ -233,7 +255,7 @@ public class T2IWWEMParser
 				dataflow = openDataflow(workflowURL);
 				validateDataflow(dataflow);
 				
-				drawDataflow(dataflow);
+				drawDataflow(workflowURL, options);
 			}
 		} else {
 			options.displayHelp();
@@ -267,9 +289,115 @@ public class T2IWWEMParser
 		}
 	}
 	
-	protected void drawDataflow(Dataflow dataflow)
+	protected void drawDataflow(URL dataflowURL,T2IWWEMLauncherOptions options)
 		throws DeserializationException
 	{
+		String dotFilename = option.getDOTFile();
+		String svgFilename = option.getSVGFile();
+		String pngFilename = option.getPNGFile();
+		String pdfFilename = option.getPDFFile();
+		
+		// Working only when it is needed
+		if(dotFilename!=null || svgFilename!=null || pngFilename!=null || pdfFilename!=null) {
+			
+			File dotFile = (dotFilename!=null)?new File(dotFilename):File.createTempFile("IWWEM","t2");
+			
+			try {
+				PrintStream printStream = new PrintStream(dotFile,"UTF-8");
+				Parser t2parser = new Parser();
+				InputStream dataflowStream = dataflowURL.openStream();
+				Model model = t2parser.parse(dataflowStream);
+				
+				Dot dotgen = new Dot("all");
+				dotgen.write_dot(printStream,model);
+				printStream.close();
+				
+				if(svgFilename!=null || pngFilename!=null || pdfFilename!=null) {
+					File SVGFile = (svgFilename!=null)?new File(svgFilename):File.createTempFile();
+					
+					try {
+						Runtime r = Runtime.getRuntime();
+						Process p = r.exec({"dot","-Tsvg","-o"+SVGFile.getAbsolutePath(),dotFile.getAbsolutePath()});
+						int retval = p.waitFor();
+						
+						// Was the SVG properly generated?
+						if(retval==0) {
+							String parser = XMLResourceDescriptor.getXMLParserClassName();
+							SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
+							SVGDocument svg = f.createSVGDocument(SVGFile.toURI().toString());
+							
+							PatchDotSVG pds = new PatchDotSVG();
+							pds.doPatch(svg,SVGFile);
+
+							if(pdfFilename!=null) {
+								File PDFFile = new File(pdfFilename);
+								// Create a PDF transcoder
+								PDFTranscoder pdft = new PDFTranscoder();
+
+								TranscoderInput input = new TranscoderInput(svg);
+
+								// Create the transcoder output.
+								FileOutputStream foe = new FileOutputStream(PDFFile);
+								TranscoderOutput output = new TranscoderOutput(foe);
+
+								// Save the PDF
+								try {
+									pdft.transcode(input, output);
+								} catch(TranscoderException te) {
+									logger.fatal("Transcoding to PDF failed",te);
+									// System.exit(1);
+								} finally {
+									// Flush and close the stream.
+									foe.flush();
+									foe.close();
+								}
+							}
+							
+							if(pngFilename!=null) {
+								File PNGFile = new File(pngFilename);
+								// Create a PNG transcoder
+								PNGTranscoder pngt = new PNGTranscoder();
+
+								// Set the transcoding hints.
+								// Transparent background must be white pixels
+								// and we are using a reduced color palette
+								pngt.addTranscodingHint(ImageTranscoder.KEY_FORCE_TRANSPARENT_WHITE,new Boolean(true));
+								pngt.addTranscodingHint(PNGTranscoder.KEY_INDEXED, new Integer(8));
+
+								TranscoderInput input = new TranscoderInput(svg);
+
+								// Create the transcoder output.
+								FileOutputStream foe = new FileOutputStream(PNGFile);
+								TranscoderOutput output = new TranscoderOutput(foe);
+
+								// Save the image.
+								try {
+									pngt.transcode(input, output);
+								} catch(TranscoderException te) {
+									logger.fatal("Transcoding to PNG failed",te);
+									// System.exit(1);
+								} finally {
+									// Flush and close the stream.
+									foe.flush();
+									foe.close();
+								}
+							}
+						} else {
+						}
+					} finally {
+						if(svgFilename==null) {
+							SVGFile.delete();
+						}
+					}
+				}
+			} finally {
+				// Erasing temp file
+				if(dotFilename==null) {
+					dotFile.delete();
+				}
+			}
+		}
+		
 	/*
 		try {
 			SVGGraphController graphController = new SVGGraphController(dataflow,false,null);

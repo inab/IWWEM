@@ -201,7 +201,23 @@ public class T2IWWEMLauncherOptions {
 			return new String[] {};
 		}
 	}
-
+	
+	public String getSVGFile() {
+		return getOptionValue("svggraph");
+	}
+	
+	public String getDOTFile() {
+		return getOptionValue("dotgraph");
+	}
+	
+	public String getPNGFile() {
+		return getOptionValue("pnggraph");
+	}
+	
+	public String getPDFFile() {
+		return getOptionValue("pdfgraph");
+	}
+	
 	public String getLogFile() {
 		return getOptionValue("logfile");
 	}
@@ -238,11 +254,15 @@ public class T2IWWEMLauncherOptions {
 		return hasOption("startdb");
 	}
 
-	public boolean getStartDatabaseOnly() throws InvalidOptionException {
+	public boolean getStartDatabaseOnly()
+		throws InvalidOptionException
+	{
 		return (getStartDatabase() && (getWorkflow() == null));
 	}
 
-	public String getWorkflow() throws InvalidOptionException {
+	public String getWorkflow()
+		throws InvalidOptionException
+	{
 		if (getArgs().length == 0) {
 			return null;
 		} else if (getArgs().length != 1) {
@@ -368,7 +388,32 @@ public class T2IWWEMLauncherOptions {
 				"automatically starts an internal Derby database server.");
 		Option provenance = new Option("provenance",
 				"generates provenance information and stores it in the database.");
-
+		Option svgGraph = OptioBuilder
+				.withArgName("svgFile")
+				.hasArg()
+				.withDescription(
+					"File where to save workflow graph in SVG format"
+				)
+				.create("svggraph");
+		Option dotGraph = OptioBuilder
+				.withArgName("dotFile")
+				.hasArg()
+				.withDescription(
+					"File where to save workflow graph in DOT format")
+				.create("dotgraph");
+		Option pngGraph = OptioBuilder
+				.withArgName("pngFile")
+				.hasArg()
+				.withDescription(
+					"File where to save workflow graph in PNG format")
+				.create("pnggraph");
+		Option pdfGraph = OptioBuilder
+				.withArgName("pdfFile")
+				.hasArg()
+				.withDescription(
+					"File where to save workflow graph in PDF format")
+				.create("pdfgraph");
+		
 		Options options = new Options();
 		options.addOption(helpOption);
 		options.addOption(inputFileOption);
@@ -377,6 +422,12 @@ public class T2IWWEMLauncherOptions {
 		options.addOption(inputdocOption);
 		options.addOption(outputOption);
 		options.addOption(outputdocOption);
+		
+		options.addOption(svgGraph);
+		options.addOption(dotGraph);
+		options.addOption(pngGraph);
+		options.addOption(pdfGraph);
+		
 		options.addOption(inMemOption);
 		options.addOption(embedded);
 		options.addOption(clientserver);
