@@ -79,7 +79,8 @@ import org.apache.fop.svg.PDFTranscoder;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
-import org.cnio.scombio.jmfernandez.iwwem.PatchDotSVG.DumbUserAgent;
+import org.cnio.scombio.jmfernandez.iwwem.common.PatchDotSVG;
+import org.cnio.scombio.jmfernandez.iwwem.common.PatchDotSVG.DumbUserAgent;
 
 import org.embl.ebi.escience.scufl.Processor;
 import org.embl.ebi.escience.scufl.ScuflException;
