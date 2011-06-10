@@ -78,11 +78,11 @@ import org.w3c.dom.svg.SVGSVGElement;
  */
 public class PatchDotSVG {
 	private static final String[] JSRES = {
-		"SVGmapApp.js",
-		"SVGtooltip.js",
-		"SVGzoom.js",
-		"SVGtrampoline.js",
-		"RunEvt.js"
+		"iwwem-common/SVGmapApp.js",
+		"iwwem-common/SVGtooltip.js",
+		"iwwem-common/SVGzoom.js",
+		"iwwem-common/SVGtrampoline.js",
+		"iwwem-common/RunEvt.js"
 	};
 	
 	private static final String SVG_JSINIT="RunEvt(evt,1)";
