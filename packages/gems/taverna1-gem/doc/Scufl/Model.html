@@ -1,0 +1,708 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+
+	<title>Class: Scufl::Model</title>
+
+	<link rel="stylesheet" href="../rdoc.css" type="text/css" media="screen" />
+
+	<script src="../js/jquery.js" type="text/javascript"
+		charset="utf-8"></script>
+	<script src="../js/thickbox-compressed.js" type="text/javascript"
+		charset="utf-8"></script>
+	<script src="../js/quicksearch.js" type="text/javascript"
+		charset="utf-8"></script>
+	<script src="../js/darkfish.js" type="text/javascript"
+		charset="utf-8"></script>
+
+</head>
+<body class="class">
+
+	<div id="metadata">
+		<div id="file-metadata">
+			<div id="file-list-section" class="section">
+				<h3 class="section-header">In Files</h3>
+				<div class="section-body">
+					<ul>
+					
+						<li><a href="../lib/scufl/model_rb.html?TB_iframe=true&amp;height=550&amp;width=785"
+							class="thickbox" title="lib/scufl/model.rb">lib/scufl/model.rb</a></li>
+					
+					</ul>
+				</div>
+			</div>
+
+			
+		</div>
+
+		<div id="class-metadata">
+
+			<!-- Parent Class -->
+			
+			<div id="parent-class-section" class="section">
+				<h3 class="section-header">Parent</h3>
+				
+				<p class="link">Object</p>
+				
+			</div>
+			
+
+			<!-- Namespace Contents -->
+			
+
+			<!-- Method Quickref -->
+			
+			<div id="method-list-section" class="section">
+				<h3 class="section-header">Methods</h3>
+				<ul class="link-list">
+					
+					<li><a href="#M000058">::new</a></li>
+					
+					<li><a href="#M000068">#all_links</a></li>
+					
+					<li><a href="#M000067">#all_processors</a></li>
+					
+					<li><a href="#M000069">#all_sinks</a></li>
+					
+					<li><a href="#M000070">#all_sources</a></li>
+					
+					<li><a href="#M000059">#beanshells</a></li>
+					
+					<li><a href="#M000072">#get_processor_links</a></li>
+					
+					<li><a href="#M000063">#local_workers</a></li>
+					
+					<li><a href="#M000062">#web_services</a></li>
+					
+				</ul>
+			</div>
+			
+
+			<!-- Included Modules -->
+			
+		</div>
+
+		<div id="project-metadata">
+			
+			
+			<div id="fileindex-section" class="section project-section">
+				<h3 class="section-header">Files</h3>
+				<ul>
+				
+					<li class="file"><a href="../ChangeLog_rdoc.html">ChangeLog.rdoc</a></li>
+				
+					<li class="file"><a href="../LICENCE.html">LICENCE</a></li>
+				
+					<li class="file"><a href="../README_rdoc.html">README.rdoc</a></li>
+				
+				</ul>
+			</div>
+			
+
+			<div id="classindex-section" class="section project-section">
+				<h3 class="section-header">Class Index
+					<span class="search-toggle"><img src="../images/find.png"
+						height="16" width="16" alt="[+]"
+						title="show/hide quicksearch" /></span></h3>
+				<form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+				<fieldset>
+					<legend>Quicksearch</legend>
+					<input type="text" name="quicksearch" value=""
+						class="quicksearch-field" />
+				</fieldset>
+				</form>
+
+				<ul class="link-list">
+				
+					<li><a href="../Scufl/Coordination.html">Scufl::Coordination</a></li>
+				
+					<li><a href="../Scufl/Dot.html">Scufl::Dot</a></li>
+				
+					<li><a href="../Scufl/Link.html">Scufl::Link</a></li>
+				
+					<li><a href="../Scufl/Model.html">Scufl::Model</a></li>
+				
+					<li><a href="../Scufl/Parser.html">Scufl::Parser</a></li>
+				
+					<li><a href="../Scufl/Processor.html">Scufl::Processor</a></li>
+				
+					<li><a href="../Scufl/ProcessorLinks.html">Scufl::ProcessorLinks</a></li>
+				
+					<li><a href="../Scufl/Sink.html">Scufl::Sink</a></li>
+				
+					<li><a href="../Scufl/Source.html">Scufl::Source</a></li>
+				
+					<li><a href="../Scufl/WorkflowDescription.html">Scufl::WorkflowDescription</a></li>
+				
+					<li><a href="../Enactor/Client.html">Enactor::Client</a></li>
+				
+					<li><a href="../Enactor/CouldNotCreateError.html">Enactor::CouldNotCreateError</a></li>
+				
+					<li><a href="../Enactor/NotCompleteError.html">Enactor::NotCompleteError</a></li>
+				
+					<li><a href="../Enactor/Status.html">Enactor::Status</a></li>
+				
+					<li><a href="../Enactor/TavernaServiceError.html">Enactor::TavernaServiceError</a></li>
+				
+					<li><a href="../Document/Data.html">Document::Data</a></li>
+				
+					<li><a href="../Document/Processor.html">Document::Processor</a></li>
+				
+					<li><a href="../Document/Reader.html">Document::Reader</a></li>
+				
+					<li><a href="../Document/Report.html">Document::Report</a></li>
+				
+					<li><a href="../Baclava/Reader.html">Baclava::Reader</a></li>
+				
+					<li><a href="../Baclava/Writer.html">Baclava::Writer</a></li>
+				
+				</ul>
+				<div id="no-class-search-results" style="display: none;">No matching classes.</div>
+			</div>
+
+			
+		</div>
+	</div>
+
+	<div id="documentation">
+		<h1 class="class">Scufl::Model</h1>
+
+		<div id="description">
+			<p>
+The model for a given Taverna 1 workflow.
+</p>
+
+		</div>
+
+		<!-- Constants -->
+		
+
+		<!-- Attributes -->
+		
+		<div id="attribute-method-details" class="method-section section">
+			<h3 class="section-header">Attributes</h3>
+
+			
+			<div id="description-attribute-method" class="method-detail">
+				<a name="description"></a>
+				
+				<div class="method-heading attribute-method-heading">
+					<span class="method-name">description</span><span
+						class="attribute-access-type">[R]</span>
+				</div>
+
+				<div class="method-description">
+				
+				<p>
+This returns a <a href="WorkflowDescription.html">WorkflowDescription</a>
+object.
+</p>
+				
+				</div>
+			</div>
+			
+			<div id="processors-attribute-method" class="method-detail">
+				<a name="processors"></a>
+				
+				<div class="method-heading attribute-method-heading">
+					<span class="method-name">processors</span><span
+						class="attribute-access-type">[R]</span>
+				</div>
+
+				<div class="method-description">
+				
+				<p>
+Retrieve the list of processors specific to the workflow. Does not include
+those from nested workflows.
+</p>
+				
+				</div>
+			</div>
+			
+			<div id="links-attribute-method" class="method-detail">
+				<a name="links"></a>
+				
+				<div class="method-heading attribute-method-heading">
+					<span class="method-name">links</span><span
+						class="attribute-access-type">[R]</span>
+				</div>
+
+				<div class="method-description">
+				
+				<p>
+Retrieve the list of datalinks specific to the workflow. Does not include
+those from nested workflows.
+</p>
+				
+				</div>
+			</div>
+			
+			<div id="sources-attribute-method" class="method-detail">
+				<a name="sources"></a>
+				
+				<div class="method-heading attribute-method-heading">
+					<span class="method-name">sources</span><span
+						class="attribute-access-type">[R]</span>
+				</div>
+
+				<div class="method-description">
+				
+				<p>
+Retrieve the list of sources specific to the workflow. Does not include
+those from nested workflows.
+</p>
+				
+				</div>
+			</div>
+			
+			<div id="sinks-attribute-method" class="method-detail">
+				<a name="sinks"></a>
+				
+				<div class="method-heading attribute-method-heading">
+					<span class="method-name">sinks</span><span
+						class="attribute-access-type">[R]</span>
+				</div>
+
+				<div class="method-description">
+				
+				<p>
+Retrieve the list of sinks specific to the workflow. Does not include those
+from nested workflows.
+</p>
+				
+				</div>
+			</div>
+			
+			<div id="coordinations-attribute-method" class="method-detail">
+				<a name="coordinations"></a>
+				
+				<div class="method-heading attribute-method-heading">
+					<span class="method-name">coordinations</span><span
+						class="attribute-access-type">[R]</span>
+				</div>
+
+				<div class="method-description">
+				
+				<p>
+Retrieve the list of coordinations specific to the workflow. Does not
+include those from nested workflows.
+</p>
+				
+				</div>
+			</div>
+			
+			<div id="dependencies-attribute-method" class="method-detail">
+				<a name="dependencies"></a>
+				
+				<a name="dependencies="></a>
+				
+				<div class="method-heading attribute-method-heading">
+					<span class="method-name">dependencies</span><span
+						class="attribute-access-type">[RW]</span>
+				</div>
+
+				<div class="method-description">
+				
+				<p>
+The list of any dependencies that have been found inside the workflow. Does
+not include those from nested workflows.
+</p>
+				
+				</div>
+			</div>
+			
+		</div>
+		
+
+		<!-- Methods -->
+		
+		<div id="public-class-method-details" class="method-section section">
+			<h3 class="section-header">Public Class Methods</h3>
+
+		
+			<div id="new-method" class="method-detail ">
+				<a name="M000058"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">new</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Creates an empty model for a Taverna 1 workflow.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="new-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/scufl/model.rb, line 35</span>
+35:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>
+36:       <span class="ruby-ivar">@description</span> = <span class="ruby-constant">WorkflowDescription</span>.<span class="ruby-identifier">new</span>
+37:       <span class="ruby-ivar">@processors</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>
+38:       <span class="ruby-ivar">@links</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>
+39:       <span class="ruby-ivar">@sources</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>
+40:       <span class="ruby-ivar">@sinks</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>
+41:       <span class="ruby-ivar">@coordinations</span> = <span class="ruby-constant">Array</span>.<span class="ruby-identifier">new</span>
+42:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+		</div>
+	
+		<div id="public-instance-method-details" class="method-section section">
+			<h3 class="section-header">Public Instance Methods</h3>
+
+		
+			<div id="all-links-method" class="method-detail ">
+				<a name="M000068"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">all_links</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Retrieve ALL the links WITHIN the given workflow model.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="all-links-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/scufl/model.rb, line 66</span>
+66:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">all_links</span>
+67:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">get_links</span>(<span class="ruby-keyword kw">self</span>, [])
+68:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="all-processors-method" class="method-detail ">
+				<a name="M000067"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">all_processors</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Retrieve ALL processor objects WITHIN the given workflow model.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="all-processors-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/scufl/model.rb, line 60</span>
+60:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">all_processors</span>
+61:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">get_processors</span>(<span class="ruby-keyword kw">self</span>, [])
+62:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="all-sinks-method" class="method-detail ">
+				<a name="M000069"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">all_sinks</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Retrieve ALL the sinks(outputs) WITHIN the given workflow model.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="all-sinks-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/scufl/model.rb, line 71</span>
+71:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">all_sinks</span>
+72:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">get_sinks</span>(<span class="ruby-keyword kw">self</span>, [])
+73:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="all-sources-method" class="method-detail ">
+				<a name="M000070"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">all_sources</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Retrieve ALL the sources(inputs) WITHIN the given workflow model.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="all-sources-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/scufl/model.rb, line 76</span>
+76:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">all_sources</span>
+77:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">get_sources</span>(<span class="ruby-keyword kw">self</span>, [])
+78:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="beanshells-method" class="method-detail ">
+				<a name="M000059"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">beanshells</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Retrieve ALL the beanshell processors WITHIN the given workflow model.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="beanshells-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/scufl/model.rb, line 45</span>
+45:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">beanshells</span>
+46:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">all_processors</span>.<span class="ruby-identifier">select</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">x</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">==</span> <span class="ruby-value str">&quot;beanshell&quot;</span> }
+47:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-processor-links-method" class="method-detail ">
+				<a name="M000072"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_processor_links</span><span
+						class="method-args">(processor)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+For the given dataflow, return the beanshells and/or services which have
+direct links to or from the given processor.
+</p>
+<h2>Usage</h2>
+<pre>
+  my_processor = model.processor[0]
+  linked_processors = model.get_processors_linked_to(my_processor)
+  processors_feeding_into_my_processor = linked_processors.sources
+  processors_feeding_from_my_processor = linked_processors.sinks
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="get-processor-links-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/scufl/model.rb, line 87</span>
+ 87:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_processor_links</span>(<span class="ruby-identifier">processor</span>)
+ 88:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">processor</span>
+ 89:       <span class="ruby-identifier">proc_links</span> = <span class="ruby-constant">ProcessorLinks</span>.<span class="ruby-identifier">new</span>
+ 90:       
+ 91:       <span class="ruby-comment cmt"># SOURCES</span>
+ 92:       <span class="ruby-identifier">sources</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">all_links</span>.<span class="ruby-identifier">select</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">x</span>.<span class="ruby-identifier">sink</span> <span class="ruby-operator">=~</span> <span class="ruby-node">/#{processor.name}:.+/</span> }
+ 93:       <span class="ruby-identifier">proc_links</span>.<span class="ruby-identifier">sources</span> = []
+ 94: 
+ 95:       <span class="ruby-comment cmt"># SINKS</span>
+ 96:       <span class="ruby-identifier">sinks</span> = <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">all_links</span>.<span class="ruby-identifier">select</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">x</span>.<span class="ruby-identifier">source</span> <span class="ruby-operator">=~</span> <span class="ruby-node">/#{processor.name}:.+/</span> }
+ 97:       <span class="ruby-identifier">proc_links</span>.<span class="ruby-identifier">sinks</span> = []
+ 98:       <span class="ruby-identifier">temp_sinks</span> = []
+ 99:       <span class="ruby-identifier">sinks</span>.<span class="ruby-identifier">each</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">temp_sinks</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">x</span>.<span class="ruby-identifier">sink</span> }
+100:       
+101:       <span class="ruby-comment cmt"># Match links by port into format</span>
+102:       <span class="ruby-comment cmt"># my_port:name_of_link_im_linked_to:its_port</span>
+103:       <span class="ruby-identifier">sources</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">connection</span><span class="ruby-operator">|</span>
+104:         <span class="ruby-identifier">link</span> = <span class="ruby-identifier">connection</span>.<span class="ruby-identifier">sink</span>
+105:         <span class="ruby-identifier">connected_proc_name</span> = <span class="ruby-identifier">link</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;:&quot;</span>)[<span class="ruby-value">0</span>]
+106:         <span class="ruby-identifier">my_connection_port</span> = <span class="ruby-identifier">link</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;:&quot;</span>)[<span class="ruby-value">1</span>]
+107:         
+108:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">my_connection_port</span>
+109:           <span class="ruby-identifier">source</span> = <span class="ruby-identifier">my_connection_port</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;:&quot;</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">connection</span>.<span class="ruby-identifier">source</span>
+110:           <span class="ruby-identifier">proc_links</span>.<span class="ruby-identifier">sources</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">source</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">source</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;:&quot;</span>).<span class="ruby-identifier">size</span> <span class="ruby-operator">==</span> <span class="ruby-value">3</span>
+111:         <span class="ruby-keyword kw">end</span>
+112:       <span class="ruby-keyword kw">end</span>
+113:       
+114:       <span class="ruby-identifier">sinks</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">connection</span><span class="ruby-operator">|</span>
+115:         <span class="ruby-identifier">link</span> = <span class="ruby-identifier">connection</span>.<span class="ruby-identifier">source</span>
+116:         <span class="ruby-identifier">connected_proc_name</span> = <span class="ruby-identifier">link</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;:&quot;</span>)[<span class="ruby-value">0</span>]
+117:         <span class="ruby-identifier">my_connection_port</span> = <span class="ruby-identifier">link</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;:&quot;</span>)[<span class="ruby-value">1</span>]
+118:         
+119:         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">my_connection_port</span>
+120:           <span class="ruby-identifier">sink</span> = <span class="ruby-identifier">my_connection_port</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-value str">&quot;:&quot;</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">connection</span>.<span class="ruby-identifier">sink</span>
+121:           <span class="ruby-identifier">proc_links</span>.<span class="ruby-identifier">sinks</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">sink</span> <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">sink</span>.<span class="ruby-identifier">split</span>(<span class="ruby-value str">&quot;:&quot;</span>).<span class="ruby-identifier">size</span> <span class="ruby-operator">==</span> <span class="ruby-value">3</span>
+122:         <span class="ruby-keyword kw">end</span>
+123:       <span class="ruby-keyword kw">end</span>
+124:       
+125:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">proc_links</span>
+126:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="local-workers-method" class="method-detail ">
+				<a name="M000063"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">local_workers</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Retrieve ALL local workers WITHIN the workflow
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="local-workers-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/scufl/model.rb, line 55</span>
+55:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">local_workers</span>
+56:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">all_processors</span>.<span class="ruby-identifier">select</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">x</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/local/i</span> }
+57:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="web-services-method" class="method-detail ">
+				<a name="M000062"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">web_services</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Retrieve ALL processors of that are webservices WITHIN the model.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="web-services-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/scufl/model.rb, line 50</span>
+50:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">web_services</span>
+51:       <span class="ruby-keyword kw">self</span>.<span class="ruby-identifier">all_processors</span>.<span class="ruby-identifier">select</span> { <span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">x</span>.<span class="ruby-identifier">type</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/wsdl|soaplab|biomoby/i</span> }
+52:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+		</div>
+	
+
+	</div>
+
+
+	<div id="rdoc-debugging-section-dump" class="debugging-section">
+	
+		<p>Disabled; run with --debug to generate this.</p>
+	
+	</div>
+
+	<div id="validator-badges">
+		<p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+		<p><small>Generated with the <a href="http://deveiate.org/projects/Darkfish-Rdoc/">Darkfish
+			Rdoc Generator</a> 1.1.6</small>.</p>
+	</div>
+
+</body>
+</html>
+

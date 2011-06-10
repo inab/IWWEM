@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+
+	<title>File: README.rdoc [Taverna Scufl]</title>
+
+	<link type="text/css" media="screen" href="./rdoc.css" rel="stylesheet" />
+
+	<script src="./js/jquery.js" type="text/javascript"
+		charset="utf-8"></script>
+	<script src="./js/thickbox-compressed.js" type="text/javascript"
+		charset="utf-8"></script>
+	<script src="./js/quicksearch.js" type="text/javascript"
+		charset="utf-8"></script>
+	<script src="./js/darkfish.js" type="text/javascript"
+		charset="utf-8"></script>
+</head>
+
+<body class="file">
+	<div id="metadata">
+		<div id="project-metadata">
+			
+			
+			<div id="fileindex-section" class="section project-section">
+				<h3 class="section-header">Files</h3>
+				<ul>
+				
+					<li class="file"><a href="./ChangeLog_rdoc.html">ChangeLog.rdoc</a></li>
+				
+					<li class="file"><a href="./LICENCE.html">LICENCE</a></li>
+				
+					<li class="file"><a href="./README_rdoc.html">README.rdoc</a></li>
+				
+				</ul>
+			</div>
+			
+
+			<div id="classindex-section" class="section project-section">
+				<h3 class="section-header">Class Index
+					<span class="search-toggle"><img src="./images/find.png"
+						height="16" width="16" alt="[+]"
+						title="show/hide quicksearch" /></span></h3>
+				<form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+				<fieldset>
+					<legend>Quicksearch</legend>
+					<input type="text" name="quicksearch" value=""
+						class="quicksearch-field" />
+				</fieldset>
+				</form>
+
+				<ul class="link-list">
+				
+					<li><a href="./Scufl/Coordination.html">Scufl::Coordination</a></li>
+				
+					<li><a href="./Scufl/Dot.html">Scufl::Dot</a></li>
+				
+					<li><a href="./Scufl/Link.html">Scufl::Link</a></li>
+				
+					<li><a href="./Scufl/Model.html">Scufl::Model</a></li>
+				
+					<li><a href="./Scufl/Parser.html">Scufl::Parser</a></li>
+				
+					<li><a href="./Scufl/Processor.html">Scufl::Processor</a></li>
+				
+					<li><a href="./Scufl/ProcessorLinks.html">Scufl::ProcessorLinks</a></li>
+				
+					<li><a href="./Scufl/Sink.html">Scufl::Sink</a></li>
+				
+					<li><a href="./Scufl/Source.html">Scufl::Source</a></li>
+				
+					<li><a href="./Scufl/WorkflowDescription.html">Scufl::WorkflowDescription</a></li>
+				
+					<li><a href="./Enactor/Client.html">Enactor::Client</a></li>
+				
+					<li><a href="./Enactor/CouldNotCreateError.html">Enactor::CouldNotCreateError</a></li>
+				
+					<li><a href="./Enactor/NotCompleteError.html">Enactor::NotCompleteError</a></li>
+				
+					<li><a href="./Enactor/Status.html">Enactor::Status</a></li>
+				
+					<li><a href="./Enactor/TavernaServiceError.html">Enactor::TavernaServiceError</a></li>
+				
+					<li><a href="./Document/Data.html">Document::Data</a></li>
+				
+					<li><a href="./Document/Processor.html">Document::Processor</a></li>
+				
+					<li><a href="./Document/Reader.html">Document::Reader</a></li>
+				
+					<li><a href="./Document/Report.html">Document::Report</a></li>
+				
+					<li><a href="./Baclava/Reader.html">Baclava::Reader</a></li>
+				
+					<li><a href="./Baclava/Writer.html">Baclava::Writer</a></li>
+				
+				</ul>
+				<div id="no-class-search-results" style="display: none;">No matching classes.</div>
+			</div>
+
+			
+		</div>
+	</div>
+
+	<div id="documentation">
+		<h1><a href="http://taverna.sourceforge.net">Taverna</a> 1 Interaction Gem</h1>
+<table>
+<tr><td valign="top">Authors:</td><td>Stian Soiland, David Withers, Emmanuel Tagarira
+
+</td></tr>
+<tr><td valign="top">Version:</td><td>0.7.1
+
+</td></tr>
+<tr><td valign="top">Contact:</td><td>taverna-hackers@lists.sourceforge.net
+
+</td></tr>
+<tr><td valign="top">URL:</td><td><a href="http://taverna.sourceforge.net/">taverna.sourceforge.net/</a>
+
+</td></tr>
+<tr><td valign="top">Licence:</td><td>LGPL 3 (See <a href="LICENCE.html">LICENCE</a> or <a
+href="http://www.gnu.org/licenses/lgpl.html">www.gnu.org/licenses/lgpl.html</a>)
+
+</td></tr>
+<tr><td valign="top">Copyright:</td><td>&#169;2006-2008 University of Manchester, UK
+
+</td></tr>
+</table>
+<h2>Synopsis</h2>
+<p>
+This is a Ruby library to support the interaction with <a
+href="http://taverna.sourceforge.net">Taverna</a> version 1 workflows
+(Scufls). This relies on the functionality provided by a graph
+visualization package called <a
+href="http://www.graphviz.org/Download.php">GraphViz</a>.
+</p>
+<h2>Installation</h2>
+<p>
+To install the gems required by the Taverna 1 gem library, type into your
+command prompt:
+</p>
+<pre>
+  [sudo] gem install libxml-ruby
+  [sudo] gem install rdoc
+  [sudo] gem install darkfish-rdoc
+</pre>
+<p>
+When you have the required gems on your system, you may install this gem
+using the following commands:
+</p>
+<pre>
+  gem sources -a http://gems.github.com
+  [sudo] gem install mannie-taverna-scufl
+</pre>
+<h2>Usage</h2>
+<p>
+To be able to generate at least a Scufl model using the gem, you can use
+the code following code:
+</p>
+<pre>
+  require &quot;scufl/model.rb&quot;
+  require &quot;scufl/parser.rb&quot;
+
+  foo = File.new(&quot;path/to/workflow/file&quot;, &quot;r&quot;)
+  bar = Scufl::Parser.new.parse(foo)
+</pre>
+<p>
+Alternatively:
+</p>
+<pre>
+  foo = File.new(&quot;path/to/workflow/file&quot;, &quot;r&quot;).read
+  bar = Scufl::Parser.new.parse(foo)
+</pre>
+<p>
+You will then be able to use your Scufl model to retrieve information about
+the workflow by invoking the different methods and attributes.
+</p>
+<pre>
+  bar.INVOKED
+</pre>
+<p>
+&#8230; where INVOKED is the method or attribute required.
+</p>
+<p>
+You can also interact with remote workflows.
+</p>
+<pre>
+  require &quot;open-uri&quot;
+
+  foo = Uri.parse(&quot;xxxx://uri_to_workflow&quot;).read
+  bar = Scufl::Parser.new.parse(foo)
+</pre>
+<p>
+To be enable you to draw images of the Scufl, you need to include:
+</p>
+<pre>
+  require &quot;scufl/dot.rb&quot;
+</pre>
+<p>
+To be able to use any functionality included in &#8220;scufl/dot.rb&#8220;,
+you need to have <a
+href="http://www.graphviz.org/Download.php">GraphViz</a> installed on your
+system. Once this package has been installed, you may use the gem to draw
+an image showing the structure of the Scufl as follows.
+</p>
+<pre>
+  out_file = File.new(&quot;path/to/file/you/want/the/dot/script/to/be/written&quot;, &quot;w+&quot;)
+  Scufl::Dot.new.write_dot(out_file, bar)
+  `dot -Tpng -o&quot;path/to/the/output/image&quot; #{out_file.path}`
+</pre>
+<p>
+The last line draws a PNG image using <tt>out_file</tt>. To learn more
+about dot, try typing into your command prompt:
+</p>
+<pre>
+  % man dot
+</pre>
+<p>
+or
+</p>
+<pre>
+  % dot -h
+</pre>
+<h2>Taverna Remote Execution Service Client</h2>
+<p>
+The library also includes support for submitting <a
+href="http://taverna.sourceforge.net">Taverna</a> workflows to the Taverna
+Remote Execution service[2]. This requires the Remote Execution service
+that has already been installed and configured, and with a client username
+and password already registered by the administrator of the service. We
+recommend first testing the service using the Remote Execution service from
+the Taverna workbench[3].
+</p>
+<h2>Usage</h2>
+<p>
+Here&#8217;s the simplest usecase. Given a Taverna workflow in
+&#8220;workflow.xml&#8220; (that produces a value at the port
+&#8220;myOutput&#8221;) and a Taverna Remote Execution service [2] running
+at <a
+href="http://localhost:8080/tavernaservice/v1/">localhost:8080/tavernaservice/v1/</a>
+you can try:
+</p>
+<pre>
+        SERVICE = &quot;http://localhost:8080/tavernaservice/v1/&quot;
+        workflow = IO.read(&quot;workflow.xml&quot;)
+        require 'rubygems'
+        require 'enactor/client'
+        enactor = Enactor::Client(SERVICE, &quot;johndoe&quot;, &quot;s3cret&quot;)
+        results = enactor.execute_sync(workflow)
+        print results[&quot;myOutput&quot;]
+</pre>
+<p>
+Note that the call to execute_sync() will block until the workflow has been
+executed on the server. If you want to do this asynchronously, try:
+</p>
+<pre>
+        workflow_url = enactor.upload_workflow(workflow)
+        job_url = enactor.submit_job(workflow_url)
+        sleep 1 while not enactor.finished?(job_url)
+        if enactor.get_job_status(job_url) == Enactor::Status.COMPLETE
+          results = enactor.get_job_outputs(job_url)
+          print results[&quot;myOutput&quot;]
+        end
+</pre>
+<p>
+You can also supply inputs as a hash:
+</p>
+<pre>
+        inputs = {}
+        inputs['gene'] = [&quot;MY_GENE&quot;, &quot;HIS_GENE&quot;]
+        inputs['database'] = &quot;kegg&quot;
+        results = enactor.execute_sync(workflow, inputs)
+</pre>
+<p>
+or
+</p>
+<pre>
+        inputs_url = enactor.upload_data(inputs)
+        job_url = enactor.submitJob(workflow_url, inputsURL)
+</pre>
+<p>
+See the rdoc documentation of <a
+href="Enactor/Client.html">Enactor::Client</a> for more information, try:
+</p>
+<pre>
+        help Enactor::Client
+</pre>
+<p>
+Included are also lower level modules Baclava for parsing and creating
+Baclava data documents, and Scufl for extracting basic information about a
+workflow, such as which input and output ports it defines.
+</p>
+<h2>References</h2>
+<dl>
+<dt>1</dt><dd><a href="http://taverna.sourceforge.net">taverna.sourceforge.net</a>
+
+</dd>
+<dt>2</dt><dd><a
+href="http://www.mygrid.org.uk/usermanual1.7/remote_execution_server.html">www.mygrid.org.uk/usermanual1.7/remote_execution_server.html</a>
+
+</dd>
+<dt>3</dt><dd><a
+href="http://www.mygrid.org.uk/usermanual1.7/remote_execution.html">www.mygrid.org.uk/usermanual1.7/remote_execution.html</a>
+
+</dd>
+</dl>
+
+	</div>
+
+	<div id="validator-badges">
+		<p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+		<p><small>Generated with the <a href="http://deveiate.org/projects/Darkfish-Rdoc/">Darkfish
+			Rdoc Generator</a> 1.1.6</small>.</p>
+	</div>
+</body>
+</html>
+

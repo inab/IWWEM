@@ -1,0 +1,1897 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+
+	<title>Class: Enactor::Client</title>
+
+	<link rel="stylesheet" href="../rdoc.css" type="text/css" media="screen" />
+
+	<script src="../js/jquery.js" type="text/javascript"
+		charset="utf-8"></script>
+	<script src="../js/thickbox-compressed.js" type="text/javascript"
+		charset="utf-8"></script>
+	<script src="../js/quicksearch.js" type="text/javascript"
+		charset="utf-8"></script>
+	<script src="../js/darkfish.js" type="text/javascript"
+		charset="utf-8"></script>
+
+</head>
+<body class="class">
+
+	<div id="metadata">
+		<div id="file-metadata">
+			<div id="file-list-section" class="section">
+				<h3 class="section-header">In Files</h3>
+				<div class="section-body">
+					<ul>
+					
+						<li><a href="../lib/enactor/client_rb.html?TB_iframe=true&amp;height=550&amp;width=785"
+							class="thickbox" title="lib/enactor/client.rb">lib/enactor/client.rb</a></li>
+					
+					</ul>
+				</div>
+			</div>
+
+			
+		</div>
+
+		<div id="class-metadata">
+
+			<!-- Parent Class -->
+			
+			<div id="parent-class-section" class="section">
+				<h3 class="section-header">Parent</h3>
+				
+				<p class="link">Object</p>
+				
+			</div>
+			
+
+			<!-- Namespace Contents -->
+			
+
+			<!-- Method Quickref -->
+			
+			<div id="method-list-section" class="section">
+				<h3 class="section-header">Methods</h3>
+				<ul class="link-list">
+					
+					<li><a href="#M000023">::new</a></li>
+					
+					<li><a href="#M000045">#create_data_doc</a></li>
+					
+					<li><a href="#M000046">#create_job_doc</a></li>
+					
+					<li><a href="#M000073">#execute_sync</a></li>
+					
+					<li><a href="#M000057">#finished?</a></li>
+					
+					<li><a href="#M000026">#get_capabilities_doc</a></li>
+					
+					<li><a href="#M000051">#get_job_created_date</a></li>
+					
+					<li><a href="#M000053">#get_job_modified_date</a></li>
+					
+					<li><a href="#M000055">#get_job_outputs</a></li>
+					
+					<li><a href="#M000033">#get_job_outputs_doc</a></li>
+					
+					<li><a href="#M000056">#get_job_outputs_size</a></li>
+					
+					<li><a href="#M000031">#get_job_outputs_url</a></li>
+					
+					<li><a href="#M000054">#get_job_report</a></li>
+					
+					<li><a href="#M000050">#get_job_status</a></li>
+					
+					<li><a href="#M000030">#get_user_collection_url</a></li>
+					
+					<li><a href="#M000029">#get_user_doc</a></li>
+					
+					<li><a href="#M000027">#get_user_url</a></li>
+					
+					<li><a href="#M000035">#get_xml_doc</a></li>
+					
+					<li><a href="#M000037">#get_xml_doc_size</a></li>
+					
+					<li><a href="#M000039">#parse_data_doc</a></li>
+					
+					<li><a href="#M000065">#service_valid?</a></li>
+					
+					<li><a href="#M000060">#submit_job</a></li>
+					
+					<li><a href="#M000048">#submit_job_doc</a></li>
+					
+					<li><a href="#M000061">#upload_data</a></li>
+					
+					<li><a href="#M000041">#upload_data_doc</a></li>
+					
+					<li><a href="#M000043">#upload_to_collection</a></li>
+					
+					<li><a href="#M000066">#upload_workflow</a></li>
+					
+					<li><a href="#M000042">#url_valid?</a></li>
+					
+					<li><a href="#M000071">#wait_for_job</a></li>
+					
+					<li><a href="#M000064">#workflow_exists?</a></li>
+					
+				</ul>
+			</div>
+			
+
+			<!-- Included Modules -->
+			
+		</div>
+
+		<div id="project-metadata">
+			
+			
+			<div id="fileindex-section" class="section project-section">
+				<h3 class="section-header">Files</h3>
+				<ul>
+				
+					<li class="file"><a href="../ChangeLog_rdoc.html">ChangeLog.rdoc</a></li>
+				
+					<li class="file"><a href="../LICENCE.html">LICENCE</a></li>
+				
+					<li class="file"><a href="../README_rdoc.html">README.rdoc</a></li>
+				
+				</ul>
+			</div>
+			
+
+			<div id="classindex-section" class="section project-section">
+				<h3 class="section-header">Class Index
+					<span class="search-toggle"><img src="../images/find.png"
+						height="16" width="16" alt="[+]"
+						title="show/hide quicksearch" /></span></h3>
+				<form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+				<fieldset>
+					<legend>Quicksearch</legend>
+					<input type="text" name="quicksearch" value=""
+						class="quicksearch-field" />
+				</fieldset>
+				</form>
+
+				<ul class="link-list">
+				
+					<li><a href="../Scufl/Coordination.html">Scufl::Coordination</a></li>
+				
+					<li><a href="../Scufl/Dot.html">Scufl::Dot</a></li>
+				
+					<li><a href="../Scufl/Link.html">Scufl::Link</a></li>
+				
+					<li><a href="../Scufl/Model.html">Scufl::Model</a></li>
+				
+					<li><a href="../Scufl/Parser.html">Scufl::Parser</a></li>
+				
+					<li><a href="../Scufl/Processor.html">Scufl::Processor</a></li>
+				
+					<li><a href="../Scufl/ProcessorLinks.html">Scufl::ProcessorLinks</a></li>
+				
+					<li><a href="../Scufl/Sink.html">Scufl::Sink</a></li>
+				
+					<li><a href="../Scufl/Source.html">Scufl::Source</a></li>
+				
+					<li><a href="../Scufl/WorkflowDescription.html">Scufl::WorkflowDescription</a></li>
+				
+					<li><a href="../Enactor/Client.html">Enactor::Client</a></li>
+				
+					<li><a href="../Enactor/CouldNotCreateError.html">Enactor::CouldNotCreateError</a></li>
+				
+					<li><a href="../Enactor/NotCompleteError.html">Enactor::NotCompleteError</a></li>
+				
+					<li><a href="../Enactor/Status.html">Enactor::Status</a></li>
+				
+					<li><a href="../Enactor/TavernaServiceError.html">Enactor::TavernaServiceError</a></li>
+				
+					<li><a href="../Document/Data.html">Document::Data</a></li>
+				
+					<li><a href="../Document/Processor.html">Document::Processor</a></li>
+				
+					<li><a href="../Document/Reader.html">Document::Reader</a></li>
+				
+					<li><a href="../Document/Report.html">Document::Report</a></li>
+				
+					<li><a href="../Baclava/Reader.html">Baclava::Reader</a></li>
+				
+					<li><a href="../Baclava/Writer.html">Baclava::Writer</a></li>
+				
+				</ul>
+				<div id="no-class-search-results" style="display: none;">No matching classes.</div>
+			</div>
+
+			
+		</div>
+	</div>
+
+	<div id="documentation">
+		<h1 class="class">Enactor::Client</h1>
+
+		<div id="description">
+			<p>
+<a href="Client.html">Client</a> library for accessing a Taverna Remote
+execution service.
+</p>
+<p>
+Since the service is a rest interface, this library reflects that to a
+certain degree and many of the methods return URLs to be used by other
+methods.
+</p>
+<pre>
+ The main methods of interest are - in order of a normal execution:
+
+    execute_sync() -- Given a scufl document or the URL for a previously
+        uploaded workflow, and data as a hash or URL for previously
+        uploaded data, submit job for execution, wait for completion
+        (or a timeout) and retrieve results. This is a blocking
+        convenience method that can be used instead of the methods below.
+
+    upload_workflow() -- Given a scufl document as a string, upload the
+        workflow to the server for later execution. Return the URL for the
+        created workflow resource that can be used with submit_job()
+
+    upload_data()-- Given a hash of input values to a
+        workflow run, upload the data to the user's collection.
+        Return the URL for the created data resource that can be used with
+        submit_job()
+
+    submit_job() -- Given the URL for a workflow resource and optionally
+        the URL for a input data resource, submit the a to the server
+        to be executed. Return the URL to the created job resource.
+
+    get_job_status() -- Get the status of the job. Return one of the values from
+        Status.
+
+    finished?() -- Return True if the job is in a finished state. Note
+        that this also includes failed states.
+
+    wait_for_job() -- Wait until job has finished execution, or a maximum
+        timeout is exceeded.
+
+    get_job_outputs() -- Get the outputs produced by job.  Return a
+        hash which values are strings, lists of strings,
+        or deeper lists.
+</pre>
+<p>
+Most or all of these methods might in addition to stated exceptions also
+raise Net::HTTPError or InvalidResponseError if anything goes wrong in
+communicating with the service.
+</p>
+
+		</div>
+
+		<!-- Constants -->
+		
+		<div id="constants-list" class="section">
+			<h3 class="section-header">Constants</h3>
+			<dl>
+			
+				<dt><a name="NAMESPACES">NAMESPACES</a></dt>
+				
+				<dd class="description"><p>
+Name spaces used by various XML documents.
+</p></dd>
+				
+			
+				<dt><a name="MIME_TYPES">MIME_TYPES</a></dt>
+				
+				<dd class="description"><p>
+Mime types used by the rest protocol.
+</p>
+<pre>
+ See net.sf.taverna.service.interfaces.TavernaConstants.java
+</pre></dd>
+				
+			
+				<dt><a name="DEFAULT_TIMEOUT">DEFAULT_TIMEOUT</a></dt>
+				
+				<dd class="description missing-docs">(Not documented)</dd>
+				
+			
+				<dt><a name="DEFAULT_REFRESH">DEFAULT_REFRESH</a></dt>
+				
+				<dd class="description missing-docs">(Not documented)</dd>
+				
+			
+			</dl>
+		</div>
+		
+
+		<!-- Attributes -->
+		
+
+		<!-- Methods -->
+		
+		<div id="public-class-method-details" class="method-section section">
+			<h3 class="section-header">Public Class Methods</h3>
+
+		
+			<div id="new-method" class="method-detail ">
+				<a name="M000023"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">new</span><span
+						class="method-args">(url, username, password)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Construct a Taverna remote execution service client accessing the service
+at the given base URL.
+</p>
+<p>
+Note that this constructor will not attempt to verify the URL or the
+credentials. To verify, call <a
+href="Client.html#M000027">get_user_url</a>() which requires
+authentication.
+</p>
+<p>
+url &#8212; The base URL for the service, normally ending in /v1/, for
+example:
+</p>
+<pre>
+    &quot;http://myserver.com:8080/tavernaService/v1/&quot;
+</pre>
+<p>
+username &#8212; The username of a user that has been previously created or
+</p>
+<pre>
+    registered in the web interface of the service.
+</pre>
+<p>
+password &#8212; The password of the user. Note that the password will be
+sent
+</p>
+<pre>
+   over the wire using unencrypted HTTP Basic Auth, unless the URL starts
+ with &quot;https&quot;.
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="new-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 169</span>
+169:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">username</span>, <span class="ruby-identifier">password</span>)
+170:       <span class="ruby-ivar">@url</span> = <span class="ruby-identifier">url</span>
+171:       <span class="ruby-ivar">@username</span> = <span class="ruby-identifier">username</span>
+172:       <span class="ruby-ivar">@password</span> = <span class="ruby-identifier">password</span>
+173:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+		</div>
+	
+		<div id="public-instance-method-details" class="method-section section">
+			<h3 class="section-header">Public Instance Methods</h3>
+
+		
+			<div id="create-data-doc-method" class="method-detail ">
+				<a name="M000045"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">create_data_doc</span><span
+						class="method-args">(hash)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Create a data document to be uploaded with <a
+href="Client.html#M000041">upload_data_doc</a>().
+</p>
+<p>
+Return the data document a REXML::Document. This data document can be
+parsed using <a href="Client.html#M000039">parse_data_doc</a>()
+</p>
+<p>
+hash &#8212; A hash where the keys are strings, matching the names of input
+</p>
+<pre>
+ ports of the workflow to run. The values are Document::Data objects.
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="create-data-doc-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 389</span>
+389:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">create_data_doc</span>(<span class="ruby-identifier">hash</span>)
+390:       <span class="ruby-constant">Baclava</span><span class="ruby-operator">::</span><span class="ruby-constant">Writer</span>.<span class="ruby-identifier">write_doc</span>(<span class="ruby-identifier">hash</span>)
+391:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="create-job-doc-method" class="method-detail ">
+				<a name="M000046"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">create_job_doc</span><span
+						class="method-args">(workflow_url, inputs_url=nil)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Create a job document for submission with <a
+href="Client.html#M000060">submit_job</a>().
+</p>
+<p>
+Return the job document as XML.
+</p>
+<p>
+workflow_url &#8212; The URL of a workflow previously uploaded using
+</p>
+<pre>
+ upload_workflow()
+</pre>
+<p>
+inputs_url &#8212; The (optional) URL of a input document previously
+</p>
+<pre>
+ uploaded using upload_data_doc()
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="create-job-doc-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 402</span>
+402:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">create_job_doc</span>(<span class="ruby-identifier">workflow_url</span>, <span class="ruby-identifier">inputs_url</span>=<span class="ruby-keyword kw">nil</span>)
+403:       <span class="ruby-identifier">xml</span> = <span class="ruby-constant">Builder</span><span class="ruby-operator">::</span><span class="ruby-constant">XmlMarkup</span>.<span class="ruby-identifier">new</span>
+404:       <span class="ruby-identifier">xml</span>.<span class="ruby-identifier">instruct!</span>
+405:       <span class="ruby-constant">REXML</span><span class="ruby-operator">::</span><span class="ruby-constant">Document</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">xml</span>.<span class="ruby-identifier">job</span>(<span class="ruby-value str">'xmlns'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">NAMESPACES</span>[<span class="ruby-identifier">:service</span>], <span class="ruby-value str">'xmlns:xlink'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-constant">NAMESPACES</span>[<span class="ruby-identifier">:xlink</span>]) {
+406:         <span class="ruby-identifier">xml</span>.<span class="ruby-identifier">inputs</span>(<span class="ruby-value str">'xlink:href'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">inputs_url</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">inputs_url</span>
+407:         <span class="ruby-identifier">xml</span>.<span class="ruby-identifier">workflow</span>(<span class="ruby-value str">'xlink:href'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">workflow_url</span>)
+408:       })
+409:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="execute-sync-method" class="method-detail ">
+				<a name="M000073"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">execute_sync</span><span
+						class="method-args">(workflow_xml=nil, workflow_url=nil, inputs=nil, timeout=DEFAULT_TIMEOUT, refresh=DEFAULT_REFRESH)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Execute a workflow and wait until it&#8217;s finished.
+</p>
+<p>
+This will block until the workflow has been executed by the server, and
+return the result of the workflow run.
+</p>
+<p>
+Return the parsed output document as a hash where the keys are strings,
+matching the names of output ports of the workflow. The values are <a
+href="../Document/Data.html">Document::Data</a> objects. If the workflow
+did not produce any output, nil might be returned instead.
+</p>
+<p>
+workflow_xml &#8212; The workflow as a Taverna scufl XML string. This
+<b>or</b> the
+</p>
+<pre>
+ workflow_url parameter is required.
+</pre>
+<p>
+workflow_url &#8212; The URL to a workflow previously uploaded using
+</p>
+<pre>
+ upload_workflow(). This *or* the workflow_xml parameter is required.
+</pre>
+<p>
+inputs &#8212; The (optional) inputs to the workflow, either as a Baclava
+</p>
+<pre>
+ XML document (string), or as a hash where the keys are
+ strings, matching the names of input ports of the workflow. The
+ values can be strings, lists of strings, or deeper lists.
+</pre>
+<p>
+timeout &#8212; The maximum number of seconds (as a float) to wait for job.
+</p>
+<pre>
+ The default value is DEFAULT_TIMEOUT.
+</pre>
+<p>
+refresh &#8212; In seconds (as a float), how often to check the job&#8217;s
+</p>
+<pre>
+ status while waiting. The default value is DEFAULT_REFRESH.
+</pre>
+<p>
+Raises:
+</p>
+<pre>
+ NotCompleteError -- If the job did not complete, for instance because
+   the timeout was reached before completion.
+
+ urllib2.HTTPError -- If any step in submitting or requesting the status and
+   result of the job failed.
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="execute-sync-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 654</span>
+654:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">execute_sync</span>(<span class="ruby-identifier">workflow_xml</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">workflow_url</span>=<span class="ruby-keyword kw">nil</span>, <span class="ruby-identifier">inputs</span>=<span class="ruby-keyword kw">nil</span>, 
+655:             <span class="ruby-identifier">timeout</span>=<span class="ruby-constant">DEFAULT_TIMEOUT</span>, <span class="ruby-identifier">refresh</span>=<span class="ruby-constant">DEFAULT_REFRESH</span>)
+656:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">TypeError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;workflow_xml or worklowURL must be given&quot;</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">workflow_xml</span> <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">workflow_url</span> 
+657:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">TypeError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value str">&quot;Only one of workflow_xml and workflow_url can be given&quot;</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">workflow_xml</span> <span class="ruby-keyword kw">and</span> <span class="ruby-identifier">workflow_url</span>
+658:    
+659:       <span class="ruby-identifier">workflow_url</span> = <span class="ruby-identifier">upload_workflow</span>(<span class="ruby-identifier">workflow_xml</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">workflow_xml</span>
+660:       <span class="ruby-identifier">inputs_url</span> = <span class="ruby-identifier">upload_data</span>(<span class="ruby-identifier">inputs</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">inputs</span>
+661:       
+662:       <span class="ruby-identifier">job_url</span> = <span class="ruby-identifier">submit_job</span>(<span class="ruby-identifier">workflow_url</span>, <span class="ruby-identifier">inputs_url</span>)
+663:       <span class="ruby-identifier">status</span> = <span class="ruby-identifier">wait_for_job</span>(<span class="ruby-identifier">job_url</span>, <span class="ruby-identifier">timeout</span>, <span class="ruby-identifier">refresh</span>)
+664: 
+665:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">NotCompleteError</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">job_url</span>, <span class="ruby-identifier">status</span>) <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">status</span> <span class="ruby-operator">!=</span> <span class="ruby-constant">Status</span><span class="ruby-operator">::</span><span class="ruby-constant">COMPLETE</span>
+666:   
+667:       <span class="ruby-identifier">get_job_outputs</span>(<span class="ruby-identifier">job_url</span>)
+668:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="finished--method" class="method-detail ">
+				<a name="M000057"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">finished?</span><span
+						class="method-args">(job_url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Check if a job has finished in one way or another.
+</p>
+<p>
+Note that the job might have finished unsuccessfully. To check if a job is
+actually complete, check::
+</p>
+<pre>
+    get_job_status(job_url) == Status::COMPLETE.
+</pre>
+<p>
+Return True if the job is in a finished state, that is that the <a
+href="Status.html#M000021">Status.finished?</a>(<a
+href="Client.html#M000050">get_job_status</a>()) is True.
+</p>
+<p>
+job_url &#8212; The URL to a job resource previously created using
+</p>
+<pre>
+    #submit_job().
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="finished--source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 525</span>
+525:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">finished?</span>(<span class="ruby-identifier">job_url</span>)
+526:       <span class="ruby-identifier">status</span> = <span class="ruby-identifier">get_job_status</span>(<span class="ruby-identifier">job_url</span>)
+527:       <span class="ruby-constant">Status</span>.<span class="ruby-identifier">finished?</span>(<span class="ruby-identifier">status</span>)
+528:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-capabilities-doc-method" class="method-detail ">
+				<a name="M000026"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_capabilities_doc</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the capabilities document as a REXML::Document
+</p>
+<p>
+This document contains the links to the main collections of the service.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="get-capabilities-doc-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 180</span>
+180:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_capabilities_doc</span>
+181:       <span class="ruby-identifier">url</span> = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-ivar">@url</span>)
+182:       <span class="ruby-identifier">request</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span><span class="ruby-operator">::</span><span class="ruby-constant">Get</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">path</span>)
+183:       <span class="ruby-identifier">request</span>[<span class="ruby-value str">'Accept'</span>] = <span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:rest</span>]
+184:       <span class="ruby-identifier">request</span>.<span class="ruby-identifier">basic_auth</span> <span class="ruby-ivar">@username</span>, <span class="ruby-ivar">@password</span>
+185:       <span class="ruby-identifier">response</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">url</span>.<span class="ruby-identifier">port</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">http</span><span class="ruby-operator">|</span>
+186:         <span class="ruby-identifier">http</span>.<span class="ruby-identifier">request</span>(<span class="ruby-identifier">request</span>)
+187:       }
+188:       <span class="ruby-identifier">response</span>.<span class="ruby-identifier">value</span>
+189:       <span class="ruby-constant">REXML</span><span class="ruby-operator">::</span><span class="ruby-constant">Document</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>.<span class="ruby-identifier">body</span>)
+190:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-job-created-date-method" class="method-detail ">
+				<a name="M000051"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_job_created_date</span><span
+						class="method-args">(job_url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the date a previously submitted job was created.
+</p>
+<p>
+Return the date as a Datetime object.
+</p>
+<p>
+job_url &#8212; The URL to a job resource previously created using
+</p>
+<pre>
+ submit_job().
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="get-job-created-date-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 449</span>
+449:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_job_created_date</span>(<span class="ruby-identifier">job_url</span>)
+450:       <span class="ruby-identifier">job_document</span> = <span class="ruby-identifier">get_xml_doc</span>(<span class="ruby-identifier">job_url</span>)
+451:       <span class="ruby-comment cmt">#created = job_document.elements[&quot;{#{NAMESPACES[:dcterms]}}created&quot;]</span>
+452:       <span class="ruby-identifier">created</span> = <span class="ruby-identifier">job_document</span>.<span class="ruby-identifier">root</span>.<span class="ruby-identifier">elements</span>[<span class="ruby-value str">'dcterms:created'</span>].<span class="ruby-identifier">text</span>
+453:       <span class="ruby-constant">DateTime</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">created</span>)
+454:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-job-modified-date-method" class="method-detail ">
+				<a name="M000053"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_job_modified_date</span><span
+						class="method-args">(job_url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the date a previously submitted job was last modified.
+</p>
+<p>
+Return the date as a Datetime object.
+</p>
+<p>
+job_url &#8212; The URL to a job resource previously created using
+</p>
+<pre>
+ submit_job().
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="get-job-modified-date-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 462</span>
+462:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_job_modified_date</span>(<span class="ruby-identifier">job_url</span>)
+463:       <span class="ruby-identifier">job_document</span> = <span class="ruby-identifier">get_xml_doc</span>(<span class="ruby-identifier">job_url</span>)
+464:       <span class="ruby-comment cmt">#modified = job_document.elements[&quot;{#{NAMESPACES[:dcterms]}}modified&quot;]</span>
+465:       <span class="ruby-identifier">modified</span> = <span class="ruby-identifier">job_document</span>.<span class="ruby-identifier">root</span>.<span class="ruby-identifier">elements</span>[<span class="ruby-value str">'dcterms:modified'</span>].<span class="ruby-identifier">text</span>
+466:       <span class="ruby-constant">DateTime</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">modified</span>)
+467:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-job-outputs-method" class="method-detail ">
+				<a name="M000055"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_job_outputs</span><span
+						class="method-args">(job_url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the outputs of a job.
+</p>
+<p>
+Return the job outputs as a hash where the keys are strings, matching the
+names of output ports of the workflow. The values are <a
+href="../Document/Data.html">Document::Data</a> objects. If no outputs
+exists, nil is returned instead.
+</p>
+<p>
+job_url &#8212; The URL to a job resource previously created using
+</p>
+<pre>
+ submit_job().
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="get-job-outputs-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 493</span>
+493:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_job_outputs</span>(<span class="ruby-identifier">job_url</span>)
+494:       <span class="ruby-identifier">job_outputs</span> = <span class="ruby-identifier">get_job_outputs_doc</span>(<span class="ruby-identifier">job_url</span>)
+495:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">job_outputs</span>
+496:       <span class="ruby-identifier">parse_data_doc</span>(<span class="ruby-identifier">job_outputs</span>)
+497:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-job-outputs-doc-method" class="method-detail ">
+				<a name="M000033"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_job_outputs_doc</span><span
+						class="method-args">(job_url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the output document for a job.
+</p>
+<p>
+Return the output document as an REXML::Document object, or None if the job
+didn&#8217;t have an output document (yet). This document can be parsed
+using <a href="Client.html#M000039">parse_data_doc</a>().
+</p>
+<p>
+job_url &#8212; The URL to a job resource previously created using
+</p>
+<pre>
+ submit_job().
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="get-job-outputs-doc-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 263</span>
+263:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_job_outputs_doc</span>(<span class="ruby-identifier">job_url</span>)
+264:       <span class="ruby-identifier">outputs_url</span> = <span class="ruby-identifier">get_job_outputs_url</span>(<span class="ruby-identifier">job_url</span>)
+265:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">not</span> <span class="ruby-identifier">outputs_url</span>
+266:       <span class="ruby-identifier">get_xml_doc</span>(<span class="ruby-identifier">outputs_url</span>, <span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:baclava</span>])
+267:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-job-outputs-size-method" class="method-detail ">
+				<a name="M000056"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_job_outputs_size</span><span
+						class="method-args">(job_url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the size of the outputs of a job.
+</p>
+<p>
+Return the size of the outputs of a job in kilobytes. If no outputs exists,
+nil is returned instead.
+</p>
+<p>
+job_url &#8212; The URL to a job resource previously created using
+</p>
+<pre>
+ submit_job().
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="get-job-outputs-size-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 506</span>
+506:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_job_outputs_size</span>(<span class="ruby-identifier">job_url</span>)
+507:       <span class="ruby-identifier">outputs_url</span> = <span class="ruby-identifier">get_job_outputs_url</span>(<span class="ruby-identifier">job_url</span>)
+508:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">not</span> <span class="ruby-identifier">outputs_url</span>
+509:       <span class="ruby-identifier">get_xml_doc_size</span>(<span class="ruby-identifier">outputs_url</span>, <span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:baclava</span>])
+510:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-job-outputs-url-method" class="method-detail ">
+				<a name="M000031"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_job_outputs_url</span><span
+						class="method-args">(job_url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the URL to the output document for a job.
+</p>
+<p>
+It generally only makes sense to call this function if <a
+href="Client.html#M000050">get_job_status</a>() == Status::COMPLETED, but
+no check is enforced here.
+</p>
+<p>
+Return the URL to a data document produced by the job, or None if the job
+has not (yet) produced any output.
+</p>
+<p>
+job_url &#8212; The URL to a job resource previously created using
+</p>
+<pre>
+ submit_job().
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="get-job-outputs-url-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 247</span>
+247:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_job_outputs_url</span>(<span class="ruby-identifier">job_url</span>)
+248:       <span class="ruby-identifier">job_document</span> = <span class="ruby-identifier">get_xml_doc</span>(<span class="ruby-identifier">job_url</span>)
+249:       <span class="ruby-comment cmt">#outputs_element = job_document.root.elements[&quot;{#{NAMESPACES[:service]}}outputs&quot;]</span>
+250:       <span class="ruby-identifier">outputs_element</span> = <span class="ruby-identifier">job_document</span>.<span class="ruby-identifier">root</span>.<span class="ruby-identifier">elements</span>[<span class="ruby-value str">'outputs'</span>]
+251:       <span class="ruby-keyword kw">return</span> <span class="ruby-keyword kw">nil</span> <span class="ruby-keyword kw">if</span> <span class="ruby-keyword kw">not</span> <span class="ruby-identifier">outputs_element</span>
+252:       <span class="ruby-identifier">outputs_element</span>.<span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">get_attribute_ns</span>(<span class="ruby-constant">NAMESPACES</span>[<span class="ruby-identifier">:xlink</span>], <span class="ruby-value str">'href'</span>).<span class="ruby-identifier">value</span> 
+253:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-job-report-method" class="method-detail ">
+				<a name="M000054"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_job_report</span><span
+						class="method-args">(job_url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the job&#8217;s internal progress report. This might be available while
+the job is running.
+</p>
+<p>
+Return the internal progress report as a <a
+href="../Document/Report.html">Document::Report</a> object.
+</p>
+<p>
+job_url &#8212; The URL to a job resource previously created using <a
+href="Client.html#M000060">submit_job</a>().
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="get-job-report-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 475</span>
+475:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_job_report</span>(<span class="ruby-identifier">job_url</span>)
+476:       <span class="ruby-identifier">job_document</span> = <span class="ruby-identifier">get_xml_doc</span>(<span class="ruby-identifier">job_url</span>)
+477:       <span class="ruby-comment cmt">#report_element = job_document.elements[&quot;{#{NAMESPACES[:service]}}report&quot;]</span>
+478:       <span class="ruby-identifier">report_element</span> = <span class="ruby-identifier">job_document</span>.<span class="ruby-identifier">root</span>.<span class="ruby-identifier">elements</span>[<span class="ruby-value str">'report'</span>]
+479:       <span class="ruby-identifier">report_url</span> = <span class="ruby-identifier">report_element</span>.<span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">get_attribute_ns</span>(<span class="ruby-constant">NAMESPACES</span>[<span class="ruby-identifier">:xlink</span>], <span class="ruby-value str">'href'</span>).<span class="ruby-identifier">value</span>
+480:       <span class="ruby-comment cmt"># TODO: Cache report_url per job</span>
+481:       <span class="ruby-identifier">job_report_document</span> = <span class="ruby-identifier">get_xml_doc</span>(<span class="ruby-identifier">report_url</span>, <span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:report</span>])
+482:       <span class="ruby-constant">Document</span><span class="ruby-operator">::</span><span class="ruby-constant">Report</span>.<span class="ruby-identifier">from_document</span>(<span class="ruby-identifier">job_report_document</span>)
+483:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-job-status-method" class="method-detail ">
+				<a name="M000050"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_job_status</span><span
+						class="method-args">(job_url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the status of a previously submitted job.
+</p>
+<p>
+Return the status as a string, one of the values from <a
+href="Status.html">Status</a>.
+</p>
+<p>
+job_url &#8212; The URL to a job resource previously created using
+</p>
+<pre>
+ submit_job().
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="get-job-status-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 434</span>
+434:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_job_status</span>(<span class="ruby-identifier">job_url</span>)
+435:       <span class="ruby-identifier">job_document</span> = <span class="ruby-identifier">get_xml_doc</span>(<span class="ruby-identifier">job_url</span>)
+436:       <span class="ruby-comment cmt">#status = job_document.elements[&quot;{#{NAMESPACES[:service]}}status&quot;]</span>
+437:       <span class="ruby-identifier">status</span> = <span class="ruby-identifier">job_document</span>.<span class="ruby-identifier">root</span>.<span class="ruby-identifier">elements</span>[<span class="ruby-value str">'status'</span>]
+438:       <span class="ruby-comment cmt"># TODO: For future checks, use: </span>
+439:       <span class="ruby-comment cmt">#status_url = status.attributes.get_attribute_ns(NAMESPACES[:xlink], 'href').value</span>
+440:       <span class="ruby-identifier">status</span>.<span class="ruby-identifier">text</span>
+441:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-user-collection-url-method" class="method-detail ">
+				<a name="M000030"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_user_collection_url</span><span
+						class="method-args">(collection)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the URL to a user-owned collection.
+</p>
+<p>
+collectionType &#8212; The collection, either &#8220;workflows&#8221; or
+&#8220;datas&#8220;
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="get-user-collection-url-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 229</span>
+229:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_user_collection_url</span>(<span class="ruby-identifier">collection</span>)
+230:       <span class="ruby-identifier">user_doc</span> = <span class="ruby-identifier">get_user_doc</span>()
+231: 
+232:       <span class="ruby-comment cmt">#collections = user_doc.root.elements[&quot;{#{NAMESPACES[:service]}}#{collection}&quot;]</span>
+233:       <span class="ruby-identifier">collections</span> = <span class="ruby-identifier">user_doc</span>.<span class="ruby-identifier">root</span>.<span class="ruby-identifier">elements</span>[<span class="ruby-identifier">collection</span>]
+234:       <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">collections</span>.<span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">get_attribute_ns</span>(<span class="ruby-constant">NAMESPACES</span>[<span class="ruby-identifier">:xlink</span>], <span class="ruby-value str">'href'</span>).<span class="ruby-identifier">value</span>
+235:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-user-doc-method" class="method-detail ">
+				<a name="M000029"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_user_doc</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the user document as an REXML::Document object.
+</p>
+<p>
+This document contains the links to the user owned collections, such as
+where to upload workflows and jobs.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="get-user-doc-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 214</span>
+214:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_user_doc</span>
+215:       <span class="ruby-identifier">url</span> = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">get_user_url</span>())
+216:       <span class="ruby-identifier">request</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span><span class="ruby-operator">::</span><span class="ruby-constant">Get</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">path</span>)
+217:       <span class="ruby-identifier">request</span>[<span class="ruby-value str">'Accept'</span>] = <span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:rest</span>]
+218:       <span class="ruby-identifier">request</span>.<span class="ruby-identifier">basic_auth</span> <span class="ruby-ivar">@username</span>, <span class="ruby-ivar">@password</span>
+219:       <span class="ruby-identifier">response</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">url</span>.<span class="ruby-identifier">port</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">http</span><span class="ruby-operator">|</span>
+220:         <span class="ruby-identifier">http</span>.<span class="ruby-identifier">request</span>(<span class="ruby-identifier">request</span>)
+221:       }
+222:       <span class="ruby-identifier">response</span>.<span class="ruby-identifier">value</span>
+223:       <span class="ruby-constant">REXML</span><span class="ruby-operator">::</span><span class="ruby-constant">Document</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>.<span class="ruby-identifier">body</span>)
+224:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-user-url-method" class="method-detail ">
+				<a name="M000027"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_user_url</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Get the URL for the current user&#8217;s home on the server.
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="get-user-url-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 193</span>
+193:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_user_url</span>
+194:       <span class="ruby-identifier">capabilities_doc</span> = <span class="ruby-identifier">get_capabilities_doc</span>()
+195:       <span class="ruby-comment cmt">#currentUser = capabilities_doc.root.elements[&quot;{#{NAMESPACES[:service]}}currentUser&quot;]</span>
+196:       <span class="ruby-identifier">current_user</span> = <span class="ruby-identifier">capabilities_doc</span>.<span class="ruby-identifier">root</span>.<span class="ruby-identifier">elements</span>[<span class="ruby-value str">'currentUser'</span>]
+197:       <span class="ruby-identifier">current_user_url</span> = <span class="ruby-identifier">current_user</span>.<span class="ruby-identifier">attributes</span>.<span class="ruby-identifier">get_attribute_ns</span>(<span class="ruby-constant">NAMESPACES</span>[<span class="ruby-identifier">:xlink</span>], <span class="ruby-value str">'href'</span>).<span class="ruby-identifier">value</span>
+198:       
+199:       <span class="ruby-identifier">url</span> = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">current_user_url</span>)
+200:       <span class="ruby-identifier">request</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span><span class="ruby-operator">::</span><span class="ruby-constant">Get</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">path</span>)
+201:       <span class="ruby-identifier">request</span>[<span class="ruby-value str">'Accept'</span>] = <span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:rest</span>]
+202:       <span class="ruby-identifier">request</span>.<span class="ruby-identifier">basic_auth</span> <span class="ruby-ivar">@username</span>, <span class="ruby-ivar">@password</span>
+203:       <span class="ruby-identifier">response</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">url</span>.<span class="ruby-identifier">port</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">http</span><span class="ruby-operator">|</span>
+204:         <span class="ruby-identifier">http</span>.<span class="ruby-identifier">request</span>(<span class="ruby-identifier">request</span>)
+205:       }
+206:       <span class="ruby-identifier">response</span>.<span class="ruby-identifier">error!</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTPSuccess</span>) <span class="ruby-keyword kw">or</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTPRedirection</span>)
+207:       <span class="ruby-identifier">response</span>.<span class="ruby-identifier">header</span>[<span class="ruby-value str">'Location'</span>]
+208:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-xml-doc-method" class="method-detail ">
+				<a name="M000035"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_xml_doc</span><span
+						class="method-args">(doc_url, mimeType=MIME_TYPES[:rest])</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Retrieve an XML document from the given URL.
+</p>
+<p>
+Return the retrieved document as a REXML::Document.
+</p>
+<p>
+url &#8212; The URL to a resource retrievable as an XML document
+</p>
+<p>
+mimeType &#8212; The mime-type to request using the Accept header, by
+default
+</p>
+<pre>
+ MIME_TYPES[:rest]
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="get-xml-doc-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 277</span>
+277:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_xml_doc</span>(<span class="ruby-identifier">doc_url</span>, <span class="ruby-identifier">mimeType</span>=<span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:rest</span>])
+278:       <span class="ruby-identifier">url</span> = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">doc_url</span>)     
+279:       <span class="ruby-identifier">request</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span><span class="ruby-operator">::</span><span class="ruby-constant">Get</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">path</span>)
+280:       <span class="ruby-identifier">request</span>[<span class="ruby-value str">'Accept'</span>] = <span class="ruby-identifier">mimeType</span>
+281:       <span class="ruby-identifier">request</span>.<span class="ruby-identifier">basic_auth</span> <span class="ruby-ivar">@username</span>, <span class="ruby-ivar">@password</span>
+282:       <span class="ruby-identifier">response</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">url</span>.<span class="ruby-identifier">port</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">http</span><span class="ruby-operator">|</span>
+283:         <span class="ruby-identifier">http</span>.<span class="ruby-identifier">request</span>(<span class="ruby-identifier">request</span>)
+284:       }
+285:       <span class="ruby-identifier">response</span>.<span class="ruby-identifier">value</span>
+286:       <span class="ruby-constant">REXML</span><span class="ruby-operator">::</span><span class="ruby-constant">Document</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">response</span>.<span class="ruby-identifier">body</span>)
+287:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="get-xml-doc-size-method" class="method-detail ">
+				<a name="M000037"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">get_xml_doc_size</span><span
+						class="method-args">(doc_url, mimeType=MIME_TYPES[:rest])</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Return the size of an XML document from the given URL without fetching the
+document.
+</p>
+<p>
+Return the size of a XML document .
+</p>
+<p>
+url &#8212; The URL to a resource find the size of
+</p>
+<p>
+mimeType &#8212; The mime-type to request using the Accept header, by
+default
+</p>
+<pre>
+ MIME_TYPES[:rest]
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="get-xml-doc-size-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 298</span>
+298:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">get_xml_doc_size</span>(<span class="ruby-identifier">doc_url</span>, <span class="ruby-identifier">mimeType</span>=<span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:rest</span>])
+299:       <span class="ruby-identifier">url</span> = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">doc_url</span>)     
+300:       <span class="ruby-identifier">request</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span><span class="ruby-operator">::</span><span class="ruby-constant">Head</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">path</span>)
+301:       <span class="ruby-identifier">request</span>[<span class="ruby-value str">'Accept'</span>] = <span class="ruby-identifier">mimeType</span>
+302:       <span class="ruby-identifier">request</span>.<span class="ruby-identifier">basic_auth</span> <span class="ruby-ivar">@username</span>, <span class="ruby-ivar">@password</span>
+303:       <span class="ruby-identifier">response</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">url</span>.<span class="ruby-identifier">port</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">http</span><span class="ruby-operator">|</span>
+304:         <span class="ruby-identifier">http</span>.<span class="ruby-identifier">request</span>(<span class="ruby-identifier">request</span>)
+305:       }
+306:       <span class="ruby-identifier">response</span>.<span class="ruby-identifier">content_length</span>
+307:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="parse-data-doc-method" class="method-detail ">
+				<a name="M000039"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">parse_data_doc</span><span
+						class="method-args">(xml_document)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Parse a data document as returned from <a
+href="Client.html#M000033">get_job_outputs_doc</a>().
+</p>
+<p>
+Return a hash where the keys are strings, matching the names of
+</p>
+<pre>
+ ports of the workflow. The values are Document::Data objects.
+</pre>
+<p>
+xml &#8212; A data document as a REXML::Document. This data document can be
+created
+</p>
+<pre>
+ using create_data_doc()
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="parse-data-doc-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 316</span>
+316:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">parse_data_doc</span>(<span class="ruby-identifier">xml_document</span>)
+317:       <span class="ruby-constant">Baclava</span><span class="ruby-operator">::</span><span class="ruby-constant">Reader</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">xml_document</span>)
+318:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="service-valid--method" class="method-detail ">
+				<a name="M000065"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">service_valid?</span><span
+						class="method-args">()</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Checks if the username and password is valid for the service
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="service-valid--source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 574</span>
+574:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">service_valid?</span>
+575:       <span class="ruby-keyword kw">begin</span>
+576:         <span class="ruby-identifier">get_user_url</span>
+577:         <span class="ruby-keyword kw">true</span>
+578:       <span class="ruby-keyword kw">rescue</span>
+579:         <span class="ruby-keyword kw">false</span>
+580:       <span class="ruby-keyword kw">end</span>
+581:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="submit-job-method" class="method-detail ">
+				<a name="M000060"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">submit_job</span><span
+						class="method-args">(workflow_url, inputs_url=nil)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Submit a job to be queued for execution on the server.
+</p>
+<p>
+Return the URL to the created job resource.
+</p>
+<p>
+workflow_url &#8212; The URL of a workflow previously uploaded using
+</p>
+<pre>
+    upload_workflow()
+</pre>
+<p>
+inputs_url &#8212; The (optional) URL of a input resource previously
+</p>
+<pre>
+    uploaded using upload_data()
+</pre>
+<p>
+Raises:
+</p>
+<pre>
+    CouldNotCreateError -- If the service returned 200 OK instead of
+        creating the resource
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="submit-job-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 544</span>
+544:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">submit_job</span>(<span class="ruby-identifier">workflow_url</span>, <span class="ruby-identifier">inputs_url</span>=<span class="ruby-keyword kw">nil</span>)
+545:       <span class="ruby-identifier">job_document</span> = <span class="ruby-identifier">create_job_doc</span>(<span class="ruby-identifier">workflow_url</span>, <span class="ruby-identifier">inputs_url</span>)
+546:       <span class="ruby-identifier">submit_job_doc</span>(<span class="ruby-identifier">job_document</span>)
+547:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="submit-job-doc-method" class="method-detail ">
+				<a name="M000048"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">submit_job_doc</span><span
+						class="method-args">(job_document)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Submit a job to be queued for execution on the server.
+</p>
+<p>
+Return the URL to the job resource.
+</p>
+<p>
+job_document &#8212; A job document created with <a
+href="Client.html#M000046">create_job_doc</a>() specifying
+</p>
+<pre>
+ the workflow to run with which inputs.
+</pre>
+<p>
+Raises:
+</p>
+<pre>
+ CouldNotCreateError -- If the service returned 200 OK instead of
+   creating the resource
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="submit-job-doc-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 421</span>
+421:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">submit_job_doc</span>(<span class="ruby-identifier">job_document</span>)
+422:       <span class="ruby-identifier">jobsURL</span> = <span class="ruby-identifier">get_user_collection_url</span>(<span class="ruby-value str">&quot;jobs&quot;</span>)
+423:       <span class="ruby-identifier">upload_to_collection</span>(<span class="ruby-identifier">jobsURL</span>, <span class="ruby-identifier">job_document</span>.<span class="ruby-identifier">to_s</span>, <span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:rest</span>])    
+424:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="upload-data-method" class="method-detail ">
+				<a name="M000061"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">upload_data</span><span
+						class="method-args">(hash)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Upload data to be used with <a href="Client.html#M000060">submit_job</a>().
+</p>
+<p>
+Return the URL to the created data resource.
+</p>
+<p>
+hash &#8212; A hash where the keys are strings, matching the names of input
+</p>
+<pre>
+ ports of the workflow to run. The values can be strings, lists of strings, or deeper
+ lists.
+</pre>
+<p>
+Raises:
+</p>
+<pre>
+ CouldNotCreateError -- If the service returned 200 OK instead of
+   creating the resource
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="upload-data-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 560</span>
+560:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">upload_data</span>(<span class="ruby-identifier">hash</span>)
+561:       <span class="ruby-identifier">inputs</span> = <span class="ruby-identifier">create_data_doc</span>(<span class="ruby-identifier">hash</span>)
+562:       <span class="ruby-identifier">upload_data_doc</span>(<span class="ruby-identifier">inputs</span>)
+563:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="upload-data-doc-method" class="method-detail ">
+				<a name="M000041"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">upload_data_doc</span><span
+						class="method-args">(xml_document)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Upload a data document to the current user&#8217;s collection.
+</p>
+<p>
+Return the URL of the created data resource.
+</p>
+<p>
+xml &#8212; A data document as a REXML::Document. This data document can be
+created
+</p>
+<pre>
+ using create_data_doc()
+</pre>
+<p>
+Raises:
+</p>
+<pre>
+ CouldNotCreateError -- If the service returned 200 OK instead of
+   creating the resource
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="upload-data-doc-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 330</span>
+330:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">upload_data_doc</span>(<span class="ruby-identifier">xml_document</span>)
+331:       <span class="ruby-identifier">datas_url</span> = <span class="ruby-identifier">get_user_collection_url</span>(<span class="ruby-value str">&quot;datas&quot;</span>)
+332:       <span class="ruby-identifier">upload_to_collection</span>(<span class="ruby-identifier">datas_url</span>, <span class="ruby-identifier">xml_document</span>.<span class="ruby-identifier">to_s</span>, <span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:baclava</span>])
+333:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="upload-to-collection-method" class="method-detail ">
+				<a name="M000043"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">upload_to_collection</span><span
+						class="method-args">(url, data, content_type)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Upload data by POST-ing to given URL.
+</p>
+<p>
+Return the URL of the created resource if the request succeeded with 201
+Created.
+</p>
+<p>
+Raises:
+</p>
+<pre>
+ CouldNotCreateError -- If the service returned 200 OK instead of
+   creating the resource
+ Net::HTTPError -- If any other HTTP result code (including errors)
+   was returned
+</pre>
+<p>
+url &#8212; The URL of the collection of where to POST,
+</p>
+<pre>
+ normally retrieved using get_user_collection_url().
+</pre>
+<p>
+data &#8212; The data to upload as a string
+</p>
+<p>
+content_type &#8212; The MIME type of the data to upload. Typically the
+value
+</p>
+<pre>
+ of one of the MimeTypes constants. For data uploaded to the &quot;datas&quot; user
+ collection this would be MIME_TYPES[:baclava], and for workflow to the &quot;
+ workflows&quot; collection, MIME_TYPES[:scufl]. Any other XML documents from
+ the NAMESPACES[:service] namespace has the mime type MIME_TYPES[:rest]
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="upload-to-collection-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 366</span>
+366:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">upload_to_collection</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">data</span>, <span class="ruby-identifier">content_type</span>)
+367:       <span class="ruby-identifier">url</span> = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">url</span>)     
+368:       <span class="ruby-identifier">request</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span><span class="ruby-operator">::</span><span class="ruby-constant">Post</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">path</span>)
+369:       <span class="ruby-identifier">request</span>.<span class="ruby-identifier">body</span> = <span class="ruby-identifier">data</span>
+370:       <span class="ruby-identifier">request</span>[<span class="ruby-value str">'Accept'</span>] = <span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:rest</span>]
+371:       <span class="ruby-identifier">request</span>[<span class="ruby-value str">'Content-Type'</span>] = <span class="ruby-identifier">content_type</span>
+372:       <span class="ruby-identifier">request</span>.<span class="ruby-identifier">basic_auth</span> <span class="ruby-ivar">@username</span>, <span class="ruby-ivar">@password</span>
+373:       <span class="ruby-identifier">response</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">url</span>.<span class="ruby-identifier">port</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">http</span><span class="ruby-operator">|</span>
+374:         <span class="ruby-identifier">http</span>.<span class="ruby-identifier">request</span>(<span class="ruby-identifier">request</span>)
+375:       }
+376:       <span class="ruby-identifier">response</span>.<span class="ruby-identifier">value</span>     
+377:       <span class="ruby-identifier">raise</span> <span class="ruby-constant">CouldNotCreateError</span>(<span class="ruby-identifier">url</span>, <span class="ruby-identifier">response</span>) <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">response</span>.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTPCreated</span>)
+378:       <span class="ruby-identifier">response</span>.<span class="ruby-identifier">header</span>[<span class="ruby-value str">'Location'</span>]
+379:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="upload-workflow-method" class="method-detail ">
+				<a name="M000066"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">upload_workflow</span><span
+						class="method-args">(workflow_xml)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Upload a workflow XML document to the current users&#8217; collection.
+</p>
+<p>
+Return the URL of the created workflow resource.
+</p>
+<p>
+workflow_xml &#8212; The Taverna scufl workflow as a string
+</p>
+<p>
+Raises:
+</p>
+<pre>
+ CouldNotCreateError -- If the service returned 200 OK instead of
+   creating the resource
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="upload-workflow-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 592</span>
+592:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">upload_workflow</span>(<span class="ruby-identifier">workflow_xml</span>)
+593:       <span class="ruby-identifier">workflows_url</span> = <span class="ruby-identifier">get_user_collection_url</span>(<span class="ruby-value str">&quot;workflows&quot;</span>)
+594:       <span class="ruby-identifier">upload_to_collection</span>(<span class="ruby-identifier">workflows_url</span>, <span class="ruby-identifier">workflow_xml</span>, <span class="ruby-constant">MIME_TYPES</span>[<span class="ruby-identifier">:scufl</span>])
+595:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="url-valid--method" class="method-detail ">
+				<a name="M000042"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">url_valid?</span><span
+						class="method-args">(url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Tests if the url is valid for this server
+</p>
+					
+
+					
+					<div class="method-source-code"
+						id="url-valid--source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 336</span>
+336:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">url_valid?</span>(<span class="ruby-identifier">url</span>)
+337:       <span class="ruby-identifier">url</span> = <span class="ruby-constant">URI</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">url</span>)
+338:       <span class="ruby-identifier">req</span> = <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span><span class="ruby-operator">::</span><span class="ruby-constant">Head</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">path</span>)
+339:       <span class="ruby-identifier">req</span>.<span class="ruby-identifier">basic_auth</span> <span class="ruby-ivar">@username</span>, <span class="ruby-ivar">@password</span>
+340:       <span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTP</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">url</span>.<span class="ruby-identifier">host</span>, <span class="ruby-identifier">url</span>.<span class="ruby-identifier">port</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">http</span><span class="ruby-operator">|</span>
+341:       <span class="ruby-identifier">http</span>.<span class="ruby-identifier">request</span>(<span class="ruby-identifier">req</span>)
+342:       }.<span class="ruby-identifier">kind_of?</span>(<span class="ruby-constant">Net</span><span class="ruby-operator">::</span><span class="ruby-constant">HTTPSuccess</span>)
+343:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="wait-for-job-method" class="method-detail ">
+				<a name="M000071"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">wait_for_job</span><span
+						class="method-args">(job_url, timeout=DEFAULT_TIMEOUT, refresh=DEFAULT_REFRESH)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Wait (blocking) for a job to finish, or until a maximum timeout has been
+reached.
+</p>
+<p>
+Return the status of the job. If the
+</p>
+<p>
+job_url &#8212; The URL to a job resource previously created using
+</p>
+<pre>
+ submit_job().
+</pre>
+<p>
+timeout &#8212; The maximum number of seconds (as a float) to wait for job.
+</p>
+<pre>
+ The default value is DEFAULT_TIMEOUT.
+</pre>
+<p>
+refresh &#8212; In seconds (as a float), how often to check the job&#8217;s
+</p>
+<pre>
+ status while waiting. The default value is DEFAULT_REFRESH.
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="wait-for-job-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 610</span>
+610:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">wait_for_job</span>(<span class="ruby-identifier">job_url</span>, <span class="ruby-identifier">timeout</span>=<span class="ruby-constant">DEFAULT_TIMEOUT</span>, <span class="ruby-identifier">refresh</span>=<span class="ruby-constant">DEFAULT_REFRESH</span>)
+611:       <span class="ruby-identifier">now</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
+612:       <span class="ruby-identifier">_until</span> = <span class="ruby-identifier">now</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">timeout</span>
+613:       <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">_until</span> <span class="ruby-operator">&gt;</span> <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span> <span class="ruby-keyword kw">and</span> <span class="ruby-keyword kw">not</span> <span class="ruby-identifier">finished?</span>(<span class="ruby-identifier">job_url</span>)
+614:         <span class="ruby-identifier">now</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span> <span class="ruby-comment cmt"># finished?() might have taken a while</span>
+615:         <span class="ruby-identifier">sleep</span> [[<span class="ruby-identifier">refresh</span>, <span class="ruby-identifier">_until</span><span class="ruby-operator">-</span><span class="ruby-identifier">now</span>].<span class="ruby-identifier">min</span>, <span class="ruby-value">0</span>].<span class="ruby-identifier">max</span>
+616:         <span class="ruby-identifier">now</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span> <span class="ruby-comment cmt"># after the sleep</span>
+617:       <span class="ruby-keyword kw">end</span>         
+618:       <span class="ruby-identifier">get_job_status</span>(<span class="ruby-identifier">job_url</span>)
+619:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+			<div id="workflow-exists--method" class="method-detail ">
+				<a name="M000064"></a>
+
+				<div class="method-heading">
+				
+					<span class="method-name">workflow_exists?</span><span
+						class="method-args">(workflow_url)</span>
+					<span class="method-click-advice">click to toggle source</span>
+				
+				</div>
+
+				<div class="method-description">
+					
+					<p>
+Checks if the workflow exists on the server
+</p>
+<p>
+workflow_url &#8212; The URL to a workflow previously uploaded using
+</p>
+<pre>
+ upload_workflow().
+</pre>
+					
+
+					
+					<div class="method-source-code"
+						id="workflow-exists--source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/enactor/client.rb, line 569</span>
+569:     <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">workflow_exists?</span>(<span class="ruby-identifier">workflow_url</span>)
+570:       <span class="ruby-identifier">url_valid?</span>(<span class="ruby-identifier">workflow_url</span>)
+571:     <span class="ruby-keyword kw">end</span></pre>
+					</div>
+					
+				</div>
+
+				
+			</div>
+
+		
+		</div>
+	
+
+	</div>
+
+
+	<div id="rdoc-debugging-section-dump" class="debugging-section">
+	
+		<p>Disabled; run with --debug to generate this.</p>
+	
+	</div>
+
+	<div id="validator-badges">
+		<p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+		<p><small>Generated with the <a href="http://deveiate.org/projects/Darkfish-Rdoc/">Darkfish
+			Rdoc Generator</a> 1.1.6</small>.</p>
+	</div>
+
+</body>
+</html>
+
