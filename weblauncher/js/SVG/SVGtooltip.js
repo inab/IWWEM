@@ -223,6 +223,7 @@ Title.prototype = {
 			title=Title.TextOf(title).toString();
 		}
 		if (title && title!='scufl_graph'
+			&& title!='t2flow_graph'
 			&& title.indexOf('cluster_')!=0
 			&& title.indexOf('WORKFLOWINTERNALSOURCECONTROL')==-1
 			&& title.indexOf('WORKFLOWINTERNALSINKCONTROL')==-1

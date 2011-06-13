@@ -130,6 +130,7 @@ function SVGtramp(SVGDoc,/* optional */autoResize,svgURIHash) {
 					var textContent=SVGtramp.getTextContent(titles.item(0));
 					if(textContent && textContent.length > 0
 						&& textContent!='scufl_graph'
+						&& textContent!='t2flow_graph'
 						&& textContent.indexOf('cluster_')!=0
 						&& textContent.indexOf('WORKFLOWINTERNALSOURCECONTROL')==-1
 						&& textContent.indexOf('WORKFLOWINTERNALSINKCONTROL')==-1
@@ -950,6 +951,7 @@ SVGtramp.prototype = {
 						var textContent=SVGtramp.getTextContent(titles.item(0));
 						if(textContent && textContent.length > 0
 							&& textContent!='scufl_graph'
+							&& textContent!='t2flow_graph'
 							&& textContent.indexOf('cluster_')!=0
 							&& textContent.indexOf('WORKFLOWINTERNALSOURCECONTROL')==-1
 							&& textContent.indexOf('WORKFLOWINTERNALSINKCONTROL')==-1
