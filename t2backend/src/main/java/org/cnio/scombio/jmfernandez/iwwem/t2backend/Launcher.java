@@ -85,7 +85,7 @@ import org.apache.log4j.Logger;
  * {@link ApplicationConfig#PROPERTIES raven-launcher.properties}. The
  * {@link Launchable#launch(String[])} method is then executed.
  * 
- * @author Stian Soiland-Reyes
+ * Original author: Stian Soiland-Reyes
  * @author José María Fernández
  * 
  */
@@ -172,7 +172,7 @@ public class Launcher {
 			}
 		}
 		*/
-		return new T2IWWEMLauncher();
+		return (className.endsWith("T2IWWEMLauncher"))?new T2IWWEMLauncher():new T2IWWEMParser();
 		// throw new ClassNotFoundException("Could not find " + className);
 	}
 

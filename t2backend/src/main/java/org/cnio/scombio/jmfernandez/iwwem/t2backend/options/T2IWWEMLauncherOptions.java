@@ -321,7 +321,10 @@ public class T2IWWEMLauncherOptions {
 
 	@SuppressWarnings("static-access")
 	private Options intitialiseOptions() {
-		Option helpOption = new Option("help", "displays comprehensive help information");
+		Option helpOption = OptionBuilder
+				.withLongOpt("help")
+				.withDescription("displays comprehensive help information")
+				.create("h");
 
 		Option outputOption = OptionBuilder
 				.withArgName("directory")

@@ -307,7 +307,8 @@ public class Dot {
 						if("none".equals(port_style) || link.source_port == null) {
 							stream.print(" \""+prefix+processor.name+"\"");
 						} else {
-							stream.print(" \""+prefix+processor.name+"\":\"o"+link.source_port+"\"");
+							// stream.print(" \""+prefix+processor.name+"\":\"o"+link.source_port+"\"");
+							stream.print(" \""+prefix+processor.name+"\":\""+link.source_port+"\"");
 						}
 					}
 					break;
@@ -337,7 +338,8 @@ public class Dot {
 						if("none".equals(port_style) || link.sink_port == null) {
 							stream.print("\""+prefix+processor.name+"\"");
 						} else {
-							stream.print("\""+prefix+processor.name+"\":\"i"+link.sink_port+"\"");
+							// stream.print("\""+prefix+processor.name+"\":\"i"+link.sink_port+"\"");
+							stream.print("\""+prefix+processor.name+"\":\""+link.sink_port+"\"");
 						}
 					}
 					break;

@@ -171,21 +171,21 @@ public class T2IWWEMParser
 			Dataflow dataflow = launchInternal(args);
 			return dataflow!=null ? 0 : 1;
 		} catch (EditException e) {
-			error("There was an error opening the workflow: " + e.getMessage());
+			error("There was an error opening the workflow: " + e.getMessage(),e);
 		} catch (DeserializationException e) {
-			error("There was an error opening the workflow: " + e.getMessage());
+			error("There was an error opening the workflow: " + e.getMessage(),e);
 		} catch (InvalidDataflowException e) {
-			error("There was an error validating the workflow: " + e.getMessage());
+			error("There was an error validating the workflow: " + e.getMessage(),e);
 		} catch (TokenOrderException e) {
-			error("There was an error starting the workflow execution: " + e.getMessage());
+			error("There was an error starting the workflow execution: " + e.getMessage(),e);
 		} catch (InvalidOptionException e) {
-			error(e.getMessage());
+			error(e);
 		} catch (ReadInputException e) {
-			error(e.getMessage());
+			error(e);
 		} catch (OpenDataflowException e) {
-			error(e.getMessage());
+			error(e);
 		} catch (DatabaseConfigurationException e) {
-			error(e.getMessage());
+			error(e);
 		}
 		return 0;
 	}
@@ -256,11 +256,12 @@ public class T2IWWEMParser
 
 			if (options.getWorkflow() != null) {
 				URL workflowURL = readWorkflowURL(options.getWorkflow());
+				
+				// As this step does not depend on workflow validation
+				drawDataflow(workflowURL, options);
 
 				dataflow = openDataflow(workflowURL);
 				validateDataflow(dataflow);
-				
-				drawDataflow(workflowURL, options);
 			}
 		} else {
 			options.displayHelp();
@@ -465,7 +466,24 @@ public class T2IWWEMParser
 
 	protected void error(String msg)
 	{
-		System.err.println(msg);
+		error(msg,null);
+	}
+
+	protected void error(Throwable t)
+	{
+		error(null,t);
+	}
+
+	protected void error(String msg, Throwable t)
+	{
+		if(msg!=null)
+			System.err.println(msg);
+		
+		if(t!=null) {
+			if(msg==null)
+				System.err.println(t.getMessage());
+			t.printStackTrace();
+		}
 		System.exit(-1);
 	}
 
