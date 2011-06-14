@@ -56,15 +56,19 @@ function SVGtramp(SVGDoc,/* optional */autoResize,svgURIHash) {
 	if(defaultSVGURI) {
 		this.mainContainer = SVGDoc.createElementNS(SVGtramp.SVGNS,"g");
 		this.SVGroot.appendChild(this.mainContainer);
-		var throbberContainer = this.throbberContainer = SVGDoc.createElementNS(SVGtramp.SVGNS,"svg");
-		throbberContainer.setAttribute('width','100%');
-		throbberContainer.setAttribute('height','100%');
-		throbberContainer.setAttribute('viewBox','-100 -100 200 200');
-		throbberContainer.setAttribute('zoomAndPan','magnify');
-		throbberContainer.setAttribute('preserveAspectRatio','xMidYMid meet');
-		throbberContainer.setAttribute('display','none');
-		this.SVGroot.appendChild(this.throbberContainer);
-		this.throbber=new Throbber(SVGDoc,this.throbberContainer);
+		if(window.Throbber) {
+			var throbberContainer = this.throbberContainer = SVGDoc.createElementNS(SVGtramp.SVGNS,"svg");
+			throbberContainer.setAttribute('width','100%');
+			throbberContainer.setAttribute('height','100%');
+			throbberContainer.setAttribute('viewBox','-100 -100 200 200');
+			throbberContainer.setAttribute('zoomAndPan','magnify');
+			throbberContainer.setAttribute('preserveAspectRatio','xMidYMid meet');
+			throbberContainer.setAttribute('display','none');
+			this.SVGroot.appendChild(this.throbberContainer);
+			this.throbber=new Throbber(SVGDoc,this.throbberContainer);
+		} else {
+			this.throbberContainer = undefined;
+		}
 	} else {
 		this.mainContainer = undefined;
 		this.throbberContainer = undefined;
