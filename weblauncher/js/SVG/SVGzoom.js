@@ -127,6 +127,8 @@ function SVGzoom(doc,myMapApp,/*optional*/ gElem, scaleX, scaleY) {
 			var xPosTrans=point.x;
 			var yPosTrans=point.y;
 			
+			/*
+			// Which is the logic behind this?!?
 			var pointG=docEl.createSVGPoint();
 			pointG.x = xPos;
 			pointG.y = yPos;
@@ -135,6 +137,10 @@ function SVGzoom(doc,myMapApp,/*optional*/ gElem, scaleX, scaleY) {
 			
 			var x = pointG.x;
 			var y = pointG.y;
+			*/
+			
+			var x = xPosTrans;
+			var y = yPosTrans;
 			
 			x -= thiszoom.zoomW/(2.0*thiszoom.scaleX);
 			y -= thiszoom.zoomH/(2.0*thiszoom.scaleY);
@@ -270,14 +276,17 @@ SVGzoom.prototype = {
 		if(gElem) {
 			if(!other)
 				other=gElem;
-			this.gElem = gElem;
 			this.other = other;
-			var gId=gElem.getAttribute('id');
-			if(!gId) {
-				gId='GPoint';
-				gElem.setAttribute('id',gId);
+			
+			if(gElem!=this.gElem) {
+				this.gElem = gElem;
+				var gId=gElem.getAttribute('id');
+				if(!gId) {
+					gId='GPoint';
+					gElem.setAttribute('id',gId);
+				}
+				this.useElem.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+gId);
 			}
-			this.useElem.setAttributeNS('http://www.w3.org/1999/xlink','href','#'+gId);
 		}
 	},
 	rescale: function (sw,/*optional*/ sh) {
