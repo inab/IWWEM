@@ -16,7 +16,7 @@
 	You should have received a copy of the GNU Affero General Public License
 	along with IWWE&M.  If not, see <http://www.gnu.org/licenses/agpl.txt>.
 
-	Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008.
+	Original IWWE&M concept, design and coding done by José María Fernández González, INB (C) 2008-2011.
 	Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 -->
 <project basedir="." default="compile" name="inb-workflow-launcher-system">
@@ -126,7 +126,9 @@
 			<arg value="-s"/>
 			<arg value="${maven.settings.t2backend}"/>
 			<arg value="package"/>
+			<!--
 			<arg value="assembly:assembly"/>
+			-->
 		</exec>
 	</target>
 	
