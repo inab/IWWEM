@@ -70,6 +70,7 @@ import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.InvalidOptionExce
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.OpenDataflowException;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.ReadInputException;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.options.T2IWWEMLauncherOptions;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.options.T2IWWEMParserOptions;
 import net.sf.taverna.t2.facade.WorkflowInstanceFacade;
 import net.sf.taverna.t2.invocation.InvocationContext;
 import net.sf.taverna.t2.invocation.TokenOrderException;
@@ -139,6 +140,12 @@ public class T2IWWEMLauncher
 	 */
 	public static void main(String[] args) {
 		new T2IWWEMLauncher().launch(args);
+	}
+	
+	protected T2IWWEMParserOptions parseOptions(String[] args)
+		throws InvalidOptionException
+	{
+		return new T2IWWEMLauncherOptions(args);
 	}
 	
 	public Dataflow setupAndExecute(String[] args,T2IWWEMLauncherOptions options)

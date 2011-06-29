@@ -58,7 +58,7 @@ import java.util.Properties;
 import javax.naming.NamingException;
 
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.DatabaseConfigurationException;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.options.T2IWWEMLauncherOptions;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.options.T2IWWEMParserOptions;
 import net.sf.taverna.t2.workbench.reference.config.DataManagementConfiguration;
 import net.sf.taverna.t2.workbench.reference.config.DataManagementHelper;
 
@@ -75,11 +75,11 @@ import org.apache.log4j.Logger;
  */
 public class DatabaseConfigurationHandler {
 
-	private final T2IWWEMLauncherOptions options;
+	private final T2IWWEMParserOptions options;
 	private DataManagementConfiguration dbConfig;
 	private static Logger logger = Logger.getLogger(DatabaseConfigurationHandler.class);
 
-	public DatabaseConfigurationHandler(T2IWWEMLauncherOptions options) {
+	public DatabaseConfigurationHandler(T2IWWEMParserOptions options) {
 		this.options = options;
 		dbConfig = DataManagementConfiguration.getInstance();
 		dbConfig.disableAutoSave();

@@ -88,12 +88,11 @@ import net.sf.taverna.t2.workflowmodel.serialization.xml.XMLDeserializerRegistry
 import org.cnio.scombio.jmfernandez.iwwem.common.PatchDotSVG;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.DatabaseConfigurationHandler;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.InputsHandler;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.data.SaveResultsHandler;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.DatabaseConfigurationException;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.InvalidOptionException;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.OpenDataflowException;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.exceptions.ReadInputException;
-import org.cnio.scombio.jmfernandez.iwwem.t2backend.options.T2IWWEMLauncherOptions;
+import org.cnio.scombio.jmfernandez.iwwem.t2backend.options.T2IWWEMParserOptions;
 
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.parser.Dot;
 import org.cnio.scombio.jmfernandez.iwwem.t2backend.parser.Model;
@@ -195,19 +194,25 @@ public class T2IWWEMParser
 			TokenOrderException, InvalidOptionException, ReadInputException,
 			OpenDataflowException, DatabaseConfigurationException
 	{
-		T2IWWEMLauncherOptions options = new T2IWWEMLauncherOptions(args);
+		T2IWWEMParserOptions options = parseOptions(args);
 		initialiseLogging(options);
 		return setupAndExecute(args,options);
 	}
 	
-	private void initialiseLogging(T2IWWEMLauncherOptions options)
+	protected T2IWWEMParserOptions parseOptions(String[] args)
+		throws InvalidOptionException
+	{
+		return new T2IWWEMParserOptions(args);
+	}
+	
+	private void initialiseLogging(T2IWWEMParserOptions options)
 	{
 		LogManager.resetConfiguration();
 
 		if (System.getProperty("log4j.configuration") == null) {
 			try {
 				PropertyConfigurator.configure(
-					T2IWWEMLauncher.class.getClassLoader()
+					T2IWWEMParser.class.getClassLoader()
 						.getResource("cl-log4j.properties")
 						.toURI()
 						.toURL()
@@ -245,7 +250,7 @@ public class T2IWWEMParser
 		}
 	}
 
-	public Dataflow setupAndExecute(String[] args,T2IWWEMLauncherOptions options)
+	public Dataflow setupAndExecute(String[] args,T2IWWEMParserOptions options)
 		throws InvalidOptionException, EditException, DeserializationException,
 			InvalidDataflowException, TokenOrderException, ReadInputException,
 			OpenDataflowException, DatabaseConfigurationException
@@ -295,7 +300,7 @@ public class T2IWWEMParser
 		}
 	}
 	
-	protected void drawDataflow(URL dataflowURL,T2IWWEMLauncherOptions options)
+	protected void drawDataflow(URL dataflowURL,T2IWWEMParserOptions options)
 		throws OpenDataflowException, ReadInputException
 	{
 		String dotFilename = options.getDOTFile();
@@ -434,7 +439,7 @@ public class T2IWWEMParser
 	*/
 	}
 
-	private void setupDatabase(T2IWWEMLauncherOptions options)
+	private void setupDatabase(T2IWWEMParserOptions options)
 		throws DatabaseConfigurationException
 	{
 		DatabaseConfigurationHandler dbHandler = new DatabaseConfigurationHandler(options);
