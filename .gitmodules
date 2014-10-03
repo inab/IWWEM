@@ -1,0 +1,12 @@
+[submodule "weblauncher/cgi-bin/LockNLog"]
+	path = weblauncher/cgi-bin/LockNLog
+	url = https://github.com/inab/LockNLog.git
+	branch = master
+[submodule "weblauncher/js/CKeditor"]
+	path = weblauncher/js/CKeditor
+	url = https://github.com/ckeditor/ckeditor-releases.git
+	branch = master
+[submodule "ORFandDB-X"]
+	path = ORFandDB-X
+	url = https://github.com/inab/ORFandDB-X.git
+	branch = master
