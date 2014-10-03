@@ -466,10 +466,21 @@ if($retval==0 && !$query->cgi_error() && defined($exampleName) && defined($workf
 	$example->setAttribute('date',LockNLog::getPrintableNow());
 	$example->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
 	$example->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+	
+	# New style
+	my($respnode)=$catalog->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'responsible');
+	$respnode->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+	$respnode->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+	$example->appendChild($respnode);
+	
 	my($exAutoUUID)=IWWEM::WorkflowCommon::genUUID();
 	$example->setAttribute($IWWEM::WorkflowCommon::AUTOUUID,$exAutoUUID);
+	
+	# New style
 	if(defined($exampleDesc) && length($exampleDesc) > 0) {
-		$example->appendChild($catalog->createCDATASection($exampleDesc));
+		my($descnode)=$catalog->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'description');
+		$descnode->appendChild($catalog->createCDATASection($exampleDesc));
+		$example->appendChild($descnode);
 	}
 	
 	# Save example name and description

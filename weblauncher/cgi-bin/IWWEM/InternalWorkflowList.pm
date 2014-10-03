@@ -361,9 +361,10 @@ sub getWorkflowInfo($@) {
 					$release=$release->nextSibling();
 				}
 				
-				# Now, the responsible person
+				# Now, the responsible(s) person/people
 				my($responsibleMail)='';
 				my($responsibleName)='';
+				my(@resarr)=();
 				eval {
 					my($res)=undef;
 					if(defined($isSnapshot)) {
@@ -375,11 +376,41 @@ sub getWorkflowInfo($@) {
 						$res = $parser->parse_file($wfresp)->documentElement();
 					}
 					if(defined($res)) {
-						$responsibleMail=$res->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
-						$responsibleName=$res->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME);
+						my($respnode)=$res->firstChild();
+						my($first)=1;
+						while(defined($respnode)) {
+							if($respnode->nodeType()==XML::LibXML::XML_ELEMENT_NODE && $respnode->localname() eq 'responsible') {
+								push(@resarr,$respnode);
+								if(defined($first)) {
+									$responsibleMail=$respnode->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+									$responsibleName=$respnode->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME);
+									$first=undef;
+								}
+							}
+							$respnode=$respnode->nextSibling();
+						}
+						
+						unless(scalar(@resarr)>0) {
+							$responsibleMail=$res->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+							$responsibleName=$res->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME);
+						}
 					}
 				};
-	
+				
+				if(scalar(@resarr)>0) {
+					# New Storage format
+					my($refnode)=$release->firstChild();
+					foreach my $res (@resarr) {
+						$release->insertBefore($outputDoc->importNode($res),$refnode);
+					}
+				} else {
+					# Old Storage format
+					my($res)=$outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'responsible');
+					$res->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+					$res->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+					$release->insertBefore($res,$release->firstChild());
+				}
+				# To keep some backward compatibility
 				$release->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
 				$release->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 				
@@ -418,7 +449,7 @@ sub getWorkflowInfo($@) {
 						if(-f $fentry && $fentry =~ /\.xml$/) {
 							my($depnode) = $outputDoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'dependsOn');
 							$depnode->setAttribute('sub',$depreldir.'/'.$entry);
-							$$release->insertAfter($depnode,$refnode);
+							$release->insertAfter($depnode,$refnode);
 							$refnode=$depnode;
 						}
 					}
@@ -814,8 +845,15 @@ sub sendEnactionReport($\@;$$$$$$) {
 					
 					eval {
 						my($responsiblefile)=$jobdir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE;
-						my($rp)=$parser->parse_file($responsiblefile);
-						$resMail=$rp->documentElement()->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL);
+						my($rp)=$parser->parse_file($responsiblefile)->documentElement();
+						if($rp->localname() eq 'responsibles') {
+							$rp=$rp->firstChild();
+							while(defined($rp) && ($rp->nodeType()!=XML::LibXML::XML_ELEMENT_NODE || $rp->localname() ne 'responsible')) {
+								$rp=$rp->nextSibling();
+							}
+						}
+						
+						$resMail=defined($rp)?$rp->getAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL):'';
 						
 						my($workflowfile)=$jobdir.'/'.$IWWEM::WorkflowCommon::WORKFLOWFILE;
 						my($uwk)=IWWEM::UniversalWorkflowKind->new();
@@ -924,7 +962,7 @@ sub sendEnactionReport($\@;$$$$$$) {
 							$includeSubs=undef;
 						}
 	
-						if($state ne 'fatal' && defined($enactionReport) && $enactionReport->localname eq 'enactionReportError') {
+						if($state ne 'fatal' && defined($enactionReport) && $enactionReport->localname() eq 'enactionReportError') {
 							$state='fatal';
 						}
 					} else {
@@ -991,10 +1029,20 @@ sub sendEnactionReport($\@;$$$$$$) {
 							$snapnode->setAttribute('date',LockNLog::getPrintableNow());
 							$snapnode->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
 							$snapnode->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+							
+							# New style
+							my($respnode)=$catdoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'responsible');
+							$respnode->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
+							$respnode->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
+							$snapnode->appendChild($respnode);
+							
 							my($snapAutoUUID)=IWWEM::WorkflowCommon::genUUID();
 							$snapnode->setAttribute($IWWEM::WorkflowCommon::AUTOUUID,$snapAutoUUID);
 							if(defined($snapshotDesc) && length($snapshotDesc)>0) {
-								$snapnode->appendChild($catdoc->createCDATASection($snapshotDesc));
+								# New style
+								my($docnode)=$catdoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'documentation');
+								$docnode->appendChild($catdoc->createCDATASection($snapshotDesc));
+								$snapnode->appendChild($docnode);
 							}
 							
 							$catdoc->setDocumentElement($snapnode);

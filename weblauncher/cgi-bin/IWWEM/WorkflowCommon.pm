@@ -302,12 +302,16 @@ sub createResponsibleFile($$;$) {
 	
 	eval {
 		my($resdoc)=XML::LibXML::Document->createDocument('1.0','UTF-8');
+		my($resroots)=$resdoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'responsibles');
 		my($resroot)=$resdoc->createElementNS($IWWEM::WorkflowCommon::WFD_NS,'responsible');
+		$resroots->appendChild($resroot);
+		
 		$resroot->appendChild($resdoc->createComment( encode('UTF-8',$IWWEM::WorkflowCommon::COMMENTEL) ));
 		$resroot->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLEMAIL,$responsibleMail);
 		$resroot->setAttribute($IWWEM::WorkflowCommon::RESPONSIBLENAME,$responsibleName);
 		$resroot->setAttribute($IWWEM::WorkflowCommon::AUTOUUID,$autoUUID);
-		$resdoc->setDocumentElement($resroot);
+		
+		$resdoc->setDocumentElement($resroots);
 		$resdoc->toFile($basedir.'/'.$IWWEM::WorkflowCommon::RESPONSIBLEFILE);
 	};
 	

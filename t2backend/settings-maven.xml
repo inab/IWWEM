@@ -34,6 +34,15 @@ Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 					<snapshots>
 						<enabled>false</enabled>
 					</snapshots>
+					<id>mygrid-repository</id>
+					<name>myGrid Repository</name>
+					<url>http://www.mygrid.org.uk/maven/repository</url>
+				</repository>
+				<repository>
+					<releases />
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
 					<id>mygrid-repo1</id>
 					<name>myGrid Repo1</name>
 					<url>http://www.mygrid.org.uk/maven/repo1/</url>
@@ -64,15 +73,6 @@ Source code of IWWE&M is available at http://trac.bioinfo.cnio.es/trac/iwwem
 					<id>tupelo-repository</id>
 					<name>tupelo Repository</name>
 					<url>http://dlt-dev.ncsa.uiuc.edu/m2/</url>
-				</repository>
-				<repository>
-					<releases />
-					<snapshots>
-						<enabled>false</enabled>
-					</snapshots>
-					<id>mygrid-repository</id>
-					<name>myGrid Repository</name>
-					<url>http://www.mygrid.org.uk/maven/repository</url>
 				</repository>
 				<repository>
 					<releases>
